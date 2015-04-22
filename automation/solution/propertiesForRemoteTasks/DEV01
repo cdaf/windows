@@ -1,0 +1,6 @@
+# Mandatory properties to land package on host
+deployHost=localhost
+deployLand=c:\deploy
+
+# Example property for deploying a web application using Web Deploy
+iisPath=MVC/dev
