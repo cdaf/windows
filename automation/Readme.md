@@ -2,8 +2,8 @@ Automated build and Deploy
 ==========================
 
 Author  : Jules Clements
-Version : 19-Apr-2015
-Version : 0.8.0 PR3 (Pre Release with package test)
+Version : 23-Apr-2015
+Version : 0.8.0 PR4 (chunk copy, Package Detection and windows carriage returns)
 
 Framework Overview
 ==================
