@@ -27,11 +27,15 @@ echo [%~nx0]   LOCAL_WORK_DIR  : %LOCAL_WORK_DIR%
 echo [%~nx0]   REMOTE_WORK_DIR : %REMOTE_WORK_DIR%
 echo [%~nx0]   ACTION          : %ACTION%
 echo.
-echo [%~nx0] ---------- Remote Task Execution ----------
+echo [%~nx0] ---------------------
+echo [%~nx0] Remote Task Execution
+echo [%~nx0] ---------------------
+echo.
+echo [%~nx0] ---------- CD Toolset Configuration Guide -------------
 echo.
 echo [%~nx0] For TeamCity ...
-echo Command Executable : \%LOCAL_WORK_DIR%\remoteTasks.bat 
-echo Command parameters : %ENVIRONMENT% %%build.number%% %SOLUTION% %LOCAL_WORK_DIR%
+echo   Command Executable : \%LOCAL_WORK_DIR%\remoteTasks.bat 
+echo   Command parameters : %ENVIRONMENT% %%build.number%% %SOLUTION% %LOCAL_WORK_DIR%
 echo.
 echo [%~nx0] For Bamboo ...
 echo Script file : ${bamboo.build.working.directory}\%LOCAL_WORK_DIR%\remoteTasks.bat
@@ -48,7 +52,7 @@ echo [%~nx0] For BuildMaster ...
 echo Executable file : \%LOCAL_WORK_DIR%\remoteTasks.bat 
 echo Arguments : %SOLUTION% + " ${BuildNumber} " + %SOLUTION% + " " + %LOCAL_WORK_DIR%
 echo.
-echo [%~nx0] -------------------------------------------
+echo [%~nx0] -------------------------------------------------------
 echo.
 call "%cd%\%LOCAL_WORK_DIR%\remoteTasks.bat" %ENVIRONMENT% %BUILD% %SOLUTION% %LOCAL_WORK_DIR%
 set result=%errorlevel%
@@ -58,9 +62,12 @@ if %result% NEQ 0 (
 	echo [%~nx0] Errorlevel = %result%
 	exit /b %result%
 )
-
 echo.
-echo [%~nx0] ---------- Local Task Execution ----------
+echo [%~nx0] --------------------
+echo [%~nx0] Local Task Execution
+echo [%~nx0] --------------------
+echo.
+echo [%~nx0] ---------- CD Toolset Configuration Guide -------------
 echo.
 echo [%~nx0] For TeamCity ...
 echo Command Executable : \%LOCAL_WORK_DIR%\localTasks.bat 
@@ -81,7 +88,7 @@ echo [%~nx0] For BuildMaster ...
 echo Executable file : \%LOCAL_WORK_DIR%\localTasks.bat 
 echo Arguments : %SOLUTION% + " ${BuildNumber} " + %SOLUTION% + " " + %LOCAL_WORK_DIR%
 echo.
-echo [%~nx0] -------------------------------------------
+echo [%~nx0] -------------------------------------------------------
 echo.
 call "%cd%\%LOCAL_WORK_DIR%\localTasks.bat" %ENVIRONMENT% %BUILD% %SOLUTION% %LOCAL_WORK_DIR%
 set result=%errorlevel%

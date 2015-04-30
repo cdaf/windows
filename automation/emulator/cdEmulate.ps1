@@ -24,19 +24,26 @@ function itemRemove ($itemPath) {
 	}
 }
 
-$exitStatus          = 0
 $scriptName          = $MyInvocation.MyCommand.Name
 
+# Framework structure
+$AUTOMATIONROOT      = "automation"
 $automationHelper    = "$AUTOMATIONROOT\remote"
-$environmentBuild    = "BUILD"
-$environmentDelivery = "DEV"
 $workDirLocal        = "TasksLocal"
 $workDirRemote       = "TasksRemote"
 
-# This first line reflects the batch override launcher logging and is included to aid in text alignment
-#            echo [%~nx0]   ACTION              : %ACTION%
+# Build and Delivery Properties Lookup values
+$environmentBuild    = "BUILD"
+$environmentDelivery = "DEV"
 Write-Host "[$scriptName]   environmentBuild    : $environmentBuild"
 Write-Host "[$scriptName]   environmentDelivery : $environmentDelivery"
+
+# Use timestamp to ensure unique build number and emulate the revision ID (source control)
+# In Bamboo parameter is  ${bamboo.buildNumber}
+$buildNumber=get-date -f yyyyMMddHHmmss
+$revision=get-date -f HHmmss
+Write-Host "[$scriptName]   buildNumber         : $buildNumber"
+Write-Host "[$scriptName]   revision            : $revision"
 
 # Check for user defined solution folder, i.e. outside of automation root, if found override solution root
 Write-Host "[$scriptName]   solutionRoot        : " -NoNewline
@@ -57,41 +64,40 @@ if ($solutionRoot) {
 # Check for customised CI process
 Write-Host "[$scriptName]   ciProcess           : " -NoNewline
 if (Test-Path "$solutionRoot\cdEmulate-ci.bat") {
-	$ciProcess="$solutionRoot\cdEmulate\cdEmulate-ci.bat"
+	$ciProcess="$solutionRoot\cdEmulate-ci.bat"
 	write-host "$ciProcess (override)"
 } else {
-	$ciProcess="$AUTOMATIONROOT\cdEmulate\cdEmulate-ci.bat"
+	$ciProcess="$AUTOMATIONROOT\emulator\cdEmulate-ci.bat"
 	write-host "$ciProcess (default)"
 }
 
 # Check for customised Delivery process
 Write-Host "[$scriptName]   cdProcess           : " -NoNewline
 if (Test-Path "$solutionRoot\cdEmulate-deliver.bat") {
-	$cdProcess="$solutionRoot\cdEmulate\cdEmulate-deliver.bat"
+	$cdProcess="$solutionRoot\cdEmulate-deliver.bat"
 	write-host "$cdProcess (override)"
 } else {
-	$cdProcess="$AUTOMATIONROOT\cdEmulate\cdEmulate-deliver.bat"
+	$cdProcess="$AUTOMATIONROOT\emulator\cdEmulate-deliver.bat"
 	write-host "$cdProcess (default)"
 }
 
+# If a solution properties file exists, load the properties
 if (Test-Path "$solutionRoot\CDAF.solution") {
 	write-host
 	write-host "[$scriptName] Load Solution Properties $solutionRoot\CDAF.solution"
 	& .\$automationHelper\Transform.ps1 "$solutionRoot\CDAF.solution" | ForEach-Object { invoke-expression $_ }
 }
 
-if (! $solution) {
-	$solution = $(Get-Item -Path .).Name
+# CDM-70 : If the Solution is not defined in the CDAF.solution file, use current working directory
+# In Jenkins parameter is JOB_NAME 
+if (! $solutionName) {
+	$solutionName = $(Get-Item -Path .).Name
 	write-host
-	write-host "[$scriptName] Solution name not defined in $solutionRoot\CDAF.solution, defaulting to current path, $solution"
+	write-host "[$scriptName] Solution name (solutionName) not defined in $solutionRoot\CDAF.solution, defaulting to current working directory, $solutionName"
 }
 
-# Use timestamp to ensure unique build number and emulate the revision ID (source control)
-$buildNumber=get-date -f yyyyMMddHHmmss
-$revision=get-date -f HHmmss
-
 # Process Build and Package
-& $ciProcess $solution $environmentBuild $buildNumber $revision $AUTOMATIONROOT $workDirLocal $workDirRemote $ACTION
+& $ciProcess $solutionName $environmentBuild $buildNumber $revision $AUTOMATIONROOT $workDirLocal $workDirRemote $ACTION
 if(!$?){ exitWithCode $ciProcess }
 
 # Do not process Remote and Local Tasks if the action is just clean
@@ -99,7 +105,7 @@ if ( $ACTION -eq "clean" ) {
 	write-host
 	write-host "[$scriptName] No Delivery Action attempted when clean only action"
 } else {
-	& $cdProcess $solution $environmentDelivery $buildNumber $revision $AUTOMATIONROOT $workDirLocal $workDirRemote $ACTION
+	& $cdProcess $solutionName $environmentDelivery $buildNumber $revision $AUTOMATIONROOT $workDirLocal $workDirRemote $ACTION
 	if(!$?){ exitWithCode $ciProcess }
 }
 

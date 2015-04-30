@@ -1,18 +1,50 @@
-Automated build and Deploy
-==========================
+Continuous Delivery Automation Framework (CDAF)
+===============================================
 
-Author  : Jules Clements
-Version : 23-Apr-2015
-Version : 0.8.0 PR4 (chunk copy, Package Detection and windows carriage returns)
+    Author  : Jules Clements
+    Date    : 01-May-2015
+    Version : 0.8.0
 
 Framework Overview
 ==================
 
-The automation framework provides a "lowest common denominator" approach, where underlying action are implemented in bash.
+The automation framework provides a "lowest common denominator" approach, where underlying action are implemented in PowerShell.
 
-This automation framework functionality is based user defined solution files. By default the /solution folder stores these files, however, a stand alone folder, in the solution root is supported, by including the following file
+This automation framework functionality is based on user defined solution files. By default the /solution folder stores these files, however, a stand alone folder, in the solution root is supported, identified by the CDAF.solution file in the root.
 
-CDAF.solution : optional file to identify a directory as the automation solution directory
+Provisioning
+============
+
+When using for the first time, the users workstation needs to be prepared by provisioning the following features
+
+- Loopback Connection
+- Landing Folder
+
+Loop-back Connection
+--------------------
+
+The loop-back connection is used to emulate a remote host on the current workstation.
+
+The loop-back connection is established using remote PowerShell, to enable this, right-click the EnableServerRemoting.bat in automation\provisioning\remotePowershellProvisioning, select Y for each of the prompts. The current user will be used as the default user when performing a loop-back connection.
+
+Landing Folder
+--------------
+
+The landing folder is defined in the properties file (in propertiesForRemoteTasks folder), default "DEV". This folder must exists and the loop-back connection user my have write access to it.
+
+CDAF Verify
+-----------
+
+Before implementing any aspects of the solution, run the emulator to verify the provisioning steps. The logs from the emulator run will provide guidance as to what files should be edited to implement continuous delivery, the following documentation provides more details around each key process.
+
+     .\automation\cdEmulate.bat
+
+Driver Files
+============
+
+The following files are the solution files that are configured to implement a given solution. There is a single solution level properties files, then sets of files for each key process.
+
+    CDAF.solution : optional file to identify a directory as the automation solution directory
 
 Properties and definition files support comments, prefixed with # character.
 

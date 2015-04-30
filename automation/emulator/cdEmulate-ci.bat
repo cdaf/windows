@@ -29,7 +29,7 @@ echo [%~nx0]   ACTION          : %ACTION%
 echo.
 if NOT "%ACTION%" == "clean" (
 
-	echo [%~nx0] ---------- Build Toolset Configuration Guide ----------
+	echo [%~nx0] ---------- CI Toolset Configuration Guide -------------
 	echo.
     echo [%~nx0] For TeamCity ...
     echo Command Executable : %AUTOMATION_ROOT%\buildandpackage\buildProjects.bat 
@@ -64,7 +64,7 @@ if %result% NEQ 0 (
 
 if NOT "%ACTION%" == "clean" (
 
-	echo [%~nx0] ---------- Package Toolset Configuration Guide ----------
+	echo [%~nx0] ---------- CI Toolset Configuration Guide -------------
 	echo.
     echo [%~nx0] For TeamCity ...
     echo Command Executable : %AUTOMATION_ROOT%\buildandpackage\package.bat 
