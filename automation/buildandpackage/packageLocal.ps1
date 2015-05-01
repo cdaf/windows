@@ -62,9 +62,6 @@ if ( Test-Path "$SOLUTIONROOT\tasksRunLocal.tsk" ) {
 	copySet "tasksRunLocal.tsk" "$SOLUTIONROOT" $WORK_DIR_DEFAULT
 }
 
-# Copy the zip command line utility (7zip)
-copySet "7za.exe" ".\$AUTOMATIONROOT\provisioning" $WORK_DIR_DEFAULT
-
 # Copy local properties if directory exists
 if ( Test-Path $localPropertiesDir ) {
 	copyDir $localPropertiesDir $WORK_DIR_DEFAULT

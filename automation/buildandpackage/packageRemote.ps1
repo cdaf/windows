@@ -80,7 +80,7 @@ if ( Test-Path $remoteArtifactListFile ) {
 # Zip the working directory to create the artefact Package
 cd $WORK_DIR_DEFAULT
 
-$packageCommand = "& ..\$LOCAL_WORK_DIR\7za.exe a ..\$SOLUTION-$BUILDNUMBER.zip ."
+$packageCommand = "& 7za.exe a ..\$SOLUTION-$BUILDNUMBER.zip ."
 
 Write-Host
 Write-Host "[$scriptName] $packageCommand"
