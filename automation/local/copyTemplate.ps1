@@ -5,9 +5,6 @@ Write-Host
 Write-Host "[$scriptName] Copy $srcPath to 'deployLand'"
 try {
     [System.IO.FileStream]$srcStream = New-Object IO.FileStream $srcPath, Open
-    #[Byte[]]$readBuffer = New-Object Byte[] 10485760 # 10MB
-    #[Byte[]]$readBuffer = New-Object Byte[]  8388608 #  8MB
-    #[Byte[]]$readBuffer = New-Object Byte[]  5242880 #  5MB
     [Byte[]]$readBuffer  = New-Object Byte[]  1048576 #  1MB
 
     do {
