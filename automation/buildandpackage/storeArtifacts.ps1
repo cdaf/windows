@@ -210,7 +210,6 @@ else
                     New-Item $targetPath -Force -ItemType $typeTarget > $null;
 		            if(!$?){ exitWithCode ("New-Item $targetPath -Force -ItemType $typeTarget") }
 
-                    # Daniel, do your stuff here. Banana.
                     # Now remove the zip file itself to make room for 7zip.
                     Remove-Item $targetPath -Force > $null
 		            if(!$?){ exitWithCode ("New-Item $targetPath -Force -ItemType $typeTarget") }
