@@ -85,7 +85,7 @@ if ($remoteUser) {
 
 # If the package has already been delivered and processed, rename existing file and folder
 try {
-	Invoke-Command -session $session -File $WORK_DIR_DEFAULT\packageTest.ps1 -Args $deployLand,$SOLUTION-$BUILD
+	Invoke-Command -session $session -File $WORK_DIR_DEFAULT\remotePackageManagement.ps1 -Args $deployLand,$SOLUTION-$BUILD
 	if(!$?){ taskError "PACKAGE_TEST_ERROR" }
 } catch { taskException "PACKAGE_TEST_EXCEPTION"  $_ }
 
