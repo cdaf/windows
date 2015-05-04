@@ -17,8 +17,14 @@ Provisioning
 
 When using for the first time, the users workstation needs to be prepared by provisioning the following features
 
+- Package Compression
 - Loopback Connection
 - Landing Folder
+
+Package Compression
+-------------------
+
+The 7 Zip command line executable (7za.exe) is required to create and extract the solution package. The path to the 7 zip executable needs to be added to the %path% environment variable and the host restarted. 
 
 Loop-back Connection
 --------------------
