@@ -49,8 +49,8 @@ echo Command Filename : SourcesDirectory + "\%LOCAL_WORK_DIR%\remoteTasks.bat"
 echo Command arguments : %ENVIRONMENT% + " " + BuildDetail.BuildNumber + " " + %SOLUTION% + " " + %LOCAL_WORK_DIR%
 echo.
 echo [%~nx0] For BuildMaster ...
-echo Executable file : \%LOCAL_WORK_DIR%\remoteTasks.bat 
-echo Arguments : %SOLUTION% + " ${BuildNumber} " + %SOLUTION% + " " + %LOCAL_WORK_DIR%
+echo Executable file : %LOCAL_WORK_DIR%\remoteTasks.bat 
+echo Arguments : %ENVIRONMENT% ${BuildNumber} %SOLUTION% %LOCAL_WORK_DIR%
 echo.
 echo [%~nx0] -------------------------------------------------------
 echo.
@@ -85,8 +85,8 @@ echo Command Filename : SourcesDirectory + "\%LOCAL_WORK_DIR%\localTasks.bat"
 echo Command arguments : %ENVIRONMENT% + " " + BuildDetail.BuildNumber + " " + %SOLUTION% + " " + %LOCAL_WORK_DIR%
 echo.
 echo [%~nx0] For BuildMaster ...
-echo Executable file : \%LOCAL_WORK_DIR%\localTasks.bat 
-echo Arguments : %SOLUTION% + " ${BuildNumber} " + %SOLUTION% + " " + %LOCAL_WORK_DIR%
+echo Executable file : %LOCAL_WORK_DIR%\localTasks.bat 
+echo Arguments : %ENVIRONMENT% ${BuildNumber} %SOLUTION% %LOCAL_WORK_DIR%
 echo.
 echo [%~nx0] -------------------------------------------------------
 echo.

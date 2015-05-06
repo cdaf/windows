@@ -1,6 +1,14 @@
 $srcPath   = $args[0]
 
 $scriptName = $myInvocation.MyCommand.Name 
+if (-not(Test-Path $srcPath)) {
+
+	write-host
+	write-host "[$scriptName] Source file not found! Throwing exception : $srcPath" -ForegroundColor Red
+	write-host
+    throw "$srcPath"
+}
+
 Write-Host
 Write-Host "[$scriptName] Copy $srcPath to 'deployLand'"
 try {
