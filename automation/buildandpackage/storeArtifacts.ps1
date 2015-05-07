@@ -59,8 +59,7 @@ $artifactListFile=".\$AUTOMATIONROOT\solution\storeForArtifact"
 $DTSTAMP = Get-Date
 $typeDirectory = 'Directory';
 $typeFile = 'File';
-$zaSourcePath = ".\$AUTOMATIONROOT\provisioning\za.exe";
-$zaPath = '.\za.exe';
+$zaFilename = '7za.exe';
 
 if ($ACTION -eq 'Clean')
 {
@@ -73,12 +72,6 @@ if ($ACTION -eq 'Clean')
 		Remove-Item $ARTIFACT_WORKBENCH -Recurse
 		if(!$?) {exitWithCode "Remove-Item $ARTIFACT_WORKBENCH -Recurse" }
 	}
-
-    if ( Test-Path $zaPath )
-    {
-        Remove-Item $zaPath;
-		if(!$?) {exitWithCode "Test-Path $zaPath" }
-    }
 
     write-host
     write-host "[$scriptName]   --- Artifact Store Cleanup Complete ---" -ForegroundColor Green
@@ -117,15 +110,6 @@ else
         else
         {
             Write-Host            
-
-            # Get the zip application ready for use.
-            # Note: We can't store this in the workbench because someone might want to zip the workbench itself.
-            #       If they did, this could grab za itself and include it in the zip, which is not desired. For
-            #       this reason, za.exe will be executed from the solution root.
-            if ( -not ( Test-Path $zaPath ) )
-            {
-                Copy-Item $zaSourcePath -Destination $zaPath -Force;
-            }
 
             foreach ($artifactItem in $artifactList)            
             {
@@ -214,9 +198,9 @@ else
                     Remove-Item $targetPath -Force > $null
 		            if(!$?){ exitWithCode ("New-Item $targetPath -Force -ItemType $typeTarget") }
 
-                    # Now we can actualy build and invoke the Zip Command.
+                    # Now we can actually build and invoke the Zip Command.
                     $fullPath = Convert-Path $artifactFile;
-                    $zipCommand = "& $zaPath a $targetPath $fullPath\*"
+                    $zipCommand = "& $zaFilename a $targetPath $fullPath\*"
 
                     Write-Host "[$scriptName] $zipCommand" -ForegroundColor Cyan;
                     Invoke-Expression $zipCommand;
@@ -230,12 +214,6 @@ else
                     Copy-Item $artifactFile -Destination $targetPath -Recurse -Force;
 		            if(!$?){ exitWithCode ("Copy-Item $artifactFile -Destination $targetPath -Recurse -Force") }
                 }
-            }
-
-            if ( Test-Path $zaPath )
-            {
-                Remove-Item $zaPath;
-		        if(!$?) {exitWithCode "Test-Path $zaPath" }
             }
 
             if (-not $hasItems)
