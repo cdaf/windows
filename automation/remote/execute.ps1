@@ -101,16 +101,23 @@ Foreach ($line in get-content $TASK_LIST) {
 
 			# Load Properties file as runtime variables
 			If ($loadProperties) {
+			
+				$transform = ".\Transform.ps1"
 
-				# Load all properties as runtime variables (the utility will provide logging)
-				# Test for running as deploy process or build process
-				if (test-path .\Transform.ps1) {
-					# Deploy process (helper scripts are in the current directory)
-					& .\Transform.ps1 "$loadProperties" | ForEach-Object { invoke-expression $_ }
-				} else {
-					# Build process, helper scripts are located as per source control
-					& ..\$automationHelper\Transform.ps1 "$loadProperties" | ForEach-Object { invoke-expression $_ }
+				# Load all properties as runtime variables (transform provides logging)
+				# Test for running as delivery process
+				if (!( test-path $transform)) {
+				
+					# Test for running as a build process
+					$transform = "..\$automationHelper\Transform.ps1"
+					if (! (test-path $transform)) {
+				
+						# Test for running as a package parocess
+						$transform = "$automationHelper\Transform.ps1"
+					}
 				}
+				
+				& $transform "$loadProperties" | ForEach-Object { invoke-expression $_ }
 				$loadProperties = ""
 			}
 

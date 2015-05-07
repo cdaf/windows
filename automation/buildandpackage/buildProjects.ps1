@@ -72,6 +72,9 @@ $automationHelper="$AUTOMATIONROOT\remote"
 $exitStatus = 0
 
 $scriptName = $MyInvocation.MyCommand.Name
+
+Write-Host "[$scriptName]   AUTOMATIONROOT : $AUTOMATIONROOT" 
+
 $projectList = ".\$AUTOMATIONROOT\solution\buildProjects"
 
 Write-Host –NoNewLine "[$scriptName]   Project list   : " 
