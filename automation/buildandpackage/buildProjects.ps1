@@ -84,6 +84,7 @@ pathTest $projectList
 removeTempFiles
 itemRemove .\*.txt
 itemRemove .\*.zip
+itemRemove .\*.nupkg
 
 # Check for user defined solution folder, i.e. outside of automation root, if found override solution root
 $solutionRoot="$AUTOMATIONROOT\solution"

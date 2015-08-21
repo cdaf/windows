@@ -2,8 +2,8 @@ Continuous Delivery Automation Framework (CDAF)
 ===============================================
 
     Author  : Jules Clements
-    Date    : 07-May-2015
-    Version : 0.8.0
+    Date    : 02-Aug-2015
+    Version : 0.8.2
 
 Framework Overview
 ==================
@@ -24,7 +24,7 @@ When using for the first time, the users workstation needs to be prepared by pro
 Package Compression
 -------------------
 
-The 7 Zip command line executable (7za.exe) is required to create and extract the solution package. The path to the 7 zip executable needs to be added to the %path% environment variable and the host restarted. 
+The 7 Zip command line executable (7za.exe) is required to create and extract the solution package. The path to the 7 zip executable needs to be added to the %path% environment variable and the host restarted.
 
 Loop-back Connection
 --------------------
@@ -64,6 +64,7 @@ Linear Deploy requires properties file for workstation (default is DEV) to be a 
 Package: (files maybe empty or non-existent)
 
 	package.tsk : optional pre-package tasks definition
+	wrap.tsk : optional post-package tasks definition (0.8.2)
 	storeForLocal
 	storeForRemote
 

@@ -113,6 +113,14 @@ if (Test-Path "$prepackageTasks") {
 	Write-Host "none ($prepackageTasks)"
 }
 
+$postpackageTasks = "$solutionRoot\wrap.tsk"
+Write-Host –NoNewLine "[$scriptName]   Postpackage Tasks       : " 
+if (Test-Path "$postpackageTasks") {
+	Write-Host "found ($postpackageTasks)"
+} else {
+	Write-Host "none ($postpackageTasks)"
+}
+
 # Test for optional properties
 $remotePropertiesDir = "$solutionRoot\propertiesForRemoteTasks"
 Write-Host –NoNewLine "[$scriptName]   Remote Target Directory : " 
@@ -150,8 +158,8 @@ if ( $ACTION -eq "clean" ) {
     if (Test-Path "$prepackageTasks") {
 		Write-Host
 		Write-Host "Process Pre-Package Tasks ..."
-		& .\$automationHelper\execute.ps1 $SOLUTION $BUILDNUMBER "package" "$solutionRoot\package.tsk" $ACTION
-		if(!$?){ exitWithCode "..\$automationHelper\execute.ps1 $SOLUTION $BUILDNUMBER `"package`" `"$solutionRoot\package.tsk`" $ACTION" }
+		& .\$automationHelper\execute.ps1 $SOLUTION $BUILDNUMBER "package" "$prepackageTasks" $ACTION
+		if(!$?){ exitWithCode "..\$automationHelper\execute.ps1 $SOLUTION $BUILDNUMBER `"package`" `"$prepackageTasks`" $ACTION" }
 	}
 
 	# Load Manifest, these properties are used by remote deployment
@@ -176,6 +184,15 @@ if ( $ACTION -eq "clean" ) {
 			if(!$?){ taskWarning }
 		} catch { exitWithCode("packageRemote.ps1") }
 	}
+
+	# Process optional post-packaging tasks (wrap.tsk added in release 0.8.2)
+    if (Test-Path "$postpackageTasks") {
+		Write-Host
+		Write-Host "Process Post-Package Tasks ..."
+		& .\$automationHelper\execute.ps1 $SOLUTION $BUILDNUMBER "package" "$postpackageTasks" $ACTION
+		if(!$?){ exitWithCode "..\$automationHelper\execute.ps1 $SOLUTION $BUILDNUMBER `"package`" `"$postpackageTasks`" $ACTION" }
+	}
+
 }
 write-host
 write-host "[$scriptName]   --- Package Complete ---" -ForegroundColor Green

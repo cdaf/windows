@@ -40,7 +40,7 @@ Write-Host "[$scriptName]   environmentDelivery : $environmentDelivery"
 
 # Use timestamp to ensure unique build number and emulate the revision ID (source control)
 # In Bamboo parameter is  ${bamboo.buildNumber}
-$buildNumber=get-date -f yyyyMMddHHmmss
+$buildNumber=get-date -f MMddHHmmss
 $revision=get-date -f HHmmss
 Write-Host "[$scriptName]   buildNumber         : $buildNumber"
 Write-Host "[$scriptName]   revision            : $revision"
