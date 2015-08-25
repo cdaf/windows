@@ -131,12 +131,15 @@ if ( Test-Path $remotePropertiesDir ) {
 	Write-Host "none ($remotePropertiesDir)"
 }
 
+Write-Host "[$scriptName]   user name               : $(whoami)" 
+
 # Cannot brute force clear the workspace as the Visual Studio solution file is here
 write-host
 write-host "[$scriptName]   --- Start Package Process ---" -ForegroundColor Green
 Write-Host
 itemRemove .\*.txt
 itemRemove .\*.zip
+itemRemove .\*.nupkg
 itemRemove $LOCAL_WORK_DIR
 itemRemove $REMOTE_WORK_DIR
 
