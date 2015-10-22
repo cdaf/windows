@@ -66,6 +66,16 @@ Foreach ($line in get-content $TASK_LIST) {
         # Do not attempt any processing when a line is just a comment
         if ($expression) {
 
+	        # Check for cross platform key words
+            if ( $expression.substring(0,6) -match 'assign' ) {
+	            $expression = $expression.Substring(7)
+            }
+
+	        # Check for cross platform key words
+            if ( $expression.substring(0,6) -match 'remove' ) {
+	            $expression = "rm " + $expression.Substring(7)
+            }
+
 	        # Do not echo line if it is an echo itself
             if (-not ($expression -match 'Write-Host')) {
 	            Write-Host "$expression"

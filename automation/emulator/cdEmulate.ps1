@@ -81,13 +81,6 @@ if (Test-Path "$solutionRoot\cdEmulate-deliver.bat") {
 	write-host "$cdProcess (default)"
 }
 
-# If a solution properties file exists, load the properties
-if (Test-Path "$solutionRoot\CDAF.solution") {
-	write-host
-	write-host "[$scriptName] Load Solution Properties $solutionRoot\CDAF.solution"
-	& .\$automationHelper\Transform.ps1 "$solutionRoot\CDAF.solution" | ForEach-Object { invoke-expression $_ }
-}
-
 # CDM-70 : If the Solution is not defined in the CDAF.solution file, use current working directory
 # In Jenkins parameter is JOB_NAME 
 if (! $solutionName) {

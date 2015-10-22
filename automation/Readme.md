@@ -2,8 +2,7 @@ Continuous Delivery Automation Framework (CDAF)
 ===============================================
 
     Author  : Jules Clements
-    Date    : 20-Oct-2015
-    Version : 0.8.3
+    Version : 0.8.4 (full details in CDAF.windows)
 
 Framework Overview
 ==================
@@ -45,14 +44,31 @@ Before implementing any aspects of the solution, run the emulator to verify the 
 
      .\automation\cdEmulate.bat
 
-Driver Files
-============
+Solution Driver
+===============
 
-The following files are the solution files that are configured to implement a given solution. There is a single solution level properties files, then sets of files for each key process.
+The following files control solution level functionality.
 
+    CDAF.linux : used by the CD emulator to determine the automation root directory  
     CDAF.solution : optional file to identify a directory as the automation solution directory
 
 Properties and definition files support comments, prefixed with # character.
+
+Execution Engine
+----------------
+To alleviate the burden of argument passing, exception handling and logging, the execution engine has been provided. The execution engine will essentially execute the native interpretive language (PowerShell or bash), line by line, but each execution will be tested for exceptions (trivial in bash, significantly more complex in PowerShell) and, with careful usage, the driver files (.tsk) can be used on Windows workstations, while target Linux servers for Continuous Delivery. To provide translated runtime, the following keywords are supported
+
+| Keyword | Description                      | Example                    |
+| --------|----------------------------------|----------------------------|
+| assign  | set a variable                   | assign $test="Hello World" |
+| remove  | Delete files, including wildcard | remove *.war               |
+
+By setting the following variables, the following actions are performed
+
+| Variable         | Description                           |
+| -----------------|---------------------------------------|
+|  $loadProperties | Load the properties file value set    |
+|  $terminate      | If set to clean, will exit (status 0) |
 
 Build and Package (once)
 ------------------------
@@ -72,7 +88,7 @@ The package (.zip) file is generated from the contents of the TasksRemote direct
 
 All scripts contained in the /local folder are copied to the TasksLocal directory, along with the files/directories listed in storeForLocal file (maybe empty).
 
-Execute (many)
+Deploy (many)
 --------------
 Default task definitions, these can be overridden using deployScriptOverride= in properties file
 
