@@ -39,7 +39,7 @@ if (-not($REVISION)) {exitWithCode REVISION_NOT_SET }
 if (-not($AUTOMATIONROOT)) {exitWithCode AUTOMATIONROOT_NOT_SET }
 if (-not($SOLUTIONROOT)) {exitWithCode SOLUTIONROOT_NOT_SET }
 if (-not($ENVIRONMENT)) {
-	$ENVIRONMENT = "DEV"
+	$ENVIRONMENT = "PACKAGE"
 	Write-Host "[$scriptName]   Environment not passed, defaulted to $ENVIRONMENT" 
 }
 
@@ -61,12 +61,13 @@ $typeDirectory = 'Directory';
 $typeFile = 'File';
 $zaFilename = '7za.exe';
 
+# Cannot brute force clear the workspace as the Visual Studio solution file is here
+write-host
+write-host "[$scriptName]   --- Building Artifact Store ---" -ForegroundColor Green
+
 if ($ACTION -eq 'Clean')
 {
-    # Cannot brute force clear the workspace as the Visual Studio solution file is here
-    write-host
-    write-host "[$scriptName]   --- Cleaning Artifact Store ---" -ForegroundColor Green
-    
+  
     if ( Test-Path $ARTIFACT_WORKBENCH )
     {
 		Remove-Item $ARTIFACT_WORKBENCH -Recurse
@@ -78,9 +79,6 @@ if ($ACTION -eq 'Clean')
 }
 else
 {
-    # Cannot brute force clear the workspace as the Visual Studio solution file is here
-    write-host
-    write-host "[$scriptName]   --- Building Artifact Store ---" -ForegroundColor Green
     
     if ( Test-Path $ARTIFACT_WORKBENCH )
     {

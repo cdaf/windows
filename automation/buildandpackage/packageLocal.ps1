@@ -62,9 +62,12 @@ if ( Test-Path "$SOLUTIONROOT\tasksRunLocal.tsk" ) {
 	copySet "tasksRunLocal.tsk" "$SOLUTIONROOT" $WORK_DIR_DEFAULT
 }
 
-# Copy local properties if directory exists
+# Copy local properties to propertiesForLocalTasks (iteration driver) and to the root (task execution)
 if ( Test-Path $localPropertiesDir ) {
 	copyDir $localPropertiesDir $WORK_DIR_DEFAULT
+}
+if ( Test-Path $localPropertiesDir ) {
+	copyDir $localPropertiesDir $WORK_DIR_DEFAULT $true
 }
 
 # Copy remote properties if directory exists
@@ -74,12 +77,12 @@ if ( Test-Path $remotePropertiesDir ) {
 
 # Copy encrypted file directory if it exists
 if ( Test-Path $localCryptDir ) {
-	copyDir $localCryptDir $WORK_DIR_DEFAULT
+	copyDir $localCryptDir $WORK_DIR_DEFAULT $true
 }
 
 # Copy custom scripts directory if it exists
 if ( Test-Path $localCustomDir ) {
-	copyDir $localCustomDir $WORK_DIR_DEFAULT
+	copyDir $localCustomDir $WORK_DIR_DEFAULT $true
 }
 
 # Copy artefacts if driver file exists exists

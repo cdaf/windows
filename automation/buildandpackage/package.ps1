@@ -22,8 +22,13 @@ function taskWarning($taskName) {
 }
 
 function itemRemove ($itemPath) { 
-# If item exists, and is not a directory, remove read only and delete, if a directory then just delete
+# If item exists, and is a directory, recursively remove hidden and read-only attributes or to explicit file name if just a file 
 	if ( Test-Path $itemPath ) {
+		if ( (Get-Item $itemPath) -is [System.IO.DirectoryInfo] ) {
+			attrib -r -h *.* /s /d
+		} else {
+			attrib -r -h $itemPath /s
+		}	
 		write-host "[$scriptName] Delete $itemPath"
 		Remove-Item $itemPath -Recurse
 		if(!$?) {exitWithCode "Remove-Item $itemPath -Recurse" }
@@ -50,9 +55,11 @@ function pathTest ($pathToTest) {
 
 function copyDir ($sourceDir, $targetDir, $flat) {
 	Write-Host
-	$dirName = getFilename($sourceDir)
-	Write-Host "[$scriptName] mkdir $targetDir\$dirName" 
-	New-Item $targetDir\$dirName -type directory > $null
+	if (-not ($flat)) {
+		$dirName = getFilename($sourceDir)
+		Write-Host "[$scriptName] mkdir $targetDir\$dirName" 
+		New-Item $targetDir\$dirName -type directory > $null
+	}
 	if(!$?){ taskFailure ("mkdir $targetDir\$dirName") }
 	foreach ($item in (Get-ChildItem -Path $sourceDir)) {
 		if ($flat) {
@@ -87,7 +94,6 @@ if (-not($REVISION)) {exitWithCode REVISION_NOT_PASSED }
 if (-not($LOCAL_WORK_DIR)) {exitWithCode LOCAL_NOT_PASSED }
 if (-not($REMOTE_WORK_DIR)) {exitWithCode REMOTE_NOT_PASSED }
 
-$scriptDir = "Deploy"
 $scriptName = $MyInvocation.MyCommand.Name
 
 Write-Host "[$scriptName]   AUTOMATIONROOT          : $AUTOMATIONROOT" 
@@ -183,7 +189,7 @@ if ( $ACTION -eq "clean" ) {
 	} else {
 	
 		try {
-			& .\$AUTOMATIONROOT\buildandpackage\packageRemote.ps1 $SOLUTION $BUILDNUMBER $REVISION $LOCAL_WORK_DIR $REMOTE_WORK_DIR $scriptDir $solutionRoot $AUTOMATIONROOT
+			& .\$AUTOMATIONROOT\buildandpackage\packageRemote.ps1 $SOLUTION $BUILDNUMBER $REVISION $LOCAL_WORK_DIR $REMOTE_WORK_DIR $solutionRoot $AUTOMATIONROOT
 			if(!$?){ taskWarning }
 		} catch { exitWithCode("packageRemote.ps1") }
 	}

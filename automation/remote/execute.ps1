@@ -28,11 +28,31 @@ function throwErrorlevel ($taskName, $trappedExit) {
 	}
 }
 
+function itemRemove ($itemPath) { 
+# If item exists, and is not a directory, remove read only and delete, if a directory then just delete
+	if ( Test-Path $itemPath ) {
+		write-host "[$scriptName] Delete $itemPath"
+		Remove-Item $itemPath -Recurse
+		if(!$?) {exitWithCode "Remove-Item $itemPath -Recurse" }
+	}
+}
+
+function copyVerbose ($from, $to) {
+
+	Write-Host "copyVerbose $from --> $to" 
+	Copy-Item $from $to -Force
+	if(!$?){ taskFailure ("Copy remote script $from --> $to") }
+	
+}
+
 $SOLUTION    = $args[0]
 $BUILDNUMBER = $args[1]
 $TARGET      = $args[2]
 $TASK_LIST   = $args[3]
 $ACTION      = $args[4]
+
+# Set the temporary directory (system wide)
+$TMPDIR = [Environment]::GetEnvironmentVariable("TEMP","Machine")
 
 $scriptName = $myInvocation.MyCommand.Name 
 
@@ -41,6 +61,7 @@ Write-Host "[$scriptName]  BUILDNUMBER : $BUILDNUMBER"
 Write-Host "[$scriptName]  TARGET      : $TARGET"
 Write-Host "[$scriptName]  TASK_LIST   : $TASK_LIST"
 Write-Host "[$scriptName]  ACTION      : $ACTION"
+Write-Host "[$scriptName]  TMPDIR      : $TMPDIR"
 
 # If called from build process, automation root will be set
 $automationHelper="$AUTOMATIONROOT\remote"
@@ -67,14 +88,36 @@ Foreach ($line in get-content $TASK_LIST) {
         if ($expression) {
 
 	        # Check for cross platform key words, only if the string is longer enough
-	        if ($dbUserName.length -gt 6) {
+	        if ($expression.length -gt 6) {
+
+				# Set a variable, PowerShell format
 	            if ( $expression.substring(0,6) -match 'assign' ) {
 		            $expression = $expression.Substring(7)
 	            }
 	
+				# Delete (verbose)
 	            if ( $expression.substring(0,6) -match 'remove' ) {
-		            $expression = "rm " + $expression.Substring(7)
+		            $expression = "itemRemove " + $expression.Substring(7)
 	            }
+
+				# Delete (verbose)
+	            if ( $expression.substring(0,6) -match 'vecopy' ) {
+		            $expression = "copyVerbose " + $expression.Substring(7)
+	            }
+
+				# Invoke a custom script
+	            if ( $expression.substring(0,6) -match 'invoke' ) {
+		            $expression = $expression.Substring(7)
+		            $pos = $expression.IndexOf(" ")
+		            if ( $pos -lt 0 ) {
+			            $expression = $expression + ".ps1"
+		            } else {
+			            $script = $expression.Substring(0, $pos)
+						$arguments = $expression.Substring($pos+1)
+						$expression = $script + ".ps1 " + $arguments
+					}
+	            }
+
 	        }
 
 	        # Do not echo line if it is an echo itself

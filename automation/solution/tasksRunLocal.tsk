@@ -1,15 +1,5 @@
-# This is a comment line and will not be logged during execution
-# Lines containing write-host will not be echoed before execution,
-# instead, these are simply executed
+echo "Load all properties for $TARGET ..."
+assign $loadProperties="./propertiesForLocalTasks/$TARGET"
 
-write-host "See listing above (from execute.ps1) for available arguments"
-
-# An empty line creates an empty line in the logging
-write-host hostname      : $(hostname)
-
-# Map a property to a named varaible
-$testURL=$(.\getProperty.ps1 propertiesForLocalTasks\$TARGET url)
-write-host testURL       : $testURL
-
-# Load all properties
-$loadProperties = "propertiesForLocalTasks\$TARGET"
+echo "Perform test to verify deploy (remote) action, i.e. BUILDNUMBER should match"
+cat $TMPDIR/manifest.txt

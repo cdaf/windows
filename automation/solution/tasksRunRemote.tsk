@@ -1,15 +1,6 @@
-# This is a comment line and will not be logged during execution
-# Lines containing write-host will not be echoed before execution,
-# instead, these are simply executed
+echo "Load properties for $TARGET ..."
+assign $loadProperties="./$TARGET"
 
-write-host "See listing above (from execute.ps1) for available arguments"
-
-# An empty line creates an empty line in the logging
-write-host hostname      : $(hostname)
-
-# Load property to a named variable
-$webPath=$(.\getProperty.ps1 ..\$TARGET iisPath)
-write-host webPath       : $webPath
-
-# Load all properties
-$loadProperties = "..\$TARGET"
+echo "Perform example activity, file copy"
+remove $TMPDIR/manifest.txt
+vecopy manifest.txt $TMPDIR

@@ -1,0 +1,16 @@
+# Clean Build workspace (not solution)
+remove *.binary
+
+echo "If ACTION (emulation only) is clean, do not perform any further action"
+assign $terminate=$ACTION
+
+echo "Load product (solution) attributes"
+assign $loadProperties="../$SOLUTIONROOT/CDAF.solution"
+
+# Combine to create symantic (http://semver.org/) version
+assign $productVersion+=$BUILDNUMBER
+
+echo "Perform build"
+echo "I'm a build artefact" > build.binary
+echo "Artefact symantic version : $productVersion" >> build.binary
+cat build.binary

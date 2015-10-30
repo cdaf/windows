@@ -34,7 +34,7 @@ $workDirRemote       = "TasksRemote"
 
 # Build and Delivery Properties Lookup values
 $environmentBuild    = "BUILD"
-$environmentDelivery = "DEV"
+$environmentDelivery = "WINDOWS"
 Write-Host "[$scriptName]   environmentBuild    : $environmentBuild"
 Write-Host "[$scriptName]   environmentDelivery : $environmentDelivery"
 

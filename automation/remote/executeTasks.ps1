@@ -17,7 +17,7 @@ function taskWarning {
 function getProp ($propName) {
 
 	try {
-		$propValue=$(& .\getProperty.ps1 ..\$TARGET $propName)
+		$propValue=$(& .\getProperty.ps1 .\$TARGET $propName)
 		if(!$?){ taskWarning }
 	} catch { exitWithCode "getProp" }
 	
@@ -47,7 +47,7 @@ if ($overrideTask) {
 }
 write-host
 write-host "[$scriptName] Load solution properties from manifest.txt"
-& .\Transform.ps1 "..\manifest.txt" | ForEach-Object { invoke-expression $_ }
+& .\Transform.ps1 ".\manifest.txt" | ForEach-Object { invoke-expression $_ }
 
 Write-Host
 write-host "[$scriptName] Execute the Tasks defined in $taskList"

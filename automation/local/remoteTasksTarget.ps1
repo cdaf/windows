@@ -116,6 +116,6 @@ write-host
 write-host "[$scriptName] Transfer control to the remote host" -ForegroundColor Blue
 write-host 
 try {
-	Invoke-Command -session $session -File $WORK_DIR_DEFAULT\deploy.ps1 -Args $DEPLOY_TARGET,$deployLand\$SOLUTION-$BUILD\Deploy
+	Invoke-Command -session $session -File $WORK_DIR_DEFAULT\deploy.ps1 -Args $DEPLOY_TARGET,$deployLand\$SOLUTION-$BUILD
 if(!$?){ taskError "REMOTEUSER_POWERSHELL_ERROR" }
 } catch { taskException "REMOTEUSER_POWERSHELL_EXCEPTION" $_ }
