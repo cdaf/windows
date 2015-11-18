@@ -80,7 +80,16 @@ $projectList = ".\$AUTOMATIONROOT\solution\buildProjects"
 Write-Host –NoNewLine "[$scriptName]   Project list   : " 
 pathTest $projectList
 
-# Clean temp files and folders from workspace
+$propertiesFile = "$AUTOMATIONROOT\CDAF.windows"
+$propName = "productVersion"
+try {
+	$cdafVersion=$(& .\$AUTOMATIONROOT\remote\getProperty.ps1 $propertiesFile $propName)
+	if(!$?){ taskWarning }
+} catch { exitWithCode "PACK_GET_CDAF_VERSION" }
+Write-Host "[$scriptName]   CDAF Version   : $cdafVersion"
+
+Write-Host 
+Write-Host "[$scriptName] Clean temp files and folders from workspace" 
 removeTempFiles
 itemRemove .\*.txt
 itemRemove .\*.zip

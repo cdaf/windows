@@ -27,24 +27,37 @@ $TARGET           = $args[3]
 $scriptName = $myInvocation.MyCommand.Name 
 $propertiesFile = "propertiesForLocalTasks\$TARGET"
 
-write-host "[$scriptName] -----------------"
-write-host "[$scriptName]   Local Execute"
-write-host "[$scriptName] -----------------"
-write-host "[$scriptName] propertiesFile : $propertiesFile"
+write-host
+write-host "[$scriptName]   propertiesFile       : $propertiesFile"
 
-$overrideTask = getProp ("deployScriptOverride")
-if ($overrideTask ) {
-	$taskList = $overrideTask
-	write-host "[$scriptName]   taskList     : $taskList (based on deployScriptOverride in properties file)"
+$scriptOverride = getProp ("deployScriptOverride")
+if ($scriptOverride ) {
+	$taskList = $scriptOverride
+	write-host "[$scriptName]   deployScriptOverride : $scriptOverride"
+    Write-Host
+    $expression=".\$scriptOverride $SOLUTION $BUILD $TARGET"
+    write-host $expression
+	try {
+		Invoke-Expression $expression
+	    if(!$?){ taskException "LOCAL_OVERRIDESCRIPT_TRAP" $_ }
+    } catch { taskException "LOCAL_OVERRIDESCRIPT_EXCEPTION" $_ }
+
+
 } else {
-	$taskList = "tasksRunLocal.tsk"
-	write-host "[$scriptName]   taskList     : $taskList (default, deployScriptOverride not found in properties file)"
+
+    $taskOverride = getProp ("deployTaskOverride")
+    if ($taskOverride ) {
+	    $taskList = $taskOverride
+	    write-host "[$scriptName]   taskOverride         : $taskOverride"
+    } else {
+	    $taskList = "tasksRunLocal.tsk"
+	    write-host "[$scriptName]   taskOverride         : $taskOverride (default, deployTaskOverride not found in properties file)"
+    }
+
+    Write-Host
+    # Execute the Tasks Driver File
+    try {
+	    & .\execute.ps1 $SOLUTION $BUILD $TARGET $taskList
+	    if(!$?){ taskException "EXECUTE_TRAP" $_ }
+    } catch { taskException "EXECUTE_EXCEPTION" $_ }
 }
-
-Write-Host
-# Execute the Tasks Driver File
-try {
-	& .\execute.ps1 $SOLUTION $BUILD $TARGET $taskList
-	if(!$?){ taskException "POWERSHELL_TRAP" $_ }
-} catch { taskException "POWERSHELL_EXCEPTION" $_ }
-

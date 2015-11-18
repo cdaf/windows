@@ -139,6 +139,14 @@ if ( Test-Path $remotePropertiesDir ) {
 
 Write-Host "[$scriptName]   user name               : $(whoami)" 
 
+$propertiesFile = "$AUTOMATIONROOT\CDAF.windows"
+$propName = "productVersion"
+try {
+	$cdafVersion=$(& .\$AUTOMATIONROOT\remote\getProperty.ps1 $propertiesFile $propName)
+	if(!$?){ taskWarning }
+} catch { exitWithCode "PACK_GET_CDAF_VERSION" }
+Write-Host "[$scriptName]   CDAF Version            : $cdafVersion"
+
 # Cannot brute force clear the workspace as the Visual Studio solution file is here
 write-host
 write-host "[$scriptName]   --- Start Package Process ---" -ForegroundColor Green
@@ -157,16 +165,17 @@ if ( $ACTION -eq "clean" ) {
 } else {
 
 	# Process solution properties if defined
-	if ((Test-Path "$solutionRoot\CDAF.solution") -and ($item -ne $LOCAL_WORK_DIR) -and ($item -ne $REMOTE_WORK_DIR)) {
+	if (Test-Path "$solutionRoot\CDAF.solution") {
 		write-host 
-		write-host "[$scriptName] CDAF.solution file found in directory `"$item`", load solution properties"
+		write-host "[$scriptName] Load solution properties from $solutionRoot\CDAF.solution"
 		& .\$automationHelper\Transform.ps1 "$solutionRoot\CDAF.solution" | ForEach-Object { invoke-expression $_ }
 	}
 
 	# Process optional pre-packaging tasks (Task driver support added in release 0.7.2)
     if (Test-Path "$prepackageTasks") {
 		Write-Host
-		Write-Host "Process Pre-Package Tasks ..."
+		Write-Host "[$scriptName] Process Pre-Package Tasks ..."
+		Write-Host
 		& .\$automationHelper\execute.ps1 $SOLUTION $BUILDNUMBER "package" "$prepackageTasks" $ACTION
 		if(!$?){ exitWithCode "..\$automationHelper\execute.ps1 $SOLUTION $BUILDNUMBER `"package`" `"$prepackageTasks`" $ACTION" }
 	}
@@ -175,6 +184,14 @@ if ( $ACTION -eq "clean" ) {
 	Add-Content manifest.txt "# Manifest for revision $REVISION"
 	Add-Content manifest.txt "SOLUTION=$SOLUTION"
 	Add-Content manifest.txt "BUILDNUMBER=$BUILDNUMBER"
+	# CDM-115 Add solution properties to manifest if it exists
+	if ((Test-Path "$solutionRoot\CDAF.solution") -and ($item -ne $LOCAL_WORK_DIR) -and ($item -ne $REMOTE_WORK_DIR)) {
+		Get-Content $solutionRoot\CDAF.solution | Add-Content manifest.txt
+	}
+	Write-Host
+	Write-Host "Created manifest.txt file ..."
+	Write-Host
+	Get-Content manifest.txt
 	Write-Host
 	write-host "[$scriptName] Always create local working artefacts, even if all tasks are remote" -ForegroundColor Blue
 	try {
@@ -197,7 +214,8 @@ if ( $ACTION -eq "clean" ) {
 	# Process optional post-packaging tasks (wrap.tsk added in release 0.8.2)
     if (Test-Path "$postpackageTasks") {
 		Write-Host
-		Write-Host "Process Post-Package Tasks ..."
+		Write-Host "[$scriptName] Process Post-Package Tasks ..."
+		Write-Host
 		& .\$automationHelper\execute.ps1 $SOLUTION $BUILDNUMBER "package" "$postpackageTasks" $ACTION
 		if(!$?){ exitWithCode "..\$automationHelper\execute.ps1 $SOLUTION $BUILDNUMBER `"package`" `"$postpackageTasks`" $ACTION" }
 	}

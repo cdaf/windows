@@ -9,10 +9,6 @@ echo.
 echo [%~nx0] ------------------
 echo [%~nx0]   Remote Process
 echo [%~nx0] ------------------
-echo [%~nx0]   ENVIRONMENT      : %ENVIRONMENT%
-echo [%~nx0]   BUILD            : %BUILD%
-echo [%~nx0]   SOLUTION         : %SOLUTION%
-echo [%~nx0]   WORK_DIR_DEFAULT : %WORK_DIR_DEFAULT%
 
 rem Launcher script that overides execution policy
 rem cannot elevate powershell

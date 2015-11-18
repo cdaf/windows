@@ -49,13 +49,28 @@ function getFilename ($FullPathName) {
 }
 
 $ENVIRONMENT = $args[0]
-$SOLUTION = $args[1]
-$BUILD = $args[2]
+$BUILD = $args[1]
+$SOLUTION = $args[2]
 $WORK_DIR_DEFAULT = $args[3]
 $scriptName = $myInvocation.MyCommand.Name 
 $remoteProperties = "propertiesForRemoteTasks\$ENVIRONMENT*"
 
-Write-Host "[$scriptName] Executing on $(hostname) as $(whoami) in $(pwd)" 
+Write-Host "[$scriptName]   ENVIRONMENT      : $ENVIRONMENT" 
+Write-Host "[$scriptName]   BUILD            : $BUILD" 
+Write-Host "[$scriptName]   SOLUTION         : $SOLUTION" 
+Write-Host "[$scriptName]   WORK_DIR_DEFAULT : $WORK_DIR_DEFAULT" 
+Write-Host "[$scriptName]   Hostname         : $(hostname)" 
+Write-Host "[$scriptName]   Whoami           : $(whoami)" 
+
+$propertiesFile = "CDAF.properties"
+$propName = "productVersion"
+try {
+	$cdafVersion=$(& .\$WORK_DIR_DEFAULT\getProperty.ps1 .\$WORK_DIR_DEFAULT\$propertiesFile $propName)
+	if(!$?){ taskWarning }
+} catch { exitWithCode "GET_CDAF_VERSION" }
+Write-Host "[$scriptName]   CDAF Version     : $cdafVersion"
+Write-Host "[$scriptName]   pwd              : $(pwd)"
+ 
 $exitStatus = 0
 
 # Perform Remote Tasks for each environment defintion file
@@ -81,7 +96,7 @@ if (-not(Test-Path $WORK_DIR_DEFAULT\$remoteProperties)) {
 		write-host "[$scriptName]   --- Process Target $propFilename --- " -ForegroundColor Green
 		Write-Host
 		try {
-			& .\$WORK_DIR_DEFAULT\remoteTasksTarget.ps1 $ENVIRONMENT $BUILD $SOLUTION $propFilename $WORK_DIR_DEFAULT
+			& .\$WORK_DIR_DEFAULT\remoteTasksTarget.ps1 $ENVIRONMENT $SOLUTION $BUILD $propFilename $WORK_DIR_DEFAULT
 			if(!$?){ taskWarning }
 		} catch { exitWithCode($propFilename) }
 		Write-Host

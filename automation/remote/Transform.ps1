@@ -1,9 +1,23 @@
 function taskException ($taskName) {
-    write-host "[$scriptName] Caught an exception excuting $taskName :" -ForegroundColor Red
+    write-host "[$scriptName] Caught an exception executing $taskName :" -ForegroundColor Red
     write-host "     Exception Type: $($_.Exception.GetType().FullName)" -ForegroundColor Red
     write-host "     Exception Message: $($_.Exception.Message)" -ForegroundColor Red
 	write-host
     throw "$scriptName HALT"
+}
+
+function throwErrorlevel ($taskName, $trappedExit) {
+    write-host "[$scriptName] Trapped DOS exit code : $trappedExit" -ForegroundColor Red
+
+	If ($REVISION -eq "remote") {
+		write-host
+		write-host "[$scriptName] Called from DOS, returning exit code as errorlevel" -ForegroundColor Blue
+		$host.SetShouldExit($trappedExit)
+	} else {
+		write-host
+		write-host "[$scriptName] Called from PowerShell, throwing error" -ForegroundColor Blue
+		throw "$taskName $trappedExit"
+	}
 }
 
 $PROPFILE   = $args[0]
@@ -12,13 +26,19 @@ $TOKENFILE  = $args[1]
 $scriptName = $myInvocation.MyCommand.Name 
 write-host 
 write-host "[$scriptName] PROPFILE : $PROPFILE"
-if (-Not (Test-Path $PROPFILE) ) { taskException "Properties file ($PROPFILE) not found!" }
+if (-Not (Test-Path $PROPFILE) ) {
+	$exitCode=61
+	write-host "[$scriptName] PROPFILE ($PROPFILE) not found, returning exit $exitCode"
+	throwErrorlevel "PROPFILE_NOT_FOUND" $exitCode
+}
 
 if ($TOKENFILE) {
 	if (Test-Path $TOKENFILE) {
 		write-host "[$scriptName] TOKENFILE = $TOKENFILE"
 	} else {
-		taskException "Token File ($TOKENFILE) not found!"
+		$exitCode=62
+		write-host "[$scriptName] TOKENFILE ($TOKENFILE) not found, returning exit $exitCode"
+		throwErrorlevel "TOKENFILE_NOT_FOUND" $exitCode
 	}
 }
 

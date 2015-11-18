@@ -98,6 +98,23 @@ if %result% NEQ 0 (
 	exit /b %result%
 )
 
+if NOT "%ACTION%" == "clean" (
+	echo.
+	echo [%~nx0] ---------- CI Toolset Configuration Guide -------------
+	echo.
+	echo Configure artefact retention patterns to retain package and local tasks
+	echo.
+    echo [%~nx0] For Bamboo ...
+	echo.
+	echo Name    : TasksLocal
+    echo TasksLocal/**
+	echo.
+    echo Name    : Package 
+    echo Pattern : *.zip
+    echo Command parameters : %SOLUTION% %%build.number%% %%build.vcs.number%% %LOCAL_WORK_DIR% %REMOTE_WORK_DIR%
+    echo.
+)
+
 if "%ACTION%" == "clean" (
 	echo.
 	echo [%~nx0] done, cleaned workspace only for action %ACTION%

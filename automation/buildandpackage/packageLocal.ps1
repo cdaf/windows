@@ -44,12 +44,15 @@ pathTest $remotePropertiesDir
 
 # Create the workspace directory
 Write-Host
-Write-Host "[$scriptName] mkdir $WORK_DIR_DEFAULT" 
+Write-Host "[$scriptName] mkdir $WORK_DIR_DEFAULT and seed with solution files" 
 New-Item $WORK_DIR_DEFAULT -type directory > $null
 if(!$?){ taskFailure ("mkdir $WORK_DIR_DEFAULT") }
 
-# Copy Manifest
+# Copy Manifest and CDAF Product Definition
 copySet "manifest.txt" "." $WORK_DIR_DEFAULT
+copySet "CDAF.windows" "$AUTOMATIONROOT" $WORK_DIR_DEFAULT
+Move-Item $WORK_DIR_DEFAULT\CDAF.windows $WORK_DIR_DEFAULT\CDAF.properties
+Write-Host Write-Host "[$scriptName]   rename $WORK_DIR_DEFAULT\CDAF.windows --> $WORK_DIR_DEFAULT\CDAF.properties"
 
 # Copy all local script helpers, flat set to true to copy to root, not sub directory
 copyDir ".\$AUTOMATIONROOT\local" $WORK_DIR_DEFAULT $true
@@ -77,10 +80,10 @@ if ( Test-Path $remotePropertiesDir ) {
 
 # Copy encrypted file directory if it exists
 if ( Test-Path $localCryptDir ) {
-	copyDir $localCryptDir $WORK_DIR_DEFAULT $true
+	copyDir $localCryptDir $WORK_DIR_DEFAULT
 }
 
-# Copy custom scripts directory if it exists
+# CDM-114 Copy custom scripts if custom directory exists, copy to root of workspace 
 if ( Test-Path $localCustomDir ) {
 	copyDir $localCustomDir $WORK_DIR_DEFAULT $true
 }

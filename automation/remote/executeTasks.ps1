@@ -1,3 +1,11 @@
+function taskException ($taskName) {
+    write-host "[$scriptName] Caught an exception executing $taskName :" -ForegroundColor Red
+    write-host "     Exception Type: $($_.Exception.GetType().FullName)" -ForegroundColor Red
+    write-host "     Exception Message: $($_.Exception.Message)" -ForegroundColor Red
+	write-host
+    throw "$scriptName HALT"
+}
+
 function exitWithCode ($taskName) {
     write-host
     write-host "[$scriptName] Caught an exception excuting $taskName :" -ForegroundColor Red
@@ -30,29 +38,44 @@ $WORKSPACE = $args[1]
 # $myInvocation.MyCommand.Name not working when processing DOS
 $scriptName = "executeTasks.ps1"
 
-write-host "[$scriptName]   TARGET    : $TARGET"
-write-host "[$scriptName]   WORKSPACE : $WORKSPACE"
-
-$overrideTask = getProp "deployScriptOverride"
-if ($overrideTask ) {
-	$taskList = $overrideTask
+write-host "[$scriptName]   TARGET               : $TARGET"
+if ($WORKSPACE ) {
+    write-host "[$scriptName]   WORKSPACE            : $(pwd) (passed as argument)"
 } else {
-	$taskList = "tasksRunRemote.tsk"
-}
-
-if ($overrideTask) {
-	write-host "[$scriptName]   taskList  : $taskList (based on deployScriptOverride in properties file)"
-} else {
-	write-host "[$scriptName]   taskList  : $taskList"
+    write-host "[$scriptName]   WORKSPACE            : $(pwd)"
 }
 write-host
-write-host "[$scriptName] Load solution properties from manifest.txt"
+write-host "[$scriptName] Load SOLUTION and BUILDNUMBER from manifest.txt"
 & .\Transform.ps1 ".\manifest.txt" | ForEach-Object { invoke-expression $_ }
 
-Write-Host
-write-host "[$scriptName] Execute the Tasks defined in $taskList"
-Write-Host
-try {
-	& .\execute.ps1 $SOLUTION $BUILDNUMBER $TARGET $taskList
-	if(!$?){ exitWithCode "POWERSHELL_TRAP_$_" }
-} catch { exitWithCode "POWERSHELL_EXCEPTION_$_" }
+$scriptOverride = getProp ("deployScriptOverride")
+if ($scriptOverride ) {
+	write-host "[$scriptName]   deployScriptOverride : $scriptOverride"
+    Write-Host
+    $expression=".\$scriptOverride $SOLUTION $BUILDNUMBER $TARGET"
+    write-host $expression
+	try {
+		Invoke-Expression $expression
+	    if(!$?){ taskException "REMOTE_OVERRIDESCRIPT_TRAP" $_ }
+    } catch { taskException "REMOTE_OVERRIDESCRIPT_EXCEPTION" $_ }
+
+
+} else {
+
+    $taskOverride = getProp "deployTaskOverride"
+    if ($taskOverride ) {
+	    $taskList = $taskOverride
+	    write-host "[$scriptName]   taskList  : $taskList"
+    } else {
+	    $taskList = "tasksRunRemote.tsk"
+	    write-host "[$scriptName]   taskList  : $taskList (default, deployTaskOverride not found in properties file)"
+    }
+
+    Write-Host
+    write-host "[$scriptName] Execute the Tasks defined in $taskList"
+    Write-Host
+    try {
+	    & .\execute.ps1 $SOLUTION $BUILDNUMBER $TARGET $taskList
+	    if(!$?){ exitWithCode "POWERSHELL_TRAP_$_" }
+    } catch { exitWithCode "POWERSHELL_EXCEPTION_$_" }
+}

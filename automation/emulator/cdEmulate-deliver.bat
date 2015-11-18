@@ -33,12 +33,9 @@ echo [%~nx0] ---------------------
 echo.
 echo [%~nx0] ---------- CD Toolset Configuration Guide -------------
 echo.
-echo Configure artefact retention patterns to retain package and local tasks
-echo    *.zip 
-echo   TasksLocal/**
-echo.
-echo   set the first step of deploy to make scripts executable
-echo   chmod +x ./*/*.sh
+echo Note: artifact retention typically does include file attribute for executable, so
+echo  set the first step of deploy process to make all scripts executable
+echo  chmod +x ./*/*.sh
 echo.
 echo For TeamCity ...
 echo   Command Executable : \%LOCAL_WORK_DIR%\remoteTasks.bat 

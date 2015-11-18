@@ -2,7 +2,7 @@ Continuous Delivery Automation Framework (CDAF)
 ===============================================
 
     Author  : Jules Clements
-    Version : 0.9.1 (full details in CDAF.windows)
+    Version : 0.9.3 (full details in CDAF.windows)
 
 Framework Overview
 ==================
@@ -93,7 +93,7 @@ All scripts contained in the /local folder are copied to the TasksLocal director
 
 Deploy (many)
 --------------
-Default task definitions, these can be overridden using deployScriptOverride= in properties file
+Default task definitions, these can be overridden using deployScriptOverride or deployTaskOverride in properties file
 
 	tasksRunLocal.tsk
 	tasksRunRemote.tsk
@@ -110,7 +110,7 @@ Encrypted files (for passwords)
 	/cryptRemoteRemote
 	/cryptRemoteLocal
 
-Custom elements, i,.e. deployScriptOverride scripts
+Custom elements, i,.e. deployScriptOverride and deployTaskOverride scripts
 
 	/customRemote
 	/customLocal
@@ -145,3 +145,18 @@ Automated Function Tests
 ------------------------
 
 Not yet implemented in .NET/Windows solutions.
+
+Frequently Asked Questions
+==========================
+
+
+Why use CDAF
+------------
+
+To provide a consistent approach to Continuous Delivery and leverage the efforts of others to provide greater reusability and easier problem determination. CDAF will provide the building blocks for common tasks, with rich logging and exeception handling. The CDAf provides toolset configuration guidance, keeping the actions loosely coupled with the toolset, to allow visibilty and traceability through source control rather than direct changes.
+
+  
+Why not have a shared folder for CDAF on the system
+---------------------------------------------------
+
+CDAF principles are to have a minimum level of system dependency. By having solution specific copies each solution can use differing versions of CDAF, and once a solution is upgraded, that upgrade will be propogated to all uses (at next update/pull/get) where a system provisioned solution will requrie all users to update to the same version, even if their current solution has not been tested for this system wide change.

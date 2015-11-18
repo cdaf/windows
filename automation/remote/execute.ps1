@@ -56,6 +56,8 @@ $TMPDIR = [Environment]::GetEnvironmentVariable("TEMP","Machine")
 
 $scriptName = $myInvocation.MyCommand.Name 
 
+Write-Host "~~~~~ Starting Execution Engine ~~~~~~"
+Write-Host
 Write-Host "[$scriptName]  SOLUTION    : $SOLUTION"
 Write-Host "[$scriptName]  BUILDNUMBER : $BUILDNUMBER"
 Write-Host "[$scriptName]  TARGET      : $TARGET"
@@ -107,22 +109,30 @@ Foreach ($line in get-content $TASK_LIST) {
 
 				# Invoke a custom script
 	            if ( $expression.substring(0,6) -match 'invoke' ) {
-		            $expression = $expression.Substring(7)
+	            	$expression = $expression.Substring(7)
+	            	$keywordMessageStart = "  ---- Start invoke $expression ---   "
+	            	$keywordMessageStop = "  ----- Stop invoke $expression ---   "
+	            	$expBuilder = ".\"
 		            $pos = $expression.IndexOf(" ")
 		            if ( $pos -lt 0 ) {
-			            $expression = $expression + ".ps1"
+			            $expression = $expBuilder + $expression + ".ps1"
 		            } else {
-			            $script = $expression.Substring(0, $pos)
-						$arguments = $expression.Substring($pos+1)
-						$expression = $script + ".ps1 " + $arguments
+		            	$expBuilder += $expression.Substring(0, $pos) + ".ps1 "
+						$expression = $expBuilder + $expression.Substring($pos+1)
 					}
 	            }
 
 	        }
 
 	        # Do not echo line if it is an echo itself
-            if (-not ($expression -match 'Write-Host')) {
+            if (-not (($expression -match 'Write-Host') -or ($expression -match 'echo'))) {
 	            Write-Host "$expression"
+            }
+
+            # Keyword messaging
+            if ( $keywordMessageStart ) {
+	            write-host
+	            Write-Host "[$scriptName] $keywordMessageStart"
             }
 
             # Execute expression and trap powershell exceptions
@@ -145,6 +155,12 @@ Foreach ($line in get-content $TASK_LIST) {
 		        Write-Host "[$scriptName] $expression failed with ERROR[0] = $error[0]" -ForegroundColor Red
 		        throwErrorlevel "DOS_NON_TERM" $exitcode
 	        }
+	        
+            # Keyword messaging
+            if ( $keywordMessageStop ) {
+	            write-host
+	            Write-Host "[$scriptName] $keywordMessageStop"
+            }
 
 			# Information message for clean
 			If ($terminate -eq "clean") {
@@ -177,4 +193,6 @@ Foreach ($line in get-content $TASK_LIST) {
 
         }
     }
-} 
+}
+Write-Host
+Write-Host "~~~~~ Shutdown Execution Engine ~~~~~~"

@@ -1,0 +1,9 @@
+echo "I do not do anything, except call another PowerShell script."
+echo "If the only purpose is to call a script, then consider using deployScriptOverride property."
+echo "note: the .ps1 is excluded to support cross platform sculpting, i.e. ps1 or .sh switching."
+
+invoke invokeTest
+
+echo "Call again with arguments "
+
+invoke invokeTest "Hello World" 2
