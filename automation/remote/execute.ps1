@@ -92,26 +92,72 @@ Foreach ($line in get-content $TASK_LIST) {
 	        # Check for cross platform key words, only if the string is longer enough
 	        if ($expression.length -gt 6) {
 
+				# Check for cross platform key words, first 6 characters, by convention uppercase but either supported
+				$feature=$expression.substring(0,6).ToUpper()
+
+				# Exit (normally) if argument set
+	            if ( $feature -eq 'EXITIF' ) {
+		            $exitVar = $expression.Substring(7)
+		            Write-Host "$expression ==> if ( $exitVar ) then exit" -NoNewline
+		            $expression = "if ( $exitVar ) { Write-Host `", controlled exit due to `$exitVar = $exitVar`"; exit }"
+	            }
+					
+				# Load Properties from file as variables
+	            if ( $feature -eq 'PROPLD' ) {
+		            $propFile = $ExecutionContext.InvokeCommand.ExpandString($expression.Substring(7))
+					$transform = ".\Transform.ps1"
+	
+					# Load all properties as runtime variables (transform provides logging)
+					# Test for running as delivery process
+					if (!( test-path $transform)) {
+					
+						# Test for running as a build process
+						$transform = "..\$automationHelper\Transform.ps1"
+						if (! (test-path $transform)) {
+					
+							# Test for running as a package parocess
+							$transform = "$automationHelper\Transform.ps1"
+						}
+					}
+		            Write-Host "$expression ==> $transform $propFile" -NoNewline
+					Write-Host
+			        try {
+						& $transform "$propFile" | ForEach-Object { invoke-expression $_ }
+				        if(!$?) { taskException "PRODLD_TRAP" $_ }
+			        } catch { taskException "PRODLD_EXCEPTION" $_ }
+	            }
+
 				# Set a variable, PowerShell format
-	            if ( $expression.substring(0,6) -match 'assign' ) {
+	            if ( $feature -eq 'ASSIGN' ) {
+		            Write-Host "$expression ==> " -NoNewline
 		            $expression = $expression.Substring(7)
 	            }
 	
 				# Delete (verbose)
-	            if ( $expression.substring(0,6) -match 'remove' ) {
+	            if ( $feature -eq 'REMOVE' ) {
+		            Write-Host "$expression ==> " -NoNewline
 		            $expression = "itemRemove " + $expression.Substring(7)
 	            }
 
 				# Delete (verbose)
-	            if ( $expression.substring(0,6) -match 'vecopy' ) {
+	            if ( $feature -eq 'VECOPY' ) {
+		            Write-Host "$expression ==> " -NoNewline
 		            $expression = "copyVerbose " + $expression.Substring(7)
 	            }
 
+				# Decrypt a file
+				#  required : directory, file location relative to current workspace
+				#  optional : file, if not supplied try file with the same name as directory
+	            if ( $feature -eq 'DECRYP' ) {
+		            Write-Host "$expression ==> " -NoNewline
+					$expression = '$'
+					$expression += "RESULT = $(./decryptKey.sh $TARGET $expression.Substring(7))"
+				}
+
 				# Invoke a custom script
-	            if ( $expression.substring(0,6) -match 'invoke' ) {
+	            if ( $feature -eq 'INVOKE' ) {
+		            Write-Host "$expression ==> " -NoNewline
 	            	$expression = $expression.Substring(7)
-	            	$keywordMessageStart = "  ---- Start invoke $expression ---   "
-	            	$keywordMessageStop = "  ----- Stop invoke $expression ---   "
 	            	$expBuilder = ".\"
 		            $pos = $expression.IndexOf(" ")
 		            if ( $pos -lt 0 ) {
@@ -124,43 +170,35 @@ Foreach ($line in get-content $TASK_LIST) {
 
 	        }
 
-	        # Do not echo line if it is an echo itself
-            if (-not (($expression -match 'Write-Host') -or ($expression -match 'echo'))) {
-	            Write-Host "$expression"
-            }
-
-            # Keyword messaging
-            if ( $keywordMessageStart ) {
-	            write-host
-	            Write-Host "[$scriptName] $keywordMessageStart"
-            }
-
-            # Execute expression and trap powershell exceptions
-	        try {
-		        Invoke-Expression $expression
-		        if(!$?) { taskException "POWERSHELL_TRAP" $_ }
-	        } catch { taskException "POWERSHELL_EXCEPTION" $_ }
-
-            # Look for DOS exit codes
-	        $exitcode = $LASTEXITCODE
-	        if ( $exitcode -gt 0 ) { 
-		        Write-Host
-		        Write-Host "[$scriptName] $expression failed with LASTEXITCODE = $exitcode" -ForegroundColor Red
-		        throwErrorlevel "DOS_TERM" $exitcode
-	        }
-
-            # Check for non-terminating errors, any error will terminate execution
-	        if ( $error[0] ) { 
-		        Write-Host
-		        Write-Host "[$scriptName] $expression failed with ERROR[0] = $error[0]" -ForegroundColor Red
-		        throwErrorlevel "DOS_NON_TERM" $exitcode
-	        }
-	        
-            # Keyword messaging
-            if ( $keywordMessageStop ) {
-	            write-host
-	            Write-Host "[$scriptName] $keywordMessageStop"
-            }
+			# Perform no further processing if Feature is Property Loader
+            if ( $feature -ne 'PROPLD' ) {
+			
+		        # Do not echo line if it is an echo itself
+	            if (-not (($expression -match 'Write-Host') -or ($expression -match 'echo'))) {
+		            Write-Host "$expression"
+	            }
+	
+	            # Execute expression and trap powershell exceptions
+		        try {
+			        Invoke-Expression $expression
+			        if(!$?) { taskException "POWERSHELL_TRAP" $_ }
+		        } catch { taskException "POWERSHELL_EXCEPTION" $_ }
+	
+	            # Look for DOS exit codes
+		        $exitcode = $LASTEXITCODE
+		        if ( $exitcode -gt 0 ) { 
+			        Write-Host
+			        Write-Host "[$scriptName] $expression failed with LASTEXITCODE = $exitcode" -ForegroundColor Red
+			        throwErrorlevel "DOS_TERM" $exitcode
+		        }
+	
+	            # Check for non-terminating errors, any error will terminate execution
+		        if ( $error[0] ) { 
+			        Write-Host
+			        Write-Host "[$scriptName] $expression failed with ERROR[0] = $error[0]" -ForegroundColor Red
+			        throwErrorlevel "DOS_NON_TERM" $exitcode
+		        }
+		    }
 
 			# Information message for clean
 			If ($terminate -eq "clean") {
