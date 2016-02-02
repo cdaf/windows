@@ -151,7 +151,7 @@ Foreach ($line in get-content $TASK_LIST) {
 	            if ( $feature -eq 'DECRYP' ) {
 		            Write-Host "$expression ==> " -NoNewline
 					$expression = '$'
-					$expression += "RESULT = $(./decryptKey.sh $TARGET $expression.Substring(7))"
+					$expression += "RESULT = $(./decryptKey.ps1 $TARGET $expression.Substring(7))"
 				}
 
 				# Invoke a custom script
@@ -167,6 +167,38 @@ Foreach ($line in get-content $TASK_LIST) {
 						$expression = $expBuilder + $expression.Substring($pos+1)
 					}
 	            }
+
+				# Detokenise a file
+				#  required : tokenised file, relative to current workspace
+				#  option : properties file, if not passed, target will be used
+	            if ( $feature -eq 'DETOKN' ) {
+		            Write-Host "$expression ==> " -NoNewline
+	            	$arguments = $expression.Substring(7)
+					$data = $arguments.split(" ")
+					$tokenFile = $data[0]
+					$properties = $data[1]
+	            	$expression = ".\Transform.ps1 "
+
+		            if ($properties) {
+			            $expression += $properties + " " + $tokenFile
+		            } else {
+		            	$expression += $TARGET + " " + $tokenFile
+					}
+	            }
+
+				# Replace in file
+				#  required : file, relative to current workspace
+				#  required : name, the token to be replaced
+				#  required : value, the replacement value
+	            if ( $feature -eq 'REPLAC' ) {
+		            Write-Host "$expression ==> " -NoNewline
+		            $arguments = $expression.Substring(7)
+					$data = $arguments.split(" ")
+					$fileName = $data[0]
+					$name = $data[1]
+					$value = $data[2]
+					$expression = "(Get-Content $fileName | ForEach-Object { `$_ -replace `"$name`", `"$value`" } ) | Set-Content $fileName"
+				}		
 
 	        }
 
