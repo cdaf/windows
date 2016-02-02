@@ -2,7 +2,7 @@ Continuous Delivery Automation Framework (CDAF)
 ===============================================
 
     Author  : Jules Clements
-    Version : 0.9.3 (full details in CDAF.windows)
+    Version : 0.9.5 (full details in CDAF.windows)
 
 Framework Overview
 ==================
@@ -61,10 +61,15 @@ To alleviate the burden of argument passing, exception handling and logging, the
 | Keyword | Description                      | Example                    |
 | --------|----------------------------------|---------------------------------|
 | ASSIGN  | set a variable                   | ASSIGN $test="Hello World"      |
+| DECRYP  | decrypt matching target file     | DECRYP cryptLocal               |
+|         | decrypt specific file            | DECRYP cryptLocal encrypt.dat   |
+| DETOKN  | Detokenise file with target prop | DETOKN tokenised.file           |
+|         | Detokenise with specific file    | DETOKN tokenised.file prop.file |
 | EXITIF  | Exit normally is argument set    | EXITIF $ACTION                  |
 | INVOKE  | call a custom script             | INVOKE ./script "Hello"         |
 | PROPLD  | Load properties as variables     | PROPLD prop.file                |
 | REMOVE  | Delete files, including wildcard | REMOVE *.war                    |
+| VECOPY  | Verbose copy					 | VECOPY *.war                    |
 
 By setting the following variables, the following actions are performed
 
