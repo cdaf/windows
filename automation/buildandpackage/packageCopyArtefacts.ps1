@@ -35,11 +35,38 @@ function copyOpt ($manifestFile, $from, $recurse, $flat) {
 		}
 	
 	} else {
+
+		# If a directory has been passed, then perform a directory copy (non recursive)
+		if (Test-Path $from -PathType "Container") {
 	
-		Write-Host "[$scriptName]   $from --> $WORK_DIR_DEFAULT" 
-		Copy-Item $from $WORK_DIR_DEFAULT
-		if(!$?){ taskFailure ("Copy-Item $from $WORK_DIR_DEFAULT") }
-		Add-Content $manifestFile "$WORK_DIR_DEFAULT\$from"
+			foreach ($filename in (Get-ChildItem -Path "$from" -Name )) {
+				if ($flat) {
+					Write-Host "[$scriptName]   $from\$filename --> $WORK_DIR_DEFAULT" 
+					New-Item -ItemType File -Path $WORK_DIR_DEFAULT\$filename -Force > $null
+					Copy-Item $from\$filename $WORK_DIR_DEFAULT -Force
+				} else {
+					Write-Host "[$scriptName]   $from\$filename --> $WORK_DIR_DEFAULT\$from" 
+					New-Item -ItemType File -Path $WORK_DIR_DEFAULT\$from\$filename -Force > $null
+					Copy-Item $from\$filename $WORK_DIR_DEFAULT\$from -Force
+				}
+	
+				if(!$?){ taskFailure ("Copy-Item $from\$filename $WORK_DIR_DEFAULT\$from -Force") }
+	
+				if (-not (Test-Path $WORK_DIR_DEFAULT\$from\$filename -pathType container)) {
+					Set-ItemProperty $WORK_DIR_DEFAULT\$from\$filename -name IsReadOnly -value $false
+					if(!$?){ taskFailure ("Set-ItemProperty $itemPath -name IsReadOnly -value $false") }
+				}
+				Add-Content $manifestFile "$WORK_DIR_DEFAULT\$from\$filename"
+			}
+			
+		} else {	
+	
+			Write-Host "[$scriptName]   $from --> $WORK_DIR_DEFAULT" 
+			Copy-Item $from $WORK_DIR_DEFAULT
+			if(!$?){ taskFailure ("Copy-Item $from $WORK_DIR_DEFAULT") }
+			Add-Content $manifestFile "$WORK_DIR_DEFAULT\$from"
+			
+		}
 	}
 	
 }
