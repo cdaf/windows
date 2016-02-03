@@ -99,7 +99,7 @@ itemRemove .\*.nupkg
 $solutionRoot="$AUTOMATIONROOT\solution"
 
 foreach ($item in (Get-ChildItem -Path ".")) {
-	if ($item.Attributes -like "Directory") {
+	if (Test-Path $item -PathType "Container") {
 		if (Test-Path "$item\CDAF.solution") {
 			write-host 
 			write-host "[$scriptName] CDAF.solution file found in directory `"$item`", load solution properties"
@@ -112,7 +112,7 @@ foreach ($item in (Get-ChildItem -Path ".")) {
 # Build a list of projects, base on directory names unless an override project list file exists
 if (-not(Test-Path $projectList)) {
 	foreach ($item in (Get-ChildItem -Path ".")) {
-		if ($item.Attributes -like "Directory") {
+		if (Test-Path $item -PathType "Container") {
 			Add-Content projectDirectories.txt $item.Name
 		}
 	}

@@ -103,7 +103,7 @@ Write-Host "[$scriptName]   automationHelper        : $automationHelper"
 # Check for user defined solution folder, i.e. outside of automation root, if found override solution root
 $solutionRoot="$AUTOMATIONROOT\solution"
 foreach ($item in (Get-ChildItem -Path ".")) {
-	if ($item.Attributes -eq "Directory") {
+	if (Test-Path $item -PathType "Container") {
 		if (Test-Path "$item\CDAF.solution") {
 			$solutionRoot=$item
 		}
