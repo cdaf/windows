@@ -28,10 +28,20 @@ function throwErrorlevel ($taskName, $trappedExit) {
 	}
 }
 
+function makeContainer ($itemPath) { 
+# If directory already exists, just report, otherwise create the directory and report
+	if ( Test-Path $itemPath ) {
+		write-host "[makeContainer] $itemPath exists"
+	} else {
+		mkdir $itemPath
+		if(!$?) {exitWithCode "[makeContainer] $itemPath Creation failed" }
+	}
+}
+
 function itemRemove ($itemPath) { 
 # If item exists, and is not a directory, remove read only and delete, if a directory then just delete
 	if ( Test-Path $itemPath ) {
-		write-host "[$scriptName] Delete $itemPath"
+		write-host "[itemRemove] Delete $itemPath"
 		Remove-Item $itemPath -Recurse
 		if(!$?) {exitWithCode "Remove-Item $itemPath -Recurse" }
 	}
@@ -39,9 +49,9 @@ function itemRemove ($itemPath) {
 
 function copyVerbose ($from, $to) {
 
-	Write-Host "copyVerbose $from --> $to" 
+	Write-Host "[copyVerbose] $from --> $to" 
 	Copy-Item $from $to -Force
-	if(!$?){ taskFailure ("Copy remote script $from --> $to") }
+	if(!$?){ taskFailure ("[copyVerbose] Copy remote script $from --> $to") }
 	
 }
 
@@ -132,6 +142,12 @@ Foreach ($line in get-content $TASK_LIST) {
 		            Write-Host "$expression ==> " -NoNewline
 		            $expression = $expression.Substring(7)
 	            }
+
+				# Create Directory (verbose)
+	            if ( $feature -eq 'MAKDIR' ) {
+		            Write-Host "$expression ==> " -NoNewline
+		            $expression = "makeContainer " + $expression.Substring(7)
+	            }
 	
 				# Delete (verbose)
 	            if ( $feature -eq 'REMOVE' ) {
@@ -139,19 +155,19 @@ Foreach ($line in get-content $TASK_LIST) {
 		            $expression = "itemRemove " + $expression.Substring(7)
 	            }
 
-				# Delete (verbose)
+				# Copy (verbose)
 	            if ( $feature -eq 'VECOPY' ) {
 		            Write-Host "$expression ==> " -NoNewline
 		            $expression = "copyVerbose " + $expression.Substring(7)
 	            }
 
 				# Decrypt a file
-				#  required : directory, file location relative to current workspace
-				#  optional : file, if not supplied try file with the same name as directory
+				#  required : file location
+				#  optional : thumbprint, if decrypting using certificate
 	            if ( $feature -eq 'DECRYP' ) {
 		            Write-Host "$expression ==> " -NoNewline
-					$expression = '$'
-					$expression += "RESULT = $(./decryptKey.ps1 $TARGET $expression.Substring(7))"
+		            $arguments = $expression.Substring(7)
+					$expression = "`$RESULT = ./decryptKey.ps1 $arguments"
 				}
 
 				# Invoke a custom script
