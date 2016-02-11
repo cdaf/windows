@@ -31,9 +31,16 @@ function throwErrorlevel ($taskName, $trappedExit) {
 function makeContainer ($itemPath) { 
 # If directory already exists, just report, otherwise create the directory and report
 	if ( Test-Path $itemPath ) {
-		write-host "[makeContainer] $itemPath exists"
+		if (Test-Path $itemPath -PathType "Container") {
+			write-host "[makeContainer] $itemPath exists"
+		} else {
+			Remove-Item $itemPath
+			if(!$?) {exitWithCode "[makeContainer] Remove-Item $itemPath -Recurse" }
+			mkdir $itemPath > $null
+			if(!$?) {exitWithCode "[makeContainer] (replace) $itemPath Creation failed" }
+		}	
 	} else {
-		mkdir $itemPath
+		mkdir $itemPath > $null
 		if(!$?) {exitWithCode "[makeContainer] $itemPath Creation failed" }
 	}
 }
@@ -43,16 +50,56 @@ function itemRemove ($itemPath) {
 	if ( Test-Path $itemPath ) {
 		write-host "[itemRemove] Delete $itemPath"
 		Remove-Item $itemPath -Recurse
-		if(!$?) {exitWithCode "Remove-Item $itemPath -Recurse" }
+		if(!$?) {exitWithCode "[itemRemove] Remove-Item $itemPath -Recurse" }
 	}
 }
 
-function copyVerbose ($from, $to) {
+# Recursive copy function to behave like cp -vR in linux
+function copyRecurse ($from, $to, $notFirstRun) {
 
-	Write-Host "[copyVerbose] $from --> $to" 
-	Copy-Item $from $to -Force
-	if(!$?){ taskFailure ("[copyVerbose] Copy remote script $from --> $to") }
-	
+	if (Test-Path $from -PathType "Container") {
+
+		if ( Test-Path $to ) {
+		
+			# If this is the first call, i.e. at the root of the source and the target exists, and is a folder,
+			# recursive copy into a subfolder, else recursive call into root of the target 
+			if (Test-Path $to -PathType "Container") {
+			
+				# Only create a subdirectory if the root exists, otherwise copy into the root
+				if (! ($notFirstRun)) {
+					$fromLeaf = Split-Path "$from" -Leaf
+					$to = "$to\$fromLeaf"
+				}
+				
+			} else {
+			
+				# The existing path is a file, not a directory, delete the file and replace with a directory
+				Remove-Item $to
+				if(!$?) {exitWithCode "[makeContainer] Remove-Item $to -Recurse" }
+				Write-Host "  $from --> $to (replace file with directory)" 
+				mkdir $to > $null
+				if(!$?) {exitWithCode "[makeContainer] (replace) $to Creation failed" }
+			}
+		}
+		
+		# Previous process may have changed the target, so retest and if still not existing, create it	
+		if ( ! (Test-Path $to)) {
+			Write-Host "  $from --> $to"
+			mkdir $to > $null
+			if(!$?) {exitWithCode "[makeContainer] $to Creation failed" }
+		}
+
+		foreach ($child in (Get-ChildItem -Path "$from" -Name )) {
+			copyRecurse "$from\$child" "$to\$child" $true
+		}
+		
+	} else {
+
+		Write-Host "  $from --> $to" 
+		Copy-Item $from $to -force -recurse
+		if(!$?){ exitWithCode ("[copyRecurse] Copy remote script $from --> $to") }
+		
+	}
 }
 
 $SOLUTION    = $args[0]
@@ -158,7 +205,7 @@ Foreach ($line in get-content $TASK_LIST) {
 				# Copy (verbose)
 	            if ( $feature -eq 'VECOPY' ) {
 		            Write-Host "$expression ==> " -NoNewline
-		            $expression = "copyVerbose " + $expression.Substring(7)
+		            $expression = "copyRecurse " + $expression.Substring(7)
 	            }
 
 				# Decrypt a file
