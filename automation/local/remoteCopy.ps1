@@ -10,12 +10,18 @@ $scriptName = $myInvocation.MyCommand.Name
 $userName = [Environment]::UserName
 $WORK_DIR = $(pwd)
  
-write-host "[$scriptName]   sourceFile = $sourceFile"
-write-host "[$scriptName]   targetHost = $targetHost"
-write-host "[$scriptName]   targetLand = $targetLand"
-write-host "[$scriptName]   remoteUser = $remoteUser"
-write-host "[$scriptName]   remoteCred = *************"
-write-host "[$scriptName]   WORK_DIR   = $WORK_DIR"
+if ( Test-Path "$sourceFile" ) {
+	write-host "[$scriptName]   sourceFile = $sourceFile"
+} else {
+	write-host "[$scriptName]   sourceFile ($sourceFile) does not exist, attempt to list parent directory"
+	dir $(split-path $sourceFile)
+	exit 200	
+}
+write-host "[$scriptName]   targetHost : $targetHost"
+write-host "[$scriptName]   targetLand : $targetLand"
+write-host "[$scriptName]   remoteUser : $remoteUser"
+write-host "[$scriptName]   remoteCred : *************"
+write-host "[$scriptName]   pwd        : $WORK_DIR"
 
 # If remote user specifified, build the credentials object from name and password file
 if ($remoteUser) {
@@ -77,13 +83,13 @@ if ($remoteUser) {
 	}
 }
 
-# If file exists, rename (if left in place, the copy will append to the existing file)
-
+# If target file exists, rename (if left in place, the copy will append to the existing file)
 $argList = @("$targetLand\$(split-path $sourceFile -Leaf)")
 try {
 	Invoke-Command -session $session -ArgumentList $argList {
 		$file = $args[0]
 		if ( Test-Path $file ) {
+			Write-Host "[remoteCopy.ps1] rename existing file to ${file}.orig"
 			mv $file "${file}.orig"
 		} 
 	}

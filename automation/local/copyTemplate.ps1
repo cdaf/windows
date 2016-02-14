@@ -1,3 +1,10 @@
+function taskException ($taskName, $exit, $exception) {
+    write-host "[$scriptName] Caught an exception excuting $taskName :" -ForegroundColor Red
+    write-host "     Exception Type: $($exception.Exception.GetType().FullName)" -ForegroundColor Red
+    write-host "     Exception Message: $($exception.Exception.Message)" -ForegroundColor Red
+	exit $exit
+}
+
 $srcPath   = $args[0]
 
 $scriptName = $myInvocation.MyCommand.Name 
@@ -34,8 +41,9 @@ try {
 			try {
 				[System.IO.FileStream]$dstStream = New-Object IO.FileStream 'deployLand', Append
 				$dstStream.Write($inBuffer, 0, $inBuffer.length)
-			}
-			finally {
+			} catch {
+				taskException "BUFFER_WRITE" 201 $_
+			} finally {
 				$dstStream.Dispose()
 				$dstStream = $null
 
@@ -46,11 +54,13 @@ try {
 		-ArgumentList @( ,$buffer )
 
     } while ($streamLength -gt 0)
-}
-finally
-{
+
+} catch {
+	taskException "BUFFER_READ" 200 $_
+} finally {
+
     $srcStream.Dispose()
     $srcStream = $null
 
     [System.GC]::Collect()
-} 
+}
