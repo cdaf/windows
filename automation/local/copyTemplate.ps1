@@ -18,6 +18,7 @@ if (-not(Test-Path $srcPath)) {
 
 Write-Host
 Write-Host "[$scriptName] Copy $srcPath to 'deployLand'"
+Write-Host
 try {
     [System.IO.FileStream]$srcStream = New-Object IO.FileStream $srcPath, Open
     [Byte[]]$readBuffer  = New-Object Byte[]  1048576 #  1MB
