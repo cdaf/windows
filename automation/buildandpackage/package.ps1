@@ -199,16 +199,15 @@ if ( $ACTION -eq "clean" ) {
 		if(!$?){ taskWarning }
 	} catch { exitWithCode("packageLocal.ps1") }
 
-	if ( -not( Test-Path $remotePropertiesDir ) ) {
+	if (( Test-Path "$remotePropertiesDir" -pathtype container) -or ( Test-Path "$solutionRoot\storeForLocal" -pathtype leaf)) {
 
-		write-host "[$scriptName] Remote Properties directory ($remotePropertiesDir) does not exist, no action performed for remote task packaging" -ForegroundColor Yellow
-
-	} else {
-	
 		try {
 			& .\$AUTOMATIONROOT\buildandpackage\packageRemote.ps1 $SOLUTION $BUILDNUMBER $REVISION $LOCAL_WORK_DIR $REMOTE_WORK_DIR $solutionRoot $AUTOMATIONROOT
 			if(!$?){ taskWarning }
 		} catch { exitWithCode("packageRemote.ps1") }
+
+	} else {
+		write-host "[$scriptName] Remote Properties directory ($remotePropertiesDir) or storeForRemote file do not exist, no action performed for remote task packaging" -ForegroundColor Yellow
 	}
 
 	# Process optional post-packaging tasks (wrap.tsk added in release 0.8.2)
