@@ -58,19 +58,20 @@ Execution Engine
 ----------------
 To alleviate the burden of argument passing, exception handling and logging, the execution engine has been provided. The execution engine will essentially execute the native interpretive language (PowerShell or bash), line by line, but each execution will be tested for exceptions (trivial in bash, significantly more complex in PowerShell) and, with careful usage, the driver files (.tsk) can be used on Windows workstations, while target Linux servers for Continuous Delivery. To provide translated runtime, the following keywords are supported
 
-| Keyword | Description                      | Example                    |
-| --------|----------------------------------|---------------------------------|
-| ASSIGN  | set a variable                   | ASSIGN $test="Hello World"      |
-| DECRYP  | decrypt matching target file     | DECRYP cryptLocal               |
-|         | decrypt specific file            | DECRYP cryptLocal encrypt.dat   |
-| REPLAC  | Replace token in file   		 | REPLAC fileName %token% $value  |
-| DETOKN  | Detokenise file with target prop | DETOKN tokenised.file           |
-|         | Detokenise with specific file    | DETOKN tokenised.file prop.file |
-| EXITIF  | Exit normally is argument set    | EXITIF $ACTION                  |
-| INVOKE  | call a custom script             | INVOKE ./script "Hello"         |
-| PROPLD  | Load properties as variables     | PROPLD prop.file                |
-| REMOVE  | Delete files, including wildcard | REMOVE *.war                    |
-| VECOPY  | Verbose copy					 | VECOPY *.war                    |
+| Keyword | Description                       | Example                    |
+| --------|-----------------------------------|---------------------------------|
+| ASSIGN  | set a variable                    | ASSIGN $test="Hello World"      |
+| DECRYP  | decrypt matching target file      | DECRYP cryptLocal               |
+|         | decrypt specific file             | DECRYP cryptLocal encrypt.dat   |
+| DETOKN  | Detokenise file with target prop  | DETOKN tokenised.file           |
+|         | Detokenise with specific file     | DETOKN tokenised.file prop.file |
+| EXITIF  | Exit normally is argument set     | EXITIF $ACTION                  |
+| INVOKE  | call a custom script              | INVOKE ./script "Hello"         |
+| MAKDIR  | Create a directory and path (opt) | MAKDIR directory/and/path       |
+| PROPLD  | Load properties as variables      | PROPLD prop.file                |
+| REMOVE  | Delete files, including wildcard  | REMOVE *.war                    |
+| REPLAC  | Replace token in file   		  | REPLAC fileName %token% $value  |
+| VECOPY  | Verbose copy					  | VECOPY *.war                    |
 
 Runtime variables, automatically set
 
