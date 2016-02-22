@@ -20,10 +20,10 @@ if ( $args[1] ) {
 }
 
 if ( $args[2] ) {
-	$pullRoot = $args[2]
-	Write-Host "[getEnvRepo.ps1] pullRoot         : $pullRoot"
+	$externalCM = $args[2]
+	Write-Host "[getEnvRepo.ps1] externalCM       : $externalCM"
 } else {
-	Write-Host "[getEnvRepo.ps1] pullRoot not passed!"; exit 3
+	Write-Host "[getEnvRepo.ps1] externalCM not passed!"; exit 3
 }
 
 if ( $args[3] ) {
@@ -42,9 +42,9 @@ $Headers = @{
     Authorization = $basicAuthValue
 }
 
-# If the pullRoot already includes a forward slash, it should still work even with two forward slashes
+# If the externalCM already includes a forward slash, it should still work even with two forward slashes
 $outFile = $ENVIRONMENT + '.zip'
-$uri = $pullRoot + '/' + $outFile 
+$uri = $externalCM + '/' + $outFile 
 Write-Host "[getEnvRepo.ps1] Invoke-WebRequest -uri $uri -Headers `$Headers -OutFile $outFile"
 Invoke-WebRequest -uri $uri -Headers $Headers -OutFile $outFile
 if(!$?) {
