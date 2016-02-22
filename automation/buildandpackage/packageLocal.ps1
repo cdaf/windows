@@ -65,12 +65,9 @@ if ( Test-Path "$SOLUTIONROOT\tasksRunLocal.tsk" ) {
 	copySet "tasksRunLocal.tsk" "$SOLUTIONROOT" $WORK_DIR_DEFAULT
 }
 
-# Copy local properties to propertiesForLocalTasks (iteration driver) and to the root (task execution)
+# Copy local properties to propertiesForLocalTasks (iteration driver)
 if ( Test-Path $localPropertiesDir ) {
 	copyDir $localPropertiesDir $WORK_DIR_DEFAULT
-}
-if ( Test-Path $localPropertiesDir ) {
-	copyDir $localPropertiesDir $WORK_DIR_DEFAULT $true
 }
 
 # Copy remote properties if directory exists
