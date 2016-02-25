@@ -17,11 +17,12 @@ $AUTOMATIONROOT = $args[5]
 
 $scriptName = $MyInvocation.MyCommand.Name
 
-$localArtifactListFile="$SOLUTIONROOT\storeForLocal"
-$localPropertiesDir="$SOLUTIONROOT\propertiesForLocalTasks"
-$localCustomDir="$SOLUTIONROOT\customLocal"
-$localCryptDir="$SOLUTIONROOT\cryptLocal"
-$remotePropertiesDir="$SOLUTIONROOT\propertiesForRemoteTasks"
+$localArtifactListFile = "$SOLUTIONROOT\storeForLocal"
+$localPropertiesDir    = "$SOLUTIONROOT\propertiesForLocalTasks"
+$localEnvironmentPath  = "$SOLUTIONROOT\propertiesForLocalEnvironment"
+$localCustomDir        = "$SOLUTIONROOT\customLocal"
+$localCryptDir         = "$SOLUTIONROOT\cryptLocal"
+$remotePropertiesDir   = "$SOLUTIONROOT\propertiesForRemoteTasks"
 
 Write-Host
 Write-Host "[$scriptName] ---------------------------------------------------------------" 
@@ -32,6 +33,9 @@ pathTest $localArtifactListFile
 
 Write-Host –NoNewLine "[$scriptName]   Local Tasks Properties List  : " 
 pathTest $localPropertiesDir
+
+Write-Host –NoNewLine "[$scriptName]   Local Environment Properties : " 
+pathTest $localEnvironmentPath
 
 Write-Host –NoNewLine "[$scriptName]   Local Tasks Encrypted Data   : " 
 pathTest $localCryptDir
@@ -60,14 +64,20 @@ copyDir ".\$AUTOMATIONROOT\local" $WORK_DIR_DEFAULT $true
 # Copy all remote script helpers, flat set to true to copy to root, not sub directory
 copyDir ".\$AUTOMATIONROOT\remote" $WORK_DIR_DEFAULT $true
 
-# Copy the local tasks defintion file
-if ( Test-Path "$SOLUTIONROOT\tasksRunLocal.tsk" ) {
-	copySet "tasksRunLocal.tsk" "$SOLUTIONROOT" $WORK_DIR_DEFAULT
+Write-Host Write-Host "[$scriptName]  Copy all tasks definition files"
+$files = Get-ChildItem $workingDirectory -Filter "$SOLUTIONROOT\*.tsk"
+foreach ($file in $files) {
+	copySet "$file" "$SOLUTIONROOT" "$WORK_DIR_DEFAULT"
 }
 
 # Copy local properties to propertiesForLocalTasks (iteration driver)
 if ( Test-Path $localPropertiesDir ) {
 	copyDir $localPropertiesDir $WORK_DIR_DEFAULT
+}
+
+# Copy local environment properties (pre and post target process)
+if ( Test-Path $localEnvironmentPath ) {
+	copyDir $localEnvironmentPath $WORK_DIR_DEFAULT
 }
 
 # Copy remote properties if directory exists

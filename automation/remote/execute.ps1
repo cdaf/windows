@@ -121,14 +121,35 @@ Write-Host "[$scriptName]  TARGET      : $TARGET"
 Write-Host "[$scriptName]  TASK_LIST   : $TASK_LIST"
 Write-Host "[$scriptName]  ACTION      : $ACTION"
 Write-Host "[$scriptName]  TMPDIR      : $TMPDIR"
+Write-Host
 
 # If called from build process, automation root will be set
 $automationHelper="$AUTOMATIONROOT\remote"
 
-Write-Host
-
 # Initialise termination variable
 $terminate = "no"
+
+# Load the target properties (although these are global in powershell, load again as a diagnostic tool
+$propFile = "$TARGET"
+$transform = '.\Transform.ps1'
+
+if ( test-path "$TARGET") {
+	if (!( test-path "$transform")) {
+	
+		# Test for running as a build process
+		$transform = "..\$automationHelper\Transform.ps1"
+		if (! (test-path $transform)) {
+	
+			# Assume running as a package parocess
+			$transform = "$automationHelper\Transform.ps1"
+		}
+	}
+	try {
+		& $transform "$propFile" | ForEach-Object { invoke-expression $_ }
+	    if(!$?) { taskException "PRODLD_TRAP" $_ }
+	} catch { taskException "PRODLD_EXCEPTION" $_ }
+	Write-Host
+}	
 
 Foreach ($line in get-content $TASK_LIST) {
 
@@ -172,7 +193,7 @@ Foreach ($line in get-content $TASK_LIST) {
 						$transform = "..\$automationHelper\Transform.ps1"
 						if (! (test-path $transform)) {
 					
-							# Test for running as a package parocess
+							# Assume running as a package parocess
 							$transform = "$automationHelper\Transform.ps1"
 						}
 					}
