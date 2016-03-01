@@ -109,3 +109,40 @@ if ( Test-Path $localArtifactListFile ) {
 	Write-Host "[$scriptName] Local Artifact file ($localArtifactListFile) does not exist, packaging framework scripts only" -ForegroundColor Yellow
 
 }
+
+# Zip the working directory to create the artefact Package, CDAF.solution and build time values
+# (SOLUTION and BUILDNUMBER) are merged into the manifest file.
+cd $WORK_DIR_DEFAULT
+$propertiesFile = ".\manifest.txt"
+try {
+	$zipLocal=$(& .\getProperty.ps1 "$propertiesFile" 'zipLocal')
+	if(!$?){
+		throw "`$zipLocal=`$(& .\getProperty.ps1 $propertiesFile zipLocal)"
+		throw "Exception Reading zipLocal property from $AUTOMATIONROOT\manifest.txt" 
+	}
+} catch { 
+	Write-Host "Exception attempting `$zipLocal=`$(& .\getProperty.ps1 $propertiesFile zipLocal)"
+	throw "Exception Reading zipLocal property from $AUTOMATIONROOT\manifest.txt" 
+}
+
+if ( "$zipLocal" -eq 'yes' ) {
+
+	Write-Host
+	Write-Host "[$scriptName] zipLocal property found in manifest.txt, creating local tasks zip package"
+	$packageCommand = "& 7za.exe a ..\${SOLUTION}-local-${BUILDNUMBER}.zip ."
+	
+	Write-Host
+	Write-Host "[$scriptName] $packageCommand"
+	Invoke-Expression $packageCommand
+	$exitcode = $LASTEXITCODE
+	if ( $exitcode -gt 0 ) { 
+		Write-Host
+		Write-Host "[$scriptName] Package creation (Zip) failed with exit code = $exitcode" -ForegroundColor Red
+		throw "Package creation (Zip) failed with exit code = $exitcode" 
+	}
+} else {
+	Write-Host
+	Write-Host "[$scriptName] zipLocal property not found in manifest.txt (CDAF.solution), no further action required."
+}
+
+cd..

@@ -42,19 +42,28 @@ $Headers = @{
     Authorization = $basicAuthValue
 }
 
+# If working on domain, try no-auth proxy server
+if ( $env:userdnsdomain ) {
+	$webRequestProxy = '-Proxy http://svn01.datacom.co.nz:5865'
+	$curlProxy = '--proxy http://svn01.datacom.co.nz:5865'
+}
+
 # If the externalCM already includes a forward slash, it should still work even with two forward slashes
 $outFile = $ENVIRONMENT + '.zip'
 $uri = $externalCM + '/' + $outFile 
-Write-Host "[getEnvRepo.ps1] Invoke-WebRequest -uri $uri -Headers `$Headers -OutFile $outFile"
-Invoke-WebRequest -uri $uri -Headers $Headers -OutFile $outFile
-if(!$?) {
-    write-host
-    write-host "[getEnvRepo.ps1] Invoke-WebRequest -uri $uri -Headers `$Headers -OutFile $ENVIRONMENT failed! :" -ForegroundColor Red
-    write-host
-    write-host "     Returning errorlevel (199) to DOS" -ForegroundColor Magenta
-    write-host
-    exit 199
+$expression = "Invoke-WebRequest -uri $uri -Headers `$Headers -OutFile $outFile $webRequestProxy"
+Write-Host "  $expression"
+try {
+    Invoke-Expression $expression
+    if(!$?) { 
+    	Write-Host "  RemotePowershell WebRequest failed" -ForegroundColor Red
+    	exit 210
+	}
+} catch {
+	Write-Host "  RemotePowershell WebRequest exception, $_" -ForegroundColor Red
+	exit 211
 }
+
 Write-Host
 Write-Host "[getEnvRepo.ps1] Extract and replace local properties with the properties from the repository"
 Write-Host "[getEnvRepo.ps1]   & 7za.exe x .\$ENVIRONMENT.zip -y"

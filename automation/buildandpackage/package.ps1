@@ -137,6 +137,9 @@ if ( Test-Path $remotePropertiesDir ) {
 	Write-Host "none ($remotePropertiesDir)"
 }
 
+# Runtime information
+Write-Host "[$scriptName]   pwd                     : $(pwd)"
+Write-Host "[$scriptName]   Hostname                : $(hostname)" 
 Write-Host "[$scriptName]   user name               : $(whoami)" 
 
 $propertiesFile = "$AUTOMATIONROOT\CDAF.windows"

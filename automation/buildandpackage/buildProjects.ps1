@@ -88,6 +88,11 @@ try {
 } catch { exitWithCode "PACK_GET_CDAF_VERSION" }
 Write-Host "[$scriptName]   CDAF Version   : $cdafVersion"
 
+# Runtime information
+Write-Host "[$scriptName]   pwd            : $(pwd)"
+Write-Host "[$scriptName]   Hostname       : $(hostname)" 
+Write-Host "[$scriptName]   user name      : $(whoami)"
+
 Write-Host 
 Write-Host "[$scriptName] Clean temp files and folders from workspace" 
 removeTempFiles

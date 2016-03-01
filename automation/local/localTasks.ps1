@@ -55,15 +55,15 @@ cd $WORK_DIR_DEFAULT
 $propertiesFile = "$localEnvironmentPath\$ENVIRONMENT"
 if ( Test-Path $propertiesFile ) {
 	try {
-		$localEnvPrepTask=$(& .\getProperty.ps1 $propertiesFile "localEnvPrepTask")
+		$localEnvPreDeployTask=$(& .\getProperty.ps1 $propertiesFile "localEnvPreDeployTask")
 		if(!$?){ taskWarning }
-	} catch { exceptionExit "GET_ENVIRONMENT_PREP_TASK" 101 }
-	Write-Host "[$scriptName]   localEnvPrepTask       : $localEnvPrepTask" 
+	} catch { exceptionExit "GET_ENVIRONMENT_PRE_TASK" 101 }
+	Write-Host "[$scriptName]   localEnvPreDeployTask  : $localEnvPreDeployTask" 
 	
 	try {
 		$localEnvPostDeployTask=$(& .\getProperty.ps1 $propertiesFile "localEnvPostDeployTask")
 		if(!$?){ taskWarning }
-	} catch { exceptionExit "GET_ENVIRONMENT_PREP_TASK" 101 }
+	} catch { exceptionExit "GET_ENVIRONMENT_POST_TASK" 101 }
 	Write-Host "[$scriptName]   localEnvPostDeployTask : $localEnvPostDeployTask" 
 
 	# If there is a properties file that matches the environment name, check this file for external CM configuration
@@ -119,11 +119,11 @@ Write-Host "[$scriptName]   Whoami                 : $(whoami)"
 $exitStatus = 0
 
 # Perform Local Prepartion Tasks for this Environment 
-if ( $localEnvPrepTask) {
+if ( $localEnvPreDeployTask) {
     Write-Host
     # Execute the Tasks Driver File
     try {
-	    & .\execute.ps1 $SOLUTION $BUILD $localEnvironmentPath\$ENVIRONMENT $localEnvPrepTask
+	    & .\execute.ps1 $SOLUTION $BUILD $localEnvironmentPath\$ENVIRONMENT $localEnvPreDeployTask
 	    if(!$?){ taskException "EXECUTE_TRAP" $_ }
     } catch { taskException "EXECUTE_EXCEPTION" $_ }
 }
