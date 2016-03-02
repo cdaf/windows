@@ -66,37 +66,6 @@ if ( Test-Path $propertiesFile ) {
 	} catch { exceptionExit "GET_ENVIRONMENT_POST_TASK" 101 }
 	Write-Host "[$scriptName]   localEnvPostDeployTask : $localEnvPostDeployTask" 
 
-	# If there is a properties file that matches the environment name, check this file for external CM configuration
-	$propName = "externalCM"
-	try {
-		$externalCM=$(& .\getProperty.ps1 $propertiesFile $propName)
-		if(!$?){ taskWarning }
-	} catch { exceptionExit "READ_ENVIRONMENT_PROPERTY" 100 }
-	Write-Host "[$scriptName]   externalCM             : $externalCM"
-	
-	# If an external configuration management repository is set, then load properties from a zip file..
-	if ($externalCM) {
-		# Write-Host "[DEBUG] Directory listing `$localPropertiesPath ($localPropertiesPath): $(dir $localPropertiesPath)" -ForegroundColor Blue
-		try {
-			$externalRepoUser=$(& .\getProperty.ps1 $propertiesFile 'externalRepoUser')
-			$externalRepoPass=$(& .\getProperty.ps1 $propertiesFile 'externalRepoPass')
-			$PORTABLE_CERTIFICATE_THUMBPRINT=$(& .\getProperty.ps1 $propertiesFile 'PORTABLE_CERTIFICATE_THUMBPRINT')
-			$externalCM=$(& .\getProperty.ps1 $propertiesFile 'externalCM')
-			if(!$?){ taskWarning }
-		} catch { exceptionExit "GET_EXTERNAL_REPO" 102}
-	
-		$password = $(& .\decryptKey.ps1 $externalRepoPass $PORTABLE_CERTIFICATE_THUMBPRINT)
-		# Write-Host "[DEBUG] `$password = $password" -ForegroundColor Blue
-		if ($password) {
-			& .\getEnvRepo.ps1 $externalRepoUser $password $externalCM $ENVIRONMENT
-	        $exitcode = $LASTEXITCODE
-	        if ( $exitcode -gt 0 ) {exitWithCode "getEnvRepo" $exitcode }
-		} else {
-			exceptionExit "GET_PASSWORD_FAILED" 203
-		}
-		# Write-Host "[DEBUG] Directory listing `$localPropertiesPath ($localPropertiesPath): $(dir $localPropertiesPath)" -ForegroundColor Blue
-	}
-
 } else {
 
 	Write-Host "[$scriptName]   localEnvironmentPath   : (not defined)" 
