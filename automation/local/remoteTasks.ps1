@@ -10,14 +10,6 @@ function exitWithCode($taskName) {
     exit
 }
 
-function taskException ($taskName, $invokeException) {
-    write-host "[$scriptName] Caught an exception excuting $taskName :" -ForegroundColor Red
-    write-host "     Exception Type: $($invokeException.Exception.GetType().FullName)" -ForegroundColor Red
-    write-host "     Exception Message: $($invokeException.Exception.Message)" -ForegroundColor Red
-	write-host
-    throw "$taskName HALT"
-}
-
 function taskError ($taskName) {
     write-host "[$scriptName] Error occured when excuting $taskName :" -ForegroundColor Red
 	write-host
@@ -33,7 +25,7 @@ function getProp ($propName) {
 	try {
 		$propValue=$(& .\$WORK_DIR_DEFAULT\getProperty.ps1 $propertiesFile $propName)
 		if(!$?){ taskWarning }
-	} catch { taskException("getProp") }
+	} catch { exitWithCode 'getProp' }
 	
     return $propValue
 }
@@ -67,7 +59,7 @@ $propName = "productVersion"
 try {
 	$cdafVersion=$(& .\$WORK_DIR_DEFAULT\getProperty.ps1 .\$WORK_DIR_DEFAULT\$propertiesFile $propName)
 	if(!$?){ taskWarning }
-} catch { exitWithCode "GET_CDAF_VERSION" }
+} catch { exitWithCode 'GET_CDAF_VERSION' }
 Write-Host "[$scriptName]   CDAF Version     : $cdafVersion"
 Write-Host "[$scriptName]   pwd              : $(pwd)"
  
@@ -98,7 +90,7 @@ if (-not(Test-Path $WORK_DIR_DEFAULT\$remoteProperties)) {
 		try {
 			& .\$WORK_DIR_DEFAULT\remoteTasksTarget.ps1 $ENVIRONMENT $SOLUTION $BUILD $propFilename $WORK_DIR_DEFAULT
 			if(!$?){ taskWarning }
-		} catch { exitWithCode($propFilename) }
+		} catch { exitWithCode "$propFilename" }
 		Write-Host
 		write-host "[$scriptName]   --- Completed Target $propFilename --- " -ForegroundColor Green
 		Write-Host
