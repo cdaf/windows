@@ -1,8 +1,8 @@
-function exceptionExit ($taskName, $dosExit) {
+function exceptionExit ($taskName, $e, $dosExit) {
     write-host
     write-host "[$scriptName] Caught an exception excuting $taskName :" -ForegroundColor Red
-    write-host "     Exception Type: $($_.Exception.GetType().FullName)" -ForegroundColor Red
-    write-host "     Exception Message: $($_.Exception.Message)" -ForegroundColor Red
+    write-host "     Exception Type: $($e.Exception.GetType().FullName)" -ForegroundColor Red
+    write-host "     Exception Message: $($e.Exception.Message)" -ForegroundColor Red
     write-host
     write-host "     Returning errorlevel ($dosExit) to DOS" -ForegroundColor Magenta
     write-host
@@ -57,13 +57,13 @@ if ( Test-Path $propertiesFile ) {
 	try {
 		$localEnvPreDeployTask=$(& .\getProperty.ps1 $propertiesFile "localEnvPreDeployTask")
 		if(!$?){ taskWarning }
-	} catch { exceptionExit "GET_ENVIRONMENT_PRE_TASK" 101 }
+	} catch { exceptionExit "GET_ENVIRONMENT_PRE_TASK" $_ 101 }
 	Write-Host "[$scriptName]   localEnvPreDeployTask  : $localEnvPreDeployTask" 
 	
 	try {
 		$localEnvPostDeployTask=$(& .\getProperty.ps1 $propertiesFile "localEnvPostDeployTask")
 		if(!$?){ taskWarning }
-	} catch { exceptionExit "GET_ENVIRONMENT_POST_TASK" 101 }
+	} catch { exceptionExit "GET_ENVIRONMENT_POST_TASK" $_ 102 }
 	Write-Host "[$scriptName]   localEnvPostDeployTask : $localEnvPostDeployTask" 
 
 } else {
@@ -77,7 +77,7 @@ $propName = "productVersion"
 try {
 	$cdafVersion=$(& .\getProperty.ps1 $propertiesFile $propName)
 	if(!$?){ taskWarning }
-} catch { exceptionExit "GET_CDAF_VERSION" 101 }
+} catch { exceptionExit "GET_CDAF_VERSION" $_ 103 }
 Write-Host "[$scriptName]   CDAF Version           : $cdafVersion"
 
 # list system info
@@ -93,8 +93,8 @@ if ( $localEnvPreDeployTask) {
     # Execute the Tasks Driver File
     try {
 	    & .\execute.ps1 $SOLUTION $BUILD $localEnvironmentPath\$ENVIRONMENT $localEnvPreDeployTask
-	    if(!$?){ taskException "EXECUTE_TRAP" $_ }
-    } catch { taskException "EXECUTE_EXCEPTION" $_ }
+	    if(!$?){ exitWithCode "EXECUTE_TRAP" 200 }
+    } catch { exceptionExit "EXECUTE_EXCEPTION" $_ 201}
 }
 
 # Perform Local Tasks for each target definition file for this environment
@@ -124,7 +124,7 @@ if (-not(Test-Path $localPropertiesFilter)) {
 		try {
 			& .\localTasksTarget.ps1 $ENVIRONMENT $SOLUTION $BUILD $propFilename
 			if(!$?){ taskWarning }
-		} catch { exceptionExit $propFilename 104}
+		} catch { exceptionExit $propFilename 202}
 		Write-Host
 		write-host "[$scriptName]   --- Completed Target $propFilename --- " -ForegroundColor Green
 	}
@@ -136,8 +136,8 @@ if ( $localEnvPostDeployTask) {
     # Execute the Tasks Driver File
     try {
 	    & .\execute.ps1 $SOLUTION $BUILD $localEnvironmentPath\$ENVIRONMENT $localEnvPostDeployTask
-	    if(!$?){ taskException "EXECUTE_TRAP" $_ }
-    } catch { taskException "EXECUTE_EXCEPTION" $_ }
+	    if(!$?){ exitWithCode "EXECUTE_TRAP" 210}
+    } catch { exceptionExit "EXECUTE_EXCEPTION" $_ 211}
 }
 
 # Return to root
