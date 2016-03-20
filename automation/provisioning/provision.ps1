@@ -1,3 +1,11 @@
+Add-Type -AssemblyName System.IO.Compression.FileSystem
+function Unzip
+{
+    param([string]$zipfile, [string]$outpath)
+
+    [System.IO.Compression.ZipFile]::ExtractToDirectory($zipfile, $outpath)
+}
+
 Write-Host
 Write-Host "[provision.ps1] ---------- start ----------"
 Write-Host
@@ -8,8 +16,8 @@ $runtime      = $args[1]
 if ($provisioning) {
     Write-Host "[$scriptName] provisioning : $provisioning"
 } else {
-	$provisioning = '.'
-    Write-Host "[$scriptName] provisioning : $provisioning (deafult)"
+	$provisioning = $(pwd)
+    Write-Host "[$scriptName] provisioning : $provisioning (default)"
 }
 
 # If the runtime is passed, this will be appended to the path
@@ -19,11 +27,6 @@ if ($runtime) {
 	$provisioning = '.'
     Write-Host "[$scriptName] runtime not passed, no changes to path will be made"
 }
-
-# The following are not compatible with Windows Server 2008
-# cd ~
-# Invoke-WebRequest
-cd ~
 
 if (-not(Test-Path "$provisioning")) {
 	mkdir $provisioning
@@ -39,12 +42,8 @@ if (Test-Path "$provisioning\7za.exe") {
 	Invoke-WebRequest -uri $uri -OutFile $file
 	if(!$?) { Write-Host "Invoke-WebRequest -uri $uri -OutFile $file FAILED!"; exit 102 }
 
-	$shell_app=new-object -com shell.application
-	$zip_file = $shell_app.namespace((Get-Location).Path + "\$file")
-	$destination = $shell_app.namespace((Get-Location).Path)
-	$destination.Copyhere($zip_file.items())
-	Write-Host "7za.exe --> $provisioning"
-	Copy-Item 7za.exe $provisioning
+	Write-Host "Unzip $file $provisioning"
+	Unzip $file $provisioning
 }
 
 if (Test-Path "$provisioning\curl.exe") {
@@ -57,11 +56,6 @@ if (Test-Path "$provisioning\curl.exe") {
 	Invoke-WebRequest -uri $uri -OutFile $file
 	if(!$?) { Write-Host "Invoke-WebRequest -uri $uri -OutFile $file FAILED!"; exit 102 }
 	& $provisioning\7za.exe x $file
-	Write-Host
-	Write-Host "curl.exe --> $provisioning"
-	Copy-Item curl.exe $provisioning
-	Write-Host "ca-bundle.crt --> $provisioning"
-	Copy-Item ca-bundle.crt $provisioning
 }
 
 # Runtime target added to path will only be available in a new session,
@@ -71,8 +65,6 @@ if ($runtime) {
 	if (-not (Test-Path "$runtime")) {
 		mkdir $runtime
 	}
-	Write-Host "[provision.ps1] Provisioning to $runtime (added to PATH)"
-	[Environment]::SetEnvironmentVariable("Path", $env:Path + ";$runtime", [EnvironmentVariableTarget]::Machine)
 	Write-Host
 	$array = @(	
 		"ca-bundle.crt",

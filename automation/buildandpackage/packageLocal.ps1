@@ -129,7 +129,12 @@ if ( "$zipLocal" -eq 'yes' ) {
 
 	Write-Host
 	Write-Host "[$scriptName] zipLocal property found in manifest.txt, creating local tasks zip package"
-	$packageCommand = "& 7za.exe a ..\${SOLUTION}-local-${BUILDNUMBER}.zip ."
+	# If 7zip command line is in the solution directory, use that, else, hope it is in the path
+	if ( Test-Path '../7za.exe' ) {
+		$packageCommand = "& ../7za.exe a ..\${SOLUTION}-local-${BUILDNUMBER}.zip ."
+	} else {
+		$packageCommand = "& 7za.exe a ..\${SOLUTION}-local-${BUILDNUMBER}.zip ."
+	}
 	
 	Write-Host
 	Write-Host "[$scriptName] $packageCommand"

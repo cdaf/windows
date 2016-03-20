@@ -1,5 +1,2 @@
-echo "Load all properties for $TARGET ..."
-assign $loadProperties="./propertiesForLocalTasks/$TARGET"
-
 echo "Perform test to verify deploy (remote) action, i.e. BUILDNUMBER should match"
 cat $TMPDIR/manifest.txt
