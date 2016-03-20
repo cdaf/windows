@@ -1,14 +1,30 @@
 Write-Host
 Write-Host "[provision.ps1] ---------- start ----------"
 Write-Host
+$provisioning = $args[0]
+$runtime      = $args[1]
+
+# vagrant file share is dependant on provider, for VirtualBox, pass as C:\vagrant\.provision
+if ($provisioning) {
+    Write-Host "[$scriptName] provisioning : $provisioning"
+} else {
+	$provisioning = '.'
+    Write-Host "[$scriptName] provisioning : $provisioning (deafult)"
+}
+
+# If the runtime is passed, this will be appended to the path
+if ($runtime) {
+    Write-Host "[$scriptName] runtime : $runtime"
+} else {
+	$provisioning = '.'
+    Write-Host "[$scriptName] runtime not passed, no changes to path will be made"
+}
 
 # The following are not compatible with Windows Server 2008
 # cd ~
 # Invoke-WebRequest
 cd ~
 
-# vagrant file share is dependant on provider
-$provisioning = 'C:\vagrant\.provision'
 if (-not(Test-Path "$provisioning")) {
 	mkdir $provisioning
 }
@@ -50,24 +66,25 @@ if (Test-Path "$provisioning\curl.exe") {
 
 # Runtime target added to path will only be available in a new session,
 # therefore CDAF execution is performed in a subsequent invocation.
-$runtime = 'C:\bin'
-
-if (-not (Test-Path "$runtime")) {
-	mkdir $runtime
+if ($runtime) {
+	
+	if (-not (Test-Path "$runtime")) {
+		mkdir $runtime
+	}
+	Write-Host "[provision.ps1] Provisioning to $runtime (added to PATH)"
+	[Environment]::SetEnvironmentVariable("Path", $env:Path + ";$runtime", [EnvironmentVariableTarget]::Machine)
+	Write-Host
+	$array = @(	
+		"ca-bundle.crt",
+		"curl.exe",
+		"7za.exe"
+	)
+	foreach ($element in $array) {
+		Write-Host "$provisioning\$element --> $runtime\$element"
+		Copy-Item "$provisioning\$element" "$runtime\$element"
+	}
 }
-Write-Host "[provision.ps1] Provisioning to $runtime (added to PATH)"
-[Environment]::SetEnvironmentVariable("Path", $env:Path + ";$runtime", [EnvironmentVariableTarget]::Machine)
-Write-Host
-$array = @(	
-	"ca-bundle.crt",
-	"curl.exe",
-	"7za.exe"
-)
-foreach ($element in $array) {
-	Write-Host "$provisioning\$element --> $runtime\$element"
-	Copy-Item "$provisioning\$element" "$runtime\$element"
-}
-
+	
 Write-Host
 Write-Host "[provision.ps1] Add the localhost (127.0.0.2) as a trusted hosts for Remote Powershell (loopback)"
 Set-WSManInstance -ResourceURI winrm/config/client -ValueSet @{TrustedHosts='127.0.0.2'}

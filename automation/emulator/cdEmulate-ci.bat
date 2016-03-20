@@ -46,6 +46,10 @@ if NOT "%ACTION%" == "clean" (
     echo Command Filename : SourcesDirectory + "\automation\buildandpackage\buildProjects.bat"
     echo Command arguments : %SOLUTION% + " " + BuildDetail.BuildNumber + " " + revision + " BUILD"
     echo.
+    echo [%~nx0] For Visual Studio Team Services ...
+    echo Command Filename : automation\buildandpackage\buildProjects.bat
+    echo Command arguments : %SOLUTION% %%BUILD_BUILDNUMBER%% %%BUILD_SOURCEVERSION%% BUILD
+    echo.
     echo [%~nx0] For BuildMaster ...
     echo Executable file  : SourcesDirectory + "\automation\buildandpackage\package.bat"
     echo Arguments : %SOLUTION% ${BuildNumber} revision BUILD
@@ -80,6 +84,10 @@ if NOT "%ACTION%" == "clean" (
     echo [%~nx0] For Team Foundation Server ...
     echo Command Filename : SourcesDirectory + "\automation\buildandpackage\package.bat"
     echo Command arguments : %SOLUTION% + " " + BuildDetail.BuildNumber + " " + revision + " " + %LOCAL_WORK_DIR% + " " + %REMOTE_WORK_DIR%
+    echo.
+    echo [%~nx0] For Visual Studio Team Services ...
+    echo Command Filename : automation\buildandpackage\package.bat
+    echo Command arguments : %SOLUTION% %%BUILD_BUILDNUMBER%% %%BUILD_SOURCEVERSION%% %LOCAL_WORK_DIR% %REMOTE_WORK_DIR%
     echo.
     echo [%~nx0] For BuildMaster ...
     echo Executable file  : SourcesDirectory + "\automation\buildandpackage\package.bat"
