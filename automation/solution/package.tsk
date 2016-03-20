@@ -1,2 +1,2 @@
 echo "Provisioning dependancy (7zip command line)"
-INVOKE automation\provisioning\provision $(pwd) C:\Windows
+INVOKE automation\provisioning\provision

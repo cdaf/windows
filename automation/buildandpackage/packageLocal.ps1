@@ -70,6 +70,11 @@ foreach ($file in $files) {
 	copySet "$file" "$SOLUTIONROOT" "$WORK_DIR_DEFAULT"
 }
 
+# If the 7zip command line exists in the solution root, store it for local task processing
+if ( Test-Path '../7za.exe' ) {
+	copySet '../7za.exe' "$SOLUTIONROOT" "$WORK_DIR_DEFAULT"
+}
+
 # Copy local properties to propertiesForLocalTasks (iteration driver)
 if ( Test-Path $localPropertiesDir ) {
 	copyDir $localPropertiesDir $WORK_DIR_DEFAULT
