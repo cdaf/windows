@@ -37,25 +37,27 @@ if NOT "%ACTION%" == "clean" (
     echo.
     echo [%~nx0] For Bamboo ...
     echo Script file : %AUTOMATION_ROOT%\buildandpackage\buildProjects.bat
-    echo Argument : %SOLUTION% ${bamboo.buildNumber} ${bamboo.repository.revision.number} BUILD
+    echo Argument    : %SOLUTION% ${bamboo.buildNumber} ${bamboo.repository.revision.number} BUILD
     echo.
     echo [%~nx0] For Jenkins ...
     echo Command : %AUTOMATION_ROOT%\buildandpackage\buildProjects.bat %SOLUTION% %%BUILD_NUMBER%% %%SVN_REVISION%% BUILD
     echo.
     echo [%~nx0] For Team Foundation Server XAML ...
-    echo Command Filename : SourcesDirectory + "\automation\buildandpackage\buildProjects.bat"
+    echo Command Filename  : SourcesDirectory + "\automation\buildandpackage\buildProjects.bat"
     echo Command arguments : %SOLUTION% + " " + BuildDetail.BuildNumber + " " + revision + " BUILD"
     echo.
     echo [%~nx0] For Visual Studio Team Services vNext ...
 	echo NOTE: The build definition must not contain spaces in the name as it is the directory
-	echo name of the associated artefacts, in this guide it is referred to as BuildDefinition
+	echo name of the associated artefacts, in this guide it is referred to as BuildDefinition.
+	echo If using a GitHub repo, setting the working folder and filename prefix to the repo name is not required.
     echo.
-    echo Command Filename : automation\buildandpackage\buildProjects.bat
+    echo Command Filename  : repositoryname\automation\buildandpackage\buildProjects.bat
     echo Command arguments : %SOLUTION% %%BUILD_BUILDNUMBER%% %%BUILD_SOURCEVERSION%% BUILD
+	echo Working folder    : repositoryname
     echo.
     echo [%~nx0] For BuildMaster ...
     echo Executable file  : SourcesDirectory + "\automation\buildandpackage\package.bat"
-    echo Arguments : %SOLUTION% ${BuildNumber} revision BUILD
+    echo Arguments        : %SOLUTION% ${BuildNumber} revision BUILD
     echo.
 	echo [%~nx0] -------------------------------------------------------
 	echo.
@@ -85,16 +87,19 @@ if NOT "%ACTION%" == "clean" (
     echo Command : %AUTOMATION_ROOT%\buildandpackage\package.bat %SOLUTION% %%BUILD_NUMBER%% %%SVN_REVISION%% %LOCAL_WORK_DIR% %REMOTE_WORK_DIR%
     echo.
     echo [%~nx0] For Team Foundation Server ...
-    echo Command Filename : SourcesDirectory + "\automation\buildandpackage\package.bat"
+    echo Command Filename  : SourcesDirectory + "\automation\buildandpackage\package.bat"
     echo Command arguments : %SOLUTION% + " " + BuildDetail.BuildNumber + " " + revision + " " + %LOCAL_WORK_DIR% + " " + %REMOTE_WORK_DIR%
     echo.
-    echo [%~nx0] For Visual Studio Team Services ...
-    echo Command Filename : automation\buildandpackage\package.bat
+    echo [%~nx0] For Visual Studio Team Services vNext ...
+	echo If using a GitHub repo, setting the working folder and filename prefix to the repo name is not required.
+    echo.
+    echo Command Filename  : repositoryname\automation\buildandpackage\package.bat
     echo Command arguments : %SOLUTION% %%BUILD_BUILDNUMBER%% %%BUILD_SOURCEVERSION%% %LOCAL_WORK_DIR% %REMOTE_WORK_DIR%
+	echo Working folder    : repositoryname
     echo.
     echo [%~nx0] For BuildMaster ...
     echo Executable file  : SourcesDirectory + "\automation\buildandpackage\package.bat"
-    echo Arguments : %SOLUTION% ${BuildNumber} revision %LOCAL_WORK_DIR% %REMOTE_WORK_DIR%
+    echo Arguments        : %SOLUTION% ${BuildNumber} revision %LOCAL_WORK_DIR% %REMOTE_WORK_DIR%
     echo.
 	echo [%~nx0] -------------------------------------------------------
 	echo.
