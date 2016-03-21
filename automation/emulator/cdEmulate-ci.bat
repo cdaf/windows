@@ -50,6 +50,7 @@ if NOT "%ACTION%" == "clean" (
 	echo NOTE: The build definition must not contain spaces in the name as it is the directory
 	echo name of the associated artefacts, in this guide it is referred to as BuildDefinition.
 	echo If using a GitHub repo, setting the working folder and filename prefix to the repo name is not required.
+	echo If using an external Git, cannot use %BUILD_SOURCEVERSION%
     echo.
     echo Command Filename  : repositoryname\automation\buildandpackage\buildProjects.bat
     echo Command arguments : %SOLUTION% %%BUILD_BUILDNUMBER%% %%BUILD_SOURCEVERSION%% BUILD
@@ -92,6 +93,7 @@ if NOT "%ACTION%" == "clean" (
     echo.
     echo [%~nx0] For Visual Studio Team Services vNext ...
 	echo If using a GitHub repo, setting the working folder and filename prefix to the repo name is not required.
+	echo If using an external Git, cannot use %BUILD_SOURCEVERSION%
     echo.
     echo Command Filename  : repositoryname\automation\buildandpackage\package.bat
     echo Command arguments : %SOLUTION% %%BUILD_BUILDNUMBER%% %%BUILD_SOURCEVERSION%% %LOCAL_WORK_DIR% %REMOTE_WORK_DIR%
@@ -129,6 +131,10 @@ if NOT "%ACTION%" == "clean" (
     echo Pattern : *.zip
     echo Command parameters : %SOLUTION% %%build.number%% %%build.vcs.number%% %LOCAL_WORK_DIR% %REMOTE_WORK_DIR%
     echo.
+    echo [%~nx0] For Visual Studio Team Services vNext ...
+	echo If using a GitHub repo, setting the copy root is not required.
+    echo.
+    echo Copy Root : repositoryname
 )
 
 if "%ACTION%" == "clean" (
