@@ -37,23 +37,27 @@ echo Note: artifact retention typically does include file attribute for executab
 echo  set the first step of deploy process to make all scripts executable
 echo  chmod +x ./*/*.sh
 echo.
-echo For TeamCity ...
+echo [%~nx0] For TeamCity ...
 echo   Command Executable : \%LOCAL_WORK_DIR%\remoteTasks.bat 
 echo   Command parameters : %ENVIRONMENT% %%build.number%% %SOLUTION% %LOCAL_WORK_DIR%
 echo.
-echo For Bamboo ... (Beware! set Deployment project name to solution name, with no spaces)
+echo [%~nx0] For Bamboo ... (Beware! set Deployment project name to solution name, with no spaces)
 echo Script file : ${bamboo.build.working.directory}\%LOCAL_WORK_DIR%\remoteTasks.bat
 echo Argument : ${bamboo.deploy.environment} ${bamboo.buildNumber} ${bamboo.deploy.project} %LOCAL_WORK_DIR%
 echo.
 echo   note: set the release tag to (assuming no releases performed, otherwise, use the release number already set)
 echo   build-${bamboo.buildNumber} deploy-1
 echo.
-echo For Jenkins ...
+echo [%~nx0] For Jenkins ...
 echo Command : \%LOCAL_WORK_DIR%\remoteTasks.bat %ENVIRONMENT% %%BUILD_NUMBER%% %SOLUTION% %LOCAL_WORK_DIR%
 echo.
-echo For Team Foundation Server ...
+echo [%~nx0] For Team Foundation Server (XAML) ...
 echo Command Filename : SourcesDirectory + "\%LOCAL_WORK_DIR%\remoteTasks.bat"
 echo Command arguments : %ENVIRONMENT% + " " + BuildDetail.BuildNumber + " " + %SOLUTION% + " " + %LOCAL_WORK_DIR%
+echo.
+echo [%~nx0] For Team Foundation Server (vNext) ...
+echo Command Filename : $(System.DefaultWorkingDirectory)\<BuildDefinition>/TasksLocal/TasksLocal/localTasks.bat
+echo Command arguments : <ENV> %BUILD_BUILDNUMBER% cdaf TasksLocal
 echo.
 echo For BuildMaster ...
 echo Executable file : %LOCAL_WORK_DIR%\remoteTasks.bat 
@@ -87,9 +91,14 @@ echo.
 echo [%~nx0] For Jenkins ...
 echo Command : \%LOCAL_WORK_DIR%\localTasks.bat %ENVIRONMENT% %%BUILD_NUMBER%% %SOLUTION% %LOCAL_WORK_DIR%
 echo.
-echo [%~nx0] For Team Foundation Server ...
+echo [%~nx0] For Team Foundation Server (XAML) ...
 echo Command Filename : SourcesDirectory + "\%LOCAL_WORK_DIR%\localTasks.bat"
 echo Command arguments : %ENVIRONMENT% + " " + BuildDetail.BuildNumber + " " + %SOLUTION% + " " + %LOCAL_WORK_DIR%
+echo.
+echo [%~nx0] For Team Foundation Server (vNext) ...
+echo Command Filename : $(System.DefaultWorkingDirectory)\<BuildDefinition>/TasksLocal/TasksLocal/remoteTasks.bat
+echo Command arguments : <ENV> %BUILD_BUILDNUMBER% cdaf TasksRemote
+
 echo.
 echo [%~nx0] For BuildMaster ...
 echo Executable file : %LOCAL_WORK_DIR%\localTasks.bat 
