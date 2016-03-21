@@ -70,11 +70,6 @@ foreach ($file in $files) {
 	copySet "$file" "$SOLUTIONROOT" "$WORK_DIR_DEFAULT"
 }
 
-# If the 7zip command line exists in the solution root, store it for local task processing
-if ( Test-Path '../7za.exe' ) {
-	copySet '../7za.exe' "$SOLUTIONROOT" "$WORK_DIR_DEFAULT"
-}
-
 # Copy local properties to propertiesForLocalTasks (iteration driver)
 if ( Test-Path $localPropertiesDir ) {
 	copyDir $localPropertiesDir $WORK_DIR_DEFAULT
@@ -132,24 +127,8 @@ try {
 
 if ( "$zipLocal" -eq 'yes' ) {
 
-	Write-Host
-	Write-Host "[$scriptName] zipLocal property found in manifest.txt, creating local tasks zip package"
-	# If 7zip command line is in the solution directory, use that, else, hope it is in the path
-	if ( Test-Path '../7za.exe' ) {
-		$packageCommand = "& ../7za.exe a ..\${SOLUTION}-local-${BUILDNUMBER}.zip ."
-	} else {
-		$packageCommand = "& 7za.exe a ..\${SOLUTION}-local-${BUILDNUMBER}.zip ."
-	}
-	
-	Write-Host
-	Write-Host "[$scriptName] $packageCommand"
-	Invoke-Expression $packageCommand
-	$exitcode = $LASTEXITCODE
-	if ( $exitcode -gt 0 ) { 
-		Write-Host
-		Write-Host "[$scriptName] Package creation (Zip) failed with exit code = $exitcode" -ForegroundColor Red
-		throw "Package creation (Zip) failed with exit code = $exitcode" 
-	}
+	ZipFiles "${SOLUTION}-local-${BUILDNUMBER}.zip" "."
+
 } else {
 	Write-Host
 	Write-Host "[$scriptName] zipLocal property not found in manifest.txt (CDAF.solution), no further action required."

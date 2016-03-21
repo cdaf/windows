@@ -87,21 +87,7 @@ if ( -not (Test-Path $remoteArtifactListFile) ) {
 	cd $WORK_DIR_DEFAULT
 	
 	# If 7zip command line is in the solution directory, use that, else, hope it is in the path
-	if ( Test-Path '../7za.exe' ) {
-		$packageCommand = "& ../7za.exe a ..\$SOLUTION-$BUILDNUMBER.zip ."
-	} else {
-		$packageCommand = "& 7za.exe a ..\$SOLUTION-$BUILDNUMBER.zip ."
-	}
-	
-	Write-Host
-	Write-Host "[$scriptName] $packageCommand"
-	Invoke-Expression $packageCommand
-	$exitcode = $LASTEXITCODE
-	if ( $exitcode -gt 0 ) { 
-		Write-Host
-		Write-Host "[$scriptName] Package creation (Zip) failed with exit code = $exitcode" -ForegroundColor Red
-		throw "Package creation (Zip) failed with exit code = $exitcode" 
-	}
+	ZipFiles "${$SOLUTION-$BUILDNUMBER.zip" "."
 	
 	cd..
 }

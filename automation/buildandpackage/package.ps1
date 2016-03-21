@@ -80,6 +80,13 @@ function copySet ($item, $from, $to) {
 	
 }
 
+function ZipFiles( $zipfilename, $sourcedir )
+{
+   Add-Type -Assembly System.IO.Compression.FileSystem
+   $compressionLevel = [System.IO.Compression.CompressionLevel]::Optimal
+   [System.IO.Compression.ZipFile]::CreateFromDirectory($sourcedir,
+        $zipfilename, $compressionLevel, $false)
+}
 $SOLUTION = $args[0]
 $BUILDNUMBER = $args[1]
 $REVISION = $args[2]
