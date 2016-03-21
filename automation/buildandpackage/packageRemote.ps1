@@ -87,7 +87,7 @@ if ( -not (Test-Path $remoteArtifactListFile) ) {
 	cd $WORK_DIR_DEFAULT
 	
 	# If 7zip command line is in the solution directory, use that, else, hope it is in the path
-	ZipFiles "${$SOLUTION-$BUILDNUMBER.zip" "."
+	ZipFiles "${SOLUTION}-${BUILDNUMBER}.zip" "."
 	
 	cd..
 }
