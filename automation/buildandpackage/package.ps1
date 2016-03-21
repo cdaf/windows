@@ -82,10 +82,15 @@ function copySet ($item, $from, $to) {
 
 function ZipFiles( $zipfilename, $sourcedir )
 {
-   Add-Type -Assembly System.IO.Compression.FileSystem
-   $compressionLevel = [System.IO.Compression.CompressionLevel]::Optimal
-   [System.IO.Compression.ZipFile]::CreateFromDirectory($sourcedir,
-        $zipfilename, $compressionLevel, $false)
+	Add-Type -Assembly System.IO.Compression.FileSystem
+	$compressionLevel = [System.IO.Compression.CompressionLevel]::Optimal
+	Write-Host
+	Write-Host "[$scriptName] Create zip package $zipfilename from $sourcedir"
+	[System.IO.Compression.ZipFile]::CreateFromDirectory($sourcedir, $zipfilename, $compressionLevel, $false)
+	foreach ($item in (Get-ChildItem -Path $sourcedir)) {
+		Write-Host "[$scriptName]   --> $item"
+	}
+	
 }
 $SOLUTION = $args[0]
 $BUILDNUMBER = $args[1]

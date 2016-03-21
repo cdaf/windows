@@ -1,6 +1,6 @@
-Add-Type -AssemblyName System.IO.Compression.FileSystem
 function Unzip
 {
+	Add-Type -AssemblyName System.IO.Compression.FileSystem
     param([string]$zipfile, [string]$outpath)
 
     [System.IO.Compression.ZipFile]::ExtractToDirectory($zipfile, $outpath)

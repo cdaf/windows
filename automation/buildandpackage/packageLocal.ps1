@@ -112,26 +112,23 @@ if ( Test-Path $localArtifactListFile ) {
 
 # Zip the working directory to create the artefact Package, CDAF.solution and build time values
 # (SOLUTION and BUILDNUMBER) are merged into the manifest file.
-cd $WORK_DIR_DEFAULT
-$propertiesFile = ".\manifest.txt"
+$propertiesFile = "$WORK_DIR_DEFAULT\manifest.txt"
 try {
-	$zipLocal=$(& .\getProperty.ps1 "$propertiesFile" 'zipLocal')
+	$zipLocal=$(& $WORK_DIR_DEFAULT\getProperty.ps1 "$propertiesFile" 'zipLocal')
 	if(!$?){
-		throw "`$zipLocal=`$(& .\getProperty.ps1 $propertiesFile zipLocal)"
+		throw "`$zipLocal=`$(& $WORK_DIR_DEFAULT\getProperty.ps1 $propertiesFile zipLocal)"
 		throw "Exception Reading zipLocal property from $AUTOMATIONROOT\manifest.txt" 
 	}
 } catch { 
-	Write-Host "Exception attempting `$zipLocal=`$(& .\getProperty.ps1 $propertiesFile zipLocal)"
+	Write-Host "Exception attempting `$zipLocal=`$(& $WORK_DIR_DEFAULT\getProperty.ps1 $propertiesFile zipLocal)"
 	throw "Exception Reading zipLocal property from $AUTOMATIONROOT\manifest.txt" 
 }
 
 if ( "$zipLocal" -eq 'yes' ) {
 
-	ZipFiles "..\${SOLUTION}-local-${BUILDNUMBER}.zip" "."
+	ZipFiles "${SOLUTION}-local-${BUILDNUMBER}.zip" "$WORK_DIR_DEFAULT"
 
 } else {
 	Write-Host
 	Write-Host "[$scriptName] zipLocal property not found in manifest.txt (CDAF.solution), no further action required."
 }
-
-cd..
