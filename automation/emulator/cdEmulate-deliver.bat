@@ -57,7 +57,7 @@ echo Command arguments : %ENVIRONMENT% + " " + BuildDetail.BuildNumber + " " + %
 echo.
 echo [%~nx0] For Team Foundation Server (vNext) ...
 echo Command Filename  : $(System.DefaultWorkingDirectory)\<BuildDefinition>/TasksLocal/TasksLocal/localTasks.bat
-echo Command arguments : <ENV> %BUILD_BUILDNUMBER% cdaf TasksLocal
+echo Command arguments : %RELEASE_ENVIRONMENTNAME% %BUILD_BUILDNUMBER% cdaf TasksLocal
 echo Working folder    : $(System.DefaultWorkingDirectory)\<BuildDefinition>/TasksLocal
 echo.
 echo For BuildMaster ...
@@ -98,7 +98,7 @@ echo Command arguments : %ENVIRONMENT% + " " + BuildDetail.BuildNumber + " " + %
 echo.
 echo [%~nx0] For Team Foundation Server (vNext) ...
 echo Command Filename  : $(System.DefaultWorkingDirectory)\<BuildDefinition>/TasksLocal/TasksLocal/remoteTasks.bat
-echo Command arguments : <ENV> %BUILD_BUILDNUMBER% cdaf TasksRemote
+echo Command arguments : %RELEASE_ENVIRONMENTNAME% %BUILD_BUILDNUMBER% cdaf TasksRemote
 echo Working folder    : $(System.DefaultWorkingDirectory)\<BuildDefinition>/TasksLocal
 echo.
 echo [%~nx0] For BuildMaster ...
