@@ -1,5 +1,5 @@
 # Mandatory properties to land package on host
-deployHost=127.0.0.2
+deployHost=localhost
 deployLand=c:\deploy
 
 # Example property for deploying a web application using Web Deploy
