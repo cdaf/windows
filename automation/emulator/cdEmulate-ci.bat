@@ -42,13 +42,13 @@ if NOT "%ACTION%" == "clean" (
     echo [%~nx0] For Jenkins ...
     echo Command : %AUTOMATION_ROOT%\buildandpackage\buildProjects.bat %SOLUTION% %%BUILD_NUMBER%% %%SVN_REVISION%% BUILD
     echo.
-	echo [%~nx0] For Team Foundation Server (XAML) ...
+    echo [%~nx0] For Team Foundation Server XAML ...
     echo Command Filename : SourcesDirectory + "\automation\buildandpackage\buildProjects.bat"
     echo Command arguments : %SOLUTION% + " " + BuildDetail.BuildNumber + " " + revision + " BUILD"
     echo.
-	echo [%~nx0] For Team Foundation Server (vNext) ...
+    echo [%~nx0] For Visual Studio Team Services vNext ...
 	echo NOTE: The build definition must not contain spaces in the name as it is the directory
-	echo name of the associated artefacts, in this guide it is referred to as <BuildDefinition>
+	echo name of the associated artefacts, in this guide it is referred to as BuildDefinition
     echo.
     echo Command Filename : automation\buildandpackage\buildProjects.bat
     echo Command arguments : %SOLUTION% %%BUILD_BUILDNUMBER%% %%BUILD_SOURCEVERSION%% BUILD
