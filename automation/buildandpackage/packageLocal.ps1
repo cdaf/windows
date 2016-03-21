@@ -127,7 +127,7 @@ try {
 
 if ( "$zipLocal" -eq 'yes' ) {
 
-	ZipFiles "${SOLUTION}-local-${BUILDNUMBER}.zip" "."
+	ZipFiles "..\${SOLUTION}-local-${BUILDNUMBER}.zip" "."
 
 } else {
 	Write-Host
