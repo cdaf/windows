@@ -52,12 +52,13 @@ echo [%~nx0] For Jenkins ...
 echo Command : \%LOCAL_WORK_DIR%\remoteTasks.bat %ENVIRONMENT% %%BUILD_NUMBER%% %SOLUTION% %LOCAL_WORK_DIR%
 echo.
 echo [%~nx0] For Team Foundation Server (XAML) ...
-echo Command Filename : SourcesDirectory + "\%LOCAL_WORK_DIR%\remoteTasks.bat"
+echo Command Filename  : SourcesDirectory + "\%LOCAL_WORK_DIR%\remoteTasks.bat"
 echo Command arguments : %ENVIRONMENT% + " " + BuildDetail.BuildNumber + " " + %SOLUTION% + " " + %LOCAL_WORK_DIR%
 echo.
 echo [%~nx0] For Team Foundation Server (vNext) ...
-echo Command Filename : $(System.DefaultWorkingDirectory)\<BuildDefinition>/TasksLocal/TasksLocal/localTasks.bat
+echo Command Filename  : $(System.DefaultWorkingDirectory)\<BuildDefinition>/TasksLocal/TasksLocal/localTasks.bat
 echo Command arguments : <ENV> %BUILD_BUILDNUMBER% cdaf TasksLocal
+echo Working folder    : $(System.DefaultWorkingDirectory)\<BuildDefinition>/TasksLocal
 echo.
 echo For BuildMaster ...
 echo Executable file : %LOCAL_WORK_DIR%\remoteTasks.bat 
@@ -92,13 +93,13 @@ echo [%~nx0] For Jenkins ...
 echo Command : \%LOCAL_WORK_DIR%\localTasks.bat %ENVIRONMENT% %%BUILD_NUMBER%% %SOLUTION% %LOCAL_WORK_DIR%
 echo.
 echo [%~nx0] For Team Foundation Server (XAML) ...
-echo Command Filename : SourcesDirectory + "\%LOCAL_WORK_DIR%\localTasks.bat"
+echo Command Filename  : SourcesDirectory + "\%LOCAL_WORK_DIR%\localTasks.bat"
 echo Command arguments : %ENVIRONMENT% + " " + BuildDetail.BuildNumber + " " + %SOLUTION% + " " + %LOCAL_WORK_DIR%
 echo.
 echo [%~nx0] For Team Foundation Server (vNext) ...
-echo Command Filename : $(System.DefaultWorkingDirectory)\<BuildDefinition>/TasksLocal/TasksLocal/remoteTasks.bat
+echo Command Filename  : $(System.DefaultWorkingDirectory)\<BuildDefinition>/TasksLocal/TasksLocal/remoteTasks.bat
 echo Command arguments : <ENV> %BUILD_BUILDNUMBER% cdaf TasksRemote
-
+echo Working folder    : $(System.DefaultWorkingDirectory)\<BuildDefinition>/TasksLocal
 echo.
 echo [%~nx0] For BuildMaster ...
 echo Executable file : %LOCAL_WORK_DIR%\localTasks.bat 
