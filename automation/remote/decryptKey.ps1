@@ -1,9 +1,8 @@
 $encryptedFile = $args[0]
 $thumbprint    = $args[1]
 
-# Output File (plain text or XML depending on method) must be supplioed
 if (! $encryptedFile) {
-    Write-Host "[$scriptName] Encrypted file not passed! Exiting"
+    Write-Host "[$scriptName] Encrypted File (encrypted using Certificate or DSAPI) is required! Exiting"
     exit 100
 }
 
@@ -12,14 +11,16 @@ if ($thumbprint) {
 	# If a thumbprint is passed, decrypt file using RSA certificate
 	try {
 	    $object = Import-Clixml -Path $encryptedFile
-	
 	    $cert = Get-Item -Path Cert:\CurrentUser\My\$thumbprint -ErrorAction Stop
-	
+		if (! $cert) {
+		    Write-Host "[$scriptName] Unable to open certificate Cert:\CurrentUser\My\$thumbprint"
+		    exit 101
+		}
+	    Write-Host "[$scriptName] `$cert = $cert"
+	    Write-Host "[$scriptName] `$object.Key = $object.Key"
 	    $key = $cert.PrivateKey.Decrypt($object.Key, $true)
-	
 	    $retrievedString = $object.Payload | ConvertTo-SecureString -Key $key
 		$plain = [Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR($retrievedString))
-	    
 	}
 	finally
 	{
@@ -30,7 +31,6 @@ if ($thumbprint) {
 
 	# Decrypt using DSAPI
 	$retrievedString = Get-Content $encryptedFile | ConvertTo-SecureString
-
 	$plain = (New-Object System.Management.Automation.PSCredential 'N/A', $retrievedString).GetNetworkCredential().Password
 }
 return $plain
