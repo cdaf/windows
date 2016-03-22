@@ -16,8 +16,6 @@ if ($thumbprint) {
 		    Write-Host "[$scriptName] Unable to open certificate Cert:\CurrentUser\My\$thumbprint"
 		    exit 101
 		}
-	    Write-Host "[$scriptName] `$cert = $cert"
-	    Write-Host "[$scriptName] `$object.Key = $object.Key"
 	    $key = $cert.PrivateKey.Decrypt($object.Key, $true)
 	    $retrievedString = $object.Payload | ConvertTo-SecureString -Key $key
 		$plain = [Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR($retrievedString))
