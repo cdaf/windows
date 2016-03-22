@@ -33,10 +33,21 @@ $workDirLocal        = "TasksLocal"
 $workDirRemote       = "TasksRemote"
 
 # Build and Delivery Properties Lookup values
-$environmentBuild    = "BUILD"
-$environmentDelivery = "WINDOWS"
-Write-Host "[$scriptName]   environmentBuild    : $environmentBuild"
-Write-Host "[$scriptName]   environmentDelivery : $environmentDelivery"
+$environmentBuild = [Environment]::GetEnvironmentVariable('environmentBuild', 'Machine')
+if ($environmentBuild ) {
+	Write-Host "[$scriptName]   environmentBuild    : $environmentBuild"
+} else {
+	$environmentBuild    = "BUILD"
+	Write-Host "[$scriptName]   environmentBuild    : $environmentBuild (default)"
+}
+
+$environmentDelivery = [Environment]::GetEnvironmentVariable('environmentDelivery', 'Machine')
+if ($environmentDelivery ) {
+	Write-Host "[$scriptName]   environmentDelivery : $environmentDelivery"
+} else {
+	$environmentDelivery = "WINDOWS"
+	Write-Host "[$scriptName]   environmentDelivery : $environmentDelivery (default)"
+}
 
 # Use timestamp to ensure unique build number and emulate the revision ID (source control)
 # In Bamboo parameter is  ${bamboo.buildNumber}
