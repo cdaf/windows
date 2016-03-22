@@ -14,9 +14,6 @@ Write-Host
 Write-Host "[trustedHosts.ps1] Add the trustedHosts ($trustedHosts) as a trusted hosts for Remote Powershell"
 Set-WSManInstance -ResourceURI winrm/config/client -ValueSet @{TrustedHosts=$trustedHosts}
 
-Write-Host "[trustedHosts.ps1] Enable-WSManCredSSP -Role server -Force"
-Enable-WSManCredSSP -Role server -Force
-
 Write-Host
 Write-Host "[trustedHosts.ps1] ---------- stop -----------"
 Write-Host
