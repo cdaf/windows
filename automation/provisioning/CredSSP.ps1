@@ -6,13 +6,13 @@ Write-Host
 Write-Host "[$scriptName] ---------- start ----------"
 $Installtype = $args[0]
 if ($Installtype) {
-    Write-Host "[$scriptName] Installtype : $Installtype"
+    Write-Host "[$scriptName] Installtype : $Installtype (choices $installChoices)"
 } else {
 	$Installtype = 'server'
     Write-Host "[$scriptName] Installtype : $Installtype (default, choices $installChoices)"
 }
 
-switch ($version) {
+switch ($Installtype) {
 	'client' {
 		Write-Host "[$scriptName] Enable-WSManCredSSP -Role client -DelegateComputer * -Force"
 		Enable-WSManCredSSP -Role client -DelegateComputer * -Force
