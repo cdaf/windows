@@ -1,4 +1,4 @@
-﻿# Load the assemblies
+# Load the assemblies
 [reflection.assembly]::LoadWithPartialName("Microsoft.SqlServer.Smo")
 [reflection.assembly]::LoadWithPartialName("Microsoft.SqlServer.SqlWmiManagement")
 
