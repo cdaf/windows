@@ -1,35 +1,36 @@
+$scriptName = 'setenv.ps1'
 Write-Host
-Write-Host "[setenv.ps1] ---------- start ----------"
+Write-Host "[$scriptName] ---------- start ----------"
 $variable = $args[0]
 $value    = $args[1]
 $target   = $args[2]
 
 # vagrant file share is dependant on provider, for VirtualBox, pass as C:\vagrant\.provision
 if ($variable) {
-    Write-Host "[setenv.ps1] variable : $variable"
+    Write-Host "[$scriptName] variable : $variable"
 } else {
-    Write-Host "[setenv.ps1] variable required, exiting!"
-    exit 100
+	$mediaDir = '/vagrant/.provision'
+    Write-Host "[$scriptName] mediaDir : $mediaDir (default)"
 }
 
 if ($value) {
-    Write-Host "[setenv.ps1] value    : $value"
+    Write-Host "[$scriptName] value    : $value"
 } else {
-    Write-Host "[setenv.ps1] value required, exiting!"
+    Write-Host "[$scriptName] value required, exiting!"
     exit 101
 }
 
 if ($target) {
-    Write-Host "[setenv.ps1] target   : $target"
+    Write-Host "[$scriptName] target   : $target"
 } else {
 	$target = 'user'
-    Write-Host "[setenv.ps1] target   : $target (default)"
+    Write-Host "[$scriptName] target   : $target (default, choices user or machine)"
 }
 
 Write-Host
-Write-Host "[setenv.ps1] [Environment]::SetEnvironmentVariable($variable, $value, $target)"
+Write-Host "[$scriptName] [Environment]::SetEnvironmentVariable($variable, $value, $target)"
 [Environment]::SetEnvironmentVariable($variable, $value, $target)
 
 Write-Host
-Write-Host "[setenv.ps1] ---------- stop -----------"
+Write-Host "[$scriptName] ---------- stop -----------"
 Write-Host
