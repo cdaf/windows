@@ -27,10 +27,6 @@ if ( Test-Path $fullpath ) {
 	Write-Host "[$scriptName] $webclient.DownloadFile($uri, $fullpath)"
 	$webclient.DownloadFile($uri, $fullpath)
 }
-Write-Host
-Write-Host "[$scriptName] List the .NET Versions currently available"
-Get-ChildItem 'HKLM:\SOFTWARE\Microsoft\NET Framework Setup\NDP' -recurse | Get-ItemProperty -name Version -EA 0 | Where { $_.PSChildName -match '^(?!S)\p{L}'} | Select PSChildName, Version
-Write-Host
 
 try {
 	$argList = @("/q", "/norestart")
@@ -41,9 +37,6 @@ try {
 	exit 200
 }
 
-Write-Host
-Write-Host "[$scriptName] List the .NET Versions after install"
-Get-ChildItem 'HKLM:\SOFTWARE\Microsoft\NET Framework Setup\NDP' -recurse | Get-ItemProperty -name Version -EA 0 | Where { $_.PSChildName -match '^(?!S)\p{L}'} | Select PSChildName, Version
 Write-Host
 Write-Host "[$scriptName] ---------- stop -----------"
 Write-Host

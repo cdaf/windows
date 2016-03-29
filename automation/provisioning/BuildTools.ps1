@@ -1,16 +1,16 @@
-$scriptName = 'MVC.ps1'
-$versionChoices = '3' 
+$scriptName = 'BuildTools.ps1'
+$versionChoices = '14' 
 Write-Host
 Write-Host "[$scriptName] ---------- start ----------"
-$version = $args[1]
+$version = $args[0]
 if ($version) {
     Write-Host "[$scriptName] version     : $version"
 } else {
-	$version = '3'
+	$version = '14'
     Write-Host "[$scriptName] version     : $version (default, choices $versionChoices)"
 }
 
-$mediaDir = $args[0]
+$mediaDir = $args[1]
 if ($mediaDir) {
     Write-Host "[$scriptName] mediaDir : $mediaDir"
 } else {
@@ -24,9 +24,9 @@ if (!( Test-Path $mediaDir )) {
 }
 
 switch ($version) {
-	3 {
-		$file = 'AspNetMVC3Setup.exe'
-		$uri = 'https://download.microsoft.com/download/3/4/A/34A8A203-BD4B-44A2-AF8B-CA2CFCB311CC/' + $file
+	14 {
+		$file = 'BuildTools_Full.exe'
+		$uri = 'http://download.microsoft.com/download/E/E/D/EEDF18A8-4AED-4CE0-BEBE-70A83094FC5A/' + $file
 	}
     default {
 	    Write-Host "[$scriptName] version not supported, choices are $versionChoices"
@@ -49,19 +49,12 @@ if ( Test-Path $installFile ) {
 	$webclient.DownloadFile($uri, $installFile)
 }
 
-$argList = @(
-	"/qn",
-	"/l*",
-	"webdeploy.log",
-	"/i",
-	"$installFile"
-)
-
-Write-Host "[$scriptName] Start-Process -FilePath msiexec -ArgumentList $argList -PassThru -wait -Verb RunAs"
 try {
-	$proc = Start-Process -FilePath msiexec -ArgumentList $argList -PassThru -wait -Verb RunAs
+	$argList = @("/q")
+	Write-Host "[$scriptName] Start-Process -FilePath $installFile -ArgumentList $argList -PassThru -wait"
+	$proc = Start-Process -FilePath $installFile -ArgumentList $argList -PassThru -wait
 } catch {
-	Write-Host "[$scriptName] $media Install Exception : $_" -ForegroundColor Red
+	Write-Host "[$scriptName] $installFile Exception : $_" -ForegroundColor Red
 	exit 200
 }
 

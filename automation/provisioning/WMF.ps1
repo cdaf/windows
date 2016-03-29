@@ -50,10 +50,6 @@ if ( Test-Path $fullpath ) {
 	Write-Host "[$scriptName] $webclient.DownloadFile($uri, $fullpath)"
 	$webclient.DownloadFile($uri, $fullpath)
 }
-Write-Host
-Write-Host "[$scriptName] List the PowerShell current version"
-$PSVersionTable.PSVersion.Major
-Write-Host
 
 try {
 	$argList = @("$fullpath", '/quiet', '/norestart')
@@ -64,9 +60,6 @@ try {
 	exit 200
 }
 
-Write-Host
-Write-Host "[$scriptName] List the PowerShell version after update"
-$PSVersionTable.PSVersion.Major
 Write-Host
 Write-Host "[$scriptName] ---------- stop -----------"
 Write-Host

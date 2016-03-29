@@ -109,8 +109,4 @@ try {
 }
 
 Write-Host
-Write-Host "[$scriptName] List Web Deploy versions installed"
-Get-childitem 'HKLM:\Software\Microsoft\IIS Extensions\MSDeploy'
-
-Write-Host
 Write-Host "[$scriptName] ---------- stop ----------"
