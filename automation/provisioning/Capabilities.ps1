@@ -19,7 +19,7 @@ Write-Host "[$scriptName] List the PowerShell version"
 	write-host "  PSVersion.Major         : $($PSVersionTable.PSVersion.Major)"
 
 Write-Host
-Write-Host "[$scriptName] List the .NET Versions after install"
+Write-Host "[$scriptName] List the .NET Versions"
 Get-ChildItem 'HKLM:\SOFTWARE\Microsoft\NET Framework Setup\NDP' -recurse | Get-ItemProperty -name Version -EA 0 | Where { $_.PSChildName -match '^(?!S)\p{L}'} | Select PSChildName, Version
 
 Write-Host
@@ -51,7 +51,7 @@ if ( Test-Path $regkey ) {
 }
 
 Write-Host
-Write-Host "[$scriptName] List the build tools (incl SDKs)"
+Write-Host "[$scriptName] List the build tools"
 $regkey = 'HKLM:\Software\Microsoft\MSBuild\ToolsVersions'
 if ( Test-Path $regkey ) { 
 	Get-ChildItem $regkey

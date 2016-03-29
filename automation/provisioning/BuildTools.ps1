@@ -12,10 +12,10 @@ if ($version) {
 
 $mediaDir = $args[1]
 if ($mediaDir) {
-    Write-Host "[$scriptName] mediaDir : $mediaDir"
+    Write-Host "[$scriptName] mediaDir    : $mediaDir"
 } else {
 	$mediaDir = 'C:\vagrant\.provision'
-    Write-Host "[$scriptName] mediaDir : $mediaDir (default)"
+    Write-Host "[$scriptName] mediaDir    : $mediaDir (default)"
 }
 
 if (!( Test-Path $mediaDir )) {

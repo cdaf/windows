@@ -1,4 +1,4 @@
-$scriptName     = 'CredSSP-Client.ps1'
+$scriptName     = 'CredSSP.ps1'
 $installChoices = 'client or server' 
 Write-Host
 Write-Host "[$scriptName] Credential Delegation, required on client and server"
