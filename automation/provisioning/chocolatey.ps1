@@ -1,14 +1,7 @@
-$scriptName = 'WinCDEmu.ps1'
+$scriptName = 'chocolatey.ps1'
 Write-Host
 Write-Host "[$scriptName] ---------- start ----------"
-$wincdemuarg = $args[0]
-if ($wincdemuarg) {
-    Write-Host "[$scriptName] wincdemuarg : $wincdemuarg"
-} else {
-	$wincdemuarg = '/install'
-    Write-Host "[$scriptName] wincdemuarg : $wincdemuarg (default)"
-}
-
+Write-Host
 $mediaDir = $args[1]
 if ($mediaDir) {
     Write-Host "[$scriptName] mediaDir    : $mediaDir"
@@ -23,26 +16,29 @@ if (!( Test-Path $mediaDir )) {
 }
 
 Write-Host
-$file = 'PortableWinCDEmu-4.0.exe'
+$file = 'install.ps1'
 $fullpath = $mediaDir + '\' + $file
 if ( Test-Path $fullpath ) {
 	Write-Host "[$scriptName] $fullpath exists, download not required"
 } else {
 
 	$webclient = new-object system.net.webclient
-	$uri = 'http://sysprogs.com/files/WinCDEmu/' + $file
+	$uri = 'https://chocolatey.org/' + $file
 	Write-Host "[$scriptName] $webclient.DownloadFile($uri, $fullpath)"
 	$webclient.DownloadFile($uri, $fullpath)
 }
 
 try {
-	$argList = @("$wincdemuarg", "/wait")
-	Write-Host "[$scriptName] Start-Process -FilePath $fullpath -ArgumentList $argList -PassThru -wait -Verb RunAs"
-	$proc = Start-Process -FilePath $fullpath -ArgumentList $argList -PassThru -wait -Verb RunAs
+	$argList = @("$fullpath")
+	Write-Host "[$scriptName] Start-Process -FilePath 'powershell' -ArgumentList $argList -PassThru -wait -Verb RunAs"
+	$proc = Start-Process -FilePath 'powershell' -ArgumentList $argList -PassThru -wait -Verb RunAs
 } catch {
 	Write-Host "[$scriptName] $file Install Exception : $_" -ForegroundColor Red
 	exit 200
 }
+
+# Reload the path (without logging off and back on)
+$env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")
 
 Write-Host
 Write-Host "[$scriptName] ---------- stop -----------"

@@ -1,11 +1,12 @@
+$scriptName = 'CDAF.ps1'
 Write-Host
-Write-Host "[CDAF.ps1] ---------- start ----------"
+Write-Host "[$scriptName] ---------- start ----------"
 Write-Host
 
-Write-Host "[CDAF.ps1] cd C:\vagrant"
+Write-Host "[$scriptName] cd C:\vagrant"
 cd C:\vagrant
 
-Write-Host "[CDAF.ps1] .\automation\cdEmulate.bat"
+Write-Host "[$scriptName] .\automation\cdEmulate.bat"
 .\automation\cdEmulate.bat
 $exitcode = $LASTEXITCODE
 if ( $exitcode -gt 0 ) { 
@@ -14,7 +15,7 @@ if ( $exitcode -gt 0 ) {
     throwErrorlevel "DOS_TERM" $exitcode
 }
 
-Write-Host "[CDAF.ps1] .\automation\cdEmulate.bat clean"
+Write-Host "[$scriptName] .\automation\cdEmulate.bat clean"
 .\automation\cdEmulate.bat clean
 $exitcode = $LASTEXITCODE
 if ( $exitcode -gt 0 ) { 
@@ -24,5 +25,5 @@ if ( $exitcode -gt 0 ) {
 }
 
 Write-Host
-Write-Host "[CDAF.ps1] ---------- stop -----------"
+Write-Host "[$scriptName] ---------- stop -----------"
 Write-Host
