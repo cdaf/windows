@@ -7,10 +7,10 @@ Write-Host
 Write-Host "[$scriptName] ---------- start ----------"
 $version = $args[0]
 if ($version) {
-    Write-Host "[$scriptName] version  : $version"
+    Write-Host "[$scriptName] version      : $version"
 } else {
 	$version = '4'
-    Write-Host "[$scriptName] version  : $version (default, choices $versionChoices)"
+    Write-Host "[$scriptName] version      : $version (default, choices $versionChoices)"
 }
 
 $instalOption = $args[1]
@@ -23,10 +23,10 @@ if ($instalOption) {
 
 $mediaDir = $args[2]
 if ($mediaDir) {
-    Write-Host "[$scriptName] mediaDir : $mediaDir"
+    Write-Host "[$scriptName] mediaDir     : $mediaDir"
 } else {
 	$mediaDir = 'c:\vagrant\.provision'
-    Write-Host "[$scriptName] mediaDir : $mediaDir (default)"
+    Write-Host "[$scriptName] mediaDir     : $mediaDir (default)"
 }
 
 if (!( Test-Path $mediaDir )) {
@@ -57,9 +57,9 @@ if ( Test-Path $fullpath ) {
 	$webclient.DownloadFile($uri, $fullpath)
 }
 
+$argList = @("$fullpath", '/quiet', '/norestart')
+Write-Host "[$scriptName] Start-Process -FilePath `'wusa.exe`' -ArgumentList $argList -PassThru -wait -Verb RunAs"
 try {
-	$argList = @("$fullpath", '/quiet', '/norestart')
-	Write-Host "[$scriptName] Start-Process -FilePath `'wusa.exe`' -ArgumentList $argList -PassThru -wait -Verb RunAs"
 	$proc = Start-Process -FilePath 'wusa.exe' -ArgumentList $argList -PassThru -wait -Verb RunAs
 } catch {
 	Write-Host "[$scriptName] PowerShell Install Exception : $_" -ForegroundColor Red
