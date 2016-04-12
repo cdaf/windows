@@ -2,7 +2,7 @@ Continuous Delivery Automation Framework (CDAF)
 ===============================================
 
     Author  : Jules Clements
-    Version : 0.9.5 (full details in CDAF.windows)
+    Version : 1.0.0-RC (full details in CDAF.linux)
 
 Framework Overview
 ==================
@@ -19,30 +19,6 @@ When using for the first time, the users workstation needs to be prepared by pro
 - Package Compression
 - Loopback Connection
 - Landing Folder
-
-Package Compression
--------------------
-
-The 7 Zip command line executable (7za.exe) is required to create and extract the solution package. The path to the 7 zip executable needs to be added to the %path% environment variable and the host restarted.
-
-Loop-back Connection
---------------------
-
-The loop-back connection is used to emulate a remote host on the current workstation.
-
-The loop-back connection is established using remote PowerShell, to enable this, right-click the EnableServerRemoting.bat in automation\provisioning\remotePowershellProvisioning, select Y for each of the prompts. The current user will be used as the default user when performing a loop-back connection.
-
-Landing Folder
---------------
-
-The landing folder is defined in the properties file (in propertiesForRemoteTasks folder), default "DEV". This folder must exists and the loop-back connection user my have write access to it.
-
-CDAF Verify
------------
-
-Before implementing any aspects of the solution, run the emulator to verify the provisioning steps. The logs from the emulator run will provide guidance as to what files should be edited to implement continuous delivery, the following documentation provides more details around each key process.
-
-     .\automation\cdEmulate.bat
 
 Solution Driver
 ===============
@@ -61,6 +37,7 @@ To alleviate the burden of argument passing, exception handling and logging, the
 | Keyword | Description                       | Example                    |
 | --------|-----------------------------------|---------------------------------|
 | ASSIGN  | set a variable                    | ASSIGN $test="Hello World"      |
+| CMPRSS  | Compress directory to file        | CMPRSS packageName dirName      |
 | DECRYP  | decrypt matching target file      | DECRYP cryptLocal               |
 |         | decrypt specific file             | DECRYP cryptLocal encrypt.dat   |
 | DETOKN  | Detokenise file with target prop  | DETOKN tokenised.file           |
