@@ -102,6 +102,27 @@ function copyRecurse ($from, $to, $notFirstRun) {
 	}
 }
 
+# Requires PowerShell v3 or above
+function ZipFiles( $zipfilename, $sourcedir )
+{
+	$currentDir = $(pwd)
+	##Write-Host "[DEBUG][$scriptName] `$currentDir = $currentDir"
+	##Write-Host "[DEBUG][$scriptName] `$zipfilename = $zipfilename"
+	$targetFile = "$currentDir\$zipfilename"
+	##Write-Host "[DEBUG][$scriptName] `$targetFile = $targetFile"
+	Write-Host
+	Write-Host "[$scriptName] Create zip package $targetFile from $sourcedir"
+	Add-Type -Assembly System.IO.Compression.FileSystem
+	$compressionLevel = [System.IO.Compression.CompressionLevel]::Optimal
+	cd $sourcedir
+	$fullpath = $(pwd)
+	[System.IO.Compression.ZipFile]::CreateFromDirectory($fullpath, $targetFile, $compressionLevel, $false)
+	foreach ($item in (Get-ChildItem -Path $sourcedir)) {
+		Write-Host "[$scriptName]   --> $item"
+	}
+	cd $currentDir
+}
+
 $SOLUTION    = $args[0]
 $BUILDNUMBER = $args[1]
 $TARGET      = $args[2]
@@ -282,6 +303,19 @@ Foreach ($line in get-content $TASK_LIST) {
 					$name = $data[1]
 					$value = $data[2]
 					$expression = "(Get-Content $fileName | ForEach-Object { `$_ -replace `"$name`", `"$value`" } ) | Set-Content $fileName"
+				}		
+
+				# Compress to file
+				#  required : file, relative to current workspace
+				#  required : source directory, relative to current workspace
+	            if ( $feature -eq 'CMPRSS' ) {
+		            Write-Host "$expression ==> " -NoNewline
+		            $arguments = $expression.Substring(7)
+					$data = $arguments.split(" ")
+					$filename = $data[0]
+					$source = $data[1]
+					$filename += '.zip'
+					$expression = "ZipFiles $filename $source"
 				}		
 
 	        }

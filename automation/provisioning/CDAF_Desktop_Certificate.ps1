@@ -14,6 +14,7 @@ $store.add($pfx)
 $store.close()
 Write-Host
 Write-Host "[CDAF_Desktop_Certificate.ps1] Import complete"
+Get-ChildItem -path cert:\CurrentUser\My
 Write-Host
 Write-Host "[CDAF_Desktop_Certificate.ps1] ---------- stop -----------"
 Write-Host

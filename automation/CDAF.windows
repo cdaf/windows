@@ -1,4 +1,4 @@
 # This file defines the automation root
-productVersion=0.9.6 RC
+productVersion=0.9.6-RC
 productName=Continuous Delivery Automation Framework
 productReleaseDate=Planned 04-Mar-2016
