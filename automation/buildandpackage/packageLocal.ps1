@@ -64,10 +64,12 @@ copyDir ".\$AUTOMATIONROOT\local" $WORK_DIR_DEFAULT $true
 # Copy all remote script helpers, flat set to true to copy to root, not sub directory
 copyDir ".\$AUTOMATIONROOT\remote" $WORK_DIR_DEFAULT $true
 
-Write-Host Write-Host "[$scriptName]  Copy all tasks definition files"
+Write-Host Write-Host "[$scriptName]  Copy all task definition files, excluding build tasks"
 $files = Get-ChildItem $workingDirectory -Filter "$SOLUTIONROOT\*.tsk"
 foreach ($file in $files) {
-	copySet "$file" "$SOLUTIONROOT" "$WORK_DIR_DEFAULT"
+	if (!($file -match 'build.tsk')) {
+		copySet "$file" "$SOLUTIONROOT" "$WORK_DIR_DEFAULT"
+	}
 }
 
 # Copy local properties to propertiesForLocalTasks (iteration driver)
