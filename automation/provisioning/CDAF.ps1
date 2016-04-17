@@ -7,21 +7,23 @@ Write-Host "[$scriptName] cd C:\vagrant"
 cd C:\vagrant
 
 Write-Host "[$scriptName] .\automation\cdEmulate.bat"
-.\automation\cdEmulate.bat
-$exitcode = $LASTEXITCODE
-if ( $exitcode -gt 0 ) { 
-    Write-Host
-    Write-Host "[$scriptName] Emulation failed with LASTEXITCODE = $exitcode" -ForegroundColor Red
-    throwErrorlevel "DOS_TERM" $exitcode
+& .\automation\cdEmulate.bat
+if(!$?){
+    write-host
+    write-host "[$scriptName] cdEmulate.bat failed, returning errorlevel (-1)" -ForegroundColor Red
+    write-host
+    $host.SetShouldExit(-1)
+    exit
 }
 
 Write-Host "[$scriptName] .\automation\cdEmulate.bat clean"
-.\automation\cdEmulate.bat clean
-$exitcode = $LASTEXITCODE
-if ( $exitcode -gt 0 ) { 
-    Write-Host
-    Write-Host "[$scriptName] Emulation  (clean) failed with LASTEXITCODE = $exitcode" -ForegroundColor Red
-    throwErrorlevel "DOS_TERM" $exitcode
+& .\automation\cdEmulate.bat clean
+if(!$?){
+    write-host
+    write-host "[$scriptName] cdEmulate.bat clean failed, returning errorlevel (-1)" -ForegroundColor Red
+    write-host
+    $host.SetShouldExit(-1)
+    exit
 }
 
 Write-Host
