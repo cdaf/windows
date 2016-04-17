@@ -73,8 +73,8 @@ if ($Installtype -eq 'agent') {
 		Write-Host "[$scriptName] Start-Process -FilePath `'Reg`' -ArgumentList `'Add HKLM\Software\Microsoft\WebManagement\Server /V EnableRemoteManagement /T REG_DWORD /D 1 /f`' -PassThru -wait -Verb RunAs"
 		$proc = Start-Process -FilePath 'Reg' -ArgumentList 'Add HKLM\Software\Microsoft\WebManagement\Server /V EnableRemoteManagement /T REG_DWORD /D 1 /f' -PassThru -wait -Verb RunAs
 
-		Write-Host "[$scriptName] Start-Process -FilePath `'net`' -ArgumentList `'start wmsvc`' -PassThru -wait -Verb RunAs"
-		$proc = Start-Process -FilePath 'net' -ArgumentList 'start wmsvc' -PassThru -wait -Verb RunAs
+		Write-Host "[$scriptName] Start-Process -FilePath `'net`' -ArgumentList `'start wmsvc`' -PassThru -wait"
+		$proc = Start-Process -FilePath 'net' -ArgumentList 'start wmsvc' -PassThru -wait
 	} catch {
 		Write-Host "[$scriptName] $media Install Exception : $_" -ForegroundColor Red
 		exit 200

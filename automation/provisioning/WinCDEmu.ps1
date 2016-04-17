@@ -3,7 +3,7 @@ Write-Host
 Write-Host "[$scriptName] ---------- start ----------"
 $wincdemuarg = $args[0]
 if ($wincdemuarg) {
-    Write-Host "[$scriptName] wincdemuarg : $wincdemuarg"
+    Write-Host "[$scriptName] wincdemuarg : $wincdemuarg (install or ISO image file)"
 } else {
 	$wincdemuarg = '/install'
     Write-Host "[$scriptName] wincdemuarg : $wincdemuarg (default)"
