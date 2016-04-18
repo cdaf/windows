@@ -1,4 +1,4 @@
-$scriptName = 'VisualStudioPremium.ps1'
+$scriptName = 'VisualStudio.ps1'
 Write-Host
 Write-Host "[$scriptName] ---------- start ----------"
 $initFile = $args[0]

@@ -26,12 +26,12 @@ if ($version -eq '2010') {
 	$file = 'VSIsoShell.exe'
 	$fullpath = $mediaDir + '\' + $file
 	if ( Test-Path $fullpath ) {
-		Write-Host "[get3rd.ps1] $fullpath exists, download not required"
+		Write-Host "[$scriptName] $fullpath exists, download not required"
 	} else {
 	
 		$webclient = new-object system.net.webclient
 		$uri = 'https://download.microsoft.com/download/1/9/3/1939AD78-F8E8-4336-83F3-E2470F422C62/' + $file
-		Write-Host "[get3rd.ps1] $webclient.DownloadFile($uri, $fullpath)"
+		Write-Host "[$scriptName] $webclient.DownloadFile($uri, $fullpath)"
 		$webclient.DownloadFile($uri, $fullpath)
 	}
 }
