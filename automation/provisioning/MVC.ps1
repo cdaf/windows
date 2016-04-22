@@ -2,7 +2,7 @@ $scriptName = 'MVC.ps1'
 $versionChoices = '3' 
 Write-Host
 Write-Host "[$scriptName] ---------- start ----------"
-$version = $args[1]
+$version = $args[0]
 if ($version) {
     Write-Host "[$scriptName] version     : $version"
 } else {
@@ -10,7 +10,7 @@ if ($version) {
     Write-Host "[$scriptName] version     : $version (default, choices $versionChoices)"
 }
 
-$mediaDir = $args[0]
+$mediaDir = $args[1]
 if ($mediaDir) {
     Write-Host "[$scriptName] mediaDir : $mediaDir"
 } else {

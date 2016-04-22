@@ -33,11 +33,12 @@ if ( Test-Path $regkey ) {
 }
 
 Write-Host
-Write-Host "[$scriptName] List installed MVC products"
-foreach ($product in $($productList = Get-WmiObject Win32_Product)) {
-	if ($product.Name -match 'MVC') {
-		$product.Name
-	}
+Write-Host "[$scriptName] List installed MVC products (not applicable after MVC4)"
+if (Test-Path 'C:\Program Files (x86)\Microsoft ASP.NET' ) {
+	Get-ChildItem 'C:\Program Files (x86)\Microsoft ASP.NET'
+} else {
+	Write-Host
+	Write-Host "  MVC not exmplicitely installed (not required for MVC 5 and above)"
 }
 
 Write-Host
