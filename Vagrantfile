@@ -6,15 +6,14 @@
 # backwards compatibility). Please don't change it unless you know what
 # you're doing.
 
+# Zip Package creation requires PowerShell v3 or above and .NET 4.5 or above.
+
 Vagrant.configure(2) do |allhosts|
 
   allhosts.vm.define 'app' do |app|
-
-    # Zip Package extraction requires PowerShell v3 or above
     app.vm.box = 'opentable/win-2012r2-standard-amd64-nocm'
     app.vm.network 'private_network', ip: '172.16.17.101'
     app.vm.communicator = 'winrm'
-
     app.vm.provider 'virtualbox' do |vb, override|
       override.vm.hostname = "app"
       override.vm.network 'forwarded_port', host: 13389, guest: 3389 # Remote Desktop
@@ -23,16 +22,13 @@ Vagrant.configure(2) do |allhosts|
       override.vm.network 'forwarded_port', host: 10080, guest:   80
       override.vm.network 'forwarded_port', host: 10443, guest:  443
     end
-  
+    app.vm.provision 'shell', path: './automation/provisioning/mkdir.ps1', args: 'C:\deploy'
   end
 
   allhosts.vm.define 'buildserver' do |buildserver|
-
-    # Zip Package creation requires PowerShell v3 or above
     buildserver.vm.box = 'opentable/win-2012r2-standard-amd64-nocm'
     buildserver.vm.network 'private_network', ip: '172.16.17.102'
     buildserver.vm.communicator = 'winrm'
-
     buildserver.vm.provider 'virtualbox' do |vb, override|
       override.vm.network 'forwarded_port', host: 23389, guest: 3389 # Remote Desktop
       override.vm.network 'forwarded_port', host: 25985, guest: 5985 # WinRM HTTP
@@ -45,6 +41,6 @@ Vagrant.configure(2) do |allhosts|
     buildserver.vm.provision 'shell', path: './automation/provisioning/CredSSP.ps1'
     buildserver.vm.provision 'shell', path: './automation/provisioning/Capabilities.ps1'
     buildserver.vm.provision 'shell', path: './automation/provisioning/CDAF.ps1'
+  end
 
-    end
 end
