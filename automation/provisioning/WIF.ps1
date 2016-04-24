@@ -50,8 +50,8 @@ if ( Test-Path $fullpath ) {
 
 try {
 	$argList = @("$fullpath", '/quiet', '/norestart')
-	Write-Host "[$scriptName] Start-Process -FilePath `'wusa.exe`' -ArgumentList $argList -PassThru -wait"
-	$proc = Start-Process -FilePath 'wusa.exe' -ArgumentList $argList -PassThru -wait
+	Write-Host "[$scriptName] Start-Process -FilePath `'wusa.exe`' -ArgumentList $argList -PassThru -Wait"
+	$proc = Start-Process -FilePath 'wusa.exe' -ArgumentList $argList -PassThru -Wait
 } catch {
 	Write-Host "[$scriptName] PowerShell Install Exception : $_" -ForegroundColor Red
 	exit 200

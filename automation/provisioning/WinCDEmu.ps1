@@ -37,8 +37,8 @@ if ( Test-Path $fullpath ) {
 
 try {
 	$argList = @("$wincdemuarg", "/wait")
-	Write-Host "[$scriptName] Start-Process -FilePath $fullpath -ArgumentList $argList -PassThru -wait -Verb RunAs"
-	$proc = Start-Process -FilePath $fullpath -ArgumentList $argList -PassThru -wait -Verb RunAs
+	Write-Host "[$scriptName] Start-Process -FilePath $fullpath -ArgumentList $argList -PassThru -Wait"
+	$proc = Start-Process -FilePath $fullpath -ArgumentList $argList -PassThru -Wait
 } catch {
 	Write-Host "[$scriptName] $file Install Exception : $_" -ForegroundColor Red
 	exit 200

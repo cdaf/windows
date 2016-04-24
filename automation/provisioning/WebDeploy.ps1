@@ -1,5 +1,5 @@
-$scriptName     = 'WebDeploy.ps1'
-$versionChoices = '2 or 3' 
+$scriptName = 'WebDeploy.ps1'
+$versionChoices = '2 or 3.5' 
 Write-Host
 Write-Host "[$scriptName] ---------- start ----------"
 $Installtype = $args[0]
@@ -14,7 +14,7 @@ $version = $args[1]
 if ($version) {
     Write-Host "[$scriptName] version     : $version"
 } else {
-	$version = '3'
+	$version = '3.5'
     Write-Host "[$scriptName] version     : $version (default, choices $versionChoices)"
 }
 
@@ -32,13 +32,13 @@ if (!( Test-Path $mediaDir )) {
 }
 
 switch ($version) {
-	3 {
+	'3.5' {
 		$file = 'WebDeploy_amd64_en-US.msi'
-		$uri = 'https://download.microsoft.com/download/1/B/3/1B3F8377-CFE1-4B40-8402-AE1FC6A0A8C3/' + $file
+		$uri = 'http://download.microsoft.com/download/D/4/4/D446D154-2232-49A1-9D64-F5A9429913A4/' + $file
 	}
-	2 {
+	'2' {
 		$file = 'WebDeploy_2_10_amd64_en-US.msi'
-		$uri = 'https://download.microsoft.com/download/8/9/B/89B754A5-56F7-45BD-B074-8974FD2039AF/' + $file
+		$uri = 'http://download.microsoft.com/download/8/9/B/89B754A5-56F7-45BD-B074-8974FD2039AF/' + $file
 	}
     default {
 	    Write-Host "[$scriptName] version not supported, choices are $versionChoices"
@@ -67,14 +67,14 @@ if ($Installtype -eq 'agent') {
     
 	# Enable IIS features before installing Web Deploy
 	try {
-		Write-Host "[$scriptName] Start-Process -FilePath `'dism`' -ArgumentList `'/online /enable-feature /featurename:IIS-WebServerRole /featurename:IIS-WebServerManagementTools /featurename:IIS-ManagementService`' -PassThru -wait -Verb RunAs"
-		$proc = Start-Process -FilePath 'dism' -ArgumentList '/online /enable-feature /featurename:IIS-WebServerRole /featurename:IIS-WebServerManagementTools /featurename:IIS-ManagementService' -PassThru -wait -Verb RunAs
+		Write-Host "[$scriptName] Start-Process -FilePath `'dism`' -ArgumentList `'/online /enable-feature /featurename:IIS-WebServerRole /featurename:IIS-WebServerManagementTools /featurename:IIS-ManagementService`' -PassThru -Wait"
+		$process = Start-Process -FilePath 'dism' -ArgumentList '/online /enable-feature /featurename:IIS-WebServerRole /featurename:IIS-WebServerManagementTools /featurename:IIS-ManagementService' -PassThru -Wait
 		  
-		Write-Host "[$scriptName] Start-Process -FilePath `'Reg`' -ArgumentList `'Add HKLM\Software\Microsoft\WebManagement\Server /V EnableRemoteManagement /T REG_DWORD /D 1 /f`' -PassThru -wait -Verb RunAs"
-		$proc = Start-Process -FilePath 'Reg' -ArgumentList 'Add HKLM\Software\Microsoft\WebManagement\Server /V EnableRemoteManagement /T REG_DWORD /D 1 /f' -PassThru -wait -Verb RunAs
+		Write-Host "[$scriptName] Start-Process -FilePath `'Reg`' -ArgumentList `'Add HKLM\Software\Microsoft\WebManagement\Server /V EnableRemoteManagement /T REG_DWORD /D 1 /f`' -PassThru -Wait"
+		$process = Start-Process -FilePath 'Reg' -ArgumentList 'Add HKLM\Software\Microsoft\WebManagement\Server /V EnableRemoteManagement /T REG_DWORD /D 1 /f' -PassThru -Wait
 
-		Write-Host "[$scriptName] Start-Process -FilePath `'net`' -ArgumentList `'start wmsvc`' -PassThru -wait"
-		$proc = Start-Process -FilePath 'net' -ArgumentList 'start wmsvc' -PassThru -wait
+		Write-Host "[$scriptName] Start-Process -FilePath `'net`' -ArgumentList `'start wmsvc`' -PassThru -Wait"
+		$process = Start-Process -FilePath 'net' -ArgumentList 'start wmsvc' -PassThru -Wait
 	} catch {
 		Write-Host "[$scriptName] $media Install Exception : $_" -ForegroundColor Red
 		exit 200
@@ -100,9 +100,9 @@ if ($Installtype -eq 'agent') {
 	)
 }
 
-Write-Host "[$scriptName] Start-Process -FilePath `'msiexec`' -ArgumentList $argList -PassThru -wait -Verb RunAs"
+Write-Host "[$scriptName] Start-Process -FilePath `'msiexec`' -ArgumentList $argList -PassThru -Wait"
 try {
-	$proc = Start-Process -FilePath 'msiexec' -ArgumentList $argList -PassThru -wait -Verb RunAs
+	$proc = Start-Process -FilePath 'msiexec' -ArgumentList $argList -PassThru -Wait
 } catch {
 	Write-Host "[$scriptName] $media Install Exception : $_" -ForegroundColor Red
 	exit 200

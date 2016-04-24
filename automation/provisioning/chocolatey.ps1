@@ -30,8 +30,8 @@ if ( Test-Path $fullpath ) {
 
 try {
 	$argList = @("$fullpath")
-	Write-Host "[$scriptName] Start-Process -FilePath 'powershell' -ArgumentList $argList -PassThru -wait -Verb RunAs"
-	$proc = Start-Process -FilePath 'powershell' -ArgumentList $argList -PassThru -wait -Verb RunAs
+	Write-Host "[$scriptName] Start-Process -FilePath 'powershell' -ArgumentList $argList -PassThru -Wait"
+	$proc = Start-Process -FilePath 'powershell' -ArgumentList $argList -PassThru -Wait
 } catch {
 	Write-Host "[$scriptName] $file Install Exception : $_" -ForegroundColor Red
 	exit 200

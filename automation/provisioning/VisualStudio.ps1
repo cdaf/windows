@@ -28,8 +28,8 @@ Copy-Item -Path $media -Destination $installDir -Recurse -Force
 $filePath = "$installDir\Setup\setup.exe"
 try {
 	$argList = @("/unattendfile", "$initFile")
-	Write-Host "[$scriptName] Start-Process -FilePath $filePath -ArgumentList $argList -PassThru -wait -Verb RunAs"
-	$proc = Start-Process -FilePath $filePath -ArgumentList $argList -PassThru -wait -Verb RunAs
+	Write-Host "[$scriptName] Start-Process -FilePath $filePath -ArgumentList $argList -PassThru -Wait"
+	$proc = Start-Process -FilePath $filePath -ArgumentList $argList -PassThru -Wait
 } catch {
 	Write-Host "[$scriptName] $media Install Exception : $_" -ForegroundColor Red
 	exit 200

@@ -38,8 +38,8 @@ if ($version -eq '2010') {
 
 try {
 	$argList = @("/q", "/norestart")
-	Write-Host "[$scriptName] Start-Process -FilePath $fullpath -ArgumentList $argList -PassThru -wait"
-	$proc = Start-Process -FilePath $fullpath -ArgumentList $argList -PassThru -wait
+	Write-Host "[$scriptName] Start-Process -FilePath $fullpath -ArgumentList $argList -PassThru -Wait"
+	$proc = Start-Process -FilePath $fullpath -ArgumentList $argList -PassThru -Wait
 } catch {
 	Write-Host "[$scriptName] .NET Install Exception : $_" -ForegroundColor Red
 	exit 200
