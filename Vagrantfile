@@ -11,11 +11,10 @@
 Vagrant.configure(2) do |allhosts|
 
   allhosts.vm.define 'app' do |app|
-    # Oracle VirtualBox
-    app.vm.communicator = 'winrm'
-    app.vm.hostname = 'app'
+   app.vm.communicator = 'winrm'
     # Oracle VirtualBox
     app.vm.provider 'virtualbox' do |virtualbox, override|
+      override.vm.hostname = 'app'
       override.vm.box = 'opentable/win-2012r2-standard-amd64-nocm'
       override.vm.network 'private_network', ip: '172.16.17.101'
       override.vm.network 'forwarded_port', host: 13389, guest: 3389 # Remote Desktop
@@ -24,7 +23,7 @@ Vagrant.configure(2) do |allhosts|
       override.vm.network 'forwarded_port', host: 10080, guest:   80
       override.vm.network 'forwarded_port', host: 10443, guest:  443
     end
-    # Microsoft Hyper-V does not support NAT. vagrant up app --provider hyperv
+    # Microsoft Hyper-V does not support NAT or setting hostname. vagrant up app --provider hyperv
     app.vm.provider 'hyperv' do |hyperv, override|
       override.vm.box = 'mwrock/Windows2012R2'
     end
@@ -41,7 +40,7 @@ Vagrant.configure(2) do |allhosts|
       override.vm.network 'forwarded_port', host: 25985, guest: 5985 # WinRM HTTP
       override.vm.network 'forwarded_port', host: 25986, guest: 5986 # WinRM HTTPS
     end
-    # Microsoft Hyper-V does not support NAT. vagrant up buildserver --provider hyperv
+    # Microsoft Hyper-V does not support NAT or setting hostname. vagrant up buildserver --provider hyperv
     buildserver.vm.provider 'hyperv' do |hyperv, override|
       override.vm.box = 'mwrock/Windows2012R2'
     end
