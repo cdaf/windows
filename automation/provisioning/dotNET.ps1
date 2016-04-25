@@ -39,8 +39,8 @@ switch ($version) {
 		foreach($sProperty in $sOS) {
 			if ( $sProperty.Caption -match '2008' ) {
 				Write-Host "[$scriptName] Cannot use installer on Win 7 or Server 2008, will try:"
-				$online = 'DISM /Online /Enable-Feature /FeatureName:NetFx3 /Norestart'
-				Write-Host $online
+				$online = '/Online /Enable-Feature /FeatureName:NetFx3 /Norestart'
+				Write-Host "DISM $online"
 			}
 		}
 		$file = 'dotnetfx35.exe'
@@ -53,12 +53,11 @@ switch ($version) {
 
 if ($online ) {
 
-    # Execute expression and trap powershell exceptions
-    try {
-        Invoke-Expression $online
+	try {
+		$proc = Start-Process -FilePath 'DISM' -ArgumentList $online -PassThru -Wait
 	} catch {
 		Write-Host "[$scriptName] .NET 3.5 Install Exception : $_" -ForegroundColor Red
-		exit 201
+		exit 200
 	}
 
 } else {
@@ -75,11 +74,11 @@ if ($online ) {
 	
 	try {
 		$argList = @("/q", "/norestart")
-		Write-Host "[$scriptName] Start-Process -FilePath $fullpath -ArgumentList $argList -PassThru -wait"
-		$proc = Start-Process -FilePath $fullpath -ArgumentList $argList -PassThru -wait
+		Write-Host "[$scriptName] Start-Process -FilePath $fullpath -ArgumentList $argList -PassThru -Wait"
+		$proc = Start-Process -FilePath $fullpath -ArgumentList $argList -PassThru -Wait
 	} catch {
 		Write-Host "[$scriptName] .NET Install Exception : $_" -ForegroundColor Red
-		exit 200
+		exit 201
 	}
 }
 Write-Host

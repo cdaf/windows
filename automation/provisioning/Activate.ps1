@@ -1,6 +1,6 @@
-$scriptName   = 'Activate.ps1'
+$scriptName = 'Activate.ps1'
 Write-Host
-Write-Host "[$scriptName] Windows Identity Framework"
+Write-Host "[$scriptName] Install Windows Product key in preparation for activation"
 Write-Host
 Write-Host "[$scriptName] ---------- start ----------"
 $fileFile = $args[0]

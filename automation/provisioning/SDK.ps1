@@ -51,9 +51,9 @@ if ( Test-Path $installFile ) {
 
 Write-Host
 $argList = @('/q', '/norestart')
-Write-Host "[$scriptName] Start-Process -FilePath $installFile -ArgumentList $argList -PassThru -wait"
+Write-Host "[$scriptName] Start-Process -FilePath $installFile -ArgumentList $argList -PassThru -Wait"
 try {
-	$proc = Start-Process -FilePath $installFile -ArgumentList $argList -PassThru -wait
+	$proc = Start-Process -FilePath $installFile -ArgumentList $argList -PassThru -Wait
 } catch {
 	Write-Host "[$scriptName] $installFile Exception : $_" -ForegroundColor Red
 	exit 200
