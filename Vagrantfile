@@ -11,28 +11,42 @@
 Vagrant.configure(2) do |allhosts|
 
   allhosts.vm.define 'app' do |app|
-    app.vm.box = 'opentable/win-2012r2-standard-amd64-nocm'
-    app.vm.network 'private_network', ip: '172.16.17.101'
+    # Oracle VirtualBox
     app.vm.communicator = 'winrm'
-    app.vm.provider 'virtualbox' do |vb, override|
-      override.vm.hostname = "app"
+    app.vm.hostname = 'app'
+    # Oracle VirtualBox
+    app.vm.provider 'virtualbox' do |virtualbox, override|
+      override.vm.box = 'opentable/win-2012r2-standard-amd64-nocm'
+      override.vm.network 'private_network', ip: '172.16.17.101'
       override.vm.network 'forwarded_port', host: 13389, guest: 3389 # Remote Desktop
       override.vm.network 'forwarded_port', host: 15985, guest: 5985 # WinRM HTTP
       override.vm.network 'forwarded_port', host: 13986, guest: 5986 # WinRM HTTPS
       override.vm.network 'forwarded_port', host: 10080, guest:   80
       override.vm.network 'forwarded_port', host: 10443, guest:  443
     end
+    # Microsoft Hyper-V does not support NAT. vagrant up app --provider hyperv
+    app.vm.provider 'hyperv' do |hyperv, override|
+      override.vm.box = 'mwrock/Windows2012R2'
+    end
+    app.vm.provision 'shell', path: './automation/provisioning/CredSSP.ps1'
     app.vm.provision 'shell', path: './automation/provisioning/mkdir.ps1', args: 'C:\deploy'
   end
 
   allhosts.vm.define 'buildserver' do |buildserver|
-    buildserver.vm.box = 'opentable/win-2012r2-standard-amd64-nocm'
-    buildserver.vm.network 'private_network', ip: '172.16.17.102'
-    buildserver.vm.communicator = 'winrm'
-    buildserver.vm.provider 'virtualbox' do |vb, override|
+    # Oracle VirtualBox
+    buildserver.vm.provider 'virtualbox' do |virtualbox, override|
+      override.vm.box = 'opentable/win-2012r2-standard-amd64-nocm'
+      override.vm.network 'private_network', ip: '172.16.17.102'
       override.vm.network 'forwarded_port', host: 23389, guest: 3389 # Remote Desktop
       override.vm.network 'forwarded_port', host: 25985, guest: 5985 # WinRM HTTP
       override.vm.network 'forwarded_port', host: 25986, guest: 5986 # WinRM HTTPS
+    end
+    # Microsoft Hyper-V does not support NAT. vagrant up buildserver --provider hyperv
+    buildserver.vm.provider 'hyperv' do |hyperv, override|
+      override.vm.box = 'mwrock/Windows2012R2'
+    end
+    buildserver.vm.communicator = 'winrm'
+    buildserver.vm.provider 'virtualbox' do |virtualbox, override|
     end
     buildserver.vm.provision 'shell', path: './automation/provisioning/Capabilities.ps1'
     buildserver.vm.provision 'shell', path: './automation/provisioning/setenv.ps1', args: 'environmentDelivery VAGRANT Machine'
