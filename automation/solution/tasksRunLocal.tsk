@@ -1,0 +1,1 @@
+INVOKE testIfWindows $ENVIRONMENT

@@ -1,0 +1,12 @@
+# This is a comment line and will not be logged during execution
+# Lines containing write-host will not be echoed before execution,
+# instead, these are simply executed
+write-host "Wrap artefact in NuGet Package ..."
+
+$loadProperties = "solution\CDAF.solution"
+
+$semantic = $productVersion + "." + $BUILDNUMBER
+Write-Host "semantic = $semantic"
+
+NuGet.exe pack -version $semantic
+

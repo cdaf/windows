@@ -1,0 +1,4 @@
+# Template Solution Properties file
+# Is using symantic versioning, substitute build number at the end of version
+productVersion=0.1.0.
+productName=My Product Name

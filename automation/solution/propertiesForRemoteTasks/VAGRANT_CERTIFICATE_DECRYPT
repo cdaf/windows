@@ -1,0 +1,6 @@
+# Mandatory properties to land package on host
+deployHost=172.16.17.101
+deployLand=c:\deploy
+remoteUser=vagrant
+remoteCred=WINDOWS_PASSWORD
+decryptThb=1C5A22D1DA540F210122BB63EB8F38ABBBB9009A

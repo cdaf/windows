@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
+	<metadata>
+		<id>SAML</id>
+		<version>0.8.2</version>
+		<authors>Jules Clements</authors>
+		<description>Claims Aware Web Application</description>
+		<language>en-US</language>
+	</metadata>
+	<files>
+		<file src="*.zip" target="." />
+		<file src="solution\propertiesForRemoteTasks\*.*" target="." />
+    <file src="solution\tools\*.*" target="tools" />
+	</files>
+</package>
