@@ -1,3 +1,0 @@
-echo "Perform example activity, file copy"
-remove $TMPDIR/manifest.txt
-vecopy manifest.txt $TMPDIR

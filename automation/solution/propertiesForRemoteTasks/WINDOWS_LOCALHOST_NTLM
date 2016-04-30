@@ -1,3 +1,0 @@
-# Mandatory properties to land package on host
-deployHost=localhost
-deployLand=c:\deploy
