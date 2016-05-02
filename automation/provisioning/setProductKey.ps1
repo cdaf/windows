@@ -1,4 +1,4 @@
-$scriptName = 'Activate.ps1'
+$scriptName = 'setProductKey.ps1'
 Write-Host
 Write-Host "[$scriptName] Install Windows Product key in preparation for activation"
 Write-Host
