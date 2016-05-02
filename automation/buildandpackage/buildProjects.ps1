@@ -1,23 +1,4 @@
-param(
-    [Parameter(Mandatory = $true)]
-    $SOLUTION,
-
-    [Parameter(Mandatory = $true)]
-    $BUILDNUMBER,
-
-    [Parameter(Mandatory = $true)]
-    $REVISION,
-
-    [Parameter(Mandatory = $false)]
-    $ENVIRONMENT,
-
-    [Parameter(Mandatory = $false)]
-    $AUTOMATIONROOT,
-
-    [Parameter(Mandatory = $false)]
-    $ACTION
-)
-
+# Entry Point for Build Process
 
 function exitWithCode ($taskName) {
     write-host
@@ -58,6 +39,13 @@ function pathTest ($pathToTest) {
 		Write-Host "none ($pathToTest)"
 	}
 }
+
+$SOLUTION = $args[0]
+$BUILDNUMBER = $args[1]
+$REVISION = $args[2]
+$ENVIRONMENT = $args[3]
+$AUTOMATIONROOT=$args[4]
+$ACTION = $args[5]
 
 if (-not($SOLUTION)) {exitWithCode SOLUTION_NOT_PASSED }
 if (-not($BUILDNUMBER)) {exitWithCode BUILDNUMBER_NOT_PASSED }
