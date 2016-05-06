@@ -34,8 +34,8 @@ function makeContainer ($itemPath) {
 		if (Test-Path $itemPath -PathType "Container") {
 			write-host "[makeContainer] $itemPath exists"
 		} else {
-			Remove-Item $itemPath
-			if(!$?) {exitWithCode "[makeContainer] Remove-Item $itemPath -Recurse" }
+			Remove-Item $itemPath -Recurse -Force
+			if(!$?) {exitWithCode "[makeContainer] Remove-Item $itemPath -Recurse -Force" }
 			mkdir $itemPath > $null
 			if(!$?) {exitWithCode "[makeContainer] (replace) $itemPath Creation failed" }
 		}	
@@ -49,8 +49,8 @@ function itemRemove ($itemPath) {
 # If item exists, and is not a directory, remove read only and delete, if a directory then just delete
 	if ( Test-Path $itemPath ) {
 		write-host "[itemRemove] Delete $itemPath"
-		Remove-Item $itemPath -Recurse
-		if(!$?) {exitWithCode "[itemRemove] Remove-Item $itemPath -Recurse" }
+		Remove-Item $itemPath -Recurse -Force
+		if(!$?) {exitWithCode "[itemRemove] Remove-Item $itemPath -Recurse -Force" }
 	}
 }
 
@@ -74,8 +74,8 @@ function copyRecurse ($from, $to, $notFirstRun) {
 			} else {
 			
 				# The existing path is a file, not a directory, delete the file and replace with a directory
-				Remove-Item $to
-				if(!$?) {exitWithCode "[makeContainer] Remove-Item $to -Recurse" }
+				Remove-Item $to -Recurse -Force
+				if(!$?) {exitWithCode "[makeContainer] Remove-Item $to -Recurse -Force" }
 				Write-Host "  $from --> $to (replace file with directory)" 
 				mkdir $to > $null
 				if(!$?) {exitWithCode "[makeContainer] (replace) $to Creation failed" }
