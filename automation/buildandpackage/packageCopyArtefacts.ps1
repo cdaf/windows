@@ -1,9 +1,7 @@
 function taskFailure ($taskName) {
     write-host
-    write-host "[$scriptName] Failure excuting $taskName :" -ForegroundColor Red
-    write-host "     Exception Type: $($_.Exception.GetType().FullName)" -ForegroundColor Red
-    write-host "     Exception Message: $($_.Exception.Message)" -ForegroundColor Red
-    write-host "     Throwing exception : $scriptName HALT" -ForegroundColor Red
+    write-host "[$scriptName] Failure executing :" -ForegroundColor Red
+    write-host "[$scriptName] $taskName :" -ForegroundColor Red
 	write-host
     throw "$scriptName HALT"
 }
@@ -59,13 +57,24 @@ function copyOpt ($manifestFile, $from, $recurse, $flat) {
 				Add-Content $manifestFile "$WORK_DIR_DEFAULT\$from\$filename"
 			}
 			
-		} else {	
+		} else {	# FileCopy
+
+			# If a wildcard is supplied, explicitely list the files are they are copied
+			foreach ($filename in (Get-ChildItem -Path "$from" -Name )) {
 	
-			Write-Host "[$scriptName]   $from --> $WORK_DIR_DEFAULT" 
-			Copy-Item $from $WORK_DIR_DEFAULT
-			if(!$?){ taskFailure ("Copy-Item $from $WORK_DIR_DEFAULT") }
-			Add-Content $manifestFile "$WORK_DIR_DEFAULT\$from"
+				Write-Host "[$scriptName]   $filename --> $WORK_DIR_DEFAULT" 
+				Copy-Item $from $WORK_DIR_DEFAULT
+				if(!$?){ taskFailure ("Copy-Item $from $WORK_DIR_DEFAULT") }
+				Add-Content $manifestFile "$WORK_DIR_DEFAULT\$from"
+				$found = $true
+				
+			}
 			
+			if (! ($found)) {
+				Write-Host "[$scriptName]   File copy failed, $from not found! Direcotry listing for diagnostics..."
+				dir
+				taskFailure "FileCopy"
+			}
 		}
 	}
 	
@@ -85,7 +94,6 @@ Foreach ($ARTIFACT in get-content $DRIVER) {
 
     # Don't process empty line
     if ($ARTIFACT) {
-
         # discard all characters after comment marker
         $noComment=$ARTIFACT.split("#")
         $noComment=$noComment[0]
