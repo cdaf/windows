@@ -13,10 +13,10 @@ if ($forest) {
 
 $domainAdminUser = $args[1]
 if ($domainAdminUser) {
-    Write-Host "[$scriptName] domainAdminUser : **********"
+    Write-Host "[$scriptName] domainAdminUser : $domainAdminUser"
 } else {
 	$domainAdminUser = 'vagrant'
-    Write-Host "[$scriptName] domainAdminUser : ********** (default)"
+    Write-Host "[$scriptName] domainAdminUser : $domainAdminUser (default)"
 }
 
 $domainAdminPass = $args[1]
