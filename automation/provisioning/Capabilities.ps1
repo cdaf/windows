@@ -19,7 +19,7 @@ Write-Host "[$scriptName] List the PowerShell version"
 	write-host "  PSVersion.Major         : $($PSVersionTable.PSVersion.Major)"
 
 Write-Host
-Write-Host "[$scriptName] List the .NET Versions"
+Write-Host "[$scriptName] List the .NET Versions (4.5 or higher required)"
 Get-ChildItem 'HKLM:\SOFTWARE\Microsoft\NET Framework Setup\NDP' -recurse | Get-ItemProperty -name Version -EA 0 | Where { $_.PSChildName -match '^(?!S)\p{L}'} | Select PSChildName, Version
 
 Write-Host
@@ -60,6 +60,14 @@ if ( Test-Path $regkey ) {
 	Write-Host
 	Write-Host "  Build tools not found ($regkey)"
 }
+
+# Pipe seems to stop this from working?
+#Write-Host
+#Write-Host "[$scriptName] Nuget CLI Version"
+#Write-Host
+#try { 
+#	NuGet.exe | Select-String -Pattern 'NuGet Version'
+#} catch {}
 
 Write-Host
 Write-Host "[$scriptName] ---------- stop ----------"

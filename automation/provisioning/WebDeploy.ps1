@@ -1,3 +1,19 @@
+function executeExpression ($expression) {
+	Write-Host "[$scriptName] $expression"
+	# Execute expression and trap powershell exceptions
+	try {
+	    Invoke-Expression $expression
+	    if(!$?) {
+			Write-Host; Write-Host "[$scriptName] Expression failed without an exception thrown. Exit with code 1."; Write-Host 
+			exit 1
+		}
+	} catch {
+		Write-Host; Write-Host "[$scriptName] Expression threw exxception. Exit with code 2, exception message follows ..."; Write-Host 
+		Write-Host "[$scriptName] $_"; Write-Host 
+		exit 2
+	}
+}
+
 $scriptName = 'WebDeploy.ps1'
 $versionChoices = '2 or 3.5' 
 Write-Host
@@ -29,6 +45,14 @@ if ($mediaDir) {
 if (!( Test-Path $mediaDir )) {
 	Write-Host "[$scriptName] mkdir $mediaDir"
 	mkdir $mediaDir
+}
+
+$interactive = $args[3]
+if ($interactive) {
+    Write-Host "[$scriptName] interactive : $interactive, run in current window"
+    $sessionControl = '-PassThru -Wait -NoNewWindow'
+} else {
+    $sessionControl = '-PassThru -Wait'
 }
 
 switch ($version) {
@@ -63,50 +87,48 @@ if ( Test-Path $fullpath ) {
 
 # Output File (plain text or XML depending on method) must be supplioed
 if ($Installtype -eq 'agent') {
-    Write-Host "[$scriptName] For Installtype $Installtype, provisioning IIS"
-    
-	# Enable IIS features before installing Web Deploy
-	try {
-		Write-Host "[$scriptName] Start-Process -FilePath `'dism`' -ArgumentList `'/online /enable-feature /featurename:IIS-WebServerRole /featurename:IIS-WebServerManagementTools /featurename:IIS-ManagementService`' -PassThru -Wait"
-		$process = Start-Process -FilePath 'dism' -ArgumentList '/online /enable-feature /featurename:IIS-WebServerRole /featurename:IIS-WebServerManagementTools /featurename:IIS-ManagementService' -PassThru -Wait
-		  
-		Write-Host "[$scriptName] Start-Process -FilePath `'Reg`' -ArgumentList `'Add HKLM\Software\Microsoft\WebManagement\Server /V EnableRemoteManagement /T REG_DWORD /D 1 /f`' -PassThru -Wait"
-		$process = Start-Process -FilePath 'Reg' -ArgumentList 'Add HKLM\Software\Microsoft\WebManagement\Server /V EnableRemoteManagement /T REG_DWORD /D 1 /f' -PassThru -Wait
 
-		Write-Host "[$scriptName] Start-Process -FilePath `'net`' -ArgumentList `'start wmsvc`' -PassThru -Wait"
-		$process = Start-Process -FilePath 'net' -ArgumentList 'start wmsvc' -PassThru -Wait
-	} catch {
-		Write-Host "[$scriptName] $media Install Exception : $_" -ForegroundColor Red
-		exit 200
-	}
-	
+    Write-Host "[$scriptName] For Installtype $Installtype, bind listener with default setting"
 	$argList = @(
 		"/qn",
-		"/l*",
+		"/L*V",
 		"$logFile",
 		"/i",
 		"$installFile",
 		"ADDLOCAL=ALL",
-		"LISTENURL=http://+:8080/MsDeployAgentService2/"
+		"LISTENURL=http://+:80/MsDeployAgentService"
 	)
 } else {
-    Write-Host "[$scriptName] For Installtype $Installtype only deploy build targets"
+	
+    Write-Host "[$scriptName] For Installtype $Installtype, only deploy MSBuild targets"
 	$argList = @(
 		"/qn",
-		"/l*",
+		"/L*V",
 		"$logFile",
 		"/i",
 		"$installFile"
 	)
 }
 
-Write-Host "[$scriptName] Start-Process -FilePath `'msiexec`' -ArgumentList $argList -PassThru -Wait"
-try {
-	$proc = Start-Process -FilePath 'msiexec' -ArgumentList $argList -PassThru -Wait
-} catch {
-	Write-Host "[$scriptName] $media Install Exception : $_" -ForegroundColor Red
-	exit 200
+executeExpression "`$process = Start-Process -FilePath `'msiexec`' -ArgumentList `'$argList`' $sessionControl"
+
+switch ($version) {
+	'3.5' {
+		$installPath = '3'
+	}
+	'2' {
+		$installPath = $version
+	}
+    default {
+	    Write-Host "[$scriptName] version not supported, choices are $versionChoices"
+    }
 }
+$key = "HKLM:\SOFTWARE\Microsoft\IIS Extensions\MSDeploy\$installPath"
+$name = 'InstallPath'
+$InstallPath = (Get-ItemProperty -Path $key -Name $name).$name
+
+write-host "Set environment variable MSDeployPath to $InstallPath"
+[Environment]::SetEnvironmentVariable('MSDeployPath', "$InstallPath", 'User')
 
 Write-Host
 Write-Host "[$scriptName] ---------- stop ----------"

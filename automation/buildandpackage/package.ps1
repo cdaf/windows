@@ -82,7 +82,11 @@ function copySet ($item, $from, $to) {
 
 function ZipFiles( $zipfilename, $sourcedir )
 {
-	Add-Type -Assembly System.IO.Compression.FileSystem
+	try {
+		Add-Type -Assembly System.IO.Compression.FileSystem
+	} catch {
+		taskFailure "Failed to load Compression assembly, is .NET 4.5 or above installed?"
+	}
 	$compressionLevel = [System.IO.Compression.CompressionLevel]::Optimal
 	Write-Host
 	Write-Host "[$scriptName] Create zip package $zipfilename from $sourcedir"
