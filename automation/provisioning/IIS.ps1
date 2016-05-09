@@ -8,7 +8,7 @@ function executeExpression ($expression) {
 			exit 1
 		}
 	} catch {
-		Write-Host; Write-Host "[$scriptName] Expression threw exxception. Exit with code 2, exception message follows ..."; Write-Host 
+		Write-Host; Write-Host "[$scriptName] Expression threw exception. Exit with code 2, exception message follows ..."; Write-Host 
 		Write-Host "[$scriptName] $_"; Write-Host 
 		exit 2
 	}
@@ -22,15 +22,14 @@ Write-Host
 Write-Host "[$scriptName] ---------- start ----------"
 $configuration = $args[0]
 if ($configuration) {
-    Write-Host "[$scriptName] configuration : $configuration (choices $configChoices)"
+    Write-Host "[$scriptName] configuration   : $configuration (choices $configChoices)"
 } else {
 	$configuration = 'server'
-    Write-Host "[$scriptName] configuration : $configuration (default, choices $configChoices)"
+    Write-Host "[$scriptName] configuration   : $configuration (default, choices $configChoices)"
 }
 
-$interactive = $args[1]
-if ($interactive) {
-    Write-Host "[$scriptName] interactive   : $interactive, run in current window"
+if ($env:interactive) {
+    Write-Host "[$scriptName] env:interactive : $env:interactive, run in current window"
     $sessionControl = '-PassThru -Wait -NoNewWindow'
 } else {
     $sessionControl = '-PassThru -Wait'
@@ -61,7 +60,7 @@ switch ($configuration) {
 try {
 
 	# to allow varying process behaviour, build as a string and then execute. $process is not used, it just suppresses process handle logging
-	executeExpression "`$process = Start-Process -FilePath `'dism`' -ArgumentList `'/online /NoRestart /enable-feature /featurename:IIS-WebServerRole /FeatureName:IIS-ApplicationDevelopment $aspNET /FeatureName:IIS-ISAPIFilter /FeatureName:IIS-ISAPIExtensions /FeatureName:IIS-NetFxExtensibility /featurename:IIS-WebServerManagementTools /featurename:IIS-IIS6ManagementCompatibility /featurename:IIS-Metabase /featurename:IIS-ManagementService /FeatureName:IIS-Security /FeatureName:IIS-BasicAuthentication /FeatureName:IIS-RequestFiltering /FeatureName:IIS-WindowsAuthentication`' $sessionControl"
+	executeExpression "`$process = Start-Process -FilePath `'dism`' -ArgumentList `'/online /NoRestart /enable-feature /featurename:IIS-WebServerRole /FeatureName:IIS-ApplicationDevelopment $aspNET /FeatureName:IIS-ISAPIFilter /FeatureName:IIS-ISAPIExtensions /FeatureName:IIS-NetFxExtensibility /featurename:IIS-WebServerManagementTools /featurename:IIS-ManagementScriptingTools /featurename:IIS-IIS6ManagementCompatibility /featurename:IIS-Metabase /featurename:IIS-ManagementService /FeatureName:IIS-Security /FeatureName:IIS-BasicAuthentication /FeatureName:IIS-RequestFiltering /FeatureName:IIS-WindowsAuthentication`' $sessionControl"
 	executeExpression "`$process = Start-Process -FilePath `'Reg`' -ArgumentList `'Add HKLM\Software\Microsoft\WebManagement\Server /V EnableRemoteManagement /T REG_DWORD /D 1 /f`' $sessionControl"
 	executeExpression "`$process = Start-Process -FilePath `'net`' -ArgumentList `'start wmsvc`' $sessionControl"
 

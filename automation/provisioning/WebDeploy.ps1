@@ -8,7 +8,7 @@ function executeExpression ($expression) {
 			exit 1
 		}
 	} catch {
-		Write-Host; Write-Host "[$scriptName] Expression threw exxception. Exit with code 2, exception message follows ..."; Write-Host 
+		Write-Host; Write-Host "[$scriptName] Expression threw exception. Exit with code 2, exception message follows ..."; Write-Host 
 		Write-Host "[$scriptName] $_"; Write-Host 
 		exit 2
 	}
@@ -20,26 +20,26 @@ Write-Host
 Write-Host "[$scriptName] ---------- start ----------"
 $Installtype = $args[0]
 if ($Installtype) {
-    Write-Host "[$scriptName] Installtype : $Installtype"
+    Write-Host "[$scriptName] Installtype     : $Installtype"
 } else {
 	$Installtype = 'build'
-    Write-Host "[$scriptName] Installtype : $Installtype (default, choices agent or build)"
+    Write-Host "[$scriptName] Installtype     : $Installtype (default, choices agent or build)"
 }
 
 $version = $args[1]
 if ($version) {
-    Write-Host "[$scriptName] version     : $version"
+    Write-Host "[$scriptName] version         : $version"
 } else {
 	$version = '3.5'
-    Write-Host "[$scriptName] version     : $version (default, choices $versionChoices)"
+    Write-Host "[$scriptName] version         : $version (default, choices $versionChoices)"
 }
 
 $mediaDir = $args[2]
 if ($mediaDir) {
-    Write-Host "[$scriptName] mediaDir    : $mediaDir"
+    Write-Host "[$scriptName] mediaDir        : $mediaDir"
 } else {
 	$mediaDir = 'C:\vagrant\.provision'
-    Write-Host "[$scriptName] mediaDir    : $mediaDir (default)"
+    Write-Host "[$scriptName] mediaDir        : $mediaDir (default)"
 }
 
 if (!( Test-Path $mediaDir )) {
@@ -47,9 +47,8 @@ if (!( Test-Path $mediaDir )) {
 	mkdir $mediaDir
 }
 
-$interactive = $args[3]
-if ($interactive) {
-    Write-Host "[$scriptName] interactive : $interactive, run in current window"
+if ($env:interactive) {
+    Write-Host "[$scriptName] env:interactive : $env:interactive, run in current window"
     $sessionControl = '-PassThru -Wait -NoNewWindow'
 } else {
     $sessionControl = '-PassThru -Wait'
