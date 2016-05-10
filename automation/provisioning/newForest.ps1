@@ -5,10 +5,10 @@ Write-Host
 Write-Host "[$scriptName] ---------- start ----------"
 $forest = $args[0]
 if ($forest) {
-    Write-Host "[$scriptName] forest : $forest"
+    Write-Host "[$scriptName] forest   : $forest"
 } else {
 	$forest = 'sky.net'
-    Write-Host "[$scriptName] forest : $forest (default)"
+    Write-Host "[$scriptName] forest   : $forest (default)"
 }
 
 $password = $args[1]
