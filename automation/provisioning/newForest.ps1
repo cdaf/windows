@@ -1,5 +1,5 @@
 function executeExpression ($expression) {
-	Write-Host "[$scriptName] $expression"
+	Write-Host "[$scriptName]   $expression"
 	# Execute expression and trap powershell exceptions
 	try {
 	    Invoke-Expression $expression
@@ -35,12 +35,26 @@ if ($password) {
     Write-Host "[$scriptName] password : ********** (default)"
 }
 
-Write-Host
-Write-Host "[$scriptName] Install the Active Directory Domain Services role"
-executeExpression "Get-WindowsFeature AD-Domain-Services | Install-WindowsFeature"
+$media = $args[2]
+if ($media) {
+    Write-Host "[$scriptName] media    : $media"
+	$source = '-Source ' + $media
+} else {
+	$defaultSource = 'C:\vagrant\.provision\sxs'
+	if ( Test-Path $defaultSource ) {
+		Write-Host "[$scriptName] Default media path found, using $defaultSource"
+		$source = '-Source ' + $defaultSource
+	} else {
+	    Write-Host "[$scriptName] media not supplied, will attempt to download from windows update."
+	}
+}
 
 Write-Host
-Write-Host "[$scriptName] Install the Active Directory Domain Services role"
+Write-Host "[$scriptName] Install Active Directory Domain Roles and Services"
+executeExpression "Install-WindowsFeature -Name `'AD-Domain-Services`' $source"
+
+Write-Host
+Write-Host "[$scriptName] Create the new Forest and convert this host into the FSMO Domain Controller"
 $securePassword = ConvertTo-SecureString $password -asplaintext -force
 executeExpression "Install-ADDSForest -DomainName $forest -SafeModeAdministratorPassword `$securePassword -Force"
 
