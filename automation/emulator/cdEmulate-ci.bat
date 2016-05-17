@@ -42,24 +42,25 @@ if NOT "%ACTION%" == "clean" (
     echo [%~nx0] For Jenkins ...
     echo Command : %AUTOMATION_ROOT%\buildandpackage\buildProjects.bat %SOLUTION% %%BUILD_NUMBER%% %%SVN_REVISION%% BUILD
     echo.
-    echo [%~nx0] For Team Foundation Server XAML ...
+    echo [%~nx0] Team Foundation Server/Visual Studio Team Services
+    echo [%~nx0]   For XAML ...
     echo Command Filename  : SourcesDirectory + "\automation\buildandpackage\buildProjects.bat"
     echo Command arguments : %SOLUTION% + " " + BuildDetail.BuildNumber + " " + revision + " BUILD"
     echo.
-    echo [%~nx0] For Visual Studio Team Services vNext ...
-	echo NOTE: The build definition must not contain spaces in the name as it is the directory
-	echo name of the associated artefacts, in this guide it is referred to as BuildDefinition.
-	echo If using a GitHub repo, setting the working folder and filename prefix to the repo name is not required.
-	echo If using an external Git, ensure the Repository name does not contain spaces.
-	echo Cannot use %BUILD_SOURCEVERSION% with external Git
+    echo [%~nx0]   For Team Build ...
+    echo Use the visual studio template and delete the nuget and VS tasks.
+	echo NOTE: The BUILD DEFINITION NAME must not contain spaces in the name as it is the directory
+	echo       Set the build number $(rev:r)
+	echo Recommend using the navigation UI to find the entry script.
+	echo Cannot use %%BUILD_SOURCEVERSION%% with external Git
     echo.
-    echo Command Filename  : repositoryname\automation\buildandpackage\buildProjects.bat
+    echo Command Filename  : automation\buildandpackage\buildProjects.bat
     echo Command arguments : %SOLUTION% %%BUILD_BUILDNUMBER%% %%BUILD_SOURCEVERSION%% BUILD
 	echo Working folder    : repositoryname
     echo.
     echo [%~nx0] For BuildMaster ...
-    echo Executable file  : SourcesDirectory + "\automation\buildandpackage\package.bat"
-    echo Arguments        : %SOLUTION% ${BuildNumber} revision BUILD
+    echo Executable file   : SourcesDirectory + "\automation\buildandpackage\package.bat"
+    echo Arguments         : %SOLUTION% ${BuildNumber} revision BUILD
     echo.
 	echo [%~nx0] -------------------------------------------------------
 	echo.
@@ -88,21 +89,22 @@ if NOT "%ACTION%" == "clean" (
     echo [%~nx0] For Jenkins ...
     echo Command : %AUTOMATION_ROOT%\buildandpackage\package.bat %SOLUTION% %%BUILD_NUMBER%% %%SVN_REVISION%% %LOCAL_WORK_DIR% %REMOTE_WORK_DIR%
     echo.
-    echo [%~nx0] For Team Foundation Server ...
+    echo [%~nx0] Team Foundation Server/Visual Studio Team Services
+    echo [%~nx0]   For XAML ...
     echo Command Filename  : SourcesDirectory + "\automation\buildandpackage\package.bat"
     echo Command arguments : %SOLUTION% + " " + BuildDetail.BuildNumber + " " + revision + " " + %LOCAL_WORK_DIR% + " " + %REMOTE_WORK_DIR%
     echo.
-    echo [%~nx0] For Visual Studio Team Services vNext ...
-	echo If using a GitHub repo, setting the working folder and filename prefix to the repo name is not required.
-	echo If using an external Git, cannot use %BUILD_SOURCEVERSION%
+    echo [%~nx0]   For TEam Build ...
+	echo Recommend using the navigation UI to find the entry script.
+	echo If using an external Git, cannot use %%BUILD_SOURCEVERSION%%
     echo.
-    echo Command Filename  : repositoryname\automation\buildandpackage\package.bat
+    echo Command Filename  : automation\buildandpackage\package.bat
     echo Command arguments : %SOLUTION% %%BUILD_BUILDNUMBER%% %%BUILD_SOURCEVERSION%% %LOCAL_WORK_DIR% %REMOTE_WORK_DIR%
 	echo Working folder    : repositoryname
     echo.
     echo [%~nx0] For BuildMaster ...
-    echo Executable file  : SourcesDirectory + "\automation\buildandpackage\package.bat"
-    echo Arguments        : %SOLUTION% ${BuildNumber} revision %LOCAL_WORK_DIR% %REMOTE_WORK_DIR%
+    echo Executable file   : SourcesDirectory + "\automation\buildandpackage\package.bat"
+    echo Arguments         : %SOLUTION% ${BuildNumber} revision %LOCAL_WORK_DIR% %REMOTE_WORK_DIR%
     echo.
 	echo [%~nx0] -------------------------------------------------------
 	echo.
@@ -132,10 +134,11 @@ if NOT "%ACTION%" == "clean" (
     echo Pattern : *.zip
     echo Command parameters : %SOLUTION% %%build.number%% %%build.vcs.number%% %LOCAL_WORK_DIR% %REMOTE_WORK_DIR%
     echo.
-    echo [%~nx0] For Visual Studio Team Services vNext ...
-	echo If using a GitHub repo, setting the copy root is not required.
-    echo.
-    echo Copy Root : repositoryname
+    echo [%~nx0] For VSTS / TFS 2015 ...
+    echo Use the combination of Copy files and Retain Artefacts from Visual Studio Solution Template
+    echo Source Folder   : $(Agent.BuildDirectory^)^\s
+    echo Copy files task : TasksLocal/**
+    echo                   *.zip
 )
 
 if "%ACTION%" == "clean" (
