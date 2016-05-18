@@ -62,6 +62,12 @@ foreach ($item in (Get-ChildItem -Path ".")) {
 	if (Test-Path $item -PathType "Container") {
 		if (Test-Path "$item\CDAF.solution") {
 			$solutionRoot=$item
+			# Attempt solution name loading, not an error if not found
+			try {
+				$solutionName=$(& .\$automationHelper\getProperty.ps1 $item\CDAF.solution 'solutionName')
+				if(!$?){  }
+			} catch {  }
+			
 		}
 	}
 }
