@@ -38,20 +38,21 @@ if ($password) {
 $media = $args[2]
 if ($media) {
     Write-Host "[$scriptName] media    : $media"
-	$source = '-Source ' + $media
 } else {
-	$defaultSource = 'C:\vagrant\.provision\sxs'
-	if ( Test-Path $defaultSource ) {
-		Write-Host "[$scriptName] Default media path found, using $defaultSource"
-		$source = '-Source ' + $defaultSource
-	} else {
-	    Write-Host "[$scriptName] media not supplied, will attempt to download from windows update."
-	}
+	$media = 'C:\vagrant\.provision\sxs'
+    Write-Host "[$scriptName] media    : $media (default)"
+}
+
+if ( Test-Path $media ) {
+	$sourceOption = '-Source ' + $media
+	Write-Host "[$scriptName] Media path found, using source option $sourceOption"
+} else {
+    Write-Host "[$scriptName] media path not found, will attempt to download from windows update."
 }
 
 Write-Host
 Write-Host "[$scriptName] Install Active Directory Domain Roles and Services"
-executeExpression "Install-WindowsFeature -Name `'AD-Domain-Services`' $source"
+executeExpression "Install-WindowsFeature -Name `'AD-Domain-Services`' $sourceOption"
 
 Write-Host
 Write-Host "[$scriptName] Create the new Forest and convert this host into the FSMO Domain Controller"
