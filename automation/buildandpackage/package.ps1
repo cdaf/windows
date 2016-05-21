@@ -175,6 +175,7 @@ itemRemove .\*.zip
 itemRemove .\*.nupkg
 itemRemove $LOCAL_WORK_DIR
 itemRemove $REMOTE_WORK_DIR
+itemRemove artifacts
 
 if ( $ACTION -eq "clean" ) {
 
