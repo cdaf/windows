@@ -154,7 +154,7 @@ $terminate = "no"
 $propFile = "$TARGET"
 $transform = '.\Transform.ps1'
 
-if ( test-path "$TARGET") {
+if ( test-path -path "$TARGET" -pathtype leaf ) {
 	if (!( test-path "$transform")) {
 	
 		# Test for running as a build process
