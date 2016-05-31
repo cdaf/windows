@@ -22,7 +22,6 @@ Vagrant.configure(2) do |allhosts|
       override.vm.network 'forwarded_port', guest: 5986, host: 33986 # WinRM HTTPS
       override.vm.network 'forwarded_port', guest:   80, host: 30080
       override.vm.network 'forwarded_port', guest:  443, host: 30443
-      override.vm.provision 'shell', path: './automation/provisioning/addHOSTS.ps1', args: '172.16.17.101 buildserver.sky.net'
       override.vm.provision 'shell', path: './automation/provisioning/CredSSP.ps1'
     end
     # Microsoft Hyper-V does not support NAT or setting hostname. vagrant up app --provider hyperv
@@ -34,8 +33,9 @@ Vagrant.configure(2) do |allhosts|
 
   allhosts.vm.define 'buildserver' do |buildserver|
     buildserver.vm.communicator = 'winrm'
-    # Oracle VirtualBox
+    # Oracle VirtualBox, relaxed configuration for Desktop environment
     buildserver.vm.provider 'virtualbox' do |virtualbox, override|
+      override.vm.hostname = 'buildserver'
       override.vm.box = 'opentable/win-2012r2-standard-amd64-nocm'
       override.vm.network 'private_network', ip: '172.16.17.101'
       override.vm.network 'forwarded_port', guest: 3389, host: 13389 # Remote Desktop
@@ -46,15 +46,14 @@ Vagrant.configure(2) do |allhosts|
       override.vm.provision 'shell', path: './automation/provisioning/CDAF_Desktop_Certificate.ps1'
       override.vm.provision 'shell', path: './automation/provisioning/trustedHosts.ps1', args: 'target.sky.net'
       override.vm.provision 'shell', path: './automation/provisioning/CredSSP.ps1'
-      override.vm.provision 'shell', path: './automation/provisioning/Capabilities.ps1'
       override.vm.provision 'shell', path: './automation/provisioning/CDAF.ps1'
     end
     # Microsoft Hyper-V does not support NAT or setting hostname. vagrant up buildserver --provider hyperv
     buildserver.vm.provider 'hyperv' do |hyperv, override|
       override.vm.box = 'mwrock/Windows2012R2'
-      override.vm.provision 'shell', path: './automation/provisioning/Capabilities.ps1'
       override.vm.provision 'shell', path: './automation/provisioning/CDAF.ps1'
     end
+    buildserver.vm.provision 'shell', path: './automation/provisioning/Capabilities.ps1'
   end
 
 end
