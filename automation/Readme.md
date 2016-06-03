@@ -2,7 +2,7 @@ Continuous Delivery Automation Framework (CDAF)
 ===============================================
 
     Author  : Jules Clements
-    Version : See CDAF.linux
+    Version : See CDAF.windows
 
 Framework Overview
 ==================
