@@ -11,11 +11,12 @@
 Vagrant.configure(2) do |allhosts|
 
   allhosts.vm.define 'target' do |target|
-   target.vm.communicator = 'winrm'
+    target.vm.box = 'mwrock/Windows2012R2'
+    target.vm.communicator = 'winrm'
     # Oracle VirtualBox, relaxed configuration for Desktop environment
+    target.vm.provision 'shell', path: './automation/provisioning/mkdir.ps1', args: 'C:\deploy'
     target.vm.provider 'virtualbox' do |virtualbox, override|
-      override.vm.hostname = 'target'
-      override.vm.box = 'opentable/win-2012r2-standard-amd64-nocm'
+      virtualbox.gui = false
       override.vm.network 'private_network', ip: '172.16.17.103'
       override.vm.network 'forwarded_port', guest: 3389, host: 33389 # Remote Desktop
       override.vm.network 'forwarded_port', guest: 5985, host: 35985 # WinRM HTTP
@@ -26,17 +27,17 @@ Vagrant.configure(2) do |allhosts|
     end
     # Microsoft Hyper-V does not support NAT or setting hostname. vagrant up app --provider hyperv
     target.vm.provider 'hyperv' do |hyperv, override|
-      override.vm.box = 'mwrock/Windows2012R2'
+      override.vm.provision 'shell', path: './automation/provisioning/deleteVagrantAccount.ps1'
     end
-    target.vm.provision 'shell', path: './automation/provisioning/mkdir.ps1', args: 'C:\deploy'
   end
 
   allhosts.vm.define 'buildserver' do |buildserver|
+    buildserver.vm.box = 'mwrock/Windows2012R2'
     buildserver.vm.communicator = 'winrm'
+    buildserver.vm.provision 'shell', path: './automation/provisioning/Capabilities.ps1'
     # Oracle VirtualBox, relaxed configuration for Desktop environment
     buildserver.vm.provider 'virtualbox' do |virtualbox, override|
-      override.vm.hostname = 'buildserver'
-      override.vm.box = 'opentable/win-2012r2-standard-amd64-nocm'
+      virtualbox.gui = false
       override.vm.network 'private_network', ip: '172.16.17.101'
       override.vm.network 'forwarded_port', guest: 3389, host: 13389 # Remote Desktop
       override.vm.network 'forwarded_port', guest: 5985, host: 15985 # WinRM HTTP
@@ -50,10 +51,9 @@ Vagrant.configure(2) do |allhosts|
     end
     # Microsoft Hyper-V does not support NAT or setting hostname. vagrant up buildserver --provider hyperv
     buildserver.vm.provider 'hyperv' do |hyperv, override|
-      override.vm.box = 'mwrock/Windows2012R2'
       override.vm.provision 'shell', path: './automation/provisioning/CDAF.ps1'
+      override.vm.provision 'shell', path: './automation/provisioning/deleteVagrantAccount.ps1'
     end
-    buildserver.vm.provision 'shell', path: './automation/provisioning/Capabilities.ps1'
   end
 
 end
