@@ -13,7 +13,14 @@ if ($dbName) {
     exit 100
 }
 
-$dbhost = $args[1]
+$dbOwner = $args[1]
+if ($dbOwner) {
+    Write-Host "[$scriptName] dbOwner    : $dbOwner"
+} else {
+    Write-Host "[$scriptName] dbOwner    : not supplied"
+}
+
+$dbhost = $args[2]
 if ($dbhost) {
     Write-Host "[$scriptName] dbhost     : $dbhost"
 } else {
@@ -21,7 +28,7 @@ if ($dbhost) {
     Write-Host "[$scriptName] dbhost     : $dbhost (default)"
 }
 
-$dbinstance = $args[2]
+$dbinstance = $args[3]
 if ($dbinstance) {
     Write-Host "[$scriptName] dbinstance : $dbinstance"
 } else {
@@ -33,6 +40,9 @@ try {
 	$srv = new-Object Microsoft.SqlServer.Management.Smo.Server("$dbhost\$dbinstance")
 	$db = New-Object Microsoft.SqlServer.Management.Smo.Database($srv, $dbName)
 	$db.Create()
+	if ($dbOwner) {
+		$db.SetOwner($dbOwner, $TRUE)
+	}
 	
 } catch {
 

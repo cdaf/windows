@@ -1,3 +1,19 @@
+function executeExpression ($expression) {
+	Write-Host "[$scriptName] $expression"
+	# Execute expression and trap powershell exceptions
+	try {
+	    Invoke-Expression $expression
+	    if(!$?) {
+			Write-Host; Write-Host "[$scriptName] Expression failed without an exception thrown. Exit with code 1."; Write-Host 
+			exit 1
+		}
+	} catch {
+		Write-Host; Write-Host "[$scriptName] Expression threw exception. Exit with code 2, exception message follows ..."; Write-Host 
+		Write-Host "[$scriptName] $_"; Write-Host 
+		exit 2
+	}
+}
+
 $scriptName = 'dotNET.ps1'
 $versionChoices = '4.0, 4.5 or 3.5' 
 Write-Host
@@ -10,7 +26,14 @@ if ($version) {
     Write-Host "[$scriptName] version  : $version (default, choices $versionChoices)"
 }
 
-$mediaDir = $args[1]
+$source = $args[1]
+if ($source) {
+    Write-Host "[$scriptName] source   : $source"
+} else {
+    Write-Host "[$scriptName] source   : not supplied"
+}
+
+$mediaDir = $args[2]
 if ($mediaDir) {
     Write-Host "[$scriptName] mediaDir : $mediaDir"
 } else {
@@ -21,6 +44,16 @@ if ($mediaDir) {
 if (!( Test-Path $mediaDir )) {
 	Write-Host "[$scriptName] mkdir $mediaDir"
 	mkdir $mediaDir
+}
+
+if ($env:interactive) {
+	Write-Host
+    Write-Host "[$scriptName]   env:interactive is set ($env:interactive), run in current window"
+    $sessionControl = '-PassThru -Wait -NoNewWindow'
+	$logToConsole = 'true'
+} else {
+    $sessionControl = '-PassThru -Wait'
+	$logToConsole = 'false'
 }
 
 Write-Host
@@ -41,8 +74,23 @@ switch ($version) {
 				Write-Host "[$scriptName] Cannot use installer on Win 7 or Server 2008, will try:"
 				$online = '/Online /Enable-Feature /FeatureName:NetFx3 /Norestart'
 				Write-Host "DISM $online"
+				try {
+					executeExpression "`$proc = Start-Process -FilePath 'DISM' -ArgumentList $online $sessionControl"
+				} catch {
+					Write-Host "[$scriptName] .NET 3.5 Install Exception : $_" -ForegroundColor Red
+					exit 200
+				}
 			}
 		}
+		
+		if (!($online)) {
+			if ($source) {
+				Write-Host "[$scriptName] Win 8.1 or Server 2012 or later, and source supplied, using Windows Server configuration"
+				$online = "-Name NET-Framework-Features -Source $source"
+				executeExpression "`$proc = Start-Process $sessionControl -FilePath 'Install-WindowsFeature' -ArgumentList $online"
+			}
+		}
+		
 		$file = 'dotnetfx35.exe'
 		$uri = 'https://download.microsoft.com/download/2/0/E/20E90413-712F-438C-988E-FDAA79A8AC3D/' + $file
 	}
@@ -51,16 +99,7 @@ switch ($version) {
     }
 }
 
-if ($online ) {
-
-	try {
-		$proc = Start-Process -FilePath 'DISM' -ArgumentList $online -PassThru -Wait
-	} catch {
-		Write-Host "[$scriptName] .NET 3.5 Install Exception : $_" -ForegroundColor Red
-		exit 200
-	}
-
-} else {
+if (!($online)) {
 
 	$fullpath = $mediaDir + '\' + $file
 	if ( Test-Path $fullpath ) {
