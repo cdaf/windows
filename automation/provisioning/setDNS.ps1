@@ -10,12 +10,12 @@ if ($ipList) {
 }
 
 Write-Host "[$scriptName] Update and list the interface setttings"
-foreach ($item in (Get-DnsClient -InterfaceAlias 'Ethernet*')) {
+foreach ($interface in (Get-DnsClient -InterfaceAlias 'Ethernet*')) {
 
-	Set-DnsClientServerAddress -InterfaceIndex $item.InterfaceIndex -ServerAddresses ($ipList)
-	Write-Host "  InterfaceAlias           : $($item.InterfaceAlias)"
-	Write-Host "  InterfaceIndex           : $($item.InterfaceIndex)"
-	Write-Host "  ConnectionSpecificSuffix : $($item.ConnectionSpecificSuffix)"
+	Set-DnsClientServerAddress -InterfaceIndex $interface.InterfaceIndex -ServerAddresses ($ipList)
+	Write-Host "  InterfaceAlias           : $($interface.InterfaceAlias)"
+	Write-Host "  InterfaceIndex           : $($interface.InterfaceIndex)"
+	Write-Host "  ConnectionSpecificSuffix : $($interface.ServerAddresses)"
 }
 
 Write-Host

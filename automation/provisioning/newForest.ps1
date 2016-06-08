@@ -39,20 +39,33 @@ $media = $args[2]
 if ($media) {
     Write-Host "[$scriptName] media    : $media"
 } else {
-	$media = 'C:\vagrant\.provision\sxs'
+	$media = 'c:\vagrant\.provision\install.wim'
     Write-Host "[$scriptName] media    : $media (default)"
 }
 
+$wimIndex = $args[3]
+if ($wimIndex) {
+    Write-Host "[$scriptName] wimIndex : $wimIndex"
+} else {
+	$wimIndex = '2'
+    Write-Host "[$scriptName] wimIndex : $wimIndex (default, Standard Edition)"
+}
+
 if ( Test-Path $media ) {
-	$sourceOption = '-Source ' + $media
-	Write-Host "[$scriptName] Media path found, using source option $sourceOption"
+	if ( $media -match ':' ) {
+		$sourceOption = '-Source wim:' + $media + ":$wimIndex"
+		Write-Host "[$scriptName] Media path found, using source option $sourceOption"
+	} else {
+		$sourceOption = '-Source ' + $media
+		Write-Host "[$scriptName] Media path found, using source option $sourceOption"
+	}
 } else {
     Write-Host "[$scriptName] media path not found, will attempt to download from windows update."
 }
 
 Write-Host
 Write-Host "[$scriptName] Install Active Directory Domain Roles and Services"
-executeExpression "Install-WindowsFeature -Name `'AD-Domain-Services`' $sourceOption"
+executeExpression "Install-WindowsFeature -Name `'AD-Domain-Services`' -IncludeAllSubFeature -IncludeManagementTools $sourceOption"
 
 Write-Host
 Write-Host "[$scriptName] Create the new Forest and convert this host into the FSMO Domain Controller"
