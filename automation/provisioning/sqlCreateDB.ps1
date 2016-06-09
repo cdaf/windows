@@ -31,13 +31,14 @@ if ($dbhost) {
 $dbinstance = $args[3]
 if ($dbinstance) {
     Write-Host "[$scriptName] dbinstance : $dbinstance"
+	$srv = new-Object Microsoft.SqlServer.Management.Smo.Server("$dbhost\$dbinstance")
 } else {
-	$dbinstance = 'SQLSERVER'
-    Write-Host "[$scriptName] dbinstance : $dbinstance (default)"
+    Write-Host "[$scriptName] dbinstance : not supplied, let SQL Server decide"
+	$srv = new-Object Microsoft.SqlServer.Management.Smo.Server("$dbhost")
 }
 
 try {
-	$srv = new-Object Microsoft.SqlServer.Management.Smo.Server("$dbhost\$dbinstance")
+
 	$db = New-Object Microsoft.SqlServer.Management.Smo.Database($srv, $dbName)
 	$db.Create()
 	if ($dbOwner) {

@@ -1,17 +1,10 @@
 function executeExpression ($expression) {
 	Write-Host "[$scriptName] $expression"
-	# Execute expression and trap powershell exceptions
 	try {
-	    Invoke-Expression $expression
-	    if(!$?) {
-			Write-Host; Write-Host "[$scriptName] Expression failed without an exception thrown. Exit with code 1."; Write-Host 
-			exit 1
-		}
-	} catch {
-		Write-Host; Write-Host "[$scriptName] Expression threw exception. Exit with code 2, exception message follows ..."; Write-Host 
-		Write-Host "[$scriptName] $_"; Write-Host 
-		exit 2
-	}
+		Invoke-Expression $expression
+	    if(!$?) { exit 1 }
+	} catch { exit 2 }
+    if ( $error[0] ) { exit 3 }
 }
 
 $scriptName = 'VisualStudio.ps1'

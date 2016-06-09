@@ -1,17 +1,10 @@
 function executeExpression ($expression) {
 	Write-Host "[$scriptName] $expression"
-	# Execute expression and trap powershell exceptions
 	try {
-	    Invoke-Expression $expression
-	    if(!$?) {
-			Write-Host; Write-Host "[$scriptName] Expression failed without an exception thrown. Exit with code 1."; Write-Host 
-			exit 1
-		}
-	} catch {
-		Write-Host; Write-Host "[$scriptName] Expression threw exception. Exit with code 2, exception message follows ..."; Write-Host 
-		Write-Host "[$scriptName] $_"; Write-Host 
-		exit 2
-	}
+		Invoke-Expression $expression
+	    if(!$?) { exit 1 }
+	} catch { exit 2 }
+    if ( $error[0] ) { exit 3 }
 }
 
 $scriptName = 'dotNET.ps1'
@@ -86,8 +79,8 @@ switch ($version) {
 		if (!($online)) {
 			if ($source) {
 				Write-Host "[$scriptName] Win 8.1 or Server 2012 or later, and source supplied, using Windows Server configuration"
-				$online = "-Name NET-Framework-Features -Source $source"
-				executeExpression "`$proc = Start-Process $sessionControl -FilePath 'Install-WindowsFeature' -ArgumentList $online"
+				$online = "-Source $source"
+				executeExpression "Install-WindowsFeature -Name `'NET-Framework-Features`' $online"
 			}
 		}
 		

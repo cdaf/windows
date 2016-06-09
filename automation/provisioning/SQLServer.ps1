@@ -1,17 +1,10 @@
 function executeExpression ($expression) {
 	Write-Host "[$scriptName] $expression"
-	# Execute expression and trap powershell exceptions
 	try {
-	    Invoke-Expression $expression
-	    if(!$?) {
-			Write-Host; Write-Host "[$scriptName] Expression failed without an exception thrown. Exit with code 1."; Write-Host 
-			exit 1
-		}
-	} catch {
-		Write-Host; Write-Host "[$scriptName] Expression threw exception. Exit with code 2, exception message follows ..."; Write-Host 
-		Write-Host "[$scriptName] $_"; Write-Host 
-		exit 2
-	}
+		Invoke-Expression $expression
+	    if(!$?) { exit 1 }
+	} catch { exit 2 }
+    if ( $error[0] ) { exit 3 }
 }
 
 $scriptName = 'SQLServer.ps1'
@@ -37,11 +30,19 @@ $adminAccount = $args[2]
 if ($adminAccount) {
     Write-Host "[$scriptName] adminAccount   : $adminAccount"
 } else {
-	$adminAccount = 'Administrator'
+	$adminAccount = 'BUILTIN\Administrators'
     Write-Host "[$scriptName] adminAccount   : $adminAccount (default)"
 }
 
-$media = $args[3]
+$instance = $args[3]
+if ($instance) {
+    Write-Host "[$scriptName] instance       : $instance"
+} else {
+	$instance = 'MSSQLSERVER'
+    Write-Host "[$scriptName] instance       : $instance (default)"
+}
+
+$media = $args[4]
 if ($media) {
     Write-Host "[$scriptName] media          : $media"
 } else {
@@ -80,7 +81,7 @@ $argList = @(
 	'/UPDATEENABLED=false',
 	"/FEATURES=$sqlFeatures",
 	'/INSTALLSHAREDDIR="C:\Program Files\Microsoft SQL Server"',
-	'/INSTANCENAME="SQLSERVER"',
+	"/INSTANCENAME=`"$instance`"",
 	'/INSTANCEDIR="C:\Program Files\Microsoft SQL Server"',
 	'/SQLSVCSTARTUPTYPE="Automatic"',
 	'/SQLCOLLATION="SQL_Latin1_General_CP1_CI_AS"',

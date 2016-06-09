@@ -24,14 +24,14 @@ if ($dbhost) {
 $dbinstance = $args[2]
 if ($dbinstance) {
     Write-Host "[$scriptName] dbinstance : $dbinstance"
+	$smo = new-Object Microsoft.SqlServer.Management.Smo.Server("$dbhost\$dbinstance")
 } else {
-	$dbinstance = 'SQLSERVER'
-    Write-Host "[$scriptName] dbinstance : $dbinstance (default)"
+    Write-Host "[$scriptName] dbinstance : not supplied, let SQL Server decide"
+	$smo = new-Object Microsoft.SqlServer.Management.Smo.Server("$dbhost")
 }
 
 try {
 
-	$smo = new-Object Microsoft.SqlServer.Management.Smo.Server("$dbhost\$dbinstance")
 	$SqlUser = New-Object -TypeName Microsoft.SqlServer.Management.Smo.Login -ArgumentList $smo,"$dbUser"
 	$SqlUser.LoginType = 'WindowsUser'
 	$sqlUser.PasswordPolicyEnforced = $false
