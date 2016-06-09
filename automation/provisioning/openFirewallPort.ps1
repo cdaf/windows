@@ -1,20 +1,35 @@
+function executeExpression ($expression) {
+	Write-Host "[$scriptName] $expression"
+	try {
+		Invoke-Expression $expression
+	    if(!$?) { exit 1 }
+	} catch { exit 2 }
+    if ( $error[0] ) { exit 3 }
+}
 
 $scriptName = 'openFirewallPort.ps1'
 Write-Host
 Write-Host "[$scriptName] ---------- start ----------"
-$dbName = $args[0]
-if ($dbName) {
-    Write-Host "[$scriptName] dbName     : $dbName"
+$portNumber = $args[0]
+if ($portNumber) {
+    Write-Host "[$scriptName] portNumber  : $portNumber"
 } else {
-    Write-Host "[$scriptName] dbName not supplied, exiting with code 100"
+    Write-Host "[$scriptName] portNumber not supplied, exiting with code 100"
     exit 100
 }
 
-New-NetFirewallRule -DisplayName "SQL Server" -Direction Inbound –Protocol TCP –LocalPort 1433 -Action allow
-Set-NetFirewallProfile -DefaultInboundAction Block -DefaultOutboundAction Allow -NotifyOnListen True -AllowUnicastResponseToMulticast True
+$displayName = $args[0]
+if ($displayName) {
+    Write-Host "[$scriptName] displayName : $displayName"
+} else {
+	$displayName = $portNumber
+    Write-Host "[$scriptName] displayName : not supplied, default to Port Number ($displayName)"
+}
+
+executeExpression "New-NetFirewallRule -DisplayName `"$displayName`" -Direction Inbound –Protocol TCP –LocalPort $portNumber -Action allow"
 
 Write-Host
-Write-Host "[$scriptName] Created $dbName on $dbhost\$dbinstance at $createdDate."
+Write-Host "[$scriptName] Created $portNumber on $dbhost\$dbinstance at $createdDate."
 
 Write-Host
 Write-Host "[$scriptName] ---------- stop ----------"
