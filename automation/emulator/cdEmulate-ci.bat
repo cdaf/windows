@@ -50,7 +50,7 @@ if NOT "%ACTION%" == "clean" (
     echo [%~nx0]   For Team Build ...
     echo Use the visual studio template and delete the nuget and VS tasks.
 	echo NOTE: The BUILD DEFINITION NAME must not contain spaces in the name as it is the directory
-	echo       Set the build number $(rev:r)
+	echo       Set the build number $(rev:r^)
 	echo Recommend using the navigation UI to find the entry script.
 	echo Cannot use %%BUILD_SOURCEVERSION%% with external Git
     echo.

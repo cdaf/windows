@@ -14,18 +14,25 @@ Write-Host
 Write-Host "[$scriptName] ---------- start ----------"
 $userName = $args[0]
 if ($userName) {
-    Write-Host "[$scriptName] userName          : $userName"
+    Write-Host "[$scriptName] userName             : $userName"
 } else {
 	$userName = 'Deployer'
-    Write-Host "[$scriptName] userName          : $userName (default)"
+    Write-Host "[$scriptName] userName             : $userName (default)"
 }
 
 $password = $args[1]
 if ($password) {
-    Write-Host "[$scriptName] password          : **********"
+    Write-Host "[$scriptName] password             : **********"
 } else {
 	$password = 'swUwe5aG'
-    Write-Host "[$scriptName] password          : ********** (default)"
+    Write-Host "[$scriptName] password             : ********** (default)"
+}
+
+$TrustedForDelegation = $args[2]
+if ($TrustedForDelegation) {
+    Write-Host "[$scriptName] TrustedForDelegation : $TrustedForDelegation"
+} else {
+    Write-Host "[$scriptName] TrustedForDelegation : not set"
 }
 
 if ((gwmi win32_computersystem).partofdomain -eq $true) {
@@ -35,7 +42,15 @@ if ((gwmi win32_computersystem).partofdomain -eq $true) {
 	Write-Host
 	executeExpression  "New-ADUser -Name $userName -AccountPassword (ConvertTo-SecureString -AsPlainText `$password -Force) -PassThru | Enable-ADAccount"
 
+	if ($TrustedForDelegation) {
+		executeExpression  "Set-ADUser -Identity $userName -TrustedForDelegation $TrustedForDelegation"
+	}
+
 } else {
+
+	if ($TrustedForDelegation) {
+	    Write-Host "[$scriptName] TrustedForDelegation is not applicable to workgroup computer, no action will be attempted."
+	}
 
 	Write-Host
 	Write-Host "[$scriptName] Workgroup Host, create as local user ($userName)."
