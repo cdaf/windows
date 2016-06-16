@@ -59,6 +59,7 @@ if ( Test-Path $media ) {
 Write-Host
 Write-Host "[$scriptName] Install Active Directory Domain Roles and Services"
 executeExpression "Install-WindowsFeature -Name `'AD-Domain-Services`' -IncludeAllSubFeature -IncludeManagementTools $sourceOption"
+executeExpression "Install-WindowsFeature -Name `'DNS`' -IncludeAllSubFeature -IncludeManagementTools $sourceOption"
 
 Write-Host
 Write-Host "[$scriptName] Create the new Forest and convert this host into the FSMO Domain Controller"
