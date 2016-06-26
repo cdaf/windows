@@ -13,8 +13,8 @@ Vagrant.configure(2) do |allhosts|
   allhosts.vm.define 'target' do |target|
     target.vm.box = 'mwrock/Windows2012R2'
     target.vm.communicator = 'winrm'
-    target.vm.provision 'shell', path: './automation/provisioning/mkdir.ps1', args: 'C:\deploy'
     # Oracle VirtualBox, relaxed configuration for Desktop environment
+    target.vm.provision 'shell', path: './automation/provisioning/mkdir.ps1', args: 'C:\deploy'
     target.vm.provider 'virtualbox' do |virtualbox, override|
       virtualbox.gui = false
       override.vm.network 'private_network', ip: '172.16.17.103'
@@ -23,7 +23,8 @@ Vagrant.configure(2) do |allhosts|
       override.vm.network 'forwarded_port', guest: 5986, host: 33986 # WinRM HTTPS
       override.vm.network 'forwarded_port', guest:   80, host: 30080
       override.vm.network 'forwarded_port', guest:  443, host: 30443
-      override.vm.provision 'shell', path: './automation/provisioning/CredSSP.ps1'
+      override.vm.provision 'shell', path: './automation/provisioning/CredSSP.ps1', args: 'client'
+      override.vm.provision 'shell', path: './automation/provisioning/CredSSP.ps1', args: 'server'
     end
     # Microsoft Hyper-V does not support NAT or setting hostname. vagrant up app --provider hyperv
     target.vm.provider 'hyperv' do |hyperv, override|
@@ -46,7 +47,8 @@ Vagrant.configure(2) do |allhosts|
       override.vm.provision 'shell', path: './automation/provisioning/setenv.ps1', args: 'environmentDelivery VAGRANT Machine'
       override.vm.provision 'shell', path: './automation/provisioning/CDAF_Desktop_Certificate.ps1'
       override.vm.provision 'shell', path: './automation/provisioning/trustedHosts.ps1', args: 'target.sky.net'
-      override.vm.provision 'shell', path: './automation/provisioning/CredSSP.ps1'
+      override.vm.provision 'shell', path: './automation/provisioning/CredSSP.ps1', args: 'server'
+      override.vm.provision 'shell', path: './automation/provisioning/CredSSP.ps1', args: 'client'
       override.vm.provision 'shell', path: './automation/provisioning/CDAF.ps1'
     end
     # Microsoft Hyper-V does not support NAT or setting hostname. vagrant up buildserver --provider hyperv

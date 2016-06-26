@@ -1,3 +1,12 @@
+function executeExpression ($expression) {
+	Write-Host "[$scriptName] $expression"
+	try {
+		Invoke-Expression $expression
+	    if(!$?) { exit 1 }
+	} catch { exit 2 }
+    if ( $error[0] ) { exit 3 }
+}
+
 $scriptName     = 'CredSSP.ps1'
 $installChoices = 'client or server' 
 Write-Host
@@ -14,12 +23,14 @@ if ($Installtype) {
 
 switch ($Installtype) {
 	'client' {
-		Write-Host "[$scriptName] Enable-WSManCredSSP -Role client -DelegateComputer * -Force"
-		Enable-WSManCredSSP -Role client -DelegateComputer * -Force
+		executeExpression 'Enable-WSManCredSSP -Role client -DelegateComputer * -Force'
+		executeExpression "New-ItemProperty -Path `'HKLM:\SOFTWARE\Policies\Microsoft\Windows\CredentialsDelegation`' -Name `'AllowFreshCredentialsWhenNTLMOnly`' -Value 1 -PropertyType Dword -Force"
+		executeExpression "New-Item -Path `'HKLM:\SOFTWARE\Policies\Microsoft\Windows\CredentialsDelegation`' -Name `'AllowFreshCredentialsWhenNTLMOnly`' -Value `'Default Value`' -Force"
+		executeExpression "New-ItemProperty -Path `'HKLM:\SOFTWARE\Policies\Microsoft\Windows\CredentialsDelegation\AllowFreshCredentialsWhenNTLMOnly`' -Name `'1`' -PropertyType `'String`' -Value 'wsman/*'"
+#		executeExpression "Set-ItemProperty -path `'HKLM:\SYSTEM\CurrentControlSet\Control\Lsa\Credssp\PolicyDefaults\AllowFreshCredentialsDomain`' -Name `'WSMan`' -Value `'WSMAN/*`'"  
 	}
 	'server' {
-		Write-Host "[CredSSP-Server.ps1] Enable-WSManCredSSP -Role server -Force"
-		Enable-WSManCredSSP -Role server -Force
+		executeExpression 'Enable-WSManCredSSP -Role server -Force'
 	}
     default {
 	    Write-Host "[$scriptName] Installtype ($Installtype) not supported, choices are $installChoices"

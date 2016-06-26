@@ -30,15 +30,9 @@ To create a desktop environment, in an elevated powershell session, navigate to 
 Continuous Delivery Testing
 ---------------------------
 
-To allow delegated elevation on the build server, on-off step needed to allow delegation. 
+To allow delegated elevation, on-off step needed on the host when using VirtualBox/Vagrant. 
 
-    Enable-WSManCredSSP -Role client -DelegateComputer * -Force
-
-TODO: how do I set this via powershell? 
-
-Get-ItemProperty HKLM:\Software\Policies\Microsoft\Windows\CredentialsDelegation\AllowFreshCredentialsWhenNTLMOnly
-
-1            : wsman/*
+    ./automation/provisioning/runner.bat CredSSP.ps1 client
 
 Once delegation configured, the build emulation can be executed.
 
