@@ -1,5 +1,4 @@
 @echo off
-echo [%0] Starting ...
 
 set ENVIRONMENT=%1
 set BUILD=%2

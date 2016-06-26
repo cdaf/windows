@@ -127,7 +127,6 @@ if (-not(Test-Path projectsToBuild.txt)) {
 
 	write-host
 	write-host "[$scriptName] No project directories found containing build.ps1 or build.tsk, assuming new solution, continuing ... " -ForegroundColor Yellow
-	write-host
 
 } else {
 
@@ -162,7 +161,6 @@ if (-not(Test-Path projectsToBuild.txt)) {
 
 		write-host
 		write-host "[$scriptName]   --- BUILD project $PROJECT successfull ---" -ForegroundColor Green
-		write-host
 	} 
 
 }

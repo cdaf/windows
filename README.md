@@ -44,7 +44,7 @@ Once delegation configured, the build emulation can be executed.
 
     $securePassword = ConvertTo-SecureString 'vagrant' -asplaintext -force
     $cred = New-Object System.Management.Automation.PSCredential ('vagrant', $securePassword)
-    enter-pssession 127.0.0.1 -port 25985 -Auth CredSSP -credential $cred
+    enter-pssession 127.0.0.1 -port 15985 -Auth CredSSP -credential $cred
     cd C:\vagrant
 	.\automation\cdEmulate.bat
 

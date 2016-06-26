@@ -12,11 +12,11 @@ echo [%~nx0]   automationRoot      : %automationRoot%
 rem Launcher script that overides execution policy
 rem cannot elevate powershell
 
-call powershell -NoProfile -ExecutionPolicy ByPass -command %cd%\%automationRoot%\emulator\cdEmulate.ps1 %automationRoot% %ACTION%
+call powershell -NoProfile -ExecutionPolicy ByPass -command %cd%\%automationRoot%\processor\cdEmulate.ps1 %automationRoot% %ACTION%
 set result=%errorlevel%
 if %result% NEQ 0 (
 	echo.
-	echo [%~nx0] call powershell -NoProfile -ExecutionPolicy ByPass -command %cd%\%automationRoot%\emulator\cdEmulate.ps1 %automationRoot% %ACTION% failed!
+	echo [%~nx0] call powershell -NoProfile -ExecutionPolicy ByPass -command %cd%\%automationRoot%\processor\cdEmulate.ps1 %automationRoot% %ACTION% failed!
 	echo [%~nx0] Errorlevel = %result%
 	exit /b %result%
 )

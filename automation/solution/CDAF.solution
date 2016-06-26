@@ -1,4 +1,4 @@
 # This file defines the automation root along with CD emulator value (solutionName)
 productVersion=0.0.1
 productName=My Product Name
-solutionName=myProduct
+solutionName=WU-CDM

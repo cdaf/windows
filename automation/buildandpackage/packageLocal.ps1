@@ -56,7 +56,8 @@ if(!$?){ taskFailure ("mkdir $WORK_DIR_DEFAULT") }
 copySet "manifest.txt" "." $WORK_DIR_DEFAULT
 copySet "CDAF.windows" "$AUTOMATIONROOT" $WORK_DIR_DEFAULT
 Move-Item $WORK_DIR_DEFAULT\CDAF.windows $WORK_DIR_DEFAULT\CDAF.properties
-Write-Host Write-Host "[$scriptName]   rename $WORK_DIR_DEFAULT\CDAF.windows --> $WORK_DIR_DEFAULT\CDAF.properties"
+Write-Host
+Write-Host "[$scriptName]   rename $WORK_DIR_DEFAULT\CDAF.windows --> $WORK_DIR_DEFAULT\CDAF.properties"
 
 # Copy all local script helpers, flat set to true to copy to root, not sub directory
 copyDir ".\$AUTOMATIONROOT\local" $WORK_DIR_DEFAULT $true
@@ -64,7 +65,8 @@ copyDir ".\$AUTOMATIONROOT\local" $WORK_DIR_DEFAULT $true
 # Copy all remote script helpers, flat set to true to copy to root, not sub directory
 copyDir ".\$AUTOMATIONROOT\remote" $WORK_DIR_DEFAULT $true
 
-Write-Host Write-Host "[$scriptName]  Copy all task definition files, excluding build tasks"
+Write-Host
+Write-Host "[$scriptName]  Copy all task definition files, excluding build tasks"
 $files = Get-ChildItem $workingDirectory -Filter "$SOLUTIONROOT\*.tsk"
 foreach ($file in $files) {
 	if (!($file -match 'build.tsk')) {
