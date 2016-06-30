@@ -8,7 +8,7 @@ rem themselves, that way the scripts remain portable, i.e. can be used in other 
 set SOLUTION=%1
 set ENVIRONMENT=%2
 set BUILD=%3
-set REVISION=%4
+set RELEASE=%4
 set AUTOMATION_ROOT=%5
 set LOCAL_WORK_DIR=%6
 set REMOTE_WORK_DIR=%7
@@ -21,7 +21,7 @@ echo [%~nx0] ==============================================
 echo [%~nx0]   SOLUTION        : %SOLUTION%
 echo [%~nx0]   ENVIRONMENT     : %ENVIRONMENT%
 echo [%~nx0]   BUILD           : %BUILD%
-echo [%~nx0]   REVISION        : %REVISION%
+echo [%~nx0]   RELEASE         : %RELEASE%
 echo [%~nx0]   AUTOMATION_ROOT : %AUTOMATION_ROOT%
 echo [%~nx0]   LOCAL_WORK_DIR  : %LOCAL_WORK_DIR%
 echo [%~nx0]   REMOTE_WORK_DIR : %REMOTE_WORK_DIR%

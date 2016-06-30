@@ -3,7 +3,7 @@ function taskException ($taskName, $exception) {
     write-host "     Exception Type: $($exception.Exception.GetType().FullName)" -ForegroundColor Red
     write-host "     Exception Message: $($exception.Exception.Message)" -ForegroundColor Red
 
-	If ($REVISION -eq "remote") {
+	If ($RELEASE -eq "remote") {
 		write-host
 		write-host "[$scriptName] Called from DOS, returning errorlevel -1" -ForegroundColor Blue
 		$host.SetShouldExit(-1)
@@ -17,7 +17,7 @@ function taskException ($taskName, $exception) {
 function throwErrorlevel ($taskName, $trappedExit) {
     write-host "[$scriptName] Trapped DOS exit code : $trappedExit" -ForegroundColor Red
 
-	If ($REVISION -eq "remote") {
+	If ($RELEASE -eq "remote") {
 		write-host
 		write-host "[$scriptName] Called from DOS, returning exit code as errorlevel" -ForegroundColor Blue
 		$host.SetShouldExit($trappedExit)
