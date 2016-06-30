@@ -119,7 +119,7 @@ if ( $ACTION -ne "clean" ) {
     write-host "  Command parameters  : $solutionName $environmentBuild %build.number% %build.vcs.number% $AUTOMATIONROOT $workDirLocal $workDirRemote $ACTION"
     write-host
     write-host 'For Bamboo ...'
-    write-host "  Script file         : $AUTOMATIONROOT\buildandpackage\buildProjects.bat"
+    write-host "  Script file         : $ciProcess"
     write-host "  Argument            : $solutionName $environmentBuild `${bamboo.buildNumber} `${bamboo.repository.revision.number} $AUTOMATIONROOT $workDirLocal $workDirRemote $ACTION"
     write-host
     write-host 'For Jenkins ...'
