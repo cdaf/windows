@@ -116,23 +116,23 @@ if ( $ACTION -ne "clean" ) {
 	write-host
     write-host 'For TeamCity ...'
     write-host "  Command Executable  : $ciInstruction"
-    write-host "  Command parameters  : $solutionName $environmentBuild %build.number% %build.vcs.number% $AUTOMATIONROOT $workDirLocal $workDirRemote $ACTION"
+    write-host "  Command parameters  : $solutionName $environmentBuild %build.number% %build.vcs.number% $AUTOMATIONROOT $workDirLocal $workDirRemote"
     write-host
     write-host 'For Bamboo ...'
     write-host "  Script file         : $ciProcess"
-    write-host "  Argument            : $solutionName $environmentBuild `${bamboo.buildNumber} `${bamboo.repository.revision.number} $AUTOMATIONROOT $workDirLocal $workDirRemote $ACTION"
+    write-host "  Argument            : $solutionName $environmentBuild `${bamboo.buildNumber} `${bamboo.repository.revision.number} $AUTOMATIONROOT $workDirLocal $workDirRemote"
     write-host
     write-host 'For Jenkins ...'
-    write-host "  Command : $AUTOMATIONROOT\buildandpackage\buildProjects.bat $solutionName $environmentBuild %BUILD_NUMBER% %SVN_REVISION% $AUTOMATIONROOT $workDirLocal $workDirRemote $ACTION"
+    write-host "  Command : $AUTOMATIONROOT\buildandpackage\buildProjects.bat $solutionName $environmentBuild %BUILD_NUMBER% %SVN_REVISION% $AUTOMATIONROOT $workDirLocal $workDirRemote"
     write-host
     write-host 'For BuildMaster ...'
-    write-host "  Executable file     : SourcesDirectory + `"$ciProcess`""
-    write-host "  Arguments           : $solutionName $environmentBuild `${BuildNumber} $revision $AUTOMATIONROOT $workDirLocal $workDirRemote $ACTION"
+    write-host "  Executable file     : $ciProcess"
+    write-host "  Arguments           : $solutionName $environmentBuild `${BuildNumber} Revision_Unavailable $AUTOMATIONROOT $workDirLocal $workDirRemote"
     write-host
     write-host 'For Team Foundation Server/Visual Studio Team Services'
     write-host '  XAML ...'
     write-host "    Command Filename  : SourcesDirectory + `"$ciProcess`""
-    write-host "    Command arguments : `"$solutionName + $environmentBuild + `" + BuildDetail.BuildNumber + `" + $revision + $AUTOMATIONROOT + $workDirLocal + $workDirRemote + $ACTION`""
+    write-host "    Command arguments : $solutionName $environmentBuild + `" `" + BuildDetail.BuildNumber + `" `" + revision + `" $AUTOMATIONROOT $workDirLocal $workDirRemote`""
     write-host
     write-host '  Team Build (vNext)...'
     write-host '    Use the visual studio template and delete the nuget and VS tasks.'
@@ -198,7 +198,7 @@ if ( $ACTION -eq "clean" ) {
 	write-host
 	write-host 'For BuildMaster ...'
 	write-host "  Executable file     : $workDirLocal\$cdInstruction"
-	write-host "  Arguments           : $solutionName $environmentDelivery `${BuildNumber} $revision $AUTOMATIONROOT $workDirLocal $workDirRemote"
+	write-host "  Arguments           : $solutionName `${EnvironmentName} `${BuildNumber} `${ReleaseNumber} $AUTOMATIONROOT $workDirLocal $workDirRemote"
 	write-host
 	write-host 'For Team Foundation Server/Visual Studio Team Services'
 	write-host '  For XAML ...'
