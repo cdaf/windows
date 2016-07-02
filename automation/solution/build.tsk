@@ -8,6 +8,7 @@ echo "Load product (solution) attributes"
 assign $loadProperties="../$SOLUTIONROOT/CDAF.solution"
 
 # Combine to create symantic (http://semver.org/) version
+assign $productVersion+='.'
 assign $productVersion+=$BUILDNUMBER
 
 echo "Perform build"
