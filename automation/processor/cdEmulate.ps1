@@ -137,6 +137,7 @@ if ( $ACTION -ne "clean" ) {
     write-host '  Team Build (vNext)...'
     write-host '    Use the visual studio template and delete the nuget and VS tasks.'
 	write-host '    NOTE: The BUILD DEFINITION NAME must not contain spaces in the name as it is the directory.'
+	write-host '          recommend using solution name, then the Release instructions can be used unchanged.'
 	write-host '          Set the build number $(rev:r)'
 	write-host '    Recommend using the navigation UI to find the entry script.'
 	write-host '    Cannot use %BUILD_SOURCEVERSION% with external Git'
@@ -208,7 +209,7 @@ if ( $ACTION -eq "clean" ) {
 	write-host '  Check the default queue for Environment definition.'
 	write-host '  Run an empty release initially to load the workspace, which can then be navigated to for following configuration.'
 	write-host "    Command Filename  : `$(System.DefaultWorkingDirectory)/$solutionName/drop/$workDirLocal/$cdInstruction"
-	write-host "    Command arguments : $solutionName `$RELEASE_ENVIRONMENTNAME `${BUILD_BUILDNUMBER} `${BUILD_SOURCEVERSION} $automationRoot $workDirLocal $workDirRemote"
+	write-host "    Command arguments : $solutionName %RELEASE_ENVIRONMENTNAME% %BUILD_BUILDNUMBER% %RELEASE_RELEASENAME% $automationRoot $workDirLocal $workDirRemote"
 	write-host "    Working folder    : `$(System.DefaultWorkingDirectory)/$solutionName/drop"
 	write-host
 	write-host "[$scriptName] -------------------------------------------------------"
