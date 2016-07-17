@@ -1,10 +1,26 @@
+# Common expression logging and error handling function, copied, not referenced to ensure atomic process
 function executeExpression ($expression) {
+	$error.clear()
 	Write-Host "[$scriptName] $expression"
 	try {
 		Invoke-Expression $expression
-	    if(!$?) { exit 1 }
-	} catch { exit 2 }
-    if ( $error[0] ) { exit 3 }
+	    if(!$?) { Write-Host "[$scriptName] `$? = $?"; exit 1 }
+	} catch { "[$scriptName] $_"; exit 2 }
+    if ( $error[0] ) { Write-Host "[$scriptName] `$error[0] = $error"; exit 3 }
+}
+
+# Test for registry property 
+function testProperty ($path, $property) {
+	if (Test-Path $path) {
+		$key = Get-Item $path
+		if ($key.GetValue($property, $null) -ne $null) {
+			$True
+		} else {
+			$False
+		}
+	} else {
+		$False
+	}
 }
 
 $scriptName     = 'CredSSP.ps1'
@@ -23,11 +39,40 @@ if ($Installtype) {
 
 switch ($Installtype) {
 	'client' {
+		$ntlmFreshPath = 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\CredentialsDelegation\AllowFreshCredentialsWhenNTLMOnly'
+		if ( testProperty $ntlmFreshPath '1') {
+			executeExpression "Remove-ItemProperty -Path `'$ntlmFreshPath`' -Name `'1`'"
+		}
 		executeExpression 'Enable-WSManCredSSP -Role client -DelegateComputer * -Force'
-		executeExpression "New-ItemProperty -Path `'HKLM:\SOFTWARE\Policies\Microsoft\Windows\CredentialsDelegation`' -Name `'AllowFreshCredentialsWhenNTLMOnly`' -Value 1 -PropertyType Dword -Force"
-		executeExpression "New-Item -Path `'HKLM:\SOFTWARE\Policies\Microsoft\Windows\CredentialsDelegation`' -Name `'AllowFreshCredentialsWhenNTLMOnly`' -Value `'Default Value`' -Force"
-		executeExpression "New-ItemProperty -Path `'HKLM:\SOFTWARE\Policies\Microsoft\Windows\CredentialsDelegation\AllowFreshCredentialsWhenNTLMOnly`' -Name `'1`' -PropertyType `'String`' -Value 'wsman/*'"
-#		executeExpression "Set-ItemProperty -path `'HKLM:\SYSTEM\CurrentControlSet\Control\Lsa\Credssp\PolicyDefaults\AllowFreshCredentialsDomain`' -Name `'WSMan`' -Value `'WSMAN/*`'"  
+
+	    Write-Host "[$scriptName] Add/Set AllowFreshCredentialsWhenNTLMOnly path and properties"
+		Write-Host
+		$lmPath = 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\CredentialsDelegation'
+		if ( Test-Path -Path $lmPath ) {
+		    Write-Host "[$scriptName] $lmPath exists"
+			Write-Host
+		} else {
+			executeExpression "New-Item -Path `'HKLM:\SOFTWARE\Policies\Microsoft\Windows`' -Name `'CredentialsDelegation`' -Value `'Default Value`'"
+		}
+		
+		if ( testProperty $lmPath 'AllowFreshCredentialsWhenNTLMOnly') {
+			Write-Host "[$scriptName] AllowFreshCredentialsWhenNTLMOnly current value $((Get-ItemProperty -Path "$lmPath" -Name 'AllowFreshCredentialsWhenNTLMOnly').AllowFreshCredentialsWhenNTLMOnly)"
+			executeExpression "Set-ItemProperty -Path `'$lmPath`' -Name `'AllowFreshCredentialsWhenNTLMOnly`' -Value 1"
+		} else {
+			executeExpression "New-ItemProperty -Path `'$lmPath`' -Name `'AllowFreshCredentialsWhenNTLMOnly`' -Value 1 -PropertyType Dword"
+		}
+		
+		if ( Test-Path -Path $ntlmFreshPath ) {
+		    Write-Host "[$scriptName] $ntlmFreshPath exists"
+			Write-Host
+		} else {
+			executeExpression "New-Item -Path `'$lmPath`' -Name `'AllowFreshCredentialsWhenNTLMOnly`' -Value `'Default Value`'"
+		}
+		# Safe to execute without force becuase this has been removed before enabling windows remote managmenet, if it existed		
+		executeExpression "New-ItemProperty -Path `'$ntlmFreshPath`' -Name `'1`' -PropertyType `'String`' -Value 'wsman/*'"
+		
+# Do not believe this helps at all, so commented out
+#		executeExpression "New-ItemProperty -path `'HKLM:\SYSTEM\CurrentControlSet\Control\Lsa\Credssp\PolicyDefaults\AllowFreshCredentialsDomain`' -Name `'WSMan`' -Value `'WSMAN/*`' -Force"
 	}
 	'server' {
 		executeExpression 'Enable-WSManCredSSP -Role server -Force'

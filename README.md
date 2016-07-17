@@ -26,11 +26,19 @@ Create Desktop Build Server
 To create a desktop environment, in an elevated powershell session, navigate to the solution root and run:
 
     vagrant up
+    
+Once the environment is running access the build server an execute the CD emulation
 
-Continuous Delivery Testing
----------------------------
+    vagrant powershell buildserver
+    cd C:\vagrant
+    .\automation\cdEmulate.bat
+    
 
-To allow delegated elevation, on-off step needed on the host when using VirtualBox/Vagrant. 
+Direct PowerShell Access
+------------------------
+
+To access the buildserver using native remote PowerShell.
+Allow credential delegation, on-off step needed on the host when using VirtualBox/Vagrant. 
 
     ./automation/provisioning/runner.bat CredSSP.ps1 client
 

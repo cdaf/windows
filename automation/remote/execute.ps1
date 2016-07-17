@@ -273,6 +273,27 @@ Foreach ($line in get-content $TASK_LIST) {
 					}
 	            }
 
+				# Execute Remote Command or Local PowerShell Script remotely (via Invoke-Command)
+	            if ( $feature -eq 'EXCREM' ) {
+	            	if ($remoteUser ) {
+	            		$remUser = $remoteUser 
+	            	} else {
+		            	$remUser = 'NOT_SUPPLIED'
+	            	}
+	            	if ($remoteCred ) {
+	            		$remCred = $remoteCred 
+	            	} else {
+		            	$remCred = 'NOT_SUPPLIED'
+	            	}
+	            	if ($decryptThb ) {
+	            		$remThumb = $decryptThb 
+	            	} else {
+		            	$remThumb = 'NOT_SUPPLIED'
+	            	}
+		            Write-Host "$expression ==> " -NoNewline
+	            	$expression = '.\remoteExec.ps1 ' + $deployHost + ' ' + $remUser  + ' ' + $remCred + ' ' + $remThumb  + ' ' + $expression.Substring(7)
+	            }
+
 				# Detokenise a file
 				#  required : tokenised file, relative to current workspace
 				#  option : properties file, if not passed, target will be used

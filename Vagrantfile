@@ -47,8 +47,8 @@ Vagrant.configure(2) do |allhosts|
       override.vm.provision 'shell', path: './automation/provisioning/setenv.ps1', args: 'environmentDelivery VAGRANT Machine'
       override.vm.provision 'shell', path: './automation/provisioning/CDAF_Desktop_Certificate.ps1'
       override.vm.provision 'shell', path: './automation/provisioning/trustedHosts.ps1', args: 'target.sky.net'
-      override.vm.provision 'shell', path: './automation/provisioning/CredSSP.ps1', args: 'server'
       override.vm.provision 'shell', path: './automation/provisioning/CredSSP.ps1', args: 'client'
+      override.vm.provision 'shell', path: './automation/provisioning/CredSSP.ps1', args: 'server'
       override.vm.provision 'shell', path: './automation/provisioning/CDAF.ps1'
     end
     # Microsoft Hyper-V does not support NAT or setting hostname. vagrant up buildserver --provider hyperv
