@@ -128,7 +128,10 @@ function UnZipFiles( $packageFile, $packagePath )
 	Write-Host "[$scriptName] `$packageFile = $currentDir/$packageFile.zip"
 	if ($packagePath -eq '.') { $packagePath = $(pwd) }
 	Write-Host "[$scriptName] `$packagePath = $packagePath"
-	[System.IO.Compression.ZipFile]::ExtractToDirectory("$currentDir/$packageFile.zip", "$packagePath")
+	[System.IO.Compression.ZipFile]::ExtractToDirectory("$currentDir/$packageFile.zip", "$packagePath/$packageFile")
+	foreach ($item in (Get-ChildItem -Path $packagePath/$packageFile)) {
+		Write-Host "[$scriptName (remote)]    --> $item"
+	}
 }
 
 $SOLUTION    = $args[0]
