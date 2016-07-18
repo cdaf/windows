@@ -1,3 +1,5 @@
+Add-Type -AssemblyName System.IO.Compression.FileSystem
+
 function taskException ($taskName, $exception) {
     write-host "[$scriptName] Caught an exception excuting $taskName :" -ForegroundColor Red
     write-host "     Exception Type: $($exception.Exception.GetType().FullName)" -ForegroundColor Red
@@ -106,13 +108,9 @@ function copyRecurse ($from, $to, $notFirstRun) {
 function ZipFiles( $zipfilename, $sourcedir )
 {
 	$currentDir = $(pwd)
-	##Write-Host "[DEBUG][$scriptName] `$currentDir = $currentDir"
-	##Write-Host "[DEBUG][$scriptName] `$zipfilename = $zipfilename"
 	$targetFile = "$currentDir\$zipfilename"
-	##Write-Host "[DEBUG][$scriptName] `$targetFile = $targetFile"
 	Write-Host
 	Write-Host "[$scriptName] Create zip package $targetFile from $sourcedir"
-	Add-Type -Assembly System.IO.Compression.FileSystem
 	$compressionLevel = [System.IO.Compression.CompressionLevel]::Optimal
 	cd $sourcedir
 	$fullpath = $(pwd)
@@ -121,6 +119,16 @@ function ZipFiles( $zipfilename, $sourcedir )
 		Write-Host "[$scriptName]   --> $item"
 	}
 	cd $currentDir
+}
+
+# Requires PowerShell v3 or above, pass zip file without .zip suffix
+function UnZipFiles( $packageFile, $packagePath )
+{
+	$currentDir = $(pwd)
+	Write-Host "[$scriptName] `$packageFile = $currentDir/$packageFile.zip"
+	if ($packagePath -eq '.') { $packagePath = $(pwd) }
+	Write-Host "[$scriptName] `$packagePath = $packagePath"
+	[System.IO.Compression.ZipFile]::ExtractToDirectory("$currentDir/$packageFile.zip", "$packagePath")
 }
 
 $SOLUTION    = $args[0]
@@ -339,6 +347,16 @@ Foreach ($line in get-content $TASK_LIST) {
 					$expression = "ZipFiles $filename $source"
 				}		
 
+				# Deompress to file
+				#  required : file, relative to current workspace
+	            if ( $feature -eq 'DCMPRS' ) {
+		            Write-Host "$expression ==> " -NoNewline
+		            $arguments = $expression.Substring(7)
+					$data = $arguments.split(" ")
+					$filename = $data[0]
+					$target = $data[1]
+					$expression = "UnZipFiles $filename $target"
+				}		
 	        }
 
 			# Perform no further processing if Feature is Property Loader
@@ -370,36 +388,6 @@ Foreach ($line in get-content $TASK_LIST) {
 			        throwErrorlevel "DOS_NON_TERM" $exitcode
 		        }
 		    }
-
-			# Information message for clean
-			If ($terminate -eq "clean") {
-		        Write-Host
-		        Write-Host "[$scriptName] Clean only" -ForegroundColor Blue
-				break
-			}
-
-			# Load Properties file as runtime variables
-			If ($loadProperties) {
-			
-				$transform = ".\Transform.ps1"
-
-				# Load all properties as runtime variables (transform provides logging)
-				# Test for running as delivery process
-				if (!( test-path $transform)) {
-				
-					# Test for running as a build process
-					$transform = "..\$automationHelper\Transform.ps1"
-					if (! (test-path $transform)) {
-				
-						# Test for running as a package parocess
-						$transform = "$automationHelper\Transform.ps1"
-					}
-				}
-				
-				& $transform "$loadProperties" | ForEach-Object { invoke-expression $_ }
-				$loadProperties = ""
-			}
-
         }
     }
 }
