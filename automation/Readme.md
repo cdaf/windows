@@ -38,10 +38,13 @@ To alleviate the burden of argument passing, exception handling and logging, the
 | --------|-----------------------------------|---------------------------------|
 | ASSIGN  | set a variable                    | ASSIGN $test="Hello World"      |
 | CMPRSS  | Compress directory to file        | CMPRSS packageName dirName      |
+| DCMPRS  | Decompress package file           | DCMPRS packageName              |
 | DECRYP  | decrypt matching target file      | DECRYP cryptLocal               |
 |         | decrypt specific file             | DECRYP cryptLocal encrypt.dat   |
 | DETOKN  | Detokenise file with target prop  | DETOKN tokenised.file           |
 |         | Detokenise with specific file     | DETOKN tokenised.file prop.file |
+| EXCREM  | Execute command                   | EXCREM hostname                 |
+|         | Execute script                    | EXCREM ./capabilities.sh        |
 | EXITIF  | Exit normally is argument set     | EXITIF $ACTION                  |
 | INVOKE  | call a custom script              | INVOKE ./script "Hello"         |
 | MAKDIR  | Create a directory and path (opt) | MAKDIR directory/and/path       |
@@ -80,7 +83,7 @@ Package: (files maybe empty or non-existent)
 
 The package (.zip) file is generated from the contents of the TasksRemote directory, all scripts contained in the /remote folder are copied and files file/directories listed in storeForRemote (maybe empty).
 
-All scripts contained in the /local folder are copied to the TasksLocal directory, along with the files/directories listed in storeForLocal file (maybe empty).
+All scripts contained in the /local folder are copied to the TasksLocal directory, along with the files/directories listed in storeForLocal file (maybe empty). A package file of local tasks can also be created by setting zipLocal in the CDAF.solution file, the value set will be used in the package name itself.
 
 Deploy (many)
 --------------
