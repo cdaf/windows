@@ -30,9 +30,10 @@ if ($password) {
 
 $TrustedForDelegation = $args[2]
 if ($TrustedForDelegation) {
-    Write-Host "[$scriptName] TrustedForDelegation : $TrustedForDelegation"
+    Write-Host "[$scriptName] TrustedForDelegation : $TrustedForDelegation (choices yes or no)"
 } else {
-    Write-Host "[$scriptName] TrustedForDelegation : not set"
+	$TrustedForDelegation = 'no'
+    Write-Host "[$scriptName] TrustedForDelegation : $TrustedForDelegation (default, choices yes or no)"
 }
 
 if ((gwmi win32_computersystem).partofdomain -eq $true) {
@@ -42,13 +43,13 @@ if ((gwmi win32_computersystem).partofdomain -eq $true) {
 	Write-Host
 	executeExpression  "New-ADUser -Name $userName -AccountPassword (ConvertTo-SecureString -AsPlainText `$password -Force) -PassThru | Enable-ADAccount"
 
-	if ($TrustedForDelegation) {
-		executeExpression  "Set-ADUser -Identity $userName -TrustedForDelegation $TrustedForDelegation"
+	if ($TrustedForDelegation -eq 'yes') {
+		executeExpression  "Set-ADUser -Identity $userName -TrustedForDelegation `$True"
 	}
 
 } else {
 
-	if ($TrustedForDelegation) {
+	if ($TrustedForDelegation -eq 'yes') {
 	    Write-Host "[$scriptName] TrustedForDelegation is not applicable to workgroup computer, no action will be attempted."
 	}
 

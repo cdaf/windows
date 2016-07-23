@@ -1,10 +1,12 @@
+# Common expression logging and error handling function, copied, not referenced to ensure atomic process
 function executeExpression ($expression) {
+	$error.clear()
 	Write-Host "[$scriptName] $expression"
 	try {
 		Invoke-Expression $expression
-	    if(!$?) { exit 1 }
-	} catch { exit 2 }
-    if ( $error[0] ) { exit 3 }
+	    if(!$?) { Write-Host "[$scriptName] `$? = $?"; exit 1 }
+	} catch { "[$scriptName] $_"; exit 2 }
+    if ( $error[0] ) { Write-Host "[$scriptName] `$error[0] = $error"; exit 3 }
 }
 
 $scriptName = 'newDC.ps1'
@@ -31,20 +33,34 @@ if ($password) {
 $media = $args[2]
 if ($media) {
     Write-Host "[$scriptName] media    : $media"
-	$source = '-Source ' + $media
 } else {
-	$defaultSource = 'C:\vagrant\.provision\sxs'
-	if ( Test-Path $defaultSource ) {
-		Write-Host "[$scriptName] Default media path found, using $defaultSource"
-		$source = '-Source ' + $defaultSource
+	$media = 'c:\vagrant\.provision\install.wim'
+    Write-Host "[$scriptName] media    : $media (default)"
+}
+
+$wimIndex = $args[3]
+if ($wimIndex) {
+    Write-Host "[$scriptName] wimIndex : $wimIndex"
+} else {
+	$wimIndex = '2'
+    Write-Host "[$scriptName] wimIndex : $wimIndex (default, Standard Edition)"
+}
+
+if ( Test-Path $media ) {
+	if ( $media -match ':' ) {
+		$sourceOption = '-Source wim:' + $media + ":$wimIndex"
+		Write-Host "[$scriptName] Media path found, using source option $sourceOption"
 	} else {
-	    Write-Host "[$scriptName] media not supplied, will attempt to download from windows update."
+		$sourceOption = '-Source ' + $media
+		Write-Host "[$scriptName] Media path found, using source option $sourceOption"
 	}
+} else {
+    Write-Host "[$scriptName] media path not found, will attempt to download from windows update."
 }
 
 Write-Host
 Write-Host "[$scriptName] Install Active Directory Domain Roles and Services"
-executeExpression "Install-WindowsFeature -Name `'AD-Domain-Services`' $source"
+executeExpression "Install-WindowsFeature -Name `'AD-Domain-Services`' $sourceOption"
 
 $securePassword = ConvertTo-SecureString $password -asplaintext -force
 
