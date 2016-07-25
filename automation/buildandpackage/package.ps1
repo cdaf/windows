@@ -219,7 +219,7 @@ if ( $ACTION -eq "clean" ) {
 		if(!$?){ taskWarning }
 	} catch { exitWithCode("packageLocal.ps1") }
 
-	if (( Test-Path "$remotePropertiesDir" -pathtype container) -or ( Test-Path "$solutionRoot\storeForLocal" -pathtype leaf)) {
+	if (( Test-Path "$remotePropertiesDir" -pathtype container) -or ( Test-Path "$solutionRoot\storeForRemote" -pathtype leaf)) {
 
 		try {
 			& .\$AUTOMATIONROOT\buildandpackage\packageRemote.ps1 $SOLUTION $BUILDNUMBER $REVISION $LOCAL_WORK_DIR $REMOTE_WORK_DIR $solutionRoot $AUTOMATIONROOT
