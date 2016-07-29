@@ -20,6 +20,14 @@ if ( Test-Path $packageFileName ) {
 	Write-Host "[$scriptName (remote)] Package file ($packageFile.zip) exists rename:"
 	Write-Host "[$scriptName (remote)]   $packageFileName --> $packageFile-$timeStamp.zip"
 	Move-Item $packageFileName $packageFile-$timeStamp.zip
+} else {
+
+	Write-Host
+	Write-Host "[$scriptName (remote)] Not a re-run, purge langing directory, then list disk capacity."
+	Remove-Item * -Recurse -Force
+	Write-Host
+	Get-CimInstance -ComputerName localhost win32_logicaldisk | foreach-object {write " $($_.caption) $('{0:N2}' -f ($_.Size/1gb)) GB total, $('{0:N2}' -f ($_.FreeSpace/1gb)) GB free "} 
+
 }
 
 if ( Test-Path $packageFile ) {

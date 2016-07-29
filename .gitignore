@@ -1,1 +1,5 @@
 .vagrant/
+/TasksLocal/
+/TasksRemote/
+/manifest.txt
+/*.zip
