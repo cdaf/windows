@@ -63,11 +63,6 @@ $scriptName = $MyInvocation.MyCommand.Name
 
 Write-Host "[$scriptName]   AUTOMATIONROOT : $AUTOMATIONROOT" 
 
-$projectList = ".\$AUTOMATIONROOT\solution\buildProjects"
-
-Write-Host –NoNewLine "[$scriptName]   Project list   : " 
-pathTest $projectList
-
 $propertiesFile = "$AUTOMATIONROOT\CDAF.windows"
 $propName = "productVersion"
 try {
@@ -81,6 +76,26 @@ Write-Host "[$scriptName]   pwd            : $(pwd)"
 Write-Host "[$scriptName]   Hostname       : $(hostname)" 
 Write-Host "[$scriptName]   user name      : $(whoami)"
 
+# Check for user defined solution folder, i.e. outside of automation root, if found override solution root
+$solutionRoot="$AUTOMATIONROOT\solution"
+foreach ($item in (Get-ChildItem -Path ".")) {
+	if (Test-Path $item -PathType "Container") {
+		if (Test-Path "$item\CDAF.solution") {
+			$solutionRoot=$item
+		}
+	}
+}
+Write-Host "[$scriptName]   solutionRoot   : $solutionRoot" 
+
+# Build a list of projects, based on directory names, unless an override project list file exists
+$projectList = ".\$solutionRoot\buildProjects"
+Write-Host –NoNewLine "[$scriptName]   Project list   : " 
+pathTest $projectList
+
+write-host 
+write-host "[$scriptName] Load solution properties ..."
+& .\$automationHelper\Transform.ps1 "$solutionroot\CDAF.solution" | ForEach-Object { invoke-expression $_ }
+
 Write-Host 
 Write-Host "[$scriptName] Clean temp files and folders from workspace" 
 removeTempFiles
@@ -88,21 +103,7 @@ itemRemove .\*.txt
 itemRemove .\*.zip
 itemRemove .\*.nupkg
 
-# Check for user defined solution folder, i.e. outside of automation root, if found override solution root
-$solutionRoot="$AUTOMATIONROOT\solution"
-
-foreach ($item in (Get-ChildItem -Path ".")) {
-	if (Test-Path $item -PathType "Container") {
-		if (Test-Path "$item\CDAF.solution") {
-			write-host 
-			write-host "[$scriptName] CDAF.solution file found in directory `"$item`", load solution properties"
-			$solutionRoot=$item
-			& .\$automationHelper\Transform.ps1 "$item\CDAF.solution" | ForEach-Object { invoke-expression $_ }
-		}
-	}
-}
-
-# Build a list of projects, base on directory names unless an override project list file exists
+# Set the projects to process (default is alphabetic)
 if (-not(Test-Path $projectList)) {
 	foreach ($item in (Get-ChildItem -Path ".")) {
 		if (Test-Path $item -PathType "Container") {
@@ -110,8 +111,6 @@ if (-not(Test-Path $projectList)) {
 		}
 	}
 } else {
-	write-host
-    write-host "[$scriptName] Using override Project list ($projectList)" -ForegroundColor Yellow
 	Copy-Item $projectList projectDirectories.txt
 	Set-ItemProperty projectDirectories.txt -name IsReadOnly -value $false
 }
