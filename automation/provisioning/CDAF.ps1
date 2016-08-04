@@ -5,7 +5,7 @@ function executeExpression ($expression) {
 	try {
 		Invoke-Expression $expression
 	    if(!$?) { Write-Host "[$scriptName] `$? = $?"; exit 1 }
-	} catch { "[$scriptName] $_"; exit 2 }
+	} catch { echo $_.Exception|format-list -force; exit 2 }
     if ( $error[0] ) { Write-Host "[$scriptName] `$error[0] = $error"; exit 3 }
 }
 

@@ -16,7 +16,7 @@ $version = $args[0]
 if ($version) {
     Write-Host "[$scriptName] version  : $version"
 } else {
-	$version = '2010'
+	$version = 'latest'
     Write-Host "[$scriptName] version  : $version (default)"
 }
 

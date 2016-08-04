@@ -55,8 +55,8 @@ if ((gwmi win32_computersystem).partofdomain -eq $true) {
 
 	Write-Host
 	Write-Host "[$scriptName] Workgroup Host, create as local user ($userName)."
-	$Computer = [ADSI]"WinNT://$Env:COMPUTERNAME,Computer"
-	$LocalUser = $Computer.Create("User", $userName)
+	$ADSIComp = [ADSI]"WinNT://$Env:COMPUTERNAME,Computer"
+	$LocalUser = $ADSIComp.Create("User", $userName)
 	$LocalUser.SetPassword($password)
 	$LocalUser.SetInfo()
 	$LocalUser.FullName = "$userName"

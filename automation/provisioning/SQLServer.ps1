@@ -9,6 +9,9 @@ function executeExpression ($expression) {
 
 $scriptName = 'SQLServer.ps1'
 Write-Host
+Write-Host "If provisioing to server core, the management console is not installed, for GUI server,"
+Write-Host "Management console will be installed."
+Write-Host
 Write-Host "[$scriptName] ---------- start ----------"
 $serviceAccount = $args[0]
 if ($serviceAccount) {

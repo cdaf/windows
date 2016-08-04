@@ -16,8 +16,8 @@ $fileToRemove = $args[0]
 if ($fileToRemove) {
     Write-Host "[$scriptName] fileToRemove : $fileToRemove"
 } else {
-	$fileToRemove = 'sky.net'
-    Write-Host "[$scriptName] fileToRemove : $fileToRemove (default)"
+    Write-Host "[$scriptName] fileToRemove not supplied! Exit with code 1"
+    exit 1
 }
 
 itemRemove $fileToRemove

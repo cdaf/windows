@@ -1,21 +1,23 @@
+# Common expression logging and error handling function, copied, not referenced to ensure atomic process
 function executeExpression ($expression) {
+	$error.clear()
 	Write-Host "[$scriptName] $expression"
 	try {
 		Invoke-Expression $expression
-	    if(!$?) { exit 1 }
-	} catch { exit 2 }
-    if ( $error[0] ) { exit 3 }
+	    if(!$?) { Write-Host "[$scriptName] `$? = $?"; exit 1 }
+	} catch { echo $_.Exception|format-list -force; exit 2 }
+    if ( $error[0] ) { Write-Host "[$scriptName] `$error[0] = $error"; exit 3 }
 }
 
 $scriptName = 'dotNET.ps1'
-$versionChoices = '4.5.2, 4.5.1, 4.0 or 3.5' 
+$versionChoices = 'latest, 4.5.2, 4.5.1, 4.0 or 3.5' 
 Write-Host
 Write-Host "[$scriptName] ---------- start ----------"
 $version = $args[0]
 if ($version) {
     Write-Host "[$scriptName] version  : $version"
 } else {
-	$version = '4.5.2'
+	$version = 'latest'
     Write-Host "[$scriptName] version  : $version (default, choices $versionChoices)"
 }
 
@@ -51,6 +53,10 @@ if ($env:interactive) {
 
 Write-Host
 switch ($version) {
+	'latest' {
+		$file = 'NDP452-KB2901907-x86-x64-AllOS-ENU.exe'
+		$uri = 'https://download.microsoft.com/download/E/2/1/E21644B5-2DF2-47C2-91BD-63C560427900/' + $file
+	}
 	'4.5.2' {
 		$file = 'NDP452-KB2901907-x86-x64-AllOS-ENU.exe'
 		$uri = 'https://download.microsoft.com/download/E/2/1/E21644B5-2DF2-47C2-91BD-63C560427900/' + $file
@@ -93,19 +99,23 @@ switch ($version) {
 	}
     default {
 	    Write-Host "[$scriptName] version not supported, choices are $versionChoices"
+		exit 99
     }
 }
 
 if (!($online)) {
 
 	$fullpath = $mediaDir + '\' + $file
-	if ( Test-Path $fullpath ) {
+	if ( Test-Path $fullpath -PathType Leaf) {
 		Write-Host "[$scriptName] $fullpath exists, download not required"
 	} else {
 	
 		$webclient = new-object system.net.webclient
 		Write-Host "[$scriptName] $webclient.DownloadFile($uri, $fullpath)"
-		$webclient.DownloadFile($uri, $fullpath)
+		try {
+			$webclient.DownloadFile($uri, $fullpath)
+		    	if(!$?) { exit 1 }
+		} catch { echo $_.Exception|format-list -force; exit 2 }
 	}
 	
 	try {

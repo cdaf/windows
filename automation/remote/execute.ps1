@@ -12,7 +12,7 @@ function taskException ($taskName, $exception) {
 	} else {
 		write-host
 		write-host "[$scriptName] Called from PowerShell, throwing error" -ForegroundColor Blue
-		throw "$taskName $trappedExit"
+		throw "$taskName"
 	}
 }
 
