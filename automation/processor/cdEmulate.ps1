@@ -187,11 +187,8 @@ if ( $ACTION -eq "clean" ) {
 	write-host "  Command parameters  : $solutionName $environmentDelivery %build.number% %build.vcs.number% $AUTOMATIONROOT $workDirLocal $workDirRemote"
 	write-host
 	write-host 'For Bamboo ...'
-	write-host '  Warning! set Deployment project name to solution name, with no spaces.'
-	write-host '  note: set the release tag to (assuming no releases performed, otherwise, use the release number already set)'
-	write-host '  build-${bamboo.buildNumber} deploy-1'
 	write-host "  Script file         : `${bamboo.build.working.directory}\$workDirLocal\$cdInstruction"
-	write-host "  Argument            : `${bamboo.deploy.project} `${bamboo.deploy.environment} `${bamboo.buildNumber} `${bamboo.deploy.release} $AUTOMATIONROOT $workDirLocal $workDirRemote"
+	write-host "  Argument            : $solutionName `${bamboo.deploy.environment} `${bamboo.buildNumber} `${bamboo.deploy.release} $AUTOMATIONROOT $workDirLocal $workDirRemote"
 	write-host
 	write-host 'For Jenkins ...'
 	write-host "  Command             : $workDirLocal\$cdInstruction $solutionName $environmentDelivery %BUILD_NUMBER% %SVN_REVISION% $AUTOMATIONROOT $workDirLocal $workDirRemote"
