@@ -22,7 +22,7 @@ if ($install) {
 }
 
 Write-Host
-executeExpression "choco $install"
+executeExpression "choco install $install"
 
 Write-Host
 Write-Host "[$scriptName] ---------- stop ----------"
