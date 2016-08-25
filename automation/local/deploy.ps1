@@ -15,4 +15,12 @@ write-host "[$scriptName] cd $WORKSPACE"
 cd $WORKSPACE
 write-host
 & .\deploy.bat $TARGET $ENVIRONMENT
-if(!$?){ throwErrorlevel $LASTEXITCODE }
+if(!$?){ 
+	if ( $LASTEXITCODE -eq 0 ) {
+		Write-host "[$scriptName] Warning flag set, but exit code is $LASTEXITCODE, proceeding normally." -ForegroundColor Yellow
+		& echo "[$scriptName] Reset call operator : ";$?
+ 	} else {
+		throwErrorlevel $LASTEXITCODE
+	}
+}
+exit 0

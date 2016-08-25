@@ -1,3 +1,9 @@
+function taskException ($trapID, $exception) {
+    write-host "[$scriptName] Caught an exception for Trap ID $trapID :" -ForegroundColor Red
+	echo $_.Exception|format-list -force
+	throw $trapID
+}
+
 $ENVIRONMENT = $args[0]
 $SOLUTION = $args[1]
 $BUILD = $args[2]
@@ -122,5 +128,4 @@ write-host "[$scriptName] Transfer control to the remote host" -ForegroundColor 
 write-host 
 try {
 	Invoke-Command -session $session -File $WORK_DIR_DEFAULT\deploy.ps1 -Args $DEPLOY_TARGET,$deployLand\$SOLUTION-$BUILD
-if(!$?){ taskError "REMOTEUSER_POWERSHELL_ERROR" }
 } catch { taskException "REMOTEUSER_POWERSHELL_EXCEPTION" $_ }

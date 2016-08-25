@@ -358,6 +358,9 @@ Foreach ($line in get-content $TASK_LIST) {
 					$data = $arguments.split(" ")
 					$filename = $data[0]
 					$target = $data[1]
+		            if (!( $target )) {
+						$target = $pwd
+					}
 					$expression = "UnZipFiles $filename $target"
 				}		
 	        }

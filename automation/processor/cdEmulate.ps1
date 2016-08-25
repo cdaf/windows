@@ -184,33 +184,33 @@ if ( $ACTION -eq "clean" ) {
 	write-host
 	write-host 'For TeamCity ...'
 	write-host "  Command Executable  : $workDirLocal/$cdInstruction"
-	write-host "  Command parameters  : $solutionName $environmentDelivery %build.number% %build.vcs.number% $AUTOMATIONROOT $workDirLocal $workDirRemote"
+	write-host "  Command parameters  : $solutionName $environmentDelivery %build.number% %build.vcs.number% $workDirLocal $workDirRemote"
 	write-host
 	write-host 'For Bamboo ...'
 	write-host "  Script file         : `${bamboo.build.working.directory}\$workDirLocal\$cdInstruction"
-	write-host "  Argument            : $solutionName `${bamboo.deploy.environment} `${bamboo.buildNumber} `${bamboo.deploy.release} $AUTOMATIONROOT $workDirLocal $workDirRemote"
+	write-host "  Argument            : $solutionName `${bamboo.deploy.environment} `${bamboo.buildNumber} `${bamboo.deploy.release} $workDirLocal $workDirRemote"
 	write-host
 	write-host 'For Jenkins ...'
-	write-host "  Command             : $workDirLocal\$cdInstruction $solutionName $environmentDelivery %BUILD_NUMBER% %SVN_REVISION% $AUTOMATIONROOT $workDirLocal $workDirRemote"
+	write-host "  Command             : $workDirLocal\$cdInstruction $solutionName $environmentDelivery %BUILD_NUMBER% %SVN_REVISION% $workDirLocal $workDirRemote"
 	write-host
 	write-host 'For BuildMaster ...'
 	write-host "  Executable file     : $workDirLocal\$cdInstruction"
-	write-host "  Arguments           : $solutionName `${EnvironmentName} `${BuildNumber} `${ReleaseNumber} $AUTOMATIONROOT $workDirLocal $workDirRemote"
+	write-host "  Arguments           : $solutionName `${EnvironmentName} `${BuildNumber} `${ReleaseNumber} $workDirLocal $workDirRemote"
 	write-host
 	write-host 'For Team Foundation Server/Visual Studio Team Services'
 	write-host '  For XAML ...'
 	write-host "    Command Filename  : SourcesDirectory + `"\$workDirLocal\$cdInstruction`""
-	write-host "    Command arguments : `" + $solutionName + $environmentDelivery + `" + BuildDetail.BuildNumber + `" $revision + $AUTOMATIONROOT + $workDirLocal + $workDirRemote`""
+	write-host "    Command arguments : `" + $solutionName + $environmentDelivery + `" + BuildDetail.BuildNumber + `" $revision + $workDirLocal + $workDirRemote`""
 	write-host
 	write-host '  For Team Release ...'
 	write-host '  Check the default queue for Environment definition.'
 	write-host '  Run an empty release initially to load the workspace, which can then be navigated to for following configuration.'
 	write-host "    Command Filename  : `$(System.DefaultWorkingDirectory)/$solutionName/drop/$workDirLocal/$cdInstruction"
-	write-host "    Command arguments : $solutionName %RELEASE_ENVIRONMENTNAME% %BUILD_BUILDNUMBER% %RELEASE_RELEASENAME% $automationRoot $workDirLocal $workDirRemote"
+	write-host "    Command arguments : $solutionName %RELEASE_ENVIRONMENTNAME% %BUILD_BUILDNUMBER% %RELEASE_RELEASENAME% $workDirLocal $workDirRemote"
 	write-host "    Working folder    : `$(System.DefaultWorkingDirectory)/$solutionName/drop"
 	write-host
 	write-host "[$scriptName] -------------------------------------------------------"
-	& $cdProcess $solutionName $environmentDelivery $buildNumber $revision $AUTOMATIONROOT $workDirLocal $workDirRemote $ACTION
+	& $cdProcess $solutionName $environmentDelivery $buildNumber $revision $workDirLocal $workDirRemote $ACTION
 	if(!$?){ exitWithCode $ciProcess }
 }
 write-host

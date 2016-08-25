@@ -9,10 +9,9 @@ set SOLUTION=%1
 set ENVIRONMENT=%2
 set BUILD=%3
 set RELEASE=%4
-set AUTOMATION_ROOT=%5
-set LOCAL_WORK_DIR=%6
-set REMOTE_WORK_DIR=%7
-set ACTION=%8
+set LOCAL_WORK_DIR=%5
+set REMOTE_WORK_DIR=%6
+set ACTION=%7
 
 echo.
 echo [%~nx0] ==============================================
@@ -22,7 +21,6 @@ echo [%~nx0]   SOLUTION        : %SOLUTION%
 echo [%~nx0]   ENVIRONMENT     : %ENVIRONMENT%
 echo [%~nx0]   BUILD           : %BUILD%
 echo [%~nx0]   RELEASE         : %RELEASE%
-echo [%~nx0]   AUTOMATION_ROOT : %AUTOMATION_ROOT%
 echo [%~nx0]   LOCAL_WORK_DIR  : %LOCAL_WORK_DIR%
 echo [%~nx0]   REMOTE_WORK_DIR : %REMOTE_WORK_DIR%
 echo [%~nx0]   ACTION          : %ACTION%
