@@ -10,14 +10,14 @@ function executeExpression ($expression) {
 }
 
 $scriptName = 'dotNET.ps1'
-$versionChoices = 'latest, 4.5.2, 4.5.1, 4.0 or 3.5' 
+$versionChoices = '4.6.1, 4.5.2, 4.5.1, 4.0 or 3.5' 
 Write-Host
 Write-Host "[$scriptName] ---------- start ----------"
 $version = $args[0]
-if ($version) {
+if (($version) -and ($version -ne 'latest')) {
     Write-Host "[$scriptName] version  : $version"
 } else {
-	$version = 'latest'
+	$version = '4.6.1'
     Write-Host "[$scriptName] version  : $version (default, choices $versionChoices)"
 }
 
@@ -53,9 +53,9 @@ if ($env:interactive) {
 
 Write-Host
 switch ($version) {
-	'latest' {
-		$file = 'NDP452-KB2901907-x86-x64-AllOS-ENU.exe'
-		$uri = 'https://download.microsoft.com/download/E/2/1/E21644B5-2DF2-47C2-91BD-63C560427900/' + $file
+	'4.6.1' {
+		$file = 'NDP461-KB3102436-x86-x64-AllOS-ENU.exe'
+		$uri = 'https://download.microsoft.com/download/E/4/1/E4173890-A24A-4936-9FC9-AF930FE3FA40/' + $file
 	}
 	'4.5.2' {
 		$file = 'NDP452-KB2901907-x86-x64-AllOS-ENU.exe'
