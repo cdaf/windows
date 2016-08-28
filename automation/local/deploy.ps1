@@ -4,8 +4,9 @@ function throwErrorlevel ($trappedExit) {
     throw "DOS $trappedExit"
 }
 
-$TARGET      = $args[0]
-$WORKSPACE   = $args[1]
+$TARGET            = $args[0]
+$WORKSPACE         = $args[1]
+$warnondeployerror = $args[2]
 
 # $myInvocation.MyCommand.Name not working when processing DOS
 $scriptName = "deploy.ps1"
@@ -16,8 +17,8 @@ cd $WORKSPACE
 write-host
 & .\deploy.bat $TARGET $ENVIRONMENT
 if(!$?){ 
-	if ( $LASTEXITCODE -eq 0 ) {
-		Write-host "[$scriptName] Warning flag set, but exit code is $LASTEXITCODE, proceeding normally." -ForegroundColor Yellow
+	if ( $warnondeployerror ) {
+		Write-host "[$scriptName] deploy.bat did not complete normally, however `$warnondeployerror set ($warnondeployerror) so proceeding normally." -ForegroundColor Yellow
 		& echo "[$scriptName] Reset call operator : ";$?
  	} else {
 		throwErrorlevel $LASTEXITCODE

@@ -21,6 +21,7 @@ $deployLand = getProp "deployLand"
 $remoteUser = getProp "remoteUser"
 $remoteCred = getProp "remoteCred"
 $decryptThb = getProp "decryptThb"
+$warnondeployerror = getProp "warnondeployerror"
 
 $userName = [Environment]::UserName
 
@@ -127,5 +128,5 @@ write-host
 write-host "[$scriptName] Transfer control to the remote host" -ForegroundColor Blue
 write-host 
 try {
-	Invoke-Command -session $session -File $WORK_DIR_DEFAULT\deploy.ps1 -Args $DEPLOY_TARGET,$deployLand\$SOLUTION-$BUILD
+	Invoke-Command -session $session -File $WORK_DIR_DEFAULT\deploy.ps1 -Args $DEPLOY_TARGET,$deployLand\$SOLUTION-$BUILD,$warnondeployerror
 } catch { taskException "REMOTEUSER_POWERSHELL_EXCEPTION" $_ }

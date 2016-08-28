@@ -16,71 +16,92 @@ Write-Host "[$scriptName] ---------- start ----------"
 Write-Host
 
 $tomcat_version = $args[0]
-if ( $args[0] ) {
+if ( $tomcat_version ) {
 	Write-Host "[$scriptName] tomcat_version        : $tomcat_version"
 } else {
-	Write-Host "[$scriptName] tomcat_version not passed!"; exit 105
+	$tomcat_version = '8.5.4'
+	Write-Host "[$scriptName] tomcat_version        : $tomcat_version (default)"
 }
 
-$sourceInstallDir      = 'c:\vagrant\provisioning'
-$destinationInstallDir = 'C:\app'
-$tomcatServiceName     = "Tomcat8"
-$tomcatHomeDir         = "$destinationInstallDir\apache-tomcat-$tomcat_version"
+$sourceInstallDir = $args[1]
+if ( $sourceInstallDir ) {
+	Write-Host "[$scriptName] sourceInstallDir      : $sourceInstallDir"
+} else {
+	$sourceInstallDir = 'c:\vagrant\.provision'
+	Write-Host "[$scriptName] sourceInstallDir      : $sourceInstallDir (default)"
+}
+
+$destinationInstallDir = $args[2]
+if ( $destinationInstallDir ) {
+	Write-Host "[$scriptName] destinationInstallDir : $destinationInstallDir"
+} else {
+	$destinationInstallDir = 'C:\opt'
+	Write-Host "[$scriptName] destinationInstallDir : $destinationInstallDir (default)"
+}
+
+# Cannot run interactive via remote PowerShell
+if ($env:interactive) {
+    Write-Host "[$scriptName] env:interactive : $env:interactive, run in current window"
+    $sessionControl = '-PassThru -Wait -NoNewWindow'
+} else {
+    $sessionControl = '-PassThru -Wait'
+}
+
+$tomcatServiceName = 'tomcat8'
+$tomcatHomeDir = "$destinationInstallDir\apache-${tomcatServiceName}-${tomcat_version}"
 
 # Create the installation directory for Tomcat
-try {
-	New-Item -path $tomcatHomeDir -type directory -force | Out-Null
-} catch {
-	Write-Host "Unexpected Error. Error details: $_.Exception.Message"
-	throw $_
-}		
-Write-Host "    Folder installation: $tomcatHomeDir"
-
-# Install Tomcat as a Windows Service
-$apacheTomcatInstallFileName="apache-tomcat-" + $tomcat_version + ".exe";
-Write-Host "    Installing Tomcat as Windows Service ..."
-try {
-	Start-Process "$sourceInstallDir\$apacheTomcatInstallFileName" -ArgumentList "/S /D=$tomcatHomeDir" -Wait
-	Start-Process "$tomcatHomeDir\bin\Tomcat8.exe" -ArgumentList "//US//$tomcatServiceName --Startup=Auto" -Wait
-} catch {
-	Write-Host "Unexpected Error. Error details: $_.Exception.Message"
-	throw $_
+if ( Test-Path $tomcatHomeDir ) {
+	Write-Host "[$scriptName] Destination folder ($tomcatHomeDir) exists, no action required"  -foregroundcolor Yellow
+} else {
+	try {
+		New-Item -path $tomcatHomeDir -type directory
+	} catch {
+		Write-Host "CREATE_DESTINATION_DIRECTORY_EXCEPTION"
+		echo $_.Exception|format-list -force
+		exit 1
+	}
 }		
 Write-Host
-Write-Host "    [System.Environment]::SetEnvironmentVariable(`"CATALINA_HOME`", `"$tomcatHomeDir`", `"Machine`")"
-[System.Environment]::SetEnvironmentVariable("CATALINA_HOME", "$tomcatHomeDir", "Machine")
+# Install Tomcat as a Windows Service
+$apacheTomcatInstallFileName="apache-tomcat-" + $tomcat_version + ".exe";
+if ( Test-Path $sourceInstallDir\$apacheTomcatInstallFileName ) {
+	Write-Host "[$scriptName] Installing Tomcat as Windows Service ..."
+	try {
+		executeExpression "`$process = Start-Process `'$sourceInstallDir\$apacheTomcatInstallFileName`' -ArgumentList `'/S /D=$tomcatHomeDir`' $sessionControl"
+		executeExpression "`$process = Start-Process `'$tomcatHomeDir\bin\Tomcat8.exe`' -ArgumentList `'//US//$tomcatServiceName --Startup=Auto`' $sessionControl"
+	} catch {
+		Write-Host "INSTALL_EXCEPTION"
+		echo $_.Exception|format-list -force
+		exit 2
+	}
+} else {
+	Write-Host "[$scriptName] Install file ($sourceInstallDir\$apacheTomcatInstallFileName) not found!" -foregroundcolor Red
+	exit 3
+}	
+			
+Write-Host
+executeExpression "[System.Environment]::SetEnvironmentVariable(`'CATALINA_HOME`', `'$tomcatHomeDir`', `'Machine`')"
 
+Write-Host
 $pathEnvVar=[System.Environment]::GetEnvironmentVariable("PATH","Machine")
-Write-Host "    [System.Environment]::SetEnvironmentVariable(`"PATH`", $pathEnvVar + `";$tomcatHomeDir\bin`", `"Machine`")"
-[System.Environment]::SetEnvironmentVariable("PATH", $pathEnvVar + ";$tomcatHomeDir\bin", "Machine")
+executeExpression "[System.Environment]::SetEnvironmentVariable(`'PATH`', `'$pathEnvVar`' + `';$tomcatHomeDir\bin`', `'Machine`')"
 
+Write-Host
 try {
- 	$service = Start-Service "$tomcatServiceName" -WarningAction SilentlyContinue -PassThru
+	Write-Host "[$scriptName] `$service = Start-Service `"$tomcatServiceName`" -PassThru"
+ 	$service = Start-Service "$tomcatServiceName" -PassThru
  	if ($service.status -ine 'Running') {
- 		Throw "Could not start service $tomcatServiceName"
+ 		Write-Host "[$scriptName] Could not start service $tomcatServiceName" -foregroundcolor Red
+		exit 4
  	} else {
-		Write-Host
-		Write-Host "    [RemotePowershell] $tomcatServiceName Service is $service.status"
+		Write-Host "[$scriptName] $tomcatServiceName Service status = $service.status"
  	}			
 } catch {
- 	Write-Error -Message "Unexpected Error. Error details: $_.Exception.Message"
- 	Exit 1
+	Write-Host "START_EXCEPTION"
+	echo $_.Exception|format-list -force
+	exit 5
 }		
-
-# Apply the available mocks
-$array = @(
-	"mockAccessControlSoap.war",
-	"mockAdministrationServiceSoap.war",
-	"mockTopicRegisterService-1.1SOAP11Binding.war",
-	"mockVehicleRecallSoap.war",
-	"mockVehicleSoap.war"
-)
-foreach ($element in $array) {
-	Copy-Item "C:\vagrant\provisioning\$element" "$tomcatHomeDir\webapps"
-}
-
-Write-Host "Open port for external access"
-netsh advfirewall firewall add rule name="Open Tomcat Port 8080" dir=in action=allow protocol=TCP localport=8080
 
 Write-Host
 Write-Host "[$scriptName] ---------- stop -----------"
