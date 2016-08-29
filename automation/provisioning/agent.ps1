@@ -11,34 +11,35 @@ function taskComplete { param ($taskName)
     write-host
 }
 
-$scriptName = $myInvocation.MyCommand.Name 
+$scriptName = 'agent.ps1'
 
-# Create an encrypted password file (outfile) for the current user and test against address (targethost)
+Write-Host
+Write-Host "[$scriptName] Create an encrypted password file (outfile) for the current user and test against address (targethost)"
+Write-Host
+Write-Host "[$scriptName] ---------- start ----------"
 $targetHost = $args[0]
-$userID = $args[1]
-$outputFile = $args[2]
-
-if ($outputFile) {
-    Write-Host "[$scriptName] Output File : $outputFile"
-} else {
-    $outputFile = ".\cred.txt"
-    Write-Host "[$scriptName] Output File not passed, default to $outputFile"
-}
-
 if ($targetHost) {
     Write-Host "[$scriptName] Target Host : $targetHost"
 } else {
-    $targetHost = "localhost"
-    Write-Host "[$scriptName] Target Host not passed, default to $targetHost"
+    $targetHost = $(hostname)
+    Write-Host "[$scriptName] Target Host not passed, default to local host ($targetHost)"
 }
 
+$userID = $args[1]
 if ($userID) {
     Write-Host "[$scriptName] Target User : $userID"
 } else {
-    $userID = whoami
+    $userID = $(whoami)
     Write-Host "[$scriptName] Target Host not passed, default to current user ($userID)"
 }
 
+$outputFile = $args[2]
+if ($outputFile) {
+    Write-Host "[$scriptName] Output File : $outputFile"
+} else {
+    $outputFile = "$(hostname)-${targetHost}.crypt"
+    Write-Host "[$scriptName] Output File not passed, default to $outputFile"
+}
 
 Write-Host
 Write-Host "[$scriptName] Pipe password into an encrypted file, enter password : " -NoNewline
@@ -57,4 +58,5 @@ try {
 	if(!$?){ ExitWithCode 1 }
 } catch { ExitWithCode 2 }
 
-write-host
+Write-Host
+Write-Host "[$scriptName] ---------- stop ----------"
