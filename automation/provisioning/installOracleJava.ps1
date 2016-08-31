@@ -22,7 +22,15 @@ if ( $java_version ) {
 	Write-Host "[$scriptName] java_version          : $java_version (default)"
 }
 
-$sourceInstallDir = $args[1]
+$architecture = $args[1]
+if ( $architecture ) {
+	Write-Host "[$scriptName] architecture          : $architecture (choices x64 or i586)"
+} else {
+	$architecture = 'x64'
+	Write-Host "[$scriptName] architecture          : $architecture (default, choices x64 or i586)"
+}
+
+$sourceInstallDir = $args[2]
 if ( $sourceInstallDir ) {
 	Write-Host "[$scriptName] sourceInstallDir      : $sourceInstallDir"
 } else {
@@ -30,7 +38,7 @@ if ( $sourceInstallDir ) {
 	Write-Host "[$scriptName] sourceInstallDir      : $sourceInstallDir (default)"
 }
 
-$destinationInstallDir = $args[2]
+$destinationInstallDir = $args[3]
 if ( $destinationInstallDir ) {
 	Write-Host "[$scriptName] destinationInstallDir : $destinationInstallDir"
 } else {
@@ -44,7 +52,7 @@ Write-Host
 $javaInstallDir = "$destinationInstallDir\Java"
 $jdkInstallDir = "$javaInstallDir\jdk$java_version"
 $jreInstallDir = "$javaInstallDir\jre$java_version"
-$jdkInstallFileName = "jdk-" + $java_version + "-windows-x64.exe"
+$jdkInstallFileName = "jdk-" + $java_version + "-windows-" + $architecture + ".exe"
 try {
 	New-Item -path $javaInstallDir -type directory -force | Out-Null
 } catch {
