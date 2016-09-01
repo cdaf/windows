@@ -42,7 +42,7 @@ $destinationInstallDir = $args[3]
 if ( $destinationInstallDir ) {
 	Write-Host "[$scriptName] destinationInstallDir : $destinationInstallDir"
 } else {
-	$destinationInstallDir = 'c:\Java'
+	$destinationInstallDir = 'c:\Oracle'
 	Write-Host "[$scriptName] destinationInstallDir : $destinationInstallDir (default)"
 }
 
@@ -60,8 +60,8 @@ try {
 	throw $_
 }
 
-Write-Host "  Installing the JDK ..."
-Write-Host "    Installer : $sourceInstallDir\$jdkInstallFileName"
+Write-Host "[$scriptName] Installing the JDK ..."
+Write-Host "[$scriptName]   Installer : $sourceInstallDir\$jdkInstallFileName"
 
 # Arguments which switch the JDK install to a silent process with no reboots, and sets up the log directory
 $arguments =@("/s /INSTALLDIRPUBJRE=`"$jreInstallDir`" INSTALL_SILENT=Enable REBOOT=Disable INSTALLDIR=`"$jdkInstallDir`"")
@@ -73,25 +73,29 @@ try {
 	$proc = Start-Process -FilePath "$sourceInstallDir\$jdkInstallFileName" -ArgumentList $arguments  -Wait -PassThru
 
 	if($proc.ExitCode -ne 0) {
-		Write-Host "Failure : Start-Process -FilePath `"$sourceInstallDir\$jdkInstallFileName`" -ArgumentList $arguments  -Wait -PassThru" -ForegroundColor Red
+		Write-Host "[$scriptName] Failure : Start-Process -FilePath `"$sourceInstallDir\$jdkInstallFileName`" -ArgumentList $arguments  -Wait -PassThru" -ForegroundColor Red
 		throw JDK_INSTALL_ERROR 
 	}
 } catch {
-	Write-Host "Exception : Start-Process -FilePath `"$sourceInstallDir\$jdkInstallFileName`" -ArgumentList $arguments  -Wait -PassThru" -ForegroundColor Red
+	Write-Host "[$scriptName] Exception : Start-Process -FilePath `"$sourceInstallDir\$jdkInstallFileName`" -ArgumentList $arguments  -Wait -PassThru" -ForegroundColor Red
 	throw $_
 }
-Write-Host "  Installing the JDK complete."
+Write-Host "[$scriptName] Installing the JDK complete."
 Write-Host
 
 # Configure environment variables
-Write-Host "  Configuring environment variables ..."
+Write-Host "[$scriptName] Configuring environment variables ..."
 Write-Host
 [System.Environment]::SetEnvironmentVariable("JAVA_HOME", "$jdkInstallDir", "Machine")
 $pathEnvVar=[System.Environment]::GetEnvironmentVariable("PATH","Machine")
 [System.Environment]::SetEnvironmentVariable("PATH", $pathEnvVar + ";$jdkInstallDir\bin", "Machine")
 Write-Host
-Write-Host "  Configuring environment complete."
+Write-Host "[$scriptName] Configuring environment variables complete, reload path."
 Write-Host
+
+$env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")
+
+Write-Host "[$scriptName]   `$env:Path = $env:Path"
 
 Write-Host
 Write-Host "[$scriptName] ---------- stop -----------"

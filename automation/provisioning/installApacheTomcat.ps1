@@ -12,6 +12,8 @@ function executeExpression ($expression) {
 $scriptName = 'installApacheTomcat.ps1'
 
 Write-Host
+Write-Host "[$scriptName] Requires 32-bit/64-bit Windows Service Installer"
+Write-Host
 Write-Host "[$scriptName] ---------- start ----------"
 Write-Host
 
@@ -35,7 +37,7 @@ $destinationInstallDir = $args[2]
 if ( $destinationInstallDir ) {
 	Write-Host "[$scriptName] destinationInstallDir : $destinationInstallDir"
 } else {
-	$destinationInstallDir = 'C:\opt'
+	$destinationInstallDir = 'C:\apache'
 	Write-Host "[$scriptName] destinationInstallDir : $destinationInstallDir (default)"
 }
 

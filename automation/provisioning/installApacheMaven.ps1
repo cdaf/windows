@@ -36,7 +36,7 @@ $destinationInstallDir = $args[2]
 if ( $destinationInstallDir ) {
 	Write-Host "[$scriptName] destinationInstallDir : $destinationInstallDir"
 } else {
-	$destinationInstallDir = 'c:\Maven'
+	$destinationInstallDir = 'c:\apache'
 	Write-Host "[$scriptName] destinationInstallDir : $destinationInstallDir (default)"
 }
 
