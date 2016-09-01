@@ -15,6 +15,7 @@ Vagrant.configure(2) do |allhosts|
     target.vm.communicator = 'winrm'
     # Oracle VirtualBox, relaxed configuration for Desktop environment
     target.vm.provision 'shell', path: './automation/provisioning/mkdir.ps1', args: 'C:\deploy'
+    target.vm.provision 'shell', path: './automation/remote/capabilities.ps1'
     target.vm.provider 'virtualbox' do |virtualbox, override|
       virtualbox.gui = false
       override.vm.network 'private_network', ip: '172.16.17.103'
@@ -35,7 +36,7 @@ Vagrant.configure(2) do |allhosts|
   allhosts.vm.define 'buildserver' do |buildserver|
     buildserver.vm.box = 'mwrock/Windows2012R2'
     buildserver.vm.communicator = 'winrm'
-    buildserver.vm.provision 'shell', path: './automation/provisioning/Capabilities.ps1'
+    buildserver.vm.provision 'shell', path: './automation/remote/capabilities.ps1'
     # Oracle VirtualBox, relaxed configuration for Desktop environment
     buildserver.vm.provider 'virtualbox' do |virtualbox, override|
       virtualbox.gui = false
