@@ -14,9 +14,9 @@ set REMOTE_WORK_DIR=%6
 set ACTION=%7
 
 echo.
-echo [%~nx0] ==============================================
-echo [%~nx0] Continuous Delivery CD Emulation Starting
-echo [%~nx0] ==============================================
+echo [%~nx0] ===============================
+echo [%~nx0] Continuous Delivery CD Starting
+echo [%~nx0] ===============================
 echo [%~nx0]   SOLUTION        : %SOLUTION%
 echo [%~nx0]   ENVIRONMENT     : %ENVIRONMENT%
 echo [%~nx0]   BUILD           : %BUILD%
