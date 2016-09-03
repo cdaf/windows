@@ -35,7 +35,7 @@ $destinationInstallDir = $args[2]
 if ( $destinationInstallDir ) {
 	Write-Host "[$scriptName] destinationInstallDir : $destinationInstallDir"
 } else {
-	$destinationInstallDir = 'c:\opt'
+	$destinationInstallDir = 'c:\mulesoft'
 	Write-Host "[$scriptName] destinationInstallDir : $destinationInstallDir (default)"
 }
 
@@ -45,6 +45,28 @@ if ( $sourceInstallDir) {
 } else {
 	$sourceInstallDir = 'c:\vagrant\.provision'
 	Write-Host "[$scriptName] sourceInstallDir      : $sourceInstallDir (default)"
+}
+
+$MMC_GROUP = $args[4]
+if ( $MMC_GROUP ) {
+	Write-Host "[$scriptName] MMC_GROUP             : $MMC_GROUP"
+} else {
+	Write-Host "[$scriptName] MMC_GROUP not passed, MMC install will not be attempted, all subsequent arguments will be ignored."
+}
+
+$mmcPassword = $args[5]
+if ( $mmcPassword ) {
+	Write-Host "[$scriptName] mmcPassword           : ******************** "
+} else {
+	Write-Host "[$scriptName] mmcPassword           : not supplied"
+}
+
+$tomcatHomeDir = $args[6]
+if ( $tomcatHomeDir ) {
+	Write-Host "[$scriptName] tomcatHomeDir         : $tomcatHomeDir"
+} else {
+	$tomcatHomeDir = 'C:\apache\apache-tomcat8-8.5.4'
+	Write-Host "[$scriptName] tomcatHomeDir         : $tomcatHomeDir (default)"
 }
 
 $muleDistribution = 'mule-enterprise-standalone' # this is mule-ee-distribution-standalone in gzip format
@@ -192,6 +214,133 @@ if ($InstallLicense -eq "yes") {
 	}	
 	Write-Host "[$scriptName] Install Mule License Verifier scheduller complete."
 	Write-Host			
+}
+
+if ( $MMC_GROUP ) {
+
+	Write-Host
+	Write-Host "[$scriptName] Load the MMC software"
+	executeExpression "Copy-Item `'$sourceInstallDir\mmc.war`' `'$tomcatHomeDir\webapps`'"
+	
+	Write-Host
+	Write-Host "[$scriptName] Pause 10 seconds for MMC to load"
+	sleep 10
+	
+	Write-Host
+	
+	$file = "$tomcatHomeDir\bin\autorun.groovy"
+	$EncodedText = 'cHJpbnRsbigiTU1DIFVwZGF0ZVBhc3N3b3JkIHNjcmlwdCAtPiBTdGFydCAuLi4gIik7DQoNCnRyeSB7DQoJZGVmIGFjbSA9IGFwcGxpY2F0aW9uQ29udGV4dC5nZXRCZWFuKCJhY2Nlc3NDb250cm9sTWFuYWdlciIpOw0KCWRlZiB1bSA9IGFwcGxpY2F0aW9uQ29udGV4dC5nZXRCZWFuKCJ1c2VyTWFuYWdlciIpOw0KDQoJdW0uc2V0UGFzc3dvcmQoImFkbWluIiwgImFkbWluIiwgIkBNTUNfUEFTU1dPUkRAIik7DQoJcHJpbnRsbigiTU1DIFVwZGF0ZVBhc3N3b3JkIHNjcmlwdCAtPiBBZG1pbiBQYXNzd29yZCB1cGRhdGVkIHN1Y2Nlc3NmdWxseSIpOw0KfSBjYXRjaChFeGNlcHRpb24gZSkgew0KCXByaW50bG4oIk1NQyBVcGRhdGVQYXNzd29yZCBzY3JpcHQgLT4gR290IGV4Y2VwdGlvbjogIiArIGU/LmNhdXNlPy5jYXVzZSk7DQoJcHJpbnRsbigiTU1DIFVwZGF0ZVBhc3N3b3JkIHNjcmlwdCAtPiBGQUlMVVJFISIpOw0KCXJldHVybiAxOw0KfQ0KDQpwcmludGxuKCJNTUMgVXBkYXRlUGFzc3dvcmQgc2NyaXB0IC0+IFNVQ0NFU1MhIik7DQpyZXR1cm4gMDs='
+	$ByteArray = [System.Convert]::FromBase64String($EncodedText)
+	[System.IO.File]::WriteAllBytes("$file", $ByteArray)
+
+	(Get-Content $file | ForEach-Object { $_ -replace "@MMC_PASSWORD@", "$mmcPassword" } ) | Set-Content $file
+
+	$file = "$tomcatHomeDir\conf\tomcat-users.xml"
+	$EncodedText = 'PD94bWwgdmVyc2lvbj0nMS4wJyBlbmNvZGluZz0nY3AxMjUyJz8+DQo8IS0tDQogIExpY2Vuc2VkIHRvIHRoZSBBcGFjaGUgU29mdHdhcmUgRm91bmRhdGlvbiAoQVNGKSB1bmRlciBvbmUgb3IgbW9yZQ0KICBjb250cmlidXRvciBsaWNlbnNlIGFncmVlbWVudHMuICBTZWUgdGhlIE5PVElDRSBmaWxlIGRpc3RyaWJ1dGVkIHdpdGgNCiAgdGhpcyB3b3JrIGZvciBhZGRpdGlvbmFsIGluZm9ybWF0aW9uIHJlZ2FyZGluZyBjb3B5cmlnaHQgb3duZXJzaGlwLg0KICBUaGUgQVNGIGxpY2Vuc2VzIHRoaXMgZmlsZSB0byBZb3UgdW5kZXIgdGhlIEFwYWNoZSBMaWNlbnNlLCBWZXJzaW9uIDIuMA0KICAodGhlICJMaWNlbnNlIik7IHlvdSBtYXkgbm90IHVzZSB0aGlzIGZpbGUgZXhjZXB0IGluIGNvbXBsaWFuY2Ugd2l0aA0KICB0aGUgTGljZW5zZS4gIFlvdSBtYXkgb2J0YWluIGEgY29weSBvZiB0aGUgTGljZW5zZSBhdA0KDQogICAgICBodHRwOi8vd3d3LmFwYWNoZS5vcmcvbGljZW5zZXMvTElDRU5TRS0yLjANCg0KICBVbmxlc3MgcmVxdWlyZWQgYnkgYXBwbGljYWJsZSBsYXcgb3IgYWdyZWVkIHRvIGluIHdyaXRpbmcsIHNvZnR3YXJlDQogIGRpc3RyaWJ1dGVkIHVuZGVyIHRoZSBMaWNlbnNlIGlzIGRpc3RyaWJ1dGVkIG9uIGFuICJBUyBJUyIgQkFTSVMsDQogIFdJVEhPVVQgV0FSUkFOVElFUyBPUiBDT05ESVRJT05TIE9GIEFOWSBLSU5ELCBlaXRoZXIgZXhwcmVzcyBvciBpbXBsaWVkLg0KICBTZWUgdGhlIExpY2Vuc2UgZm9yIHRoZSBzcGVjaWZpYyBsYW5ndWFnZSBnb3Zlcm5pbmcgcGVybWlzc2lvbnMgYW5kDQogIGxpbWl0YXRpb25zIHVuZGVyIHRoZSBMaWNlbnNlLg0KLS0+DQo8dG9tY2F0LXVzZXJzIHhtbG5zPSJodHRwOi8vdG9tY2F0LmFwYWNoZS5vcmcveG1sIg0KICAgICAgICAgICAgICB4bWxuczp4c2k9Imh0dHA6Ly93d3cudzMub3JnLzIwMDEvWE1MU2NoZW1hLWluc3RhbmNlIg0KICAgICAgICAgICAgICB4c2k6c2NoZW1hTG9jYXRpb249Imh0dHA6Ly90b21jYXQuYXBhY2hlLm9yZy94bWwgdG9tY2F0LXVzZXJzLnhzZCINCiAgICAgICAgICAgICAgdmVyc2lvbj0iMS4wIj4NCjx1c2VyIHVzZXJuYW1lPSJhZG1pbiIgcGFzc3dvcmQ9IkBNTUNfUEFTU1dPUkRAIiByb2xlcz0ibWFuYWdlci1ndWkiIC8+DQo8IS0tDQogIE5PVEU6ICBCeSBkZWZhdWx0LCBubyB1c2VyIGlzIGluY2x1ZGVkIGluIHRoZSAibWFuYWdlci1ndWkiIHJvbGUgcmVxdWlyZWQNCiAgdG8gb3BlcmF0ZSB0aGUgIi9tYW5hZ2VyL2h0bWwiIHdlYiBhcHBsaWNhdGlvbi4gIElmIHlvdSB3aXNoIHRvIHVzZSB0aGlzIGFwcCwNCiAgeW91IG11c3QgZGVmaW5lIHN1Y2ggYSB1c2VyIC0gdGhlIHVzZXJuYW1lIGFuZCBwYXNzd29yZCBhcmUgYXJiaXRyYXJ5Lg0KLS0+DQo8IS0tDQogIE5PVEU6ICBUaGUgc2FtcGxlIHVzZXIgYW5kIHJvbGUgZW50cmllcyBiZWxvdyBhcmUgd3JhcHBlZCBpbiBhIGNvbW1lbnQNCiAgYW5kIHRodXMgYXJlIGlnbm9yZWQgd2hlbiByZWFkaW5nIHRoaXMgZmlsZS4gRG8gbm90IGZvcmdldCB0byByZW1vdmUNCiAgPCEuLiAuLj4gdGhhdCBzdXJyb3VuZHMgdGhlbS4NCi0tPg0KPCEtLQ0KICA8cm9sZSByb2xlbmFtZT0idG9tY2F0Ii8+DQogIDxyb2xlIHJvbGVuYW1lPSJyb2xlMSIvPg0KICA8dXNlciB1c2VybmFtZT0idG9tY2F0IiBwYXNzd29yZD0idG9tY2F0IiByb2xlcz0idG9tY2F0Ii8+DQogIDx1c2VyIHVzZXJuYW1lPSJib3RoIiBwYXNzd29yZD0idG9tY2F0IiByb2xlcz0idG9tY2F0LHJvbGUxIi8+DQogIDx1c2VyIHVzZXJuYW1lPSJyb2xlMSIgcGFzc3dvcmQ9InRvbWNhdCIgcm9sZXM9InJvbGUxIi8+DQotLT4NCjwvdG9tY2F0LXVzZXJzPg0K'
+	$ByteArray = [System.Convert]::FromBase64String($EncodedText)
+	[System.IO.File]::WriteAllBytes("$file", $ByteArray)
+
+	(Get-Content $file | ForEach-Object { $_ -replace "@MMC_PASSWORD@", "$mmcPassword" } ) | Set-Content $file
+	
+	$EncodedText = 'c2V0IEpBVkFfT1BUUz0tWG14MTAyNG0='
+	$ByteArray = [System.Convert]::FromBase64String($EncodedText)
+	[System.IO.File]::WriteAllBytes("$tomcatHomeDir\bin\setEnv.bat", $ByteArray)
+
+	function List-ServerGroups {
+		param (	
+		    [Parameter(Mandatory=$false)]
+			[String]$url='http://localhost:8080/mmc'
+		)	
+	
+	    $result = [PSCustomObject]@{
+	                total = 0
+	                data = @()
+	            };
+				
+		try {
+			$result = Invoke-RestMethod -Uri "$url/api/serverGroups" -Headers $Headers;				
+		} catch {		
+			Write-Host "ERROR" $_ -ForegroundColor red
+			Return $result;
+		}	
+		
+		return $result;
+	}
+	
+	function muleRegisterServer {
+		param (	
+		    [Parameter(Mandatory=$false)]
+			[String]$url='http://localhost:8080/mmc',
+			
+		    [Parameter(Mandatory=$true)]
+			[String]$name,
+	
+		    [Parameter(Mandatory=$false)]
+			[String]$agentUrl='http://localhost:7777/mmc-support',
+	
+		    [Parameter(Mandatory=$true)]
+			[String]$groupId
+		)	
+	
+		$request= @{
+		    name = $name.ToUpper();
+		    agentUrl = $agentUrl;
+		    groupIds = @($groupId)
+		};
+		$jsonRequest = ConvertTo-Json -InputObject $request;
+		
+		$result=$null;
+	
+		try {
+			## Write-Host "[DEBUG][muleRegisterServer] `$result = Invoke-RestMethod -Uri `"$url/api/servers`" -Body $jsonRequest -Headers `$Headers -ContentType `"application/json`" -Method POST;" -ForegroundColor Blue
+			$result = Invoke-RestMethod -Uri "$url/api/servers" -Body $jsonRequest -Headers $Headers -ContentType "application/json" -Method POST;		
+		} catch {		
+			Write-Host "Registration failed, wait 30 seconds and then retry ..." $_ -ForegroundColor Yellow
+			sleep 30
+			try {
+				## Write-Host "[DEBUG][muleRegisterServer] `$result = Invoke-RestMethod -Uri `"$url/api/servers`" -Body $jsonRequest -Headers `$Headers -ContentType `"application/json`" -Method POST;" -ForegroundColor Blue
+				$result = Invoke-RestMethod -Uri "$url/api/servers" -Body $jsonRequest -Headers $Headers -ContentType "application/json" -Method POST;		
+			} catch {		
+				Write-Host "Registration failed" -ForegroundColor red
+				throw $_ 
+			}
+		}	
+		
+		return $result	
+	}
+	
+	# Register the server
+	# At this stage, the Mule server is recognized by MMC, but it is unregistered
+	# so register the server
+	$user = 'admin'
+	$pass = 'admin'
+	$pair = "$($user):$($pass)"
+	$encodedCreds = [System.Convert]::ToBase64String([System.Text.Encoding]::ASCII.GetBytes($pair))
+	$basicAuthValue = "Basic $encodedCreds"
+	$Headers = @{Authorization = $basicAuthValue}
+	$serverName=($env:computername).ToUpper();
+	Write-Host
+	Write-Host "[$scriptName] Register server name $serverName in MMC for environment $MMC_GROUP >>"
+	Write-Host
+	$foundGroup = $false;
+	(List-ServerGroups).data | ForEach-Object {
+		## Write-Host "[DEBUG] `$_ = $_" -ForegroundColor Blue
+	    if ($_.name -ieq $MMC_GROUP) {
+			try {
+				Write-Host "[$scriptName] muleRegisterServer -name $serverName -groupId $_.id ($MMC_GROUP)"
+	            muleRegisterServer -name $serverName -groupId $_.id;      
+			} catch {
+				Write-Host "[$scriptName] muleRegisterServer threw exception!" -ForegroundColor Red
+				throw $_
+			}	
+	        $foundGroup=$true;
+	    }
+	}
+	
+	if(-not $foundGroup) {
+	    throw "[$scriptName] Couldn't find a server group for the environment"
+	}
+	Write-Host "MMC Install and Configuration Complete"
 }
 
 Write-Host
