@@ -53,7 +53,7 @@ switch ($Installtype) {
 		    Write-Host "[$scriptName] $lmPath exists"
 			Write-Host
 		} else {
-			executeExpression "New-Item -Path `'HKLM:\SOFTWARE\Policies\Microsoft\Windows`' -Name `'CredentialsDelegation`' -Value `'Default Value`'"
+			executeExpression "New-Item -Path `'HKLM:\SOFTWARE\Policies\Microsoft\Windows`' -Name `'CredentialsDelegation`' -Value `'Default Value`' -Force"
 		}
 		
 		if ( testProperty $lmPath 'AllowFreshCredentialsWhenNTLMOnly') {
