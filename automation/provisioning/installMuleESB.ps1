@@ -334,7 +334,7 @@ if ( $MMC_GROUP ) {
 	Write-Host
 	Write-Host -NoNewline "Verify MMC is ready for requests : "
 	$wait = 10
-	$retryMax = 10
+	$retryMax = 30 # very slow when provisioned on Azure
 	$retryCount = 0
 	$uri='http://localhost:8080/mmc'
 	while ( $retryCount -lt $retryMax ) {
