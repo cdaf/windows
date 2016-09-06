@@ -25,7 +25,7 @@ if ( Test-Path $packageFileName ) {
 } else {
 
 	Write-Host
-	Write-Host "[$scriptName (remote)] Not a re-run, purge langing directory, then list disk capacity."
+	Write-Host "[$scriptName (remote)] Not a re-run, purge landing directory ($(pwd))."
 	Remove-Item * -Recurse -Force
 
 }
