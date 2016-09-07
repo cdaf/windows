@@ -143,7 +143,6 @@ if ( $ACTION -ne "clean" ) {
 	write-host '    Cannot use %BUILD_SOURCEVERSION% with external Git'
     write-host "    Command Filename  : $ciProcess"
     write-host "    Command arguments : $solutionName $environmentBuild %BUILD_BUILDNUMBER% %BUILD_SOURCEVERSION% $AUTOMATIONROOT $workDirLocal $workDirRemote $ACTION"
-	write-host "    Working folder    : repositoryname"
     write-host
 	write-host "[$scriptName] -------------------------------------------------------"
 }
