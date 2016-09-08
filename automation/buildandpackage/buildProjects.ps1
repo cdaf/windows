@@ -103,6 +103,27 @@ itemRemove .\*.txt
 itemRemove .\*.zip
 itemRemove .\*.nupkg
 
+if (Test-Path build.tsk) {
+	Write-Host 
+	Write-Host "[$scriptName] build.tsk found in solution root, executing in $(pwd)" 
+	Write-Host 
+    # Because PowerShell variables are global, set the $WORKSPACE before invoking execution
+    $WORKSPACE=$(pwd)
+    & .\$automationHelper\execute.ps1 $SOLUTION $BUILDNUMBER $ENVIRONMENT "build.tsk" $ACTION
+    if(!$?){ exitWithCode(".\$automationHelper\execute.ps1 $SOLUTION $BUILDNUMBER $ENVIRONMENT `"build.tsk`" $ACTION") }
+
+} 
+
+# If there is a custom build script in the solution root, execute this.
+if (Test-Path build.ps1) {
+	Write-Host 
+	Write-Host "[$scriptName] build.ps1 found in solution root, executing in $(pwd)" 
+	Write-Host 
+    # Legacy build method, note: a .BAT file may exist in the project folder for Dev testing, by is not used by the builder
+    & .\build.ps1 $SOLUTION $BUILDNUMBER $REVISION $PROJECT $ENVIRONMENT $ACTION
+    if(!$?){ exitWithCode("& .\build.ps1 $SOLUTION $BUILDNUMBER $REVISION $PROJECT $ENVIRONMENT $ACTION") }
+}
+
 # Set the projects to process (default is alphabetic)
 if (-not(Test-Path $projectList)) {
 	foreach ($item in (Get-ChildItem -Path ".")) {
@@ -148,7 +169,7 @@ if (-not(Test-Path projectsToBuild.txt)) {
             # Task driver support added in release 0.6.1
             $WORKSPACE=$(pwd)
 		    & ..\$automationHelper\execute.ps1 $SOLUTION $BUILDNUMBER $ENVIRONMENT "build.tsk" $ACTION
-		    if(!$?){ exitWithCode(".,\$automationHelper\execute.ps1 $SOLUTION $BUILDNUMBER $ENVIRONMENT `"build.tsk`" $ACTION") }
+		    if(!$?){ exitWithCode("..\$automationHelper\execute.ps1 $SOLUTION $BUILDNUMBER $ENVIRONMENT `"build.tsk`" $ACTION") }
 
         } else {
             # Legacy build method, note: a .BAT file may exist in the project folder for Dev testing, by is not used by the builder
