@@ -156,6 +156,11 @@ if ( $ACTION -ne "clean" ) {
 	write-host
 	write-host 'Configure artefact retention patterns to retain package and local tasks'
 	write-host
+    write-host 'For Go ...'
+    write-host '  Source        | Destination | Type'
+	write-host '  *.gz          | package     | Build Artifact'
+    write-host '  TasksLocal/** |             | Build Artifact'
+	write-host
 	write-host 'For Bamboo ...'
 	write-host '  Name    : TasksLocal'
 	write-host '  Pattern : TasksLocal/**'
