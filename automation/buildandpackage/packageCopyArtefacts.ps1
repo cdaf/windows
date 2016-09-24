@@ -1,3 +1,14 @@
+# Common expression logging and error handling function, copied, not referenced to ensure atomic process
+function executeExpression ($expression) {
+	$error.clear()
+	try {
+		$result = Invoke-Expression $expression
+	    if(!$?) { Write-Host "[$scriptName] `$? = $?"; exit 1 }
+	} catch { echo $_.Exception|format-list -force; exit 2 }
+    if ( $error[0] ) { Write-Host "[$scriptName] `$error[0] = $error"; exit 3 }
+    return $result
+}
+
 function taskFailure ($taskName) {
     write-host
     write-host "[$scriptName] Failure executing :" -ForegroundColor Red
@@ -6,78 +17,49 @@ function taskFailure ($taskName) {
     throw "$scriptName HALT"
 }
 
-# Copy the item, if recursive, treat from as a direcotry and process the contents. If flat, then copy the contents to the root of the working directory
-function copyOpt ($manifestFile, $from, $recurse, $flat) {
+# Copy the item, if recursive, treat from as a direcotry and process the contents.
+# If flat, then copy the contents to the root of the working directory
+function copyOpt ($manifestFile, $from, $first, $second) {
 
-	if ($recurse) {
-	
-		foreach ($filename in (Get-ChildItem -Path "$from" -Recurse -Name )) {
-			if ($flat) {
-				Write-Host "[$scriptName]   $from\$filename --> $WORK_DIR_DEFAULT" 
-				New-Item -ItemType File -Path $WORK_DIR_DEFAULT\$filename -Force > $null
-				Copy-Item $from\$filename $WORK_DIR_DEFAULT -Force
-			} else {
-				Write-Host "[$scriptName]   $from\$filename --> $WORK_DIR_DEFAULT\$from" 
-				New-Item -ItemType File -Path $WORK_DIR_DEFAULT\$from\$filename -Force > $null
-				Copy-Item $from\$filename $WORK_DIR_DEFAULT\$from -Force
+	if ($first) {
+		$arrRecurse = "-recurse", "-r", "--recursive"
+		if ($arrRecurse -contains $first.ToUpper()) { $recurse = '-Recurse' }
+		if ($first.ToUpper() -eq '-flat') {	$flat = '-Flat' }
+	}
+
+	if ($second) {
+		$arrRecurse = "-recurse", "-r", "--recursive"
+		if ($arrRecurse -contains $second.ToUpper()) { $recurse = '-Recurse' }
+		if ($second.ToUpper() -eq '-flat') { $flat = '-Flat' }
+	}
+
+	$nodes = executeExpression "Get-ChildItem -Path `"$from`" $recurse"
+	foreach ( $node in $nodes ) {
+		if  (Test-Path $node -pathType 'leaf' ) {
+			$sourceRelative = $(Resolve-Path -Relative $node.FullName)
+			if ( $sourceRelative.StartsWith(".\") ) {
+				$sourceRelative = $sourceRelative.Substring(2)
 			}
-
-			if(!$?){ taskFailure ("Copy-Item $from\$filename $WORK_DIR_DEFAULT\$from -Force") }
-
-			if (-not (Test-Path $WORK_DIR_DEFAULT\$from\$filename -pathType container)) {
-				Set-ItemProperty $WORK_DIR_DEFAULT\$from\$filename -name IsReadOnly -value $false
+			
+			if ( $flat ) {
+				$flatTarget = "$WORK_DIR_DEFAULT\$($node.name)"
+				Write-Host "[$scriptName]   $sourceRelative --> $flatTarget"
+				New-Item -ItemType File -Path $flatTarget -Force > $null 
+				Copy-Item $sourceRelative $flatTarget -Force
+				if(!$?){ taskFailure ("Copy-Item $sourceRelative $flatTarget -Force") }
+				Set-ItemProperty $flatTarget -name IsReadOnly -value $false
+				if(!$?){ taskFailure ("Set-ItemProperty $flatTarget -name IsReadOnly -value $false") }
+			} else {
+				Write-Host "[$scriptName]   $sourceRelative --> $WORK_DIR_DEFAULT\$sourceRelative"
+				New-Item -ItemType File -Path $WORK_DIR_DEFAULT\$sourceRelative -Force > $null # Creates file and directory path
+				Copy-Item $sourceRelative $WORK_DIR_DEFAULT\$sourceRelative -Force
+				if(!$?){ taskFailure ("Copy-Item $sourceRelative $WORK_DIR_DEFAULT\$sourceRelative -Force") }
+				Set-ItemProperty $WORK_DIR_DEFAULT\$sourceRelative -name IsReadOnly -value $false
 				if(!$?){ taskFailure ("Set-ItemProperty $itemPath -name IsReadOnly -value $false") }
 			}
-			Add-Content $manifestFile "$WORK_DIR_DEFAULT\$from\$filename"
-
-		}
-	
-	} else {
-
-		# If a directory has been passed, then perform a directory copy (non recursive)
-		if (Test-Path $from -PathType "Container") {
-	
-			foreach ($filename in (Get-ChildItem -Path "$from" -Name )) {
-				if ($flat) {
-					Write-Host "[$scriptName]   $from\$filename --> $WORK_DIR_DEFAULT" 
-					New-Item -ItemType File -Path $WORK_DIR_DEFAULT\$filename -Force > $null
-					Copy-Item $from\$filename $WORK_DIR_DEFAULT -Force
-				} else {
-					Write-Host "[$scriptName]   $from\$filename --> $WORK_DIR_DEFAULT\$from" 
-					New-Item -ItemType File -Path $WORK_DIR_DEFAULT\$from\$filename -Force > $null
-					Copy-Item $from\$filename $WORK_DIR_DEFAULT\$from -Force
-				}
-	
-				if(!$?){ taskFailure ("Copy-Item $from\$filename $WORK_DIR_DEFAULT\$from -Force") }
-	
-				if (-not (Test-Path $WORK_DIR_DEFAULT\$from\$filename -pathType container)) {
-					Set-ItemProperty $WORK_DIR_DEFAULT\$from\$filename -name IsReadOnly -value $false
-					if(!$?){ taskFailure ("Set-ItemProperty $itemPath -name IsReadOnly -value $false") }
-				}
-				Add-Content $manifestFile "$WORK_DIR_DEFAULT\$from\$filename"
-			}
-			
-		} else {	# FileCopy
-
-			# If a wildcard is supplied, explicitely list the files are they are copied
-			foreach ($filename in (Get-ChildItem -Path "$from" -Name )) {
-	
-				Write-Host "[$scriptName]   $filename --> $WORK_DIR_DEFAULT" 
-				Copy-Item $from $WORK_DIR_DEFAULT
-				if(!$?){ taskFailure ("Copy-Item $from $WORK_DIR_DEFAULT") }
-				Add-Content $manifestFile "$WORK_DIR_DEFAULT\$from"
-				$found = $true
-				
-			}
-			
-			if (! ($found)) {
-				Write-Host "[$scriptName]   File copy failed, $from not found! Direcotry listing for diagnostics..."
-				dir
-				taskFailure "FileCopy"
-			}
+			Add-Content $manifestFile "$WORK_DIR_DEFAULT\$sourceRelative"
 		}
 	}
-	
 }
 
 $DRIVER = $args[0]
