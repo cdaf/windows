@@ -207,7 +207,7 @@ if ( $ACTION -eq "clean" ) {
 	write-host "    Command arguments : `" + $solutionName + $environmentDelivery + `" + BuildDetail.BuildNumber + `" $revision + $workDirLocal + $workDirRemote`""
 	write-host
 	write-host '  For Team Release ...'
-	write-host '  Check the default queue for Environment definition.'
+	write-host '  Verify the queue for each Environment definition, and ensure Environment names do not contain spaces.'
 	write-host '  Run an empty release initially to load the workspace, which can then be navigated to for following configuration.'
 	write-host "    Command Filename  : `$(System.DefaultWorkingDirectory)/$solutionName/drop/$workDirLocal/$cdInstruction"
 	write-host "    Command arguments : $solutionName %RELEASE_ENVIRONMENTNAME% %BUILD_BUILDNUMBER% %RELEASE_RELEASENAME% $workDirLocal $workDirRemote"
