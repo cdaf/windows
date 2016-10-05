@@ -203,17 +203,17 @@ Foreach ($line in get-content $TASK_LIST) {
 	        if ($expression.length -gt 6) {
 
 				# Check for cross platform key words, first 6 characters, by convention uppercase but either supported
-				$feature=$expression.substring(0,6).ToUpper()
+				$feature=$expression.substring(0,7).ToUpper()
 
 				# Exit (normally) if argument set
-	            if ( $feature -eq 'EXITIF' ) {
+	            if ( $feature -eq 'EXITIF ' ) {
 		            $exitVar = $expression.Substring(7)
 		            Write-Host "$expression ==> if ( $exitVar ) then exit" -NoNewline
 		            $expression = "if ( $exitVar ) { Write-Host `", controlled exit due to `$exitVar = $exitVar`"; exit }"
 	            }
 					
 				# Load Properties from file as variables
-	            if ( $feature -eq 'PROPLD' ) {
+	            if ( $feature -eq 'PROPLD ' ) {
 		            $propFile = $ExecutionContext.InvokeCommand.ExpandString($expression.Substring(7))
 					$transform = ".\Transform.ps1"
 	
@@ -238,25 +238,25 @@ Foreach ($line in get-content $TASK_LIST) {
 	            }
 
 				# Set a variable, PowerShell format
-	            if ( $feature -eq 'ASSIGN' ) {
+	            if ( $feature -eq 'ASSIGN ' ) {
 		            Write-Host "$expression ==> " -NoNewline
 		            $expression = $expression.Substring(7)
 	            }
 
 				# Create Directory (verbose)
-	            if ( $feature -eq 'MAKDIR' ) {
+	            if ( $feature -eq 'MAKDIR ' ) {
 		            Write-Host "$expression ==> " -NoNewline
 		            $expression = "makeContainer " + $expression.Substring(7)
 	            }
 	
 				# Delete (verbose)
-	            if ( $feature -eq 'REMOVE' ) {
+	            if ( $feature -eq 'REMOVE ' ) {
 		            Write-Host "$expression ==> " -NoNewline
 		            $expression = "itemRemove " + $expression.Substring(7)
 	            }
 
 				# Copy (verbose)
-	            if ( $feature -eq 'VECOPY' ) {
+	            if ( $feature -eq 'VECOPY ' ) {
 		            Write-Host "$expression ==> " -NoNewline
 		            $expression = "copyRecurse " + $expression.Substring(7)
 	            }
@@ -264,14 +264,14 @@ Foreach ($line in get-content $TASK_LIST) {
 				# Decrypt a file
 				#  required : file location
 				#  optional : thumbprint, if decrypting using certificate
-	            if ( $feature -eq 'DECRYP' ) {
+	            if ( $feature -eq 'DECRYP ' ) {
 		            Write-Host "$expression ==> " -NoNewline
 		            $arguments = $expression.Substring(7)
 					$expression = "`$RESULT = ./decryptKey.ps1 $arguments"
 				}
 
 				# Invoke a custom script
-	            if ( $feature -eq 'INVOKE' ) {
+	            if ( $feature -eq 'INVOKE ' ) {
 		            Write-Host "$expression ==> " -NoNewline
 	            	$expression = $expression.Substring(7)
 	            	$expBuilder = ".\"
@@ -285,7 +285,7 @@ Foreach ($line in get-content $TASK_LIST) {
 	            }
 
 				# Execute Remote Command or Local PowerShell Script remotely (via Invoke-Command)
-	            if ( $feature -eq 'EXCREM' ) {
+	            if ( $feature -eq 'EXCREM ' ) {
 	            	if ($remoteUser ) {
 	            		$remUser = $remoteUser 
 	            	} else {
@@ -308,7 +308,7 @@ Foreach ($line in get-content $TASK_LIST) {
 				# Detokenise a file
 				#  required : tokenised file, relative to current workspace
 				#  option : properties file, if not passed, target will be used
-	            if ( $feature -eq 'DETOKN' ) {
+	            if ( $feature -eq 'DETOKN ' ) {
 		            Write-Host "$expression ==> " -NoNewline
 	            	$arguments = $expression.Substring(7)
 					$data = $arguments.split(" ")
@@ -327,7 +327,7 @@ Foreach ($line in get-content $TASK_LIST) {
 				#  required : file, relative to current workspace
 				#  required : name, the token to be replaced
 				#  required : value, the replacement value
-	            if ( $feature -eq 'REPLAC' ) {
+	            if ( $feature -eq 'REPLAC ' ) {
 		            Write-Host "$expression ==> " -NoNewline
 		            $arguments = $expression.Substring(7)
 					$data = $arguments.split(" ")
@@ -340,7 +340,7 @@ Foreach ($line in get-content $TASK_LIST) {
 				# Compress to file
 				#  required : file, relative to current workspace
 				#  required : source directory, relative to current workspace
-	            if ( $feature -eq 'CMPRSS' ) {
+	            if ( $feature -eq 'CMPRSS ' ) {
 		            Write-Host "$expression ==> " -NoNewline
 		            $arguments = $expression.Substring(7)
 					$data = $arguments.split(" ")
@@ -352,7 +352,7 @@ Foreach ($line in get-content $TASK_LIST) {
 
 				# Deompress to file
 				#  required : file, relative to current workspace
-	            if ( $feature -eq 'DCMPRS' ) {
+	            if ( $feature -eq 'DCMPRS ' ) {
 		            Write-Host "$expression ==> " -NoNewline
 		            $arguments = $expression.Substring(7)
 					$data = $arguments.split(" ")
@@ -366,7 +366,7 @@ Foreach ($line in get-content $TASK_LIST) {
 	        }
 
 			# Perform no further processing if Feature is Property Loader
-            if ( $feature -ne 'PROPLD' ) {
+            if ( $feature -ne 'PROPLD ' ) {
 			
 		        # Do not echo line if it is an echo itself
 	            if (-not (($expression -match 'Write-Host') -or ($expression -match 'echo'))) {
