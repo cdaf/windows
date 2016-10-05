@@ -86,6 +86,7 @@ $fullpath = $mediaDir + '\' + $file
 if ( Test-Path $fullpath ) {
 	Write-Host "[$scriptName] $fullpath exists, download not required"
 } else {
+	$webclient = new-object system.net.webclient
 	$uri = 'http://winampplugins.co.uk/curl/' + $file
 	executeExpression "`$webclient.DownloadFile(`'$uri`', `'$fullpath`')"
 }

@@ -18,7 +18,7 @@ if ($portNumber) {
     exit 100
 }
 
-$displayName = $args[0]
+$displayName = $args[1]
 if ($displayName) {
     Write-Host "[$scriptName] displayName : $displayName"
 } else {
