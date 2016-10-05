@@ -38,7 +38,7 @@ if (Test-Path 'C:\Program Files (x86)\Microsoft ASP.NET' ) {
 	Get-ChildItem 'C:\Program Files (x86)\Microsoft ASP.NET'
 } else {
 	Write-Host
-	Write-Host "  MVC not exmplicitely installed (not required for MVC 5 and above)"
+	Write-Host "  MVC not explicitely installed (not required for MVC 5 and above)"
 }
 
 Write-Host
@@ -86,6 +86,24 @@ if ( $nugetVersion ) {
 	Write-Host "[$scriptName] $($nugetVersion[0])"
 } else {
 	Write-Host "[$scriptName] NuGet not installed"
+}
+
+Write-Host
+$zipVersion = cmd /c 7z i 2`>`&1
+$zipVersion = $zipVersion | Select-String -Pattern '7-Zip'
+if ( $zipVersion ) { 
+	Write-Host "[$scriptName] $zipVersion"
+} else {
+	Write-Host "[$scriptName] 7Zip Command line not installed"
+}
+
+Write-Host
+$curlVersion = cmd /c curl.exe --version 2`>`&1
+$curlVersion = $curlVersion | Select-String -Pattern 'libcurl'
+if ( $curlVersion ) { 
+	Write-Host "[$scriptName] $curlVersion"
+} else {
+	Write-Host "[$scriptName] curl.exe not installed"
 }
 
 Write-Host
