@@ -1,40 +1,23 @@
-function exitWithCode ($taskName, $dosExit) {
-    write-host
-    write-host "[$scriptName] $taskName failed!" -ForegroundColor Red
-    write-host
-    write-host "     Returning errorlevel ($dosExit) to DOS" -ForegroundColor Magenta
-    write-host
-    $host.SetShouldExit($dosExit)
-    exit
-}
 
-function taskWarning { 
-    write-host "[$scriptName] Warning, $taskName encountered an error that was allowed to proceed." -ForegroundColor Yellow
-}
+$scriptName = $myInvocation.MyCommand.Name
 
-function getFilename ($FullPathName) {
-
-	$PIECES=$FullPathName.split(“\”) 
-	$NUMBEROFPIECES=$PIECES.Count 
-	$FILENAME=$PIECES[$NumberOfPieces-1] 
-	$DIRECTORYPATH=$FullPathName.Trim($FILENAME) 
-	return $FILENAME
-
-}
+Write-Host
+Write-Host "[$scriptName] +--------------------------------+"
+Write-Host "[$scriptName] | Process Locally Executed Tasks |"
+Write-Host "[$scriptName] +--------------------------------+"
 
 $ENVIRONMENT = $args[0]
+Write-Host "[$scriptName]   ENVIRONMENT            : $ENVIRONMENT" 
 $BUILD = $args[1]
+Write-Host "[$scriptName]   BUILD                  : $BUILD" 
 $SOLUTION = $args[2]
+Write-Host "[$scriptName]   SOLUTION               : $SOLUTION" 
 $WORK_DIR_DEFAULT = $args[3]
-$scriptName = $myInvocation.MyCommand.Name
+Write-Host "[$scriptName]   WORK_DIR_DEFAULT       : $WORK_DIR_DEFAULT" 
+
 $localPropertiesPath = 'propertiesForLocalTasks\'
 $localPropertiesFilter = $localPropertiesPath + "$ENVIRONMENT*"
 $localEnvironmentPath = 'propertiesForLocalEnvironment\'
-
-Write-Host "[$scriptName]   ENVIRONMENT            : $ENVIRONMENT" 
-Write-Host "[$scriptName]   BUILD                  : $BUILD" 
-Write-Host "[$scriptName]   SOLUTION               : $SOLUTION" 
-Write-Host "[$scriptName]   WORK_DIR_DEFAULT       : $WORK_DIR_DEFAULT" 
 
 # change to working directory
 cd $WORK_DIR_DEFAULT
@@ -45,13 +28,13 @@ if ( Test-Path $propertiesFile ) {
 	try {
 		$localEnvPreDeployTask=$(& .\getProperty.ps1 $propertiesFile "localEnvPreDeployTask")
 		if(!$?){ taskWarning }
-	} catch { exitWithCode "GET_ENVIRONMENT_PRE_TASK" 101 }
+	} catch { taskFailure "GET_ENVIRONMENT_PRE_TASK_101" }
 	Write-Host "[$scriptName]   localEnvPreDeployTask  : $localEnvPreDeployTask" 
 	
 	try {
 		$localEnvPostDeployTask=$(& .\getProperty.ps1 $propertiesFile "localEnvPostDeployTask")
 		if(!$?){ taskWarning }
-	} catch { exitWithCode "GET_ENVIRONMENT_POST_TASK" 102 }
+	} catch { taskFailure "GET_ENVIRONMENT_POST_TASK_102" }
 	Write-Host "[$scriptName]   localEnvPostDeployTask : $localEnvPostDeployTask" 
 
 } else {
@@ -65,7 +48,7 @@ $propName = "productVersion"
 try {
 	$cdafVersion=$(& .\getProperty.ps1 $propertiesFile $propName)
 	if(!$?){ taskWarning }
-} catch { exitWithCode "GET_CDAF_VERSION" 103 }
+} catch { taskFailure "GET_CDAF_VERSION_103" }
 Write-Host "[$scriptName]   CDAF Version           : $cdafVersion"
 
 # list system info
@@ -81,8 +64,8 @@ if ( $localEnvPreDeployTask) {
     # Execute the Tasks Driver File
     try {
 	    & .\execute.ps1 $SOLUTION $BUILD $localEnvironmentPath\$ENVIRONMENT $localEnvPreDeployTask
-	    if(!$?){ exitWithCode "EXECUTE_TRAP" 200 }
-    } catch { exitWithCode "EXECUTE_EXCEPTION" 201}
+	    if(!$?){ taskFailure "EXECUTE_TRAP_200" }
+    } catch { taskFailure "EXECUTE_EXCEPTION_201" }
 }
 
 # Perform Local Tasks for each target definition file for this environment
@@ -112,7 +95,7 @@ if (-not(Test-Path $localPropertiesFilter)) {
 		try {
 			& .\localTasksTarget.ps1 $ENVIRONMENT $SOLUTION $BUILD $propFilename
 			if(!$?){ taskWarning }
-		} catch { exitWithCode $propFilename 202}
+		} catch { taskFailure "${propFilename}_202" }
 		Write-Host
 		write-host "[$scriptName]   --- Completed Target $propFilename --- " -ForegroundColor Green
 	}
@@ -124,8 +107,8 @@ if ( $localEnvPostDeployTask) {
     # Execute the Tasks Driver File
     try {
 	    & .\execute.ps1 $SOLUTION $BUILD $localEnvironmentPath\$ENVIRONMENT $localEnvPostDeployTask
-	    if(!$?){ exitWithCode "EXECUTE_TRAP" 210}
-    } catch { exitWithCode "EXECUTE_EXCEPTION" 211}
+	    if(!$?){ taskFailure "EXECUTE_TRAP_210" }
+    } catch { taskFailure "EXECUTE_EXCEPTION_211"}
 }
 
 # Return to root

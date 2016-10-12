@@ -1,60 +1,36 @@
-param(
-    [Parameter(Mandatory = $true)]
-    $AUTOMATIONROOT,
-
-    [Parameter(Mandatory = $false)]
-    $ACTION
-)
-
+# Override function used in entry points
 function exitWithCode ($taskName) {
     write-host
+    write-host "[$scriptName] --- Emulation Error Handling ---" -ForegroundColor Red
+    write-host
+    write-host "[$scriptName] This logging will not appear in toolset" -ForegroundColor Red
+    write-host
     write-host "[$scriptName] $taskName failed!" -ForegroundColor Red
-    write-host
-    write-host "     Returning errorlevel (-1) to DOS" -ForegroundColor Magenta
-    write-host
-    $host.SetShouldExit(-1)
+    write-host "[$scriptName]   Returning errorlevel (-2) to emulation wrapper" -ForegroundColor Magenta
+    $host.SetShouldExit(-2)
     exit
-}
-
-function itemRemove ($itemPath) { 
-	if ( Test-Path $itemPath ) {
-		write-host "[$scriptName] Delete $itemPath"
-		Remove-Item $itemPath -Recurse 
-		if(!$?){ exitWithCode("Remove-Item $itemPath") }
-	}
 }
 
 $scriptName          = $MyInvocation.MyCommand.Name
 
-# Framework structure
-$AUTOMATIONROOT      = "automation"
-$automationHelper    = "$AUTOMATIONROOT\remote"
-$workDirLocal        = "TasksLocal"
-$workDirRemote       = "TasksRemote"
-
-# Build and Delivery Properties Lookup values
-$environmentBuild = [Environment]::GetEnvironmentVariable('environmentBuild', 'Machine')
-if ($environmentBuild ) {
-	Write-Host "[$scriptName]   environmentBuild    : $environmentBuild"
+$AUTOMATIONROOT = $args[0]
+if ($AUTOMATIONROOT) {
+	Write-Host "[$scriptName]   AUTOMATIONROOT      : $AUTOMATIONROOT"
 } else {
-	$environmentBuild    = "BUILD"
-	Write-Host "[$scriptName]   environmentBuild    : $environmentBuild (default)"
+	$AUTOMATIONROOT = 'automation'
+	Write-Host "[$scriptName]   AUTOMATIONROOT      : $AUTOMATIONROOT (default)"
 }
 
-$environmentDelivery = [Environment]::GetEnvironmentVariable('environmentDelivery', 'Machine')
-if ($environmentDelivery ) {
-	Write-Host "[$scriptName]   environmentDelivery : $environmentDelivery"
-} else {
-	$environmentDelivery = "WINDOWS"
-	Write-Host "[$scriptName]   environmentDelivery : $environmentDelivery (default)"
-}
+$ACTION = $args[1]
+Write-Host "[$scriptName]   ACTION              : $ACTION"
 
-# Use timestamp to ensure unique build number and emulate the revision ID (source control)
-# In Bamboo parameter is  ${bamboo.buildNumber}
-$buildNumber=get-date -f MMddHHmmss
-$revision=get-date -f HHmmss
+# Use timestamp to ensure unique build number
+$buildNumber = $(get-date -f mmss)
 Write-Host "[$scriptName]   buildNumber         : $buildNumber"
+$revision = 'master' # Assuming source control is Git
 Write-Host "[$scriptName]   revision            : $revision"
+$release = '666' # Assuming Release is an integer
+Write-Host "[$scriptName]   release             : $release"
 
 # Check for user defined solution folder, i.e. outside of automation root, if found override solution root
 Write-Host "[$scriptName]   solutionRoot        : " -NoNewline
@@ -96,43 +72,50 @@ if (Test-Path "$solutionRoot\deliverProcess.bat") {
 # Packaging will ensure either the override or default delivery process is in the workspace root
 $cdInstruction="deliverProcess.bat"
 
-# CDM-70 : If the Solution is not defined in the CDAF.solution file, use current working directory
-# In Jenkins parameter is JOB_NAME 
-# Attempt solution name loading, not an error if not found
+$environmentDelivery = "$Env:environmentDelivery"
+if ($environmentDelivery ) {
+	Write-Host "[$scriptName]   environmentDelivery : $environmentDelivery"
+} else {
+	$environmentDelivery = 'WINDOWS'
+	Write-Host "[$scriptName]   environmentDelivery : $environmentDelivery (default)"
+}
+
+# Attempt solution name loading, error is not found
 try {
-	$solutionName=$(& .\$automationHelper\getProperty.ps1 $solutionRoot\CDAF.solution 'solutionName')
+	$solutionName=$(& .\$AUTOMATIONROOT\remote\getProperty.ps1 $solutionRoot\CDAF.solution 'solutionName')
 	if(!$?){  }
 } catch {  }
-if (! $solutionName) {
-	$solutionName = $(Get-Item -Path .).Name
-	write-host
-	write-host "[$scriptName] Solution name (solutionName) not defined in $solutionRoot\CDAF.solution, defaulting to current working directory, $solutionName"
+if ( $solutionName ) {
+	Write-Host "[$scriptName]   solutionName        : $solutionName (from ${solutionRoot}\CDAF.solution)"
+} else {
+	write-host "[$scriptName] Solution name (solutionName) not defined in ${solutionRoot}\CDAF.solution!"
+	exitWithCode "SOLUTION_NOT_FOUND"
 }
 
 # Do not list configuration instructions when performing clean
-if ( $ACTION -ne "clean" ) {
+if ( $ACTION -ne "clean" ) { # Case insensitive
 	write-host
 	write-host "[$scriptName] ---------- CI Toolset Configuration Guide -------------"
 	write-host
     write-host 'For TeamCity ...'
     write-host "  Command Executable  : $ciInstruction"
-    write-host "  Command parameters  : $solutionName $environmentBuild %build.number% %build.vcs.number% $AUTOMATIONROOT $workDirLocal $workDirRemote"
+    write-host "  Command parameters  : %build.number% %build.vcs.number%"
     write-host
     write-host 'For Bamboo ...'
     write-host "  Script file         : $ciProcess"
-    write-host "  Argument            : $solutionName $environmentBuild `${bamboo.buildNumber} `${bamboo.repository.revision.number} $AUTOMATIONROOT $workDirLocal $workDirRemote"
+    write-host "  Argument            : `${bamboo.buildNumber} `${bamboo.repository.revision.number}"
     write-host
     write-host 'For Jenkins ...'
-    write-host "  Command : $AUTOMATIONROOT\buildandpackage\buildProjects.bat $solutionName $environmentBuild %BUILD_NUMBER% %SVN_REVISION% $AUTOMATIONROOT $workDirLocal $workDirRemote"
+    write-host "  Command : $ciProcess %BUILD_NUMBER% %SVN_REVISION%"
     write-host
     write-host 'For BuildMaster ...'
     write-host "  Executable file     : $ciProcess"
-    write-host "  Arguments           : $solutionName $environmentBuild `${BuildNumber} Revision_Unavailable $AUTOMATIONROOT $workDirLocal $workDirRemote"
+    write-host "  Arguments           : `${BuildNumber}"
     write-host
     write-host 'For Team Foundation Server/Visual Studio Team Services'
     write-host '  XAML ...'
     write-host "    Command Filename  : SourcesDirectory + `"$ciProcess`""
-    write-host "    Command arguments : $solutionName $environmentBuild + `" `" + BuildDetail.BuildNumber + `" `" + revision + `" $AUTOMATIONROOT $workDirLocal $workDirRemote`""
+    write-host "    Command arguments : BuildDetail.BuildNumber + revision"
     write-host
     write-host '  Team Build (vNext)...'
     write-host '    Use the visual studio template and delete the nuget and VS tasks.'
@@ -142,12 +125,16 @@ if ( $ACTION -ne "clean" ) {
 	write-host '    Recommend using the navigation UI to find the entry script.'
 	write-host '    Cannot use %BUILD_SOURCEVERSION% with external Git'
     write-host "    Command Filename  : $ciProcess"
-    write-host "    Command arguments : $solutionName $environmentBuild %BUILD_BUILDNUMBER% %BUILD_SOURCEVERSION% $AUTOMATIONROOT $workDirLocal $workDirRemote $ACTION"
+    write-host "    Command arguments : %BUILD_BUILDNUMBER% %BUILD_SOURCEVERSION%"
+    write-host
+    write-host 'For GitLab (requires shell runner) ...'
+    write-host '  In .gitlab-ci.yml (in the root of the repository) add the following hook into the CI job'
+    write-host "    script: `"automation/processor/ciProcess.sh `${CI_BUILD_ID} `{CI_BUILD_REF_NAME}`""
     write-host
 	write-host "[$scriptName] -------------------------------------------------------"
 }
 # Process Build and Package
-& $ciProcess $solutionName $environmentBuild $buildNumber $revision $AUTOMATIONROOT $workDirLocal $workDirRemote $ACTION
+& $ciProcess $buildNumber $revision 
 if(!$?){ exitWithCode $ciProcess }
 
 if ( $ACTION -ne "clean" ) {
@@ -186,35 +173,43 @@ if ( $ACTION -eq "clean" ) {
 	write-host '  set the first step of deploy process to make all scripts executable'
 	write-host '  chmod +x ./*/*.sh'
 	write-host
-	write-host 'For TeamCity ...'
+	write-host 'For TeamCity (each environment requires a literal definiion) ...'
 	write-host "  Command Executable  : $workDirLocal/$cdInstruction"
-	write-host "  Command parameters  : $solutionName $environmentDelivery %build.number% %build.vcs.number% $workDirLocal $workDirRemote"
+	write-host "  Command parameters  : <environment literal> %build.vcs.number%"
 	write-host
 	write-host 'For Bamboo ...'
 	write-host "  Script file         : `${bamboo.build.working.directory}\$workDirLocal\$cdInstruction"
-	write-host "  Argument            : $solutionName `${bamboo.deploy.environment} `${bamboo.buildNumber} `${bamboo.deploy.release} $workDirLocal $workDirRemote"
+	write-host "  Argument            : `${bamboo.deploy.environment} `${bamboo.deploy.release}"
 	write-host
-	write-host 'For Jenkins ...'
-	write-host "  Command             : $workDirLocal\$cdInstruction $solutionName $environmentDelivery %BUILD_NUMBER% %SVN_REVISION% $workDirLocal $workDirRemote"
+	write-host 'For Jenkins (each environment requires a literal definition) ...'
+	write-host "  Command             : $workDirLocal\$cdInstruction $solutionName <environment literal> %SVN_REVISION%"
 	write-host
 	write-host 'For BuildMaster ...'
 	write-host "  Executable file     : $workDirLocal\$cdInstruction"
-	write-host "  Arguments           : $solutionName `${EnvironmentName} `${BuildNumber} `${ReleaseNumber} $workDirLocal $workDirRemote"
+	write-host "  Arguments           : `${EnvironmentName} `${ReleaseNumber}"
 	write-host
 	write-host 'For Team Foundation Server/Visual Studio Team Services'
-	write-host '  For XAML ...'
+	write-host '  For XAML (lineal deploy only) ...'
 	write-host "    Command Filename  : SourcesDirectory + `"\$workDirLocal\$cdInstruction`""
-	write-host "    Command arguments : `" + $solutionName + $environmentDelivery + `" + BuildDetail.BuildNumber + `" $revision + $workDirLocal + $workDirRemote`""
+	write-host "    Command arguments : `" + $environmentDelivery`""
 	write-host
 	write-host '  For Team Release ...'
 	write-host '  Verify the queue for each Environment definition, and ensure Environment names do not contain spaces.'
 	write-host '  Run an empty release initially to load the workspace, which can then be navigated to for following configuration.'
 	write-host "    Command Filename  : `$(System.DefaultWorkingDirectory)/$solutionName/drop/$workDirLocal/$cdInstruction"
-	write-host "    Command arguments : $solutionName %RELEASE_ENVIRONMENTNAME% %BUILD_BUILDNUMBER% %RELEASE_RELEASENAME% $workDirLocal $workDirRemote"
+	write-host "    Command arguments : %RELEASE_ENVIRONMENTNAME% %RELEASE_RELEASENAME%"
 	write-host "    Working folder    : `$(System.DefaultWorkingDirectory)/$solutionName/drop"
 	write-host
+    write-host 'For GitLab (requires shell runner) ...'
+    write-host '  If using the sample .gitlab-ci.yml simply clone and change the Environment literal'
+	write-host '  variables:'
+	write-host '    ENV: "<environment>"'
+    write-host "    script: `"$workDirLocal/$cdInstruction `${ENV} `${CI_PIPELINE_ID}`""
+	write-host '    environment: <environment>'
+   	write-host
 	write-host "[$scriptName] -------------------------------------------------------"
-	& $cdProcess $solutionName $environmentDelivery $buildNumber $revision $workDirLocal $workDirRemote $ACTION
+
+	& $cdProcess $environmentDelivery $release
 	if(!$?){ exitWithCode $ciProcess }
 }
 write-host

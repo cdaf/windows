@@ -19,7 +19,8 @@ call powershell -NoProfile -ExecutionPolicy ByPass -command %cd%\%WORK_DIR_DEFAU
 set result=%errorlevel%
 if %result% NEQ 0 (
 	echo.
-	echo [%~nx0] call powershell -NoProfile -ExecutionPolicy ByPass -command %cd%\%WORK_DIR_DEFAULT%\automation\local\push.ps1 %PACKAGE_LOC% %KEY_FILE% %URL% failed!
+	echo [%~nx0] Error %result% returned from ... 
+	echo [%~nx0]   call powershell -NoProfile -ExecutionPolicy ByPass -command %cd%\%WORK_DIR_DEFAULT%\automation\local\push.ps1 %PACKAGE_LOC% %KEY_FILE% %URL%
 	echo [%~nx0] Errorlevel = %result%
 	exit /b %result%
 )
