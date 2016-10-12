@@ -21,11 +21,11 @@ IF [%AUTOMATION_ROOT%] == [] (
 rem Launcher script that overides execution policy
 rem cannot elevate powershell
 
-call powershell -NoProfile -ExecutionPolicy ByPass -command %cd%\%automationRoot%\processor\ciProcess.ps1 %BUILDNUMBER% %REVISION% %ACTION% %SOLUTION% %AUTOMATION_ROOT% %LOCAL_WORK_DIR% %REMOTE_WORK_DIR%  
+call powershell -NoProfile -ExecutionPolicy ByPass -command %cd%\%automationRoot%\processor\buildPackage.ps1 %BUILDNUMBER% %REVISION% %ACTION% %SOLUTION% %AUTOMATION_ROOT% %LOCAL_WORK_DIR% %REMOTE_WORK_DIR%  
 set result=%errorlevel%
 if %result% NEQ 0 (
 	echo.
 	echo [%~nx0] Error %result% returned from ... 
-	echo [%~nx0]   call powershell -NoProfile -ExecutionPolicy ByPass -command %cd%\%automationRoot%\processor\ciProcess.ps1 %BUILDNUMBER% %REVISION% %ACTION% %SOLUTION% %AUTOMATION_ROOT% %LOCAL_WORK_DIR% %REMOTE_WORK_DIR%
+	echo [%~nx0]   call powershell -NoProfile -ExecutionPolicy ByPass -command %cd%\%automationRoot%\processor\buildPackage.ps1 %BUILDNUMBER% %REVISION% %ACTION% %SOLUTION% %AUTOMATION_ROOT% %LOCAL_WORK_DIR% %REMOTE_WORK_DIR%
 	exit /b %result%
 )

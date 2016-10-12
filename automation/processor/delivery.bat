@@ -20,11 +20,11 @@ IF [%WORK_DIR_DEFAULT%] == [] (
 	set workDirLocal=%WORK_DIR_DEFAULT%
 )
 
-call powershell -NoProfile -ExecutionPolicy ByPass -command %cd%\%workDirLocal%\deliverProcess.ps1 %ENVIRONMENT% %RELEASE% %OPT_ARG% %WORK_DIR_DEFAULT% %SOLUTION% %BUILDNUMBER% %AUTOMATION_ROOT%
+call powershell -NoProfile -ExecutionPolicy ByPass -command %cd%\%workDirLocal%\delivery.ps1 %ENVIRONMENT% %RELEASE% %OPT_ARG% %WORK_DIR_DEFAULT% %SOLUTION% %BUILDNUMBER% %AUTOMATION_ROOT%
 set result=%errorlevel%
 if %result% NEQ 0 (
 	echo.
 	echo [%~nx0] Error %result% returned from ... 
-	echo [%~nx0]   call powershell -NoProfile -ExecutionPolicy ByPass -command %cd%\%workDirLocal%\deliverProcess.ps1 %ENVIRONMENT% %RELEASE% %OPT_ARG% %WORK_DIR_DEFAULT% %SOLUTION% %BUILDNUMBER% %AUTOMATION_ROOT%
+	echo [%~nx0]   call powershell -NoProfile -ExecutionPolicy ByPass -command %cd%\%workDirLocal%\delivery.ps1 %ENVIRONMENT% %RELEASE% %OPT_ARG% %WORK_DIR_DEFAULT% %SOLUTION% %BUILDNUMBER% %AUTOMATION_ROOT%
 	exit /b %result%
 )

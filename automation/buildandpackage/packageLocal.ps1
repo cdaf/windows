@@ -60,12 +60,12 @@ Write-Host
 Write-Host "[$scriptName]   rename $WORK_DIR_DEFAULT\CDAF.windows --> $WORK_DIR_DEFAULT\CDAF.properties"
 
 # Copy the override or default delivery process
-if (Test-Path "$solutionRoot\deliverProcess.bat") {
-	copySet "deliverProcess.bat" "$solutionRoot" $WORK_DIR_DEFAULT
-	copySet "deliverProcess.ps1" "$solutionRoot" $WORK_DIR_DEFAULT
+if (Test-Path "$solutionRoot\delivery.bat") {
+	copySet "delivery.bat" "$solutionRoot" $WORK_DIR_DEFAULT
+	copySet "delivery.ps1" "$solutionRoot" $WORK_DIR_DEFAULT
 } else {
-	copySet "deliverProcess.bat" "$AUTOMATIONROOT\processor" $WORK_DIR_DEFAULT
-	copySet "deliverProcess.ps1" "$AUTOMATIONROOT\processor" $WORK_DIR_DEFAULT
+	copySet "delivery.bat" "$AUTOMATIONROOT\processor" $WORK_DIR_DEFAULT
+	copySet "delivery.ps1" "$AUTOMATIONROOT\processor" $WORK_DIR_DEFAULT
 }
 
 # Copy all local script helpers, flat set to true to copy to root, not sub directory

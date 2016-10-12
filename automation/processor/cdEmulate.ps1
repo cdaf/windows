@@ -50,27 +50,27 @@ if ($solutionRoot) {
 
 # Check for customised CI process
 Write-Host "[$scriptName]   ciProcess           : " -NoNewline
-if (Test-Path "$solutionRoot\ciProcess.bat") {
-	$ciProcess="$solutionRoot\ciProcess.bat"
-	$ciInstruction="$solutionRoot/ciProcess.bat"
+if (Test-Path "$solutionRoot\buildPackage.bat") {
+	$ciProcess="$solutionRoot\buildPackage.bat"
+	$ciInstruction="$solutionRoot/buildPackage.bat"
 	write-host "$ciProcess (override)"
 } else {
-	$ciProcess="$AUTOMATIONROOT\processor\ciProcess.bat"
-	$ciInstruction="$AUTOMATIONROOT/processor/ciProcess.bat"
+	$ciProcess="$AUTOMATIONROOT\processor\buildPackage.bat"
+	$ciInstruction="$AUTOMATIONROOT/processor/buildPackage.bat"
 	write-host "$ciProcess (default)"
 }
 
 # Check for customised Delivery process
 Write-Host "[$scriptName]   cdProcess           : " -NoNewline
-if (Test-Path "$solutionRoot\deliverProcess.bat") {
-	$cdProcess="$solutionRoot\deliverProcess.bat"
+if (Test-Path "$solutionRoot\delivery.bat") {
+	$cdProcess="$solutionRoot\delivery.bat"
 	write-host "$cdProcess (override)"
 } else {
-	$cdProcess="$AUTOMATIONROOT\processor\deliverProcess.bat"
+	$cdProcess="$AUTOMATIONROOT\processor\delivery.bat"
 	write-host "$cdProcess (default)"
 }
 # Packaging will ensure either the override or default delivery process is in the workspace root
-$cdInstruction="deliverProcess.bat"
+$cdInstruction="delivery.bat"
 
 $environmentDelivery = "$Env:environmentDelivery"
 if ($environmentDelivery ) {
