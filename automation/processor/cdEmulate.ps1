@@ -92,6 +92,9 @@ if ( $solutionName ) {
 	exitWithCode "SOLUTION_NOT_FOUND"
 }
 
+$workDirLocal = 'TasksLocal'
+Write-Host "[$scriptName]   workDirLocal        : $workDirLocal (default, see readme for changing this location)"
+
 # Do not list configuration instructions when performing clean
 if ( $ACTION -ne "clean" ) { # Case insensitive
 	write-host
