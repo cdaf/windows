@@ -34,31 +34,35 @@ function copyOpt ($manifestFile, $from, $first, $second) {
 	}
 
 	$nodes = executeExpression "Get-ChildItem -Path `"$from`" $recurse"
-	foreach ( $node in $nodes ) {
-		if  (Test-Path $node -pathType 'leaf' ) {
-			$sourceRelative = $(Resolve-Path -Relative $node.FullName)
-			if ( $sourceRelative.StartsWith(".\") ) {
-				$sourceRelative = $sourceRelative.Substring(2)
+	if ( $nodes ) {
+		foreach ( $node in $nodes ) {
+			if  (Test-Path $node.FullName -pathType 'leaf' ) {
+				$sourceRelative = $(Resolve-Path -Relative $node.FullName)
+				if ( $sourceRelative.StartsWith(".\") ) {
+					$sourceRelative = $sourceRelative.Substring(2)
+				}
+				
+				if ( $flat ) {
+					$flatTarget = "$WORK_DIR_DEFAULT\$($node.name)"
+					Write-Host "[$scriptName]   $sourceRelative --> $flatTarget"
+					New-Item -ItemType File -Path $flatTarget -Force > $null 
+					Copy-Item $sourceRelative $flatTarget -Force
+					if(!$?){ taskFailure ("Copy-Item $sourceRelative $flatTarget -Force") }
+					Set-ItemProperty $flatTarget -name IsReadOnly -value $false
+					if(!$?){ taskFailure ("Set-ItemProperty $flatTarget -name IsReadOnly -value $false") }
+				} else {
+					Write-Host "[$scriptName]   $sourceRelative --> $WORK_DIR_DEFAULT\$sourceRelative"
+					New-Item -ItemType File -Path $WORK_DIR_DEFAULT\$sourceRelative -Force > $null # Creates file and directory path
+					Copy-Item $sourceRelative $WORK_DIR_DEFAULT\$sourceRelative -Force
+					if(!$?){ taskFailure ("Copy-Item $sourceRelative $WORK_DIR_DEFAULT\$sourceRelative -Force") }
+					Set-ItemProperty $WORK_DIR_DEFAULT\$sourceRelative -name IsReadOnly -value $false
+					if(!$?){ taskFailure ("Set-ItemProperty $itemPath -name IsReadOnly -value $false") }
+				}
+				Add-Content $manifestFile "$WORK_DIR_DEFAULT\$sourceRelative"
 			}
-			
-			if ( $flat ) {
-				$flatTarget = "$WORK_DIR_DEFAULT\$($node.name)"
-				Write-Host "[$scriptName]   $sourceRelative --> $flatTarget"
-				New-Item -ItemType File -Path $flatTarget -Force > $null 
-				Copy-Item $sourceRelative $flatTarget -Force
-				if(!$?){ taskFailure ("Copy-Item $sourceRelative $flatTarget -Force") }
-				Set-ItemProperty $flatTarget -name IsReadOnly -value $false
-				if(!$?){ taskFailure ("Set-ItemProperty $flatTarget -name IsReadOnly -value $false") }
-			} else {
-				Write-Host "[$scriptName]   $sourceRelative --> $WORK_DIR_DEFAULT\$sourceRelative"
-				New-Item -ItemType File -Path $WORK_DIR_DEFAULT\$sourceRelative -Force > $null # Creates file and directory path
-				Copy-Item $sourceRelative $WORK_DIR_DEFAULT\$sourceRelative -Force
-				if(!$?){ taskFailure ("Copy-Item $sourceRelative $WORK_DIR_DEFAULT\$sourceRelative -Force") }
-				Set-ItemProperty $WORK_DIR_DEFAULT\$sourceRelative -name IsReadOnly -value $false
-				if(!$?){ taskFailure ("Set-ItemProperty $itemPath -name IsReadOnly -value $false") }
-			}
-			Add-Content $manifestFile "$WORK_DIR_DEFAULT\$sourceRelative"
 		}
+	} else {
+		Write-Host "[$scriptName]   No items found for pattern $from $recurse"
 	}
 }
 
