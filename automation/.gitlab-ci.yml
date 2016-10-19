@@ -1,0 +1,47 @@
+stages:
+  - build
+  - automated test
+  - manual test
+  - live
+
+cdaf-ci:
+  stage: build
+  tags:
+    - batch
+  script: "automation/processor/buildPackage.bat %CI_BUILD_ID% %CI_BUILD_REF_NAME%"
+  artifacts:
+    paths:
+    - TasksLocal/
+    - "%CI_PROJECT_NAME%-%CI_BUILD_ID%.zip"
+
+cd:
+  stage: automated test
+  variables:
+    ENV: "CD"
+  script: "TasksLocal/delivery.bat %ENV% %CI_PIPELINE_ID%"
+  environment: cd
+  dependencies:
+  - cdaf-ci
+
+test:
+  stage: manual test
+  variables:
+    ENV: "TEST"
+  script: "TasksLocal/delivery.bat %ENV% %CI_PIPELINE_ID%"
+  environment: test
+  dependencies:
+  - cdaf-ci
+  only:
+    - master
+
+production:
+  stage: live
+  variables:
+    ENV: "PROD"
+  script: "TasksLocal/delivery.bat %ENV% %CI_PIPELINE_ID%"
+  when: manual
+  environment: production
+  dependencies:
+  - cdaf-ci
+  only:
+    - master
