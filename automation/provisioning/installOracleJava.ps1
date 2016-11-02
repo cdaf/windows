@@ -53,15 +53,22 @@ $javaInstallDir = "$destinationInstallDir\Java"
 $jdkInstallDir = "$javaInstallDir\jdk$java_version"
 $jreInstallDir = "$javaInstallDir\jre$java_version"
 $jdkInstallFileName = "jdk-" + $java_version + "-windows-" + $architecture + ".exe"
+
+$installer = "$sourceInstallDir\$jdkInstallFileName"
+if ( Test-Path "$installer" ) {
+	Write-Host "[$scriptName] Installing the JDK ..."
+	Write-Host "[$scriptName]   Installer : $installer"
+} else {
+	Write-Host
+	Write-Host "[$scriptName] $installer not found! Not action attempted"; exit 4
+}
+
 try {
 	New-Item -path $javaInstallDir -type directory -force | Out-Null
 } catch {
 	Write-Host "Java Install Exception: $_.Exception.Message" -ForegroundColor Red
 	throw $_
 }
-
-Write-Host "[$scriptName] Installing the JDK ..."
-Write-Host "[$scriptName]   Installer : $sourceInstallDir\$jdkInstallFileName"
 
 # Arguments which switch the JDK install to a silent process with no reboots, and sets up the log directory
 $arguments =@("/s /INSTALLDIRPUBJRE=`"$jreInstallDir`" INSTALL_SILENT=Enable REBOOT=Disable INSTALLDIR=`"$jdkInstallDir`"")
@@ -70,14 +77,14 @@ Write-Host
 Write-Host "    Installing the JDK ..."
 
 try {
-	$proc = Start-Process -FilePath "$sourceInstallDir\$jdkInstallFileName" -ArgumentList $arguments  -Wait -PassThru
+	$proc = Start-Process -FilePath "$installer" -ArgumentList $arguments  -Wait -PassThru
 
 	if($proc.ExitCode -ne 0) {
-		Write-Host "[$scriptName] Failure : Start-Process -FilePath `"$sourceInstallDir\$jdkInstallFileName`" -ArgumentList $arguments  -Wait -PassThru" -ForegroundColor Red
+		Write-Host "[$scriptName] Failure : Start-Process -FilePath `"$installer`" -ArgumentList $arguments  -Wait -PassThru" -ForegroundColor Red
 		throw JDK_INSTALL_ERROR 
 	}
 } catch {
-	Write-Host "[$scriptName] Exception : Start-Process -FilePath `"$sourceInstallDir\$jdkInstallFileName`" -ArgumentList $arguments  -Wait -PassThru" -ForegroundColor Red
+	Write-Host "[$scriptName] Exception : Start-Process -FilePath `"$installer`" -ArgumentList $arguments  -Wait -PassThru" -ForegroundColor Red
 	throw $_
 }
 Write-Host "[$scriptName] Installing the JDK complete."

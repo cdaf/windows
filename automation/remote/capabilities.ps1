@@ -89,7 +89,7 @@ if ( $nugetVersion ) {
 }
 
 Write-Host
-$zipVersion = cmd /c 7z i 2`>`&1
+$zipVersion = cmd /c 7za.exe i 2`>`&1
 $zipVersion = $zipVersion | Select-String -Pattern '7-Zip'
 if ( $zipVersion ) { 
 	Write-Host "[$scriptName] $zipVersion"

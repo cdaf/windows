@@ -44,27 +44,26 @@ if (-not(Test-Path "$mediaDir")) {
 
 # Verify or download and install 7zip command line
 Write-Host
-$zipVersion = cmd /c 7z i 2`>`&1
+$zipVersion = cmd /c 7za.exe i 2`>`&1
 $zipVersion = $zipVersion | Select-String -Pattern '7-Zip'
 if ( $zipVersion ) { 
 	Write-Host "[$scriptName] $zipVersion"
 } else {
 	$webclient = new-object system.net.webclient
-	$file = '7z1514-x64.exe'
+	$file = '7za920.zip'
 	$fullpath = $mediaDir + '\' + $file
 	if ( Test-Path $fullpath ) {
 		Write-Host "[$scriptName] $fullpath exists, download not required"
 	} else {
-	
 		$uri = 'http://www.7-zip.org/a/' + $file
 		executeExpression "`$webclient.DownloadFile(`'$uri`', `'$fullpath`')"
 	}
 	
-	if ( ! (Test-Path "$targetDir\7z\7z.exe") ) {
+	if ( ! (Test-Path "$targetDir\7z\7za.exe.exe") ) {
 		Write-Host "Install $file to $targetDir"
-		& $fullpath /S /D=$targetDir\7z
+		& $fullpath /S /D=$targetDir\7za.exe
 	}
-	$zipVersion = cmd /c 7z i 2`>`&1
+	$zipVersion = cmd /c 7za.exe i 2`>`&1
 	$zipVersion = $zipVersion | Select-String -Pattern '7-Zip'
 }
 
@@ -91,7 +90,7 @@ if ( Test-Path $fullpath ) {
 	executeExpression "`$webclient.DownloadFile(`'$uri`', `'$fullpath`')"
 }
 
-executeExpression "& 7z x $fullpath -o$targetDir -aoa"
+executeExpression "& 7za.exe x $fullpath -o$targetDir -aoa"
 
 $curlVersion = cmd /c curl.exe --version 2`>`&1
 $curlVersion = $curlVersion | Select-String -Pattern 'libcurl'

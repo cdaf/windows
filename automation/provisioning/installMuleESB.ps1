@@ -77,13 +77,24 @@ if ( $tomcatHomeDir ) {
 	Write-Host "[$scriptName] tomcatHomeDir         : $tomcatHomeDir (default)"
 }
 
-$muleDistribution = 'mule-enterprise-standalone' # this is mule-ee-distribution-standalone in gzip format
-$muleServiceName = 'mule_ee'                     # This is just mule in community edition 
+$muleDistribution = 'mule-ee-distribution-standalone' # base filename, appends to mule-ee-distribution-standalone-x.x.x.zip 
+$muleServiceName = 'mule_ee'                          # the name as it will display in windows services 
 $muleInstallDir = "$destinationInstallDir\" + $muleDistribution + '-' + $mule_ee_version
 $muleESBEnterpriseInstall = $muleDistribution + '-' + $mule_ee_version
 $muleESBEnterpriseInstallFileName = $muleESBEnterpriseInstall + '.zip'
 
 Write-Host "[$scriptName] muleInstallDir        : $muleInstallDir"
+
+Write-Host
+$mediaVerify = @("$sourceInstallDir\mmc.war", "$sourceInstallDir\$muleESBEnterpriseInstallFileName", "$sourceInstallDir\agent-setup-${agentVersion}.zip")
+foreach ($verifyFile in $mediaVerify) { 
+	if ( Test-Path "$verifyFile" ) {
+		Write-Host "[$scriptName] $verifyFile found"
+	} else {
+		Write-Host
+		Write-Host "[$scriptName] $verifyFile not found! Not action attempted"; exit 4
+	}
+}
 
 Write-Host
 Write-Host "[$scriptName] Extract Mule ESB"
