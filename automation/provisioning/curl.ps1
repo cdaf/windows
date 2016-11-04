@@ -17,25 +17,37 @@ $mediaDir = $args[0]
 
 # vagrant file share is dependant on provider, for VirtualBox, pass as /vagrant/.provision
 if ($mediaDir) {
-    Write-Host "[$scriptName] mediaDir  : $mediaDir"
+    Write-Host "[$scriptName] mediaDir : $mediaDir"
 } else {
 	# If not passed, default to the vagrant location
 	$mediaDir = 'C:\vagrant\.provision'
-    Write-Host "[$scriptName] mediaDir  : $mediaDir (default)"
+    Write-Host "[$scriptName] mediaDir : $mediaDir (default)"
 }
 
 if (-not(Test-Path "$mediaDir")) {
 	mkdir $mediaDir
 }
 
-# Where the installed software will reside
-$targetDir = $args[1]
-if ($targetDir) {
-    Write-Host "[$scriptName] targetDir : $targetDir"
+# Where the 7zip installed software will reside
+$7zipFQDN = 'www.7-zip.org'
+$7zipDir = $args[1]
+if ($7zipDir) {
+    Write-Host "[$scriptName] 7zipDir  : $7zipDir"
 } else {
 	# If not passed, use the system root
-	$targetDir = $Env:SystemRoot
-    Write-Host "[$scriptName] targetDir : $targetDir (default)"
+	$7zipDir = $Env:SystemRoot
+    Write-Host "[$scriptName] 7zipDir  : $7zipDir (default)"
+}
+
+# Where the curl installed software will reside
+$curlFQDN = 'winampplugins.co.uk'
+$curlDir = $args[2]
+if ($curlDir) {
+    Write-Host "[$scriptName] curlDir  : $curlDir"
+} else {
+	# If not passed, use the system root
+	$curlDir = $Env:SystemRoot
+    Write-Host "[$scriptName] curlDir  : $curlDir (default)"
 }
 
 if (-not(Test-Path "$mediaDir")) {
@@ -46,26 +58,26 @@ if (-not(Test-Path "$mediaDir")) {
 Write-Host
 $zipVersion = cmd /c 7za.exe i 2`>`&1
 $zipVersion = $zipVersion | Select-String -Pattern '7-Zip'
-if ( $zipVersion ) { 
-	Write-Host "[$scriptName] $zipVersion"
-} else {
+if ( ! ( $zipVersion )) { 
 	$webclient = new-object system.net.webclient
 	$file = '7za920.zip'
 	$fullpath = $mediaDir + '\' + $file
 	if ( Test-Path $fullpath ) {
 		Write-Host "[$scriptName] $fullpath exists, download not required"
 	} else {
-		$uri = 'http://www.7-zip.org/a/' + $file
+		$uri = "http://$7zipFQDN/a/" + $file
 		executeExpression "`$webclient.DownloadFile(`'$uri`', `'$fullpath`')"
 	}
 	
-	if ( ! (Test-Path "$targetDir\7z\7za.exe.exe") ) {
-		Write-Host "Install $file to $targetDir"
-		& $fullpath /S /D=$targetDir\7za.exe
+	if ( ! (Test-Path "$7zipDir") ) {
+		executeExpression "mkdir $7zipDir"
 	}
-	$zipVersion = cmd /c 7za.exe i 2`>`&1
-	$zipVersion = $zipVersion | Select-String -Pattern '7-Zip'
+	Add-Type -AssemblyName System.IO.Compression.FileSystem
+	executeExpression "[System.IO.Compression.ZipFile]::ExtractToDirectory(`'$fullpath`', `'$7zipDir`')"
+
+	executeExpression "& 7za.exe i" 
 }
+Write-Host "[$scriptName] $zipVersion"
 
 # TODO: parse this page and determine the current version
 # Invoke-WebRequest -UseBasicParsing http://winampplugins.co.uk/curl
@@ -86,18 +98,18 @@ if ( Test-Path $fullpath ) {
 	Write-Host "[$scriptName] $fullpath exists, download not required"
 } else {
 	$webclient = new-object system.net.webclient
-	$uri = 'http://winampplugins.co.uk/curl/' + $file
+	$uri = "http://$curlFQDN/curl/" + $file
 	executeExpression "`$webclient.DownloadFile(`'$uri`', `'$fullpath`')"
 }
 
-executeExpression "& 7za.exe x $fullpath -o$targetDir -aoa"
+executeExpression "& 7za.exe x $fullpath -o$curlDir -aoa"
 
 $curlVersion = cmd /c curl.exe --version 2`>`&1
 $curlVersion = $curlVersion | Select-String -Pattern 'libcurl'
 if ( $curlVersion ) { 
 	Write-Host "[$scriptName] $curlVersion"
 } else {
-	Write-Host "[$scriptName] curl.exe not installed"
+	Write-Host "[$scriptName] curl.exe failed to install!"; exit 9
 }
 
 Write-Host

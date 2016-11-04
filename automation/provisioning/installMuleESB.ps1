@@ -79,7 +79,7 @@ if ( $tomcatHomeDir ) {
 
 $muleDistribution = 'mule-ee-distribution-standalone' # base filename, appends to mule-ee-distribution-standalone-x.x.x.zip 
 $muleServiceName = 'mule_ee'                          # the name as it will display in windows services 
-$muleInstallDir = "$destinationInstallDir\" + $muleDistribution + '-' + $mule_ee_version
+$muleInstallDir = "$destinationInstallDir\mule-enterprise-standalone-" + $mule_ee_version # Extracted folder name does not match distribution file name
 $muleESBEnterpriseInstall = $muleDistribution + '-' + $mule_ee_version
 $muleESBEnterpriseInstallFileName = $muleESBEnterpriseInstall + '.zip'
 
