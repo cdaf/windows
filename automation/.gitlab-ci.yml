@@ -16,6 +16,8 @@ cdaf-ci:
 
 cd:
   stage: automated test
+  tags:
+    - batch
   variables:
     ENV: "CD"
   script: "TasksLocal/delivery.bat %ENV% %CI_PIPELINE_ID%"
@@ -25,6 +27,8 @@ cd:
 
 test:
   stage: manual test
+  tags:
+    - batch
   variables:
     ENV: "TEST"
   script: "TasksLocal/delivery.bat %ENV% %CI_PIPELINE_ID%"
@@ -36,6 +40,8 @@ test:
 
 production:
   stage: live
+  tags:
+    - batch
   variables:
     ENV: "PROD"
   script: "TasksLocal/delivery.bat %ENV% %CI_PIPELINE_ID%"
