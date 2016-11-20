@@ -22,14 +22,21 @@ Write-Host '[$scriptName] be attempted, connecting back to the "build server" vi
 Write-Host
 Write-Host "[$scriptName] ---------- start ----------"
 Write-Host
-$userName = $args[0]
+$OPT_ARG = $args[0]
+if ($OPT_ARG) {
+    Write-Host "[$scriptName] OPT_ARG   : $OPT_ARG"
+} else {
+    Write-Host "[$scriptName] OPT_ARG   : (not supplied)"
+}
+
+$userName = $args[1]
 if ($userName) {
     Write-Host "[$scriptName] userName  : $userName"
 } else {
     Write-Host "[$scriptName] userName  : not supplied, use local"
 }
 
-$userPass = $args[1]
+$userPass = $args[2]
 if ($userPass) {
     Write-Host "[$scriptName] userPass  : **********"
 } else {
@@ -51,14 +58,14 @@ if ($userName) {
 
 	Write-Host "[$scriptName] Execute as $userName using synchronised directory ($workspace)"
 	executeExpression "Invoke-Command -ComputerName localhost -Credential `$cred -ScriptBlock { `"cd $workspace`" } "
-	executeExpression "Invoke-Command -ComputerName localhost -Credential `$cred -ScriptBlock { `"& .\automation\cdEmulate.bat`" } "
+	executeExpression "Invoke-Command -ComputerName localhost -Credential `$cred -ScriptBlock { `"& .\automation\cdEmulate.bat $OPT_ARG`" } "
 	executeExpression "Invoke-Command -ComputerName localhost -Credential `$cred -ScriptBlock { `"& .\automation\cdEmulate.bat clean`" } "
 
 } else {
 
 	Write-Host "[$scriptName] Execute as $(whoami) using synchronised directory ($workspace)"
 	executeExpression "cd $workspace"
-	executeExpression "& .\automation\cdEmulate.bat"
+	executeExpression "& .\automation\cdEmulate.bat $OPT_ARG"
 	executeExpression "& .\automation\cdEmulate.bat clean"
 }
 
