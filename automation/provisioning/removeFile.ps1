@@ -1,11 +1,3 @@
-function itemRemove ($itemPath) { 
-# If item exists, and is not a directory, remove read only and delete, if a directory then just delete
-	if ( Test-Path $itemPath ) {
-		write-host "[itemRemove] Delete $itemPath"
-		Remove-Item $itemPath -Recurse -Force
-		if(!$?) {exitWithCode "[itemRemove] Remove-Item $itemPath -Recurse -Force" }
-	}
-}
 
 $scriptName = 'removeFile.ps1'
 Write-Host
@@ -20,7 +12,11 @@ if ($fileToRemove) {
     exit 1
 }
 
-itemRemove $fileToRemove
+if ( Test-Path $fileToRemove ) {
+	write-host "[itemRemove] Delete $fileToRemove"
+	Remove-Item $fileToRemove -Recurse -Force
+	if(!$?) {exitWithCode "[itemRemove] Remove-Item $fileToRemove -Recurse -Force" }
+}
 
 Write-Host
 Write-Host "[$scriptName] ---------- stop ----------"

@@ -44,20 +44,22 @@ if ($workspace) {
     Write-Host "[$scriptName] workspace : $workspace (default)"
 }
 
-$cdafRun = "cd $workspace; & .\automation\cdEmulate.bat; & .\automation\cdEmulate.bat clean"
-
 if ($userName) {
 
 	$securePassword = ConvertTo-SecureString $userPass -asplaintext -force
 	$cred = New-Object System.Management.Automation.PSCredential ($userName, $securePassword)
 
 	Write-Host "[$scriptName] Execute as $userName using synchronised directory ($workspace)"
-	executeExpression "Invoke-Command -ComputerName localhost -Credential `$cred -ScriptBlock { $cdafRun } "
+	executeExpression "Invoke-Command -ComputerName localhost -Credential `$cred -ScriptBlock { `"cd $workspace`" } "
+	executeExpression "Invoke-Command -ComputerName localhost -Credential `$cred -ScriptBlock { `"& .\automation\cdEmulate.bat`" } "
+	executeExpression "Invoke-Command -ComputerName localhost -Credential `$cred -ScriptBlock { `"& .\automation\cdEmulate.bat clean`" } "
 
 } else {
 
 	Write-Host "[$scriptName] Execute as $(whoami) using synchronised directory ($workspace)"
-	executeExpression "$cdafRun"
+	executeExpression "cd $workspace"
+	executeExpression "& .\automation\cdEmulate.bat"
+	executeExpression "& .\automation\cdEmulate.bat clean"
 }
 
 Write-Host
