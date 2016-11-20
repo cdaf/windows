@@ -137,7 +137,7 @@ if ( $ACTION -ne "clean" ) { # Case insensitive
 	write-host "[$scriptName] -------------------------------------------------------"
 }
 # Process Build and Package
-& $ciProcess $buildNumber $revision 
+& $ciProcess $buildNumber $revision $ACTION
 if(!$?){ exitWithCode $ciProcess }
 
 if ( $ACTION -ne "clean" ) {
