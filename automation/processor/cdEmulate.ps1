@@ -13,16 +13,16 @@ function exitWithCode ($taskName) {
 
 $scriptName          = $MyInvocation.MyCommand.Name
 
-$AUTOMATIONROOT = $args[0]
+$ACTION = $args[0]
+Write-Host "[$scriptName]   ACTION              : $ACTION"
+
+$AUTOMATIONROOT = $args[1]
 if ($AUTOMATIONROOT) {
 	Write-Host "[$scriptName]   AUTOMATIONROOT      : $AUTOMATIONROOT"
 } else {
 	$AUTOMATIONROOT = 'automation'
 	Write-Host "[$scriptName]   AUTOMATIONROOT      : $AUTOMATIONROOT (default)"
 }
-
-$ACTION = $args[1]
-Write-Host "[$scriptName]   ACTION              : $ACTION"
 
 # Use timestamp to ensure unique build number
 $buildNumber = $(get-date -f mmss)

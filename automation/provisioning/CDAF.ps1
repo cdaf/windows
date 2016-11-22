@@ -65,8 +65,8 @@ if ($userName) {
 
 	Write-Host "[$scriptName] Execute as $(whoami) using synchronised directory ($workspace)"
 	executeExpression "cd $workspace"
-	executeExpression "& .\automation\cdEmulate.bat $OPT_ARG"
-	executeExpression "& .\automation\cdEmulate.bat clean"
+	executeExpression ".\automation\processor\cdEmulate.ps1 $OPT_ARG"
+	executeExpression ".\automation\processor\cdEmulate.ps1 clean"
 }
 
 Write-Host
