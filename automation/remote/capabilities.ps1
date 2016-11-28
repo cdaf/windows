@@ -4,6 +4,13 @@ Write-Host
 Write-Host "[$scriptName] ---------- start ----------"
 
 Write-Host
+Write-Host "[$scriptName] List networking"
+Write-Host "[$scriptName]   Hostname : $(hostname)"
+foreach ($item in Get-WmiObject -Class Win32_NetworkAdapterConfiguration -Filter IPEnabled=TRUE -ComputerName .) {
+	Write-Host "[$scriptName]         IP : $($item.IPAddress)"
+}
+
+Write-Host
 Write-Host "[$scriptName] List the Computer architecture and Service Pack version"
 $computer = "."
 $sOS =Get-WmiObject -class Win32_OperatingSystem -computername $computer
