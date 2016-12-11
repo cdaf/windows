@@ -5,7 +5,7 @@ $mediaDir = $args[0]
 if ($mediaDir) {
     Write-Host "[$scriptName] mediaDir : $mediaDir"
 } else {
-	$mediaDir = '/vagrant/.provision'
+	$mediaDir = '/.provision'
     Write-Host "[$scriptName] mediaDir : $mediaDir (default)"
 }
 

@@ -20,7 +20,7 @@ $target   = $args[2]
 if ($variable) {
     Write-Host "[$scriptName] variable : $variable"
 } else {
-	$mediaDir = '/vagrant/.provision'
+	$mediaDir = '/.provision'
     Write-Host "[$scriptName] mediaDir : $mediaDir (default)"
 }
 

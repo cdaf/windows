@@ -15,7 +15,7 @@ Write-Host "[$scriptName] ---------- start ----------"
 Write-Host
 $mediaDir = $args[0]
 
-# vagrant file share is dependant on provider, for VirtualBox, pass as /vagrant/.provision
+# vagrant file share is dependant on provider, for VirtualBox, pass as /.provision
 if ($mediaDir) {
     Write-Host "[$scriptName] mediaDir : $mediaDir"
 } else {
