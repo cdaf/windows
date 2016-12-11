@@ -44,6 +44,10 @@ if ($WORKSPACE ) {
 } else {
     write-host "[$scriptName]   WORKSPACE            : $(pwd)"
 }
+
+write-host "[$scriptName]   hostname             : $(hostname)"
+write-host "[$scriptName]   whoami               : $(whoami)"
+
 write-host
 write-host "[$scriptName] Load SOLUTION and BUILDNUMBER from manifest.txt"
 & .\Transform.ps1 ".\manifest.txt" | ForEach-Object { invoke-expression $_ }

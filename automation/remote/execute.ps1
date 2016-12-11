@@ -391,7 +391,7 @@ Foreach ($line in get-content $TASK_LIST) {
 		        if ( $error[0] ) { 
 			        Write-Host
 			        Write-Host "[$scriptName] $expression failed with ERROR[0] = $error[0]" -ForegroundColor Red
-			        throwErrorlevel "DOS_NON_TERM" $exitcode
+			        throwErrorlevel "DOS_NON_TERM" $error[0]
 		        }
 		    }
         }

@@ -46,6 +46,16 @@ Select PSChildName, Version, Release, @{
 }
 
 Write-Host
+Write-Host "[$scriptName] List the build tools (HKLM:\Software\Microsoft\MSBuild\ToolsVersions)"
+$regkey = 'HKLM:\Software\Microsoft\MSBuild\ToolsVersions'
+if ( Test-Path $regkey ) { 
+	Get-ChildItem $regkey
+} else {
+	Write-Host
+	Write-Host "  Build tools not found ($regkey)"
+}
+
+Write-Host
 Write-Host "[$scriptName] List the WIF Installed Versions"
 $regkey = 'HKLM:\SOFTWARE\Microsoft\Windows Identity Foundation\setup'
 if ( Test-Path $regkey ) { 
@@ -82,10 +92,10 @@ if ( $javaVersion ) {
 }
 
 $javaVersion = cmd /c javac -version 2`>`&1
-if ( $javaVersion ) { 
-	Write-Host "[$scriptName] Java Compiler : $javaVersion"
-} else {
+if ($javaVersion -like '*not recognized*') {
 	Write-Host "[$scriptName] Java Compiler not installed"
+} else {
+	Write-Host "[$scriptName] Java Compiler : $javaVersion"
 }
 
 $mavenVersion = cmd /c mvn --version 2`>`&1
@@ -93,7 +103,7 @@ $mavenVersion = $mavenVersion | Select-String -Pattern 'ersion'
 if ( $mavenVersion ) { 
 	Write-Host "[$scriptName] Maven Version : $mavenVersion"
 } else {
-	Write-Host "[$scriptName] Maven Compiler not installed"
+	Write-Host "[$scriptName] Maven builder not installed"
 }
 
 $nugetVersion = cmd /c NuGet 2`>`&1
@@ -122,14 +132,7 @@ if ( $curlVersion ) {
 	Write-Host "[$scriptName] curl.exe not installed"
 }
 
-Write-Host "[$scriptName] List the build tools"
-$regkey = 'HKLM:\Software\Microsoft\MSBuild\ToolsVersions'
-if ( Test-Path $regkey ) { 
-	Get-ChildItem $regkey
-} else {
-	Write-Host
-	Write-Host "  Build tools not found ($regkey)"
-}
-
 Write-Host
 Write-Host "[$scriptName] ---------- stop ----------"
+$error.clear()
+exit 0
