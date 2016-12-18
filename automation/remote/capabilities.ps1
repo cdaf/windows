@@ -11,7 +11,8 @@ foreach ($item in Get-WmiObject -Class Win32_NetworkAdapterConfiguration -Filter
 }
 
 Write-Host
-Write-Host "[$scriptName] List the Computer architecture and Service Pack version"
+Write-Host "[$scriptName] List the Computer architecture, Service Pack and 3rd party software"
+Write-Host
 $computer = "."
 $sOS =Get-WmiObject -class Win32_OperatingSystem -computername $computer
 foreach($sProperty in $sOS) {
@@ -21,118 +22,128 @@ foreach($sProperty in $sOS) {
 	write-host "  ServicePackMajorVersion : $($sProperty.ServicePackMajorVersion)"
 }
 
-Write-Host
-Write-Host "[$scriptName] List the PowerShell version"
-	write-host "  PSVersion.Major         : $($PSVersionTable.PSVersion.Major)"
+$EditionId = (Get-ItemProperty -Path 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion' -Name 'EditionID').EditionId
+if (($EditionId -like "*nano*") -or ($EditionId -like "*core*") ) {
+	$noGUI = '(no GUI)'
+}
+write-host "  EditionId               : $EditionId $noGUI"
+write-host "  PSVersion.Major         : $($PSVersionTable.PSVersion.Major)"
 
-Write-Host
-Write-Host "[$scriptName] List the .NET Versions"
-Get-ChildItem 'HKLM:\SOFTWARE\Microsoft\NET Framework Setup\NDP' -recurse |
-Get-ItemProperty -name Version,Release -EA 0 |
-Where { $_.PSChildName -match '^(?!S)\p{L}'} |
-Select PSChildName, Version, Release, @{
-  name="Product"
-  expression={
-      switch -regex ($_.Release) {
-        "378389" { [Version]"4.5" }
-        "378675|378758" { [Version]"4.5.1" }
-        "379893" { [Version]"4.5.2" }
-        "393295|393297" { [Version]"4.6" }
-        "394254|394271" { [Version]"4.6.1" }
-        "394802|394806" { [Version]"4.6.2" }
-        {$_ -gt 394806} { [Version]"Undocumented 4.6.2 or higher, please update script" }
-      }
-    }
+$javaVersion = cmd /c java -version 2`>`&1
+if ($javaVersion -like '*not recognized*') {
+	Write-Host "  Java                    : not installed"
+} else {
+	$array = $javaVersion.split(" ")
+	Write-Host "  Java                    : $($array[2])"
+}
+
+$javaCompiler = cmd /c javac -version 2`>`&1
+if ($javaCompiler -like '*not recognized*') {
+	Write-Host "  Java Compiler           : not installed"
+} else {
+	$array = $javaCompiler.split(" ")
+	Write-Host "  Java Compiler           : $($array[2])"
+}
+
+$mavenVersion = cmd /c mvn --version 2`>`&1
+if ($mavenVersion -like '*not recognized*') {
+	Write-Host "  Maven                   : not installed"
+} else {
+	$array = $mavenVersion.split(" ")
+	Write-Host "  Maven                   : $($array[2])"
+}
+
+$nugetVersion = cmd /c NuGet 2`>`&1
+if ($mavenVersion -like '*not recognized*') {
+	Write-Host "  NuGet                   : not installed"
+} else {
+	$array = $nugetVersion.split(" ")
+	Write-Host "  NuGet                   : $($array[2])"
+}
+
+$zipVersion = cmd /c 7za.exe i 2`>`&1
+if ($zipVersion -like '*not recognized*') {
+	Write-Host "  7za.exe                 : not installed"
+} else {
+	$array = $zipVersion.split(" ")
+	Write-Host "  7za.exe                 : $($array[3])"
+}
+
+$curlVersion = cmd /c curl.exe --version 2`>`&1
+if ($curlVersion -like '*not recognized*') {
+	Write-Host "  curl.exe                : not installed"
+} else {
+	$array = $curlVersion.split(" ")
+	Write-Host "  curl.exe                : $($array[1])"
 }
 
 Write-Host
-Write-Host "[$scriptName] List the build tools (HKLM:\Software\Microsoft\MSBuild\ToolsVersions)"
+Write-Host "[$scriptName] List the build tools"
 $regkey = 'HKLM:\Software\Microsoft\MSBuild\ToolsVersions'
+Write-Host
 if ( Test-Path $regkey ) { 
-	Get-ChildItem $regkey
+	foreach($buildTool in Get-ChildItem $regkey) {
+		Write-Host "  $buildTool"
+	}
 } else {
-	Write-Host
 	Write-Host "  Build tools not found ($regkey)"
 }
 
 Write-Host
 Write-Host "[$scriptName] List the WIF Installed Versions"
 $regkey = 'HKLM:\SOFTWARE\Microsoft\Windows Identity Foundation\setup'
+Write-Host
 if ( Test-Path $regkey ) { 
-	Get-ChildItem $regkey
+	foreach($wif in Get-ChildItem $regkey) {
+		Write-Host "  $wif"
+	}
 } else {
-	Write-Host
 	Write-Host "  Windows Identity Foundation not installed ($regkey)"
 }
 
 Write-Host
 Write-Host "[$scriptName] List installed MVC products (not applicable after MVC4)"
+Write-Host
 if (Test-Path 'C:\Program Files (x86)\Microsoft ASP.NET' ) {
-	Get-ChildItem 'C:\Program Files (x86)\Microsoft ASP.NET'
+	foreach($mvc in Get-ChildItem 'C:\Program Files (x86)\Microsoft ASP.NET') {
+		Write-Host "  $mvc"
+	}
 } else {
 	Write-Host "  MVC not explicitely installed (not required for MVC 5 and above)"
 }
 
 Write-Host
 Write-Host "[$scriptName] List Web Deploy versions installed"
+Write-Host
 $regkey = 'HKLM:\Software\Microsoft\IIS Extensions\MSDeploy'
 if ( Test-Path $regkey ) { 
-	Get-ChildItem $regkey
+	foreach($msDeploy in Get-ChildItem $regkey) {
+		Write-Host "  $msDeploy"
+	}
 } else {
 	Write-Host "  Web Deploy not installed ($regkey)"
 }
 
 Write-Host
-$javaVersion = cmd /c java -version 2`>`&1
-$javaVersion = $javaVersion | Select-String -Pattern 'ersion'
-if ( $javaVersion ) { 
-	Write-Host "[$scriptName] $javaVersion"
-} else {
-	Write-Host "[$scriptName] Java not installed"
+Write-Host "[$scriptName] List the .NET Versions"
+
+Get-ChildItem 'HKLM:\SOFTWARE\Microsoft\NET Framework Setup\NDP' -recurse |
+Get-ItemProperty -name Version,Release -EA 0 |
+Where { $_.PSChildName -match '^(?!S)\p{L}'} |
+Select PSChildName, Version, Release, @{
+  name="Product"
+  expression={
+    switch -regex ($_.Release) {
+      "378389" { [Version]"4.5" }
+      "378675|378758" { [Version]"4.5.1" }
+      "379893" { [Version]"4.5.2" }
+      "393295|393297" { [Version]"4.6" }
+      "394254|394271" { [Version]"4.6.1" }
+      "394802|394806" { [Version]"4.6.2" }
+      {$_ -gt 394806} { [Version]"Undocumented 4.6.2 or higher, please update script" }
+    }
+  }
 }
 
-$javaVersion = cmd /c javac -version 2`>`&1
-if ($javaVersion -like '*not recognized*') {
-	Write-Host "[$scriptName] Java Compiler not installed"
-} else {
-	Write-Host "[$scriptName] Java Compiler : $javaVersion"
-}
-
-$mavenVersion = cmd /c mvn --version 2`>`&1
-$mavenVersion = $mavenVersion | Select-String -Pattern 'ersion'
-if ( $mavenVersion ) { 
-	Write-Host "[$scriptName] Maven Version : $mavenVersion"
-} else {
-	Write-Host "[$scriptName] Maven builder not installed"
-}
-
-$nugetVersion = cmd /c NuGet 2`>`&1
-$nugetVersion = $nugetVersion | Select-String -Pattern 'ersion'
-if ( $nugetVersion ) { 
-	$nugetVersion = "$nugetVersion "
-	$nugetVersion = $nugetVersion -split 'update'
-	Write-Host "[$scriptName] $($nugetVersion[0])"
-} else {
-	Write-Host "[$scriptName] NuGet not installed"
-}
-
-$zipVersion = cmd /c 7za.exe i 2`>`&1
-$zipVersion = $zipVersion | Select-String -Pattern '7-Zip'
-if ( $zipVersion ) { 
-	Write-Host "[$scriptName] $zipVersion"
-} else {
-	Write-Host "[$scriptName] 7Zip Command line not installed"
-}
-
-$curlVersion = cmd /c curl.exe --version 2`>`&1
-$curlVersion = $curlVersion | Select-String -Pattern 'libcurl'
-if ( $curlVersion ) { 
-	Write-Host "[$scriptName] $curlVersion"
-} else {
-	Write-Host "[$scriptName] curl.exe not installed"
-}
-
-Write-Host
-Write-Host "[$scriptName] ---------- stop ----------"
 $error.clear()
 exit 0

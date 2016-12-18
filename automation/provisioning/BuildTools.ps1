@@ -1,3 +1,14 @@
+# Common expression logging and error handling function, copied, not referenced to ensure atomic process
+function executeExpression ($expression) {
+	$error.clear()
+	Write-Host "[$scriptName] $expression"
+	try {
+		Invoke-Expression $expression
+	    if(!$?) { Write-Host "[$scriptName] `$? = $?"; exit 1 }
+	} catch { echo $_.Exception|format-list -force; exit 2 }
+    if ( $error[0] ) { Write-Host "[$scriptName] `$error[0] = $error"; exit 3 }
+}
+
 $scriptName = 'BuildTools.ps1'
 $versionChoices = '14' 
 Write-Host
@@ -14,7 +25,7 @@ $mediaDir = $args[1]
 if ($mediaDir) {
     Write-Host "[$scriptName] mediaDir    : $mediaDir"
 } else {
-	$mediaDir = 'C:\vagrant\.provision'
+	$mediaDir = 'C:\.provision'
     Write-Host "[$scriptName] mediaDir    : $mediaDir (default)"
 }
 
@@ -39,6 +50,16 @@ Write-Host "[$scriptName] installFile : $installFile"
 $logFile = $installDir = [Environment]::GetEnvironmentVariable('TEMP', 'user') + '\' + $file + '.log'
 Write-Host "[$scriptName] logFile     : $logFile"
 
+if ($env:interactive) {
+	Write-Host
+    Write-Host "[$scriptName]   env:interactive is set ($env:interactive), run in current window"
+    $sessionControl = '-PassThru -Wait -NoNewWindow'
+	$logToConsole = 'true'
+} else {
+    $sessionControl = '-PassThru -Wait'
+	$logToConsole = 'false'
+}
+
 Write-Host
 if ( Test-Path $installFile ) {
 	Write-Host "[$scriptName] $installFile exists, download not required"
@@ -49,14 +70,8 @@ if ( Test-Path $installFile ) {
 	$webclient.DownloadFile($uri, $installFile)
 }
 
-try {
-	$argList = @("/q")
-	Write-Host "[$scriptName] Start-Process -FilePath $installFile -ArgumentList $argList -PassThru -Wait"
-	$proc = Start-Process -FilePath $installFile -ArgumentList $argList -PassThru -Wait
-} catch {
-	Write-Host "[$scriptName] $installFile Exception : $_" -ForegroundColor Red
-	exit 200
-}
+$argList = @("/q")
+executeExpression "`$proc = Start-Process -FilePath `"$installFile`" -ArgumentList `'$argList`' $sessionControl"
 
 Write-Host
 Write-Host "[$scriptName] ---------- stop ----------"

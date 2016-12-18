@@ -1,10 +1,12 @@
+# Common expression logging and error handling function, copied, not referenced to ensure atomic process
 function executeExpression ($expression) {
+	$error.clear()
 	Write-Host "[$scriptName] $expression"
 	try {
 		Invoke-Expression $expression
-	    if(!$?) { exit 1 }
-	} catch { exit 2 }
-    if ( $error[0] ) { exit 3 }
+	    if(!$?) { Write-Host "[$scriptName] `$? = $?"; exit 1 }
+	} catch { echo $_.Exception|format-list -force; exit 2 }
+    if ( $error[0] ) { Write-Host "[$scriptName] `$error[0] = $error"; exit 3 }
 }
 
 $scriptName = 'SQLServer.ps1'
@@ -53,6 +55,12 @@ if ($media) {
     Write-Host "[$scriptName] media          : $media (default)"
 }
 
+$EditionId = (Get-ItemProperty -Path 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion' -Name 'EditionID').EditionId
+if (($EditionId -like "*nano*") -or ($EditionId -like "*core*") ) {
+	$noGUI = '(no GUI)'
+}
+write-host "[$scriptName] EditionId      : $EditionId $noGUI"
+
 if ($env:interactive) {
 	Write-Host
     Write-Host "[$scriptName]   env:interactive is set ($env:interactive), run in current window"
@@ -63,13 +71,12 @@ if ($env:interactive) {
 	$logToConsole = 'false'
 }
 
-$gui = (Get-WindowsFeature -Name 'Server-Gui-Shell').Installed
-if ($gui) {
-    Write-Host "[$scriptName]   O/S GUI installed, management tools will be included"
-	$sqlFeatures = 'SQL,Tools'
-} else {	
+if ($noGUI) {
     Write-Host "[$scriptName]   O/S GUI not installed, management tools will be excluded"
 	$sqlFeatures = 'SQL'
+} else {	
+    Write-Host "[$scriptName]   O/S GUI installed, management tools will be included"
+	$sqlFeatures = 'SQL,Tools'
 }
 
 $executable = Get-ChildItem d:\ -Filter *.exe
