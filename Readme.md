@@ -15,9 +15,6 @@ Oracle VirtualBox and Vagrant
 
 Note: on Windows Server 2012 R2 need to manually install x86 (not 64 bit) C++ Redistributable.
 
-# Known Issue Vagrant 1.8.1
-    C:\HashiCorp\Vagrant\embedded\gems\gems\vagrant-1.8.1\plugins\providers\hyperv\scripts\get_vm_status.ps1 : Unable to find type
-
 edit  get_vm_status.ps1  to catch exception type  Exception  instead of  Microsoft.HyperV.PowerShell.VirtualizationException 
 
 Create Desktop Build Server
