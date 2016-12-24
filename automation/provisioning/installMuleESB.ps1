@@ -19,7 +19,7 @@ $mule_ee_version = $args[0]
 if ( $mule_ee_version ) {
 	Write-Host "[$scriptName] mule_ee_version       : $mule_ee_version"
 } else {
-	$mule_ee_version = '3.8.1'
+	$mule_ee_version = '3.8.3'
 	Write-Host "[$scriptName] mule_ee_version       : $mule_ee_version (default)"
 }
 
@@ -43,7 +43,7 @@ $sourceInstallDir = $args[3]
 if ( $sourceInstallDir) {
 	Write-Host "[$scriptName] sourceInstallDir      : $sourceInstallDir"
 } else {
-	$sourceInstallDir = 'c:\vagrant\.provision'
+	$sourceInstallDir = 'c:\.provision'
 	Write-Host "[$scriptName] sourceInstallDir      : $sourceInstallDir (default)"
 }
 
@@ -65,7 +65,7 @@ $agentVersion = $args[6]
 if ( $agentVersion ) {
 	Write-Host "[$scriptName] agentVersion          : $agentVersion"
 } else {
-	$agentVersion = '1.4.1'
+	$agentVersion = '1.5.1'
 	Write-Host "[$scriptName] agentVersion          : $agentVersion (default)"
 }
 
@@ -73,9 +73,18 @@ $tomcatHomeDir = $args[7]
 if ( $tomcatHomeDir ) {
 	Write-Host "[$scriptName] tomcatHomeDir         : $tomcatHomeDir"
 } else {
-	$tomcatHomeDir = 'C:\apache\apache-tomcat8-8.5.4'
+	$tomcatHomeDir = 'C:\apache\apache-tomcat8-8.5.6'
 	Write-Host "[$scriptName] tomcatHomeDir         : $tomcatHomeDir (default)"
 }
+
+$mmcVersion = $args[8]
+if ( $mmcVersion ) {
+	Write-Host "[$scriptName] mmcVersion            : $mmcVersion"
+} else {
+	$mmcVersion = '3.7.0'
+	Write-Host "[$scriptName] mmcVersion            : $mmcVersion (default)"
+}
+$mmcWar="mmc-${mmcVersion}.war"
 
 $muleDistribution = 'mule-ee-distribution-standalone' # base filename, appends to mule-ee-distribution-standalone-x.x.x.zip 
 $muleServiceName = 'mule_ee'                          # the name as it will display in windows services 
@@ -86,7 +95,7 @@ $muleESBEnterpriseInstallFileName = $muleESBEnterpriseInstall + '.zip'
 Write-Host "[$scriptName] muleInstallDir        : $muleInstallDir"
 
 Write-Host
-$mediaVerify = @("$sourceInstallDir\mmc.war", "$sourceInstallDir\$muleESBEnterpriseInstallFileName", "$sourceInstallDir\agent-setup-${agentVersion}.zip")
+$mediaVerify = @("$sourceInstallDir\$mmcWar", "$sourceInstallDir\$muleESBEnterpriseInstallFileName", "$sourceInstallDir\agent-setup-${agentVersion}.zip")
 foreach ($verifyFile in $mediaVerify) { 
 	if ( Test-Path "$verifyFile" ) {
 		Write-Host "[$scriptName] $verifyFile found"
@@ -258,7 +267,7 @@ if ( $MMC_GROUP ) {
 
 	Write-Host
 	Write-Host "[$scriptName] Load the MMC software"
-	executeExpression "Copy-Item `'$sourceInstallDir\mmc.war`' `'$tomcatHomeDir\webapps`'"
+	executeExpression "Copy-Item `'$sourceInstallDir\$mmcWar`' `'$tomcatHomeDir\webapps\mmc.war`'"
 	
 	Write-Host
 	$file = "$tomcatHomeDir\bin\autorun.groovy"
