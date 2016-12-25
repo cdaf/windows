@@ -43,6 +43,10 @@ if ($env:interactive) {
 }
 
 Write-Host
-executeExpression "`$proc = Start-Process -FilePath `"$exeFile`" -ArgumentList `'$opt_arg`' $sessionControl"
+if ($opt_arg) {
+	executeExpression "`$proc = Start-Process -FilePath `"$exeFile`" -ArgumentList `'$opt_arg`' $sessionControl"
+} else {
+	executeExpression "`$proc = Start-Process -FilePath `"$exeFile`" $sessionControl"
+}
 Write-Host
 Write-Host "[$scriptName] ---------- stop ----------"

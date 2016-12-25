@@ -7,7 +7,7 @@ $fileFile = $args[0]
 if ($fileFile) {
     Write-Host "[$scriptName] fileFile : $fileFile"
 } else {
-	$fileFile = 'c:\vagrant\.provision\productkey.txt'
+	$fileFile = 'C:\.provision\productkey.txt'
     Write-Host "[$scriptName] fileFile : $fileFile (default)"
 }
 

@@ -34,7 +34,7 @@ $media = $args[2]
 if ($media) {
     Write-Host "[$scriptName] media    : $media"
 } else {
-	$media = 'c:\vagrant\.provision\install.wim'
+	$media = 'C:\.provision\install.wim'
     Write-Host "[$scriptName] media    : $media (default)"
 }
 

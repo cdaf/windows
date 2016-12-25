@@ -28,7 +28,7 @@ $mediaDirectory = $args[1]
 if ( $mediaDirectory ) {
 	Write-Host "[$scriptName] mediaDirectory        : $mediaDirectory"
 } else {
-	$mediaDirectory = 'c:\vagrant\.provision'
+	$mediaDirectory = 'C:\.provision'
 	Write-Host "[$scriptName] mediaDirectory        : $mediaDirectory (default)"
 }
 

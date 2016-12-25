@@ -16,7 +16,7 @@ $variable = $args[0]
 $value    = $args[1]
 $target   = $args[2]
 
-# vagrant file share is dependant on provider, for VirtualBox, pass as C:\vagrant\.provision
+# vagrant file share is dependant on provider, for VirtualBox, pass as C:\.provision
 if ($variable) {
     Write-Host "[$scriptName] variable : $variable"
 } else {

@@ -20,7 +20,7 @@ if ($mediaDir) {
     Write-Host "[$scriptName] mediaDir : $mediaDir"
 } else {
 	# If not passed, default to the vagrant location
-	$mediaDir = 'C:\vagrant\.provision'
+	$mediaDir = 'C:\.provision'
     Write-Host "[$scriptName] mediaDir : $mediaDir (default)"
 }
 

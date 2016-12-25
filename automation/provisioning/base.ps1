@@ -16,7 +16,7 @@ Write-Host
 Write-Host "[$scriptName] ---------- start ----------"
 $install = $args[0]
 if ($install) {
-    Write-Host "[$scriptName] install   : $install (choices $configChoices)"
+    Write-Host "[$scriptName] install   : $install"
 } else {
     Write-Host "[$scriptName] Package to install not supplied, exiting"
 }

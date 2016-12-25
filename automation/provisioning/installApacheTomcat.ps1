@@ -29,7 +29,7 @@ $sourceInstallDir = $args[1]
 if ( $sourceInstallDir ) {
 	Write-Host "[$scriptName] sourceInstallDir      : $sourceInstallDir"
 } else {
-	$sourceInstallDir = 'c:\vagrant\.provision'
+	$sourceInstallDir = 'C:\.provision'
 	Write-Host "[$scriptName] sourceInstallDir      : $sourceInstallDir (default)"
 }
 

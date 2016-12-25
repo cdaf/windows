@@ -29,51 +29,59 @@ if (($EditionId -like "*nano*") -or ($EditionId -like "*core*") ) {
 write-host "  EditionId               : $EditionId $noGUI"
 write-host "  PSVersion.Major         : $($PSVersionTable.PSVersion.Major)"
 
-$javaVersion = cmd /c java -version 2`>`&1
-if ($javaVersion -like '*not recognized*') {
+Write-Host
+$versionTest = cmd /c dotnet --version 2`>`&1
+if ($versionTest -like '*not recognized*') {
+	Write-Host "  dotnet core             : not installed"
+} else {
+	Write-Host "  dotnet core             : $versionTest"
+}
+
+$versionTest = cmd /c java -version 2`>`&1
+if ($versionTest -like '*not recognized*') {
 	Write-Host "  Java                    : not installed"
 } else {
-	$array = $javaVersion.split(" ")
+	$array = $versionTest.split(" ")
 	Write-Host "  Java                    : $($array[2])"
 }
 
-$javaCompiler = cmd /c javac -version 2`>`&1
-if ($javaCompiler -like '*not recognized*') {
+$versionTest = cmd /c javac -version 2`>`&1
+if ($versionTest -like '*not recognized*') {
 	Write-Host "  Java Compiler           : not installed"
 } else {
-	$array = $javaCompiler.split(" ")
+	$array = $versionTest.split(" ")
 	Write-Host "  Java Compiler           : $($array[2])"
 }
 
-$mavenVersion = cmd /c mvn --version 2`>`&1
-if ($mavenVersion -like '*not recognized*') {
+$versionTest = cmd /c mvn --version 2`>`&1
+if ($versionTest -like '*not recognized*') {
 	Write-Host "  Maven                   : not installed"
 } else {
-	$array = $mavenVersion.split(" ")
+	$array = $versionTest.split(" ")
 	Write-Host "  Maven                   : $($array[2])"
 }
 
-$nugetVersion = cmd /c NuGet 2`>`&1
-if ($mavenVersion -like '*not recognized*') {
+$versionTest = cmd /c NuGet 2`>`&1
+if ($versionTest -like '*not recognized*') {
 	Write-Host "  NuGet                   : not installed"
 } else {
-	$array = $nugetVersion.split(" ")
+	$array = $versionTest.split(" ")
 	Write-Host "  NuGet                   : $($array[2])"
 }
 
-$zipVersion = cmd /c 7za.exe i 2`>`&1
-if ($zipVersion -like '*not recognized*') {
+$versionTest = cmd /c 7za.exe i 2`>`&1
+if ($versionTest -like '*not recognized*') {
 	Write-Host "  7za.exe                 : not installed"
 } else {
-	$array = $zipVersion.split(" ")
+	$array = $versionTest.split(" ")
 	Write-Host "  7za.exe                 : $($array[3])"
 }
 
-$curlVersion = cmd /c curl.exe --version 2`>`&1
-if ($curlVersion -like '*not recognized*') {
+$versionTest = cmd /c curl.exe --version 2`>`&1
+if ($versionTest -like '*not recognized*') {
 	Write-Host "  curl.exe                : not installed"
 } else {
-	$array = $curlVersion.split(" ")
+	$array = $versionTest.split(" ")
 	Write-Host "  curl.exe                : $($array[1])"
 }
 
