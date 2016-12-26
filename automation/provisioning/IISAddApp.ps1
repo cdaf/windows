@@ -37,16 +37,16 @@ if ($site) {
 
 $appPool = $args[3]
 if ($appPool) {
-    Write-Host "[$scriptName] appPool      : $appPool"
+    Write-Host "[$scriptName] appPool      : $appPool "
 } else {
-    Write-Host "[$scriptName] appPool      : (not supplied)"
+    Write-Host "[$scriptName] appPool      : (not supplied"
 }
 
 $clrVersion = $args[4]
 if ($clrVersion) {
-    Write-Host "[$scriptName] clrVersion   : $clrVersion"
+    Write-Host "[$scriptName] clrVersion   : $clrVersion (set to NoManagedCode for no CLR version)"
 } else {
-    Write-Host "[$scriptName] clrVersion   : (not supplied)"
+    Write-Host "[$scriptName] clrVersion   : (not supplied, set to NoManagedCode for no CLR version)"
 }
 Write-Host
 
@@ -56,6 +56,7 @@ if (Test-Path "$physicalPath") {
 	executeExpression "New-Item -ItemType Directory -Force -Path `'$physicalPath`'"
 }
 
+Write-Host
 executeExpression 'import-module WebAdministration'
 
 if ($appPool) {
@@ -76,13 +77,17 @@ if ($clrVersion) {
 
 if (Test-Path "IIS:\Sites\$site\$app") {
     Write-Host "[$scriptName] Site IIS:\Sites\$site\$app exists"
+	if ($appPool) {
+		executeExpression "Set-ItemProperty `'IIS:\Sites\$site\$app`' -name applicationPool -value `'$appPool`'"
+	}
 } else {
-	executeExpression "New-Item `'IIS:\Sites\$site\$app`' -PhysicalPath `'$physicalPath`' -Type Application"
+	if ($appPool) {
+		executeExpression "New-WebApplication -Site `'$site`' -name `'$app`' -PhysicalPath `'$physicalPath`' -ApplicationPool `'$appPool`'"
+	} else {
+		executeExpression "New-WebApplication -Site `'$site`' -name `'$app`' -PhysicalPath `'$physicalPath`' -ApplicationPool `'DefaultAppPool`'"
+	}
 }
 
-if ($appPool) {
-	executeExpression "Set-ItemProperty `'IIS:\Sites\$site\$app`' -name applicationPool -value `'$appPool`'"
-}
 Write-Host
 Write-Host "[$scriptName] List application pool version"
 Write-Host
@@ -90,11 +95,16 @@ foreach ($pool in Get-Item "IIS:\AppPools\*") {
 	$poolName = $($pool).name
 	Write-Host "  $poolName : $((Get-ItemProperty IIS:\AppPools\$poolName managedRuntimeVersion).value)"
 }
+Write-Host
+executeExpression "Get-Item `'IIS:\AppPools\*`'"
 	
 Write-Host
-Write-Host "[$scriptName] List Sites"
+Write-Host "[$scriptName] List Sites and Apps"
 Write-Host
-executeExpression "Get-Item `'IIS:\Sites\*`'"
+foreach ($site in Get-Item "IIS:\Sites\*") {
+	$siteName = $($site).name
+	Write-Host "  $siteName : $((Get-Item IIS:\Sites\$siteName\*).Path)"
+}
 	
 Write-Host
 Write-Host "[$scriptName] ---------- stop ----------"
