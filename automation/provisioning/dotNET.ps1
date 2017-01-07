@@ -21,14 +21,22 @@ if (($version) -and ($version -ne 'latest')) {
     Write-Host "[$scriptName] version  : $version (default, choices $versionChoices)"
 }
 
-$source = $args[1]
-if ($source) {
-    Write-Host "[$scriptName] source   : $source"
+$media = $args[1]
+if ($media) {
+    Write-Host "[$scriptName] media    : $media"
 } else {
-    Write-Host "[$scriptName] source   : not supplied"
+    Write-Host "[$scriptName] media    : not supplied"
 }
 
-$mediaDir = $args[2]
+$wimIndex = $args[2]
+if ($wimIndex) {
+    Write-Host "[$scriptName] wimIndex : $wimIndex"
+} else {
+	$wimIndex = '2'
+    Write-Host "[$scriptName] wimIndex : $wimIndex (default, Standard Edition)"
+}
+
+$mediaDir = $args[3]
 if ($mediaDir) {
     Write-Host "[$scriptName] mediaDir : $mediaDir"
 } else {
@@ -87,9 +95,23 @@ switch ($version) {
 		}
 		
 		if (!($online)) {
-			if ($source) {
-				Write-Host "[$scriptName] Win 8.1 or Server 2012 or later, and source supplied, using Windows Server configuration"
-				$online = "-Source $source"
+			if ($media) {
+				Write-Host "[$scriptName] Win 8.1 or Server 2012 or later, and media supplied, using Windows Server configuration"
+
+				if ( Test-Path $media ) {
+					if ( $media -match ':' ) {
+						Write-Host "[$scriptName] Media path found, validate using Deployment Image Servicing and Management (DISM)"
+						executeExpression "dism /get-wiminfo /wimfile:$media"
+						$online = "-Source WIM:${media}:${wimIndex}"
+						Write-Host "[$scriptName] Media verified, using source option $online"
+					} else {
+						$online = "-Source $media"
+						Write-Host "[$scriptName] Media path found, using source option $online"
+					}
+				} else {
+				    Write-Host "[$scriptName] media path not found, will attempt to download from windows update."
+				}
+				
 				executeExpression "Install-WindowsFeature -Name `'NET-Framework-Features`' $online"
 			}
 		}

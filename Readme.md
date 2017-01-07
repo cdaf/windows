@@ -15,16 +15,17 @@ Oracle VirtualBox and Vagrant
 
 Note: on Windows Server 2012 R2 need to manually install x86 (not 64 bit) C++ Redistributable.
 
-edit  get_vm_status.ps1  to catch exception type  Exception  instead of  Microsoft.HyperV.PowerShell.VirtualizationException 
-
 Create Desktop Build Server
 ---------------------------
 
-To create a desktop environment, in an elevated powershell session, navigate to the solution root and run:
+To create a desktop environment, navigate to the solution root and run:
 
     vagrant up
     
-Once the environment is running access the build server an execute the CD emulation
+Continuous Delivery Testing
+---------------------------
+
+Once the environment is running access the build server an execute the CD emulation. Note: On a Linux host bash Python WINRM can be used to provide native PowerShell access.
 
     vagrant powershell buildserver
     cd C:\vagrant

@@ -39,10 +39,43 @@ if ($wimIndex) {
     Write-Host "[$scriptName] wimIndex        : $wimIndex (default, Standard Edition)"
 }
 
+Write-Host
+if (Test-Path "$env:windir\Logs\DISM\dism.log") {
+	Remove-Item "$env:windir\Logs\DISM\dism.log"
+}
+
 # If media is not found, install will attempt to download from windows update
 if ( Test-Path $media ) {
-	$sourceOption = '/source:wim:' + $media + ":$wimIndex"
-	Write-Host "[$scriptName] Media path found, using source option $sourceOption"
+	if ( $media -match ':' ) {
+		Write-Host "[$scriptName] Media path found, validate using Deployment Image Servicing and Management (DISM)"
+		executeExpression "dism /get-wiminfo /wimfile:$media"
+		Write-Host
+		if (Test-Path "C:\mountdir") {
+			Write-Host "[$scriptName] Mount directory (C:\mountdir) found, no action required"
+		} else {
+			executeExpression "mkdir C:\mountdir"
+		}
+		
+		if (Test-Path "C:\mountdir\Windows") {
+			Write-Host "[$scriptName] Windows directory (C:\mountdir\Windows) found, mount not attempted"
+		} else {
+			Write-Host "[$scriptName] Dism /Mount-Image /ImageFile:${media} /index:${wimIndex} /MountDir:C:\mountdir /ReadOnly /Optimize"
+			$dismResult = Dism /Mount-Image /ImageFile:${media} /index:${wimIndex} /MountDir:C:\mountdir /ReadOnly /Optimize
+			if ($dismResult -match 'Error:') {
+				Write-Host "[$scriptName]   ERROR_DISM_MOUNT"
+				Write-Host "[$scriptName]   `$dismResult = $dismResult"
+				Write-Host; executeExpression "Get-Content `'$env:windir\Logs\DISM\dism.log`' | select -Last 60"; Write-Host
+				exit 101
+			} else {
+				Write-Host "[$scriptName]   `$dismResult = $dismResult"
+			}
+		}
+		$sourceOption = "/source:C:\mountdir\Windows /LimitAccess"
+		Write-Host "[$scriptName] Media verified and mounted, using source option $sourceOption"
+	} else {
+		$sourceOption = "/source:$media /LimitAccess"
+		Write-Host "[$scriptName] Media path found, using source option $sourceOption"
+	}
 } else {
     Write-Host "[$scriptName] media path not found, will attempt to download from windows update."
 }
@@ -69,7 +102,7 @@ switch ($configuration) {
 			$managementFeatures = ' /featurename:IIS-IIS6ManagementCompatibility'
 		} else {
 			Write-Host "[$scriptName]   Windows Server 2012/Win 8 or later, including ASP .NET 4.5 ..."
-			$managementFeatures =  ' /featurename:IIS-ASPNET45 /featurename:IIS-NetFxExtensibility45 /featurename:NetFx4Extended-ASPNET45 /featurename:NetFx3 /featurename:NetFx3ServerFeatures'
+			$managementFeatures =  ' /featurename:IIS-ASPNET45 /featurename:IIS-NetFxExtensibility45 /featurename:NetFx4Extended-ASPNET45'
 		}
 		$aspNET = $aspNET + $managementFeatures
 	}
@@ -81,17 +114,13 @@ switch ($configuration) {
 
 Write-Host
 Write-Host "[$scriptName] Install Web Server"
-$featureList = "/featurename:IIS-WebServerRole /FeatureName:IIS-ApplicationDevelopment /FeatureName:IIS-ISAPIFilter /FeatureName:IIS-ISAPIExtensions /FeatureName:IIS-NetFxExtensibility /featurename:IIS-WebServerManagementTools /featurename:IIS-ManagementScriptingTools /featurename:IIS-Metabase /featurename:IIS-ManagementService /FeatureName:IIS-Security /FeatureName:IIS-BasicAuthentication /FeatureName:IIS-RequestFiltering /FeatureName:IIS-WindowsAuthentication"
-executeExpression "dism /online /NoRestart /enable-feature /All $featureList $sourceOptiondism"
+$featureList = "/featurename:IIS-WebServerRole /FeatureName:IIS-ApplicationDevelopment /FeatureName:IIS-ISAPIFilter /FeatureName:IIS-ISAPIExtensions /featurename:IIS-WebServerManagementTools /featurename:IIS-ManagementScriptingTools /featurename:IIS-Metabase /featurename:IIS-ManagementService /FeatureName:IIS-Security /FeatureName:IIS-BasicAuthentication /FeatureName:IIS-RequestFiltering /FeatureName:IIS-WindowsAuthentication"
+executeExpression "dism /online /NoRestart /enable-feature /All $featureList $sourceOption"
 	
 Write-Host
 Write-Host "[$scriptName] Install ASP.NET"
-executeExpression "dism /online /NoRestart /enable-feature /All $aspNET $sourceOptiondism"
+executeExpression "dism /online /NoRestart /enable-feature /All $aspNET $sourceOption"
 	
-Write-Host
-Write-Host "[$scriptName] Rerun with all options to ensure all applied"
-executeExpression "dism /online /NoRestart /enable-feature /All $featureList $aspNET $sourceOptiondism"
-
 Write-Host
 Write-Host "[$scriptName] List Web Server status"
 executeExpression "dism /online /get-featureinfo /featurename:IIS-WebServer"

@@ -5,9 +5,17 @@ Write-Host "[$scriptName] ---------- start ----------"
 
 Write-Host
 Write-Host "[$scriptName] List networking"
-Write-Host "[$scriptName]   Hostname : $(hostname)"
+Write-Host "[$scriptName]   Hostname  : $(hostname)"
+
+if ((gwmi win32_computersystem).partofdomain -eq $true) {
+	Write-Host "[$scriptName]   Domain    : $((gwmi win32_computersystem).domain)"
+} else {
+	Write-Host "[$scriptName]   Workgroup : $((gwmi win32_computersystem).domain)"
+}
+
+
 foreach ($item in Get-WmiObject -Class Win32_NetworkAdapterConfiguration -Filter IPEnabled=TRUE -ComputerName .) {
-	Write-Host "[$scriptName]         IP : $($item.IPAddress)"
+	Write-Host "[$scriptName]          IP : $($item.IPAddress)"
 }
 
 Write-Host
@@ -28,6 +36,16 @@ if (($EditionId -like "*nano*") -or ($EditionId -like "*core*") ) {
 }
 write-host "  EditionId               : $EditionId $noGUI"
 write-host "  PSVersion.Major         : $($PSVersionTable.PSVersion.Major)"
+
+# Disabled until I can determine why this goes async
+#Write-Host
+#Write-Host "[$scriptName] List the enabled roles"
+#Write-Host
+#$tempFile = "$env:temp\tempName.log"
+#& dism.exe /online /get-features /format:table | out-file $tempFile -Force      
+#$WinFeatures = (Import-CSV -Delim '|' -Path $tempFile -Header Name,state | Where-Object {$_.State -eq "Enabled "}) | Select Name
+#Remove-Item -Path $tempFile 
+#Write-Host "$WinFeatures"
 
 Write-Host
 $versionTest = cmd /c dotnet --version 2`>`&1

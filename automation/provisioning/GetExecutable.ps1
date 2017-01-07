@@ -45,11 +45,11 @@ if ( Test-Path $fullpath ) {
 } else {
 
 	$webclient = new-object system.net.webclient
-	Write-Host "[$scriptName] $webclient.DownloadFile($uri, $fullpath)"
-	$webclient.DownloadFile($uri, $fullpath)
+	Write-Host "[$scriptName] $webclient.DownloadFile(`"$uri`", `"$fullpath`")"
+	$webclient.DownloadFile("$uri", "$fullpath")
 }
 
-executeExpression "Copy-Item $fullpath $env:SYSTEMROOT"
+executeExpression "Copy-Item `'$fullpath`' `'$env:SYSTEMROOT`'"
 
 Write-Host
 Write-Host "[$scriptName] ---------- stop ----------"

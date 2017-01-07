@@ -1,10 +1,12 @@
+# Common expression logging and error handling function, copied, not referenced to ensure atomic process
 function executeExpression ($expression) {
+	$error.clear()
 	Write-Host "[$scriptName] $expression"
 	try {
 		Invoke-Expression $expression
-	    if(!$?) { exit 1 }
-	} catch { exit 2 }
-    if ( $error[0] ) { exit 3 }
+	    if(!$?) { Write-Host "[$scriptName] `$? = $?"; exit 1 }
+	} catch { echo $_.Exception|format-list -force; exit 2 }
+    if ( $error[0] ) { Write-Host "[$scriptName] `$error[0] = $error"; exit 3 }
 }
 
 $scriptName = 'newComputer.ps1'
@@ -25,7 +27,8 @@ if ($newComputerName) {
     Write-Host "[$scriptName] newComputerName : $newComputerName"
 	$newName = "-newname $newComputerName"
 } else {
-    Write-Host "[$scriptName] newComputerName : not supplied"
+	$newComputerName = "$(hostname)"
+    Write-Host "[$scriptName] newComputerName : (not supplied, will add as $newComputerName)"
 }
 
 $domainAdminUser = $args[2]

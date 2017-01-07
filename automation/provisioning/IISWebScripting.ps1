@@ -23,7 +23,7 @@ if ($media) {
     Write-Host "[$scriptName] media     : $media (default)"
 }
 
-$wimIndex = $args[2]
+$wimIndex = $args[1]
 if ($wimIndex) {
     Write-Host "[$scriptName] wimIndex  : $wimIndex"
 } else {
