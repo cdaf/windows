@@ -10,10 +10,10 @@ function executeExpression ($expression) {
 }
 
 $scriptName = 'base.ps1'
+Write-Host "[$scriptName] ---------- start ----------"
 Write-Host
 Write-Host "[$scriptName] Install components using Chocolatey."
 Write-Host
-Write-Host "[$scriptName] ---------- start ----------"
 $install = $args[0]
 if ($install) {
     Write-Host "[$scriptName] install   : $install"
@@ -22,7 +22,7 @@ if ($install) {
 }
 
 Write-Host
-executeExpression "choco install -y $install"
+executeExpression "choco install -y $install --fail-on-standard-error"
 
 Write-Host
 Write-Host "[$scriptName] ---------- stop ----------"

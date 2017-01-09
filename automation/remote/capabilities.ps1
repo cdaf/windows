@@ -13,7 +13,6 @@ if ((gwmi win32_computersystem).partofdomain -eq $true) {
 	Write-Host "[$scriptName]   Workgroup : $((gwmi win32_computersystem).domain)"
 }
 
-
 foreach ($item in Get-WmiObject -Class Win32_NetworkAdapterConfiguration -Filter IPEnabled=TRUE -ComputerName .) {
 	Write-Host "[$scriptName]          IP : $($item.IPAddress)"
 }
@@ -53,6 +52,13 @@ if ($versionTest -like '*not recognized*') {
 	Write-Host "  dotnet core             : not installed"
 } else {
 	Write-Host "  dotnet core             : $versionTest"
+}
+
+$versionTest = cmd /c choco --version 2`>`&1
+if ($versionTest -like '*not recognized*') {
+	Write-Host "  Chocolatey              : not installed"
+} else {
+	Write-Host "  Chocolatey              : $versionTest"
 }
 
 $versionTest = cmd /c java -version 2`>`&1
