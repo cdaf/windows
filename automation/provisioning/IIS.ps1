@@ -9,6 +9,15 @@ function executeExpression ($expression) {
     if ( $error[0] ) { Write-Host "[$scriptName] `$error[0] = $error"; exit 3 }
 }
 
+# Create or reuse mount directory
+function mountWim ($media, $wimIndex, $mountDir) {
+	Write-Host "[$scriptName] Validate WIM source ${media}:${wimIndex} using Deployment Image Servicing and Management (DISM)"
+	executeExpression "dism /get-wiminfo /wimfile:$media"
+	Write-Host
+	Write-Host "[$scriptName] Mount to $mountDir using Deployment Image Servicing and Management (DISM)"
+	executeExpression "Dism /Mount-Image /ImageFile:$media /index:$wimIndex /MountDir:$mountDir /ReadOnly /Optimize /Quiet"
+}
+
 $scriptName = 'IIS.ps1'
 $configChoices = 'management or server'
 Write-Host
@@ -44,36 +53,27 @@ if (Test-Path "$env:windir\Logs\DISM\dism.log") {
 	Remove-Item "$env:windir\Logs\DISM\dism.log"
 }
 
-# If media is not found, install will attempt to download from windows update
+$defaultMount = 'C:\mountdir'
+
+Write-Host
 if ( Test-Path $media ) {
-	if ( $media -match ':' ) {
-		Write-Host "[$scriptName] Media path found, validate using Deployment Image Servicing and Management (DISM)"
-		executeExpression "dism /get-wiminfo /wimfile:$media"
-		Write-Host
-		if (Test-Path "C:\mountdir") {
-			Write-Host "[$scriptName] Mount directory (C:\mountdir) found, no action required"
-		} else {
-			executeExpression "mkdir C:\mountdir"
-		}
-		
-		if (Test-Path "C:\mountdir\Windows") {
-			Write-Host "[$scriptName] Windows directory (C:\mountdir\Windows) found, mount not attempted"
-		} else {
-			Write-Host "[$scriptName] Dism /Mount-Image /ImageFile:${media} /index:${wimIndex} /MountDir:C:\mountdir /ReadOnly /Optimize"
-			$dismResult = Dism /Mount-Image /ImageFile:${media} /index:${wimIndex} /MountDir:C:\mountdir /ReadOnly /Optimize
-			if ($dismResult -match 'Error:') {
-				Write-Host "[$scriptName]   ERROR_DISM_MOUNT"
-				Write-Host "[$scriptName]   `$dismResult = $dismResult"
-				Write-Host; executeExpression "Get-Content `'$env:windir\Logs\DISM\dism.log`' | select -Last 60"; Write-Host
-				exit 101
+	Write-Host "[$scriptName] Media path ($media) found"
+	if ($wimIndex) {
+		Write-Host "[$scriptName] Index ($wimIndex) passed, treating media as Windows Imaging Format (WIM)"
+		if ( Test-Path "$defaultMount" ) {
+			if ( Test-Path "$defaultMount\windows" ) {
+				Write-Host "[$scriptName] Default mount path found ($defaultMount\windows), found, mount not attempted."
 			} else {
-				Write-Host "[$scriptName]   `$dismResult = $dismResult"
+				mountWim "$media" "$wimIndex" '$defaultMount'
 			}
+		} else {
+			Write-Host "[$scriptName] Create default mount directory to $defaultMount"
+			mkdir $defaultMount
+			mountWim "$media" "$wimIndex" '$defaultMount'
 		}
-		$sourceOption = "/source:C:\mountdir\Windows /LimitAccess"
-		Write-Host "[$scriptName] Media verified and mounted, using source option $sourceOption"
+		$sourceOption = "/Source:$defaultMount\windows /LimitAccess /Quiet"
 	} else {
-		$sourceOption = "/source:$media /LimitAccess"
+		$sourceOption = "/Source:$media /LimitAccess /Quiet"
 		Write-Host "[$scriptName] Media path found, using source option $sourceOption"
 	}
 } else {
@@ -132,6 +132,11 @@ if ($configuration -eq 'management') {
 }
 
 executeExpression "`$process = Start-Process -FilePath `'net`' -ArgumentList `'start wmsvc`' $sessionControl"
+
+if ( Test-Path "$defaultMount\windows" ) {
+	Write-Host "[$scriptName] Dismount default mount path ($defaultMount)"
+	executeExpression "Dism /Unmount-Image /MountDir:$defaultMount /Discard /Quiet"
+}
 
 Write-Host
 Write-Host "[$scriptName] ---------- stop ----------"
