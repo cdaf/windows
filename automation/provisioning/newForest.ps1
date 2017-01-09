@@ -59,6 +59,8 @@ if ((gwmi win32_computersystem).partofdomain -eq $true) {
 	$currentDomain = $((gwmi win32_computersystem).domain)
 	if ($forest -eq $currentDomain) {
 	    write-host -fore Red "Host $(hostname) already a domain member of $currentDomain"
+		Write-Host
+		Write-Host "[$scriptName] ---------- stop ----------"
 		exit 0
 	} else {
 	    write-host -fore Red "Host $(hostname) already a domain member of a different domain $currentDomain"
