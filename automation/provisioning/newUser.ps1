@@ -1,10 +1,12 @@
+# Common expression logging and error handling function, copied, not referenced to ensure atomic process
 function executeExpression ($expression) {
+	$error.clear()
 	Write-Host "[$scriptName] $expression"
 	try {
 		Invoke-Expression $expression
-	    if(!$?) { exit 1 }
-	} catch { exit 2 }
-    if ( $error[0] ) { exit 3 }
+	    if(!$?) { Write-Host "[$scriptName] `$? = $?"; exit 1 }
+	} catch { echo $_.Exception|format-list -force; exit 2 }
+    if ( $error[0] ) { Write-Host "[$scriptName] `$error[0] = $error"; exit 3 }
 }
 
 $scriptName = 'newUser.ps1'
@@ -35,8 +37,10 @@ if ($TrustedForDelegation) {
 	$TrustedForDelegation = 'no'
     Write-Host "[$scriptName] TrustedForDelegation : $TrustedForDelegation (default, choices yes or no)"
 }
-
+ 
 if ((gwmi win32_computersystem).partofdomain -eq $true) {
+
+	Import-Module ActiveDirectory
 
 	Write-Host
 	Write-Host "[$scriptName] Add the new user, enabled with password"

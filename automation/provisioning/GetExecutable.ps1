@@ -1,10 +1,12 @@
+# Common expression logging and error handling function, copied, not referenced to ensure atomic process
 function executeExpression ($expression) {
+	$error.clear()
 	Write-Host "[$scriptName] $expression"
 	try {
 		Invoke-Expression $expression
-	    if(!$?) { exit 1 }
-	} catch { exit 2 }
-    if ( $error[0] ) { exit 3 }
+	    if(!$?) { Write-Host "[$scriptName] `$? = $?"; exit 1 }
+	} catch { echo $_.Exception|format-list -force; exit 2 }
+    if ( $error[0] ) { Write-Host "[$scriptName] `$error[0] = $error"; exit 3 }
 }
 
 $scriptName = 'GetExecutable.ps1'
@@ -34,19 +36,32 @@ if ($uri) {
     Write-Host "[$scriptName] uri      : $uri (default)"
 }
 
+$useCache = $args[3]
+if ($useCache) {
+    Write-Host "[$scriptName] useCache : $useCache"
+} else {
+	$useCache = 'yes'
+    Write-Host "[$scriptName] useCache : (not passed, default to Yes)"
+}
+
 if (!( Test-Path $mediaDir )) {
 	Write-Host "[$scriptName] mkdir $mediaDir"
 	mkdir $mediaDir
 }
 
+Write-Host
 $fullpath = $mediaDir + '\' + $exename
 if ( Test-Path $fullpath ) {
-	Write-Host "[scriptName.ps1] $fullpath exists, download not required"
+	if ($useCache -match 'yes') {
+		Write-Host "[$scriptName] $fullpath exists, download not required"
+	} else {
+		Write-Host "[$scriptName] $fullpath exist, but useCache set to $useCache, so replacing file..."
+		executeExpression "(New-Object System.Net.WebClient).DownloadFile(`'$uri`', `'$fullpath`')" 
+	}
 } else {
 
-	$webclient = new-object system.net.webclient
-	Write-Host "[$scriptName] $webclient.DownloadFile(`"$uri`", `"$fullpath`")"
-	$webclient.DownloadFile("$uri", "$fullpath")
+	executeExpression "(New-Object System.Net.WebClient).DownloadFile(`'$uri`', `'$fullpath`')" 
+
 }
 
 executeExpression "Copy-Item `'$fullpath`' `'$env:SYSTEMROOT`'"

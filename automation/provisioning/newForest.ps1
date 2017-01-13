@@ -55,11 +55,21 @@ if ($wimIndex) {
     Write-Host "[$scriptName] wimIndex : (not passed)"
 }
 
+# Cannot run interactive via remote PowerShell
+if ($env:interactive) {
+    Write-Host "[$scriptName] env:interactive : $env:interactive, run in current window"
+    $sessionControl = '-PassThru -Wait -NoNewWindow'
+} else {
+    $sessionControl = '-PassThru -Wait'
+}
+
 if ((gwmi win32_computersystem).partofdomain -eq $true) {
 	$currentDomain = $((gwmi win32_computersystem).domain)
 	if ($forest -eq $currentDomain) {
-	    write-host -fore Red "Host $(hostname) already a domain member of $currentDomain"
-		Write-Host
+	    Write-Host
+	    write-host "Host $(hostname) verified domain member of $currentDomain"
+	    write-host "This is normal in Vagrant run after reboot for the provisioner to re-run."
+	    Write-Host
 		Write-Host "[$scriptName] ---------- stop ----------"
 		exit 0
 	} else {
@@ -119,11 +129,22 @@ if ( Test-Path "$defaultMount\windows" ) {
 	executeExpression "Dism /Unmount-Image /MountDir:$defaultMount /Discard /Quiet"
 }
 
+# Do not use -NoRebootOnCompletion as it causes Vagrant to fail (raise_if_auth_error) after 
+#==> dc: Message        : You must restart this computer to complete the operation.
+#==> dc: Context        : DCPromo.General.4
+#==> dc: RebootRequired : True
+#==> dc: Status         : Success
+# Appears to be some sort of timeout, perhaps the promote does not allow session access until rebooted?
 Write-Host
 Write-Host "[$scriptName] Create the new Forest and convert this host into the FSMO Domain Controller"
 Write-Host
 $securePassword = ConvertTo-SecureString $password -asplaintext -force
-executeExpression "Install-ADDSForest -DomainName $forest -SafeModeAdministratorPassword `$securePassword -Force"
+executeExpression "Install-ADDSForest -Force -DomainName `"$forest`" -SafeModeAdministratorPassword `$securePassword"
+
+# Tried putting a sleep in, but reboot still triggered a Vagrant error
+# rescue in block in parse_header': HTTPClient::KeepAliveDisconnected: An existing connection was forcibly closed by the remote host. @ io_fillbuf - fd:3  (HTTPClient::KeepAliveDisconnected)
+#Write-Host "Start sleeping until reboot to prevent vagrant connection failures..."
+#executeExpression "Start-Sleep 180"
 
 Write-Host
 Write-Host "[$scriptName] ---------- stop ----------"

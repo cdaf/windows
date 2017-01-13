@@ -9,6 +9,15 @@ function executeExpression ($expression) {
     if ( $error[0] ) { Write-Host "[$scriptName] `$error[0] = $error"; exit 3 }
 }
 
+# Create or reuse mount directory
+function mountWim ($media, $wimIndex, $mountDir) {
+	Write-Host "[$scriptName] Validate WIM source ${media}:${wimIndex} using Deployment Image Servicing and Management (DISM)"
+	executeExpression "dism /get-wiminfo /wimfile:$media"
+	Write-Host
+	Write-Host "[$scriptName] Mount to $mountDir using Deployment Image Servicing and Management (DISM)"
+	executeExpression "Dism /Mount-Image /ImageFile:$media /index:$wimIndex /MountDir:$mountDir /ReadOnly /Optimize /Quiet"
+}
+
 $scriptName = 'dotNET.ps1'
 $versionChoices = '4.6.1, 4.5.2, 4.5.1, 4.0 or 3.5' 
 Write-Host
@@ -32,8 +41,7 @@ $wimIndex = $args[2]
 if ($wimIndex) {
     Write-Host "[$scriptName] wimIndex : $wimIndex"
 } else {
-	$wimIndex = '2'
-    Write-Host "[$scriptName] wimIndex : $wimIndex (default, Standard Edition)"
+    Write-Host "[$scriptName] wimIndex : (not supplied, use media directly)"
 }
 
 $mediaDir = $args[3]
@@ -78,46 +86,43 @@ switch ($version) {
 		$uri = 'https://download.microsoft.com/download/9/5/A/95A9616B-7A37-4AF6-BC36-D6EA96C8DAAE/' + $file
 	}
 	'3.5' {
-		$computer = "."
-		$sOS =Get-WmiObject -class Win32_OperatingSystem -computername $computer
-		foreach($sProperty in $sOS) {
-			if ( $sProperty.Caption -match '2008' ) {
-				Write-Host "[$scriptName] Cannot use installer on Win 7 or Server 2008, will try:"
-				$online = '/Online /Enable-Feature /FeatureName:NetFx3 /Norestart'
-				Write-Host "DISM $online"
-				try {
-					executeExpression "`$proc = Start-Process -FilePath 'DISM' -ArgumentList $online $sessionControl"
-				} catch {
-					Write-Host "[$scriptName] .NET 3.5 Install Exception : $_" -ForegroundColor Red
-					exit 200
-				}
-			}
-		}
-		
-		if (!($online)) {
-			if ($media) {
-				Write-Host "[$scriptName] Win 8.1 or Server 2012 or later, and media supplied, using Windows Server configuration"
 
-				if ( Test-Path $media ) {
-					if ( $media -match ':' ) {
-						Write-Host "[$scriptName] Media path found, validate using Deployment Image Servicing and Management (DISM)"
-						executeExpression "dism /get-wiminfo /wimfile:$media"
-						$online = "-Source WIM:${media}:${wimIndex}"
-						Write-Host "[$scriptName] Media verified, using source option $online"
+		$defaultMount = 'C:\mountdir'
+		
+		Write-Host
+		if ( Test-Path $media ) {
+			Write-Host "[$scriptName] Media path ($media) found"
+			if ($wimIndex) {
+				Write-Host "[$scriptName] Index ($wimIndex) passed, treating media as Windows Imaging Format (WIM)"
+				if ( Test-Path "$defaultMount" ) {
+					if ( Test-Path "$defaultMount\windows" ) {
+						Write-Host "[$scriptName] Default mount path found ($defaultMount\windows), found, mount not attempted."
 					} else {
-						$online = "-Source $media"
-						Write-Host "[$scriptName] Media path found, using source option $online"
+						mountWim "$media" "$wimIndex" "$defaultMount"
 					}
 				} else {
-				    Write-Host "[$scriptName] media path not found, will attempt to download from windows update."
+					Write-Host "[$scriptName] Create default mount directory to $defaultMount"
+					mkdir $defaultMount
+					mountWim "$media" "$wimIndex" "$defaultMount"
 				}
-				
-				executeExpression "Install-WindowsFeature -Name `'NET-Framework-Features`' $online"
+				$sourceOption = "/Source:$defaultMount\windows\WinSxS"
+			} else {
+				$sourceOption = "/Source:$media"
+				Write-Host "[$scriptName] Media path found, using source option $sourceOption"
 			}
+			
+			executeExpression "DISM /Online /Enable-Feature /FeatureName:NetFx3 /All /LimitAccess $sourceOption"
+
+			if ( Test-Path "$defaultMount\windows" ) {
+				Write-Host "[$scriptName] Dismount default mount path ($defaultMount)"
+				executeExpression "Dism /Unmount-Image /MountDir:$defaultMount /Discard /Quiet"
+			}
+
+		} else {
+		    Write-Host "[$scriptName] media path not found, will attempt to download and install from offline installer."
+			$file = 'dotnetfx35.exe'
+			$uri = 'https://download.microsoft.com/download/2/0/E/20E90413-712F-438C-988E-FDAA79A8AC3D/' + $file
 		}
-		
-		$file = 'dotnetfx35.exe'
-		$uri = 'https://download.microsoft.com/download/2/0/E/20E90413-712F-438C-988E-FDAA79A8AC3D/' + $file
 	}
     default {
 	    Write-Host "[$scriptName] version not supported, choices are $versionChoices"
@@ -125,7 +130,8 @@ switch ($version) {
     }
 }
 
-if (!($online)) {
+# Not installed via DISM, attempt to install using offline file
+if ($file) {
 
 	$fullpath = $mediaDir + '\' + $file
 	if ( Test-Path $fullpath -PathType Leaf) {

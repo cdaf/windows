@@ -1,15 +1,16 @@
+# Common expression logging and error handling function, copied, not referenced to ensure atomic process
 function executeExpression ($expression) {
+	$error.clear()
 	Write-Host "[$scriptName] $expression"
 	try {
 		Invoke-Expression $expression
-	    if(!$?) { exit 1 }
-	} catch { exit 2 }
-    if ( $error[0] ) { exit 3 }
+	    if(!$?) { Write-Host "[$scriptName] `$? = $?"; exit 1 }
+	} catch { echo $_.Exception|format-list -force; exit 2 }
+    if ( $error[0] ) { Write-Host "[$scriptName] `$error[0] = $error"; exit 3 }
 }
 
 $scriptName = 'VisualStudio.ps1'
-# VS2015 Enterprise   http://download.microsoft.com/download/1/2/1/1211d9dd-b504-47f2-90f2-20cb8b44e096/vs2015.2.ent_enu.iso
-# VS2013 Professional http://download.microsoft.com/download/F/2/E/F2EFF589-F7D7-478E-B3AB-15F412DA7DEB/vs2013.5_pro_enu.iso
+
 Write-Host
 Write-Host "[$scriptName] ---------- start ----------"
 $version = $args[0]
@@ -62,8 +63,8 @@ if ($version -eq '2010' ) {
 
 } else {
 
-	$executable = Get-ChildItem d:\ -Filter *.exe
-	$argList = @("/Q", "/S", "/LOG $env:TEMP\$executable.name.log", "/NoWeb", "/NoRefresh", "/Full")
+	$executable = Get-ChildItem $media -Filter *.exe
+	$argList = @("/Q", "/S", "/LOG $env:TEMP\$executable.log", "/NoWeb", "/NoRefresh", "/Full")
 	executeExpression "`$proc = Start-Process -FilePath `"$media$executable`" -ArgumentList `'$argList`' $sessionControl"
 
 }
