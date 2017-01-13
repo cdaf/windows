@@ -56,11 +56,11 @@ if ( Test-Path $fullpath ) {
 		Write-Host "[$scriptName] $fullpath exists, download not required"
 	} else {
 		Write-Host "[$scriptName] $fullpath exist, but useCache set to $useCache, so replacing file..."
-		executeExpression "(New-Object System.Net.WebClient).DownloadFile(`'$uri`', `'$fullpath`')" 
+		executeExpression "(New-Object System.Net.WebClient).DownloadFile(`$uri, `$fullpath)" 
 	}
 } else {
 
-	executeExpression "(New-Object System.Net.WebClient).DownloadFile(`'$uri`', `'$fullpath`')" 
+	executeExpression "(New-Object System.Net.WebClient).DownloadFile(`$uri, `$fullpath)" 
 
 }
 
