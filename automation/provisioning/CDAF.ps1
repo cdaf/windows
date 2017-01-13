@@ -58,8 +58,8 @@ if ($userName) {
 	$cred = New-Object System.Management.Automation.PSCredential ($userName, $securePassword)
 
 	Write-Host "[$scriptName] Execute as $userName using workspace ($workspace)"
-	executeExpression "Invoke-Command -ComputerName localhost -Credential `$cred -ScriptBlock { `"whoami; cd $workspace; .\automation\cdEmulate.bat $OPT_ARG`" } "
-	executeExpression "Invoke-Command -ComputerName localhost -Credential `$cred -ScriptBlock { `"cd $workspace; .\automation\cdEmulate.bat clean`" } "
+	executeExpression "Invoke-Command -ComputerName localhost -Credential `$cred -ScriptBlock { cd $workspace; .\automation\cdEmulate.bat $OPT_ARG }"
+	executeExpression "Invoke-Command -ComputerName localhost -Credential `$cred -ScriptBlock { cd $workspace; .\automation\cdEmulate.bat clean }"
 
 } else {
 
