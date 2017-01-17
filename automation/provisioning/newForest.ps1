@@ -129,22 +129,32 @@ if ( Test-Path "$defaultMount\windows" ) {
 	executeExpression "Dism /Unmount-Image /MountDir:$defaultMount /Discard /Quiet"
 }
 
-# Do not use -NoRebootOnCompletion as it causes Vagrant to fail (raise_if_auth_error) after 
-#==> dc: Message        : You must restart this computer to complete the operation.
-#==> dc: Context        : DCPromo.General.4
-#==> dc: RebootRequired : True
-#==> dc: Status         : Success
-# Appears to be some sort of timeout, perhaps the promote does not allow session access until rebooted?
+# from https://github.com/mitchellh/vagrant/issues/6430
+# Add to the Vagrantfile 
+#   override.winrm.retry_limit = 60
+#   override.winrm.retry_delay = 10
+
+# https://github.com/rgl/windows-domain-controller-vagrant/blob/master/provision/domain-controller.ps1
+#   Do not use -NoRebootOnCompletion as it causes Vagrant to fail (raise_if_auth_error) after 
+#   ==> dc: Message        : You must restart this computer to complete the operation.
+#   ==> dc: Context        : DCPromo.General.4
+#   ==> dc: RebootRequired : True
+#   ==> dc: Status         : Success
+
 Write-Host
 Write-Host "[$scriptName] Create the new Forest and convert this host into the FSMO Domain Controller"
 Write-Host
 $securePassword = ConvertTo-SecureString $password -asplaintext -force
 executeExpression "Install-ADDSForest -Force -DomainName `"$forest`" -SafeModeAdministratorPassword `$securePassword"
 
-# Tried putting a sleep in, but reboot still triggered a Vagrant error
-# rescue in block in parse_header': HTTPClient::KeepAliveDisconnected: An existing connection was forcibly closed by the remote host. @ io_fillbuf - fd:3  (HTTPClient::KeepAliveDisconnected)
-#Write-Host "Start sleeping until reboot to prevent vagrant connection failures..."
-#executeExpression "Start-Sleep 180"
+# https://github.com/dbroeglin/windows-lab/blob/master/provision/02_install_forest.ps1
+#   Tried putting a sleep in, but reboot still triggered a Vagrant error
+#   rescue in block in parse_header': HTTPClient::KeepAliveDisconnected: An existing connection was forcibly closed by the remote host. @ io_fillbuf - fd:3  (HTTPClient::KeepAliveDisconnected)
+#   Write-Host "Start sleeping until reboot to prevent vagrant connection failures..."
+#   executeExpression "Start-Sleep 180"
+
+# https://groups.google.com/forum/#!topic/vagrant-up/JNMOCYpHSt8
+#   This attempt using chef_solo also appears to fail with the same problem.
 
 Write-Host
 Write-Host "[$scriptName] ---------- stop ----------"
