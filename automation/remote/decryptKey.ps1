@@ -11,6 +11,10 @@ if ($thumbprint) {
 	# If a thumbprint is passed, decrypt file using RSA certificate
 	try {
 	    $object = Import-Clixml -Path $encryptedFile
+		if (! $object) {
+		    Write-Host "[$scriptName] Unable to Import-Clixml $encryptedFile! Exit Code 102."
+		    exit 102
+		}
 	    $cert = Get-Item -Path Cert:\CurrentUser\My\$thumbprint -ErrorAction Stop
 		if (! $cert) {
 		    Write-Host "[$scriptName] Unable to open certificate Cert:\CurrentUser\My\$thumbprint"
