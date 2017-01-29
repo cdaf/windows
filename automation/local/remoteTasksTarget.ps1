@@ -34,13 +34,17 @@ write-host "[$scriptName]   decryptThb = $decryptThb"
 # Create a reusable Remote PowerShell session handler
 # If remote user specifified, build the credentials object from name and encrypted password file
 if ($remoteUser) {
-	if ($decryptThb) {
-		$userpass = & .\${WORK_DIR_DEFAULT}\decryptKey.ps1 .\${WORK_DIR_DEFAULT}\cryptLocal\$remoteCred $decryptThb
-	    $password = ConvertTo-SecureString $userpass -asplaintext -force
-	} else {
-		$password = get-content $remoteCred | convertto-securestring
+	try {
+		if ($decryptThb) {
+			$userpass = & .\${WORK_DIR_DEFAULT}\decryptKey.ps1 .\${WORK_DIR_DEFAULT}\cryptLocal\$remoteCred $decryptThb
+		    $password = ConvertTo-SecureString $userpass -asplaintext -force
+		} else {
+			$password = get-content $remoteCred | convertto-securestring
+		}
+		$cred = New-Object System.Management.Automation.PSCredential ($remoteUser, $password )
+	} catch {
+		taskException "REMOTE_TASK_DECRYPT" $_
 	}
-	$cred = New-Object System.Management.Automation.PSCredential ($remoteUser, $password )
 }
 
 # Initialise the session handle

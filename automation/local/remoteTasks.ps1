@@ -54,7 +54,7 @@ if (-not(Test-Path $WORK_DIR_DEFAULT\$remoteProperties)) {
 		try {
 			& .\$WORK_DIR_DEFAULT\remoteTasksTarget.ps1 $ENVIRONMENT $SOLUTION $BUILDNUMBER $propFilename $WORK_DIR_DEFAULT
 			if(!$?){ taskWarning }
-		} catch { taskFailure "$propFilename" }
+		} catch { taskFailure $_ }
 		Write-Host
 		write-host "[$scriptName]   --- Completed Target $propFilename --- " -ForegroundColor Green
 		Write-Host
