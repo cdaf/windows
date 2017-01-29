@@ -41,9 +41,8 @@ if ($thumbprint) {
 		if (! $cert) {
 		    throwError "DECRYPT_KEY_104" "Unable to decrypt using private key."
 		}
-		Write-Host "[$scriptName] `$key = $key"
+		# Write-Host "[$scriptName] `$key = $key"
 	    $retrievedString = $object.Payload | ConvertTo-SecureString -Key $key
-		Write-Host "[$scriptName] `$retrievedString = $retrievedString"
 		$plain = [Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR($retrievedString))
 	} catch {
 		throw
