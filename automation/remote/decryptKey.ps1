@@ -34,7 +34,8 @@ if ($thumbprint) {
 		    throwError "DECRYPT_KEY_103" "Unable to open certificate Cert:\CurrentUser\My\$thumbprint"
 		}
 		if (! $cert.PrivateKey) {
-		    throwError "DECRYPT_KEY_106" "Unable open private key for certificate Cert:\CurrentUser\My\$thumbprint"
+			Write-Host "[$scriptName] Are you running as administrator? Elevation is required to retrieve private key!"
+		    throwError "DECRYPT_KEY_106" "Unable to open private key for certificate Cert:\CurrentUser\My\$thumbprint"
 		}
 		# Write-Host "[$scriptName] `$object = $object"
 	    $key = $cert.PrivateKey.Decrypt($object.Key, $true)
