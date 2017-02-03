@@ -10,21 +10,21 @@ function exitWithCode($taskName) {
     exit
 }
 
-function pathTest ($pathToTest) { 
-	if ( Test-Path $pathToTest ) {
-		Write-Host "found ($pathToTest)"
-	} else {
-		Write-Host "none ($pathToTest)"
-	}
+function pathTest ($pathToTest) {
+    if ( Test-Path $pathToTest ) {
+        Write-Host "found ($pathToTest)"
+    } else {
+        Write-Host "none ($pathToTest)"
+    }
 }
 
 function isFilePath ($path)
 {
-	$tokens = $path.split('\');
-	$finalToken = $tokens[$tokens.Count - 1];
-    
+    $tokens = $path.split('\');
+    $finalToken = $tokens[$tokens.Count - 1];
+
     if ($finalToken.Contains('.'))
-    {        
+    {
         return $true;
     }
     else
@@ -39,8 +39,8 @@ if (-not($REVISION)) {exitWithCode REVISION_NOT_SET }
 if (-not($AUTOMATIONROOT)) {exitWithCode AUTOMATIONROOT_NOT_SET }
 if (-not($SOLUTIONROOT)) {exitWithCode SOLUTIONROOT_NOT_SET }
 if (-not($ENVIRONMENT)) {
-	$ENVIRONMENT = "PACKAGE"
-	Write-Host "[$scriptName]   Environment not passed, defaulted to $ENVIRONMENT" 
+    $ENVIRONMENT = "PACKAGE"
+    Write-Host "[$scriptName]   Environment not passed, defaulted to $ENVIRONMENT"
 }
 
 $scriptName = $MyInvocation.MyCommand.Name
@@ -55,7 +55,7 @@ if (-not $ARTIFACT_WORKBENCH)
     $ARTIFACT_WORKBENCH = 'artifacts';
 }
 
-$artifactListFile=".\$AUTOMATIONROOT\solution\storeForArtifact"
+$artifactListFile=".\$SOLUTIONROOT\storeForArtifact"
 $DTSTAMP = Get-Date
 $typeDirectory = 'Directory';
 $typeFile = 'File';
@@ -67,32 +67,31 @@ write-host "[$scriptName]   --- Building Artifact Store ---" -ForegroundColor Gr
 
 if ($ACTION -eq 'Clean')
 {
-  
-    if ( Test-Path $ARTIFACT_WORKBENCH )
+    if ( Test-Path $ARTIFACT_WORKBENCH -Verbose )
     {
-		Remove-Item $ARTIFACT_WORKBENCH -Recurse
-		if(!$?) {exitWithCode "Remove-Item $ARTIFACT_WORKBENCH -Recurse" }
-	}
+        Remove-Item $ARTIFACT_WORKBENCH -Recurse
+        if(!$?) {exitWithCode "Remove-Item $ARTIFACT_WORKBENCH -Recurse" }
+    }
 
     write-host
     write-host "[$scriptName]   --- Artifact Store Cleanup Complete ---" -ForegroundColor Green
 }
 else
 {
-    
+
     if ( Test-Path $ARTIFACT_WORKBENCH )
     {
-		Remove-Item $ARTIFACT_WORKBENCH -Recurse;
-		if(!$?) {exitWithCode "Remove-Item $ARTIFACT_WORKBENCH -Recurse" }
-	}
-        
-    write-host –NoNewLine "[$scriptName] Artifact List: " 
+        Remove-Item $ARTIFACT_WORKBENCH -Recurse;
+        if(!$?) {exitWithCode "Remove-Item $ARTIFACT_WORKBENCH -Recurse" }
+    }
+
+    write-host –NoNewLine "[$scriptName] Artifact List: "
     pathTest $artifactListFile
-    
+
     # Create the workspace directory
     New-Item $ARTIFACT_WORKBENCH -type directory > $null
     if(!$?){ exitWithCode ("New-Item $ARTIFACT_WORKBENCH -type directory > $null") }
-        
+
     # Copy artifacts if list file exists
     if ( Test-Path $artifactListFile )
     {
@@ -102,14 +101,14 @@ else
 
         if ($artifactList.Length -le 0)
         {
-	        Write-Host
-	        Write-Host "[$scriptName] Artifact List File ($artifactListFile) exists but has no content. No files will be moved to $ARTIFACT_WORKBENCH" -ForegroundColor Yellow
+            Write-Host
+            Write-Host "[$scriptName] Artifact List File ($artifactListFile) exists but has no content. No files will be moved to $ARTIFACT_WORKBENCH" -ForegroundColor Yellow
         }
         else
         {
-            Write-Host            
+            Write-Host
 
-            foreach ($artifactItem in $artifactList)            
+            foreach ($artifactItem in $artifactList)
             {
                 if (-not $artifactItem)
                 {
@@ -132,23 +131,53 @@ else
                 $artifactOptions = $artifactItem.Split("|");
 
                 $artifactFile = $artifactOptions[0].Trim();
-                
+
+                if ($artifactFile.EndsWith(' -d'))
+                {
+                    $artifactType = $typeDirectory;
+                    $artifactFile = $artifactFile.Substring(0, $artifactFile.Length - 3);
+                }
+                elseif ($artifactFile.EndsWith(' -f'))
+                {
+                    $artifactType = $typeFile;
+                    $artifactFile = $artifactFile.Substring(0, $artifactFile.Length - 3);
+                }
+                elseif (isFilePath($artifactFile))
+                {
+                    $artifactType = $typeFile;
+                }
+                else
+                {
+                    $artifactType = $typeDirectory;
+                }
+
                 if ($artifactOptions.Length -ge 2)
                 {
                     $target = $artifactOptions[1].Trim();
+
+                    if ($target.EndsWith(' -d'))
+                    {
+                        $targetType = $typeDirectory;
+                        $target = $target.Substring(0, $target.Length - 3);
+                    }
+                    elseif ($target.EndsWith(' -f'))
+                    {
+                        $targetType = $typeFile;
+                        $target = $target.Substring(0, $target.Length - 3);
+                    }
+                    elseif (isFilePath($target))
+                    {
+                        $targetType = $typeFile;
+                    }
+                    else
+                    {
+                        $targetType = $typeDirectory;
+                    }
                 }
                 else
                 {
                     $target = $null;
-                }
-
-                if ($artifactOptions.Length -ge 3)
-                {
-                    $typeTarget = $artifactOptions[3].Trim();
-                }
-                else
-                {
-                    $typeTarget = $null;
+                    $targetType = $null;
                 }
 
                 if (-not $target)
@@ -159,42 +188,21 @@ else
                 {
                     $targetPath = "$ARTIFACT_WORKBENCH\$target";
                 }
-                
-                if ($typeTarget -eq $null)
-                {
-                    if (isFilePath($targetPath))
-                    {
-                        $typeTarget = $typeFile;
-                    }
-                    else
-                    {
-                        $typeTarget = $typeDirectory;
-                    }
-                }
 
-                if (isFilePath($artifactFile))
-                {
-                    $typeArtifact = $typeFile;
-                }
-                else
-                {
-                    $typeArtifact = $typeDirectory;
-                }
-                
-                Write-Host "[$scriptName] $artifactFile ($typeArtifact) -> $targetPath ($typeTarget)";
+                Write-Host "[$scriptName] $artifactFile ($artifactType) -> $targetPath ($targetType)";
 
-                if (($artifactFile.StartsWith($ARTIFACT_WORKBENCH)) -and ($typeArtifact -eq $typeDirectory))
+                if (($artifactFile.StartsWith($ARTIFACT_WORKBENCH)) -and ($artifactType -eq $typeDirectory))
                 {
                     # A subdirectory of the $ARTIFACT_WORKBENCH has been submitted. This indicates we should
                     # zip the listed subdirectory and store it in the $targetPath.
-                    
+
                     # New-item to create any required directories.
-                    New-Item $targetPath -Force -ItemType $typeTarget > $null;
-		            if(!$?){ exitWithCode ("New-Item $targetPath -Force -ItemType $typeTarget") }
+                    New-Item $targetPath -Force -ItemType $targetType > $null;
+                    if(!$?){ exitWithCode ("New-Item $targetPath -Force -ItemType $targetType") }
 
                     # Now remove the zip file itself to make room for 7zip.
                     Remove-Item $targetPath -Force > $null
-		            if(!$?){ exitWithCode ("New-Item $targetPath -Force -ItemType $typeTarget") }
+                    if(!$?){ exitWithCode ("New-Item $targetPath -Force -ItemType $targetType") }
 
                     # Now we can actually build and invoke the Zip Command.
                     $fullPath = Convert-Path $artifactFile;
@@ -202,29 +210,29 @@ else
 
                     Write-Host "[$scriptName] $zipCommand" -ForegroundColor Cyan;
                     Invoke-Expression $zipCommand;
-		            if(!$?){ exitWithCode ("Invoke-Expression $zipCommand") }
+                    if(!$?){ exitWithCode ("Invoke-Expression $zipCommand") }
                 }
                 else
                 {
-                    New-Item $targetPath -Force -ItemType $typeTarget > $null;
-		            if(!$?){ exitWithCode ("New-Item $targetPath -Force -ItemType $typeTarget") }
+                    New-Item $targetPath -Force -ItemType $targetType > $null;
+                    if(!$?){ exitWithCode ("New-Item $targetPath -Force -ItemType $targetType") }
 
-                    Copy-Item $artifactFile -Destination $targetPath -Recurse -Force;
-		            if(!$?){ exitWithCode ("Copy-Item $artifactFile -Destination $targetPath -Recurse -Force") }
+                    Copy-Item $artifactFile -Destination $targetPath -Recurse -Force -Verbose;
+                    if(!$?){ exitWithCode ("Copy-Item $artifactFile -Destination $targetPath -Recurse -Force") }
                 }
             }
 
             if (-not $hasItems)
-            {            
-	            Write-Host
-	            Write-Host "[$scriptName] Artifact List File ($artifactListFile) exists but contains no items. No files will be moved to $ARTIFACT_WORKBENCH" -ForegroundColor Yellow
+            {
+                Write-Host
+                Write-Host "[$scriptName] Artifact List File ($artifactListFile) exists but contains no items. No files will be moved to $ARTIFACT_WORKBENCH" -ForegroundColor Yellow
             }
         }
     }
     else
     {
-	    Write-Host
-	    Write-Host "[$scriptName] Artifact List File ($artifactListFile) does not exist. No files will be moved to $ARTIFACT_WORKBENCH" -ForegroundColor Yellow
+        Write-Host
+        Write-Host "[$scriptName] Artifact List File ($artifactListFile) does not exist. No files will be moved to $ARTIFACT_WORKBENCH" -ForegroundColor Yellow
     }
 
     write-host

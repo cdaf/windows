@@ -1,0 +1,48 @@
+# StoreForArtifact
+#    Comments begin with # and will be ignored.
+#    Section Labels begin with [ and will be ignored.
+#    Empty lines will be ignored.
+#    
+# To copy an artifact to the artifacts root directory, simply list it as follows:
+#    <MY_PROJECT_DIRECTORY>\bin\Release\MyArtifactFile.exe
+#
+# To copy an artifact to the artifacts root directory and perform a rename, include the
+# filename after the pipe.
+#    <MY_PROJECT_DIRECTORY>\bin\Release\MyArtifactFile.exe | MyRenamedFile.exe
+#
+# To copy an artifact to a specific sub-directory under the artifacts root directory,
+# use a pipe seperator to indicate the sub-directory.
+#    <MY_PROJECT_DIRECTORY>\bin\Release\MyArtifactFile.exe | binaries
+#
+# To copy an artifact to a specific sub-directory under the artifacts root directory
+# AND perform a rename, include the filename after the sub-directory.
+#    <MY_PROJECT_DIRECTORY>\bin\Release\MyArtifactFile.exe | binaries\MyRenamedFile.exe
+#
+# Wildcards may be used when copying files. To copy files from a target directory based
+# on wildcards, just specify the pattern in the source side.
+#    <MY_PROJECT_DIRECTORY>\bin\Release\*     | binaries\Release
+#    <MY_PROJECT_DIRECTORY>\bin\Release\*.dll | binaries\ReleaseDLLs
+#
+# To zip a directory under the artifact workbench (or the workbench itself) simply pass
+# in that value as below. This will place a bin.zip under ARTIFACT_WORKBENCH
+#    <ARTIFACT_WORKBENCH>\bin
+#
+# To zip a directory under the artifact workbench (or the workbench itself) and specify
+# an output directory (and optionally, a filename) use the following entry format.
+#    <MY_ARTIFACT_WORKBENCH>\bin | zips\binaries.zip
+#
+# By default, the filename will be analyzed to determine if the submitted name should be
+# handled as a directory or as a file based on the presence of a period in the name. In
+# the case of a directory that has periods, or a file that lacks an extension, this default
+# behavior will fail. To override the default and explicitly state whether or not a file
+# is a directory or a file, add a suffix of -d or -f to the end of the path.
+#    <MY_PROJECT_DIRECTORY>\obj\Release\Package\PackageTmp\* -d | <MY_PROJECT_NAME> -d
+#    <MY_ARTIFACT_WORKBENCH>\<MY_PROJECT_NAME> -d | zips\<MY_PROJECT_NAME>.zip -f
+#
+# All values will be trimmed before being used in the application, so use whitespace as desired.
+
+[PROJECT_LABEL]
+<MY_PROJECT_DIRECTORY>\obj\Release\Package\PackageTmp\* -d | <MY_PROJECT_NAME> -d
+
+[zips]
+artifacts\<MY_PROJECT_NAME> -d | zips\<MY_PROJECT_NAME>.zip -f
