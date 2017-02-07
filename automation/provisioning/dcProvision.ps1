@@ -1,12 +1,23 @@
 # Common expression logging and error handling function, copied, not referenced to ensure atomic process
 function executeExpression ($expression) {
-	$error.clear()
-	Write-Host "[$scriptName] $expression"
-	try {
-		Invoke-Expression $expression
-	    if(!$?) { Write-Host "[$scriptName] `$? = $?"; exit 1 }
-	} catch { echo $_.Exception|format-list -force; exit 2 }
-    if ( $error[0] ) { Write-Host "[$scriptName] `$error[0] = $error"; exit 3 }
+	$wait = 10
+	$retryMax = 30
+	$retryCount = 0
+	while (( $retryCount -lt $retryMax ) -and ($exitCode -ne 0)) {
+		$exitCode = 0
+		$error.clear()
+		Write-Host "[$scriptName][$retryCount] $expression"
+		try {
+			Invoke-Expression $expression
+		    if(!$?) { Write-Host "[$scriptName] `$? = $?"; $exitCode = 1 }
+		} catch { echo $_.Exception|format-list -force; $exitCode = 2 }
+	    if ( $error[0] ) { Write-Host "[$scriptName] `$error[0] = $error"; $exitCode = 3 }
+	    if ($exitCode -gt 0) {
+			$retryCount += 1
+			Write-Host "[$scriptName] Wait $wait seconds, then retry $retryCount of $retryMax"
+			sleep $wait
+		}
+    }
 }
 
 # This script is combined with the following in the Vagrantfile to offload the DC provisioning to this wrapper
@@ -32,10 +43,10 @@ $argument2 = $args[2]
 Write-Host "[$scriptName] argument2     : $argument2"
 
 $workDir = $(pwd)
+
 executeExpression "cd dc-provisioning"
 
-Write-Host "[$scriptName] vagrant $vagrantAction $argument1 $argument2 (ignore failures)"
-vagrant $vagrantAction $argument1 $argument2
+executeExpression "vagrant $vagrantAction $argument1 $argument2"
 
 if ($vagrantAction -eq 'up') {
 	if ((! $argument1) -or ($argument1 -eq 'dc')) {
