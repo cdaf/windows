@@ -2,30 +2,41 @@ Write-Host
 Write-Host "[winrmtest.ps1] ---------- start ----------"
 Write-Host
 
-if ( $args[0] ) {
-	$vmHost = $args[0]
+$vmHost = $args[0]
+if ( $vmHost ) {
 	Write-Host "[winrmtest.ps1] vmHost          : $vmHost"
 } else {
 	Write-Host "[winrmtest.ps1] VM host not passed, exit with error code 100."; exit 100
 }
-if ( $args[1] ) {
-	$username = $args[1]
+
+$username = $args[1]
+if ( $username ) {
 	Write-Host "[winrmtest.ps1] username        : $username"
 } else {
 	Write-Host "[winrmtest.ps1] Username not passed, exit with error code 101."; exit 101
 }
 
-if ( $args[2] ) {
-	$userpass = $args[2]
+$userpass = $args[2]
+if ( $userpass ) {
 	Write-Host "[winrmtest.ps1] userpass        : ***********"
 } else {
 	Write-Host "[winrmtest.ps1] Password not passed, exit with error code 102."; exit 102
 }
 
-if ( $args[3] ) {
-	$successRequired = $args[3]
+$successRequired = $args[3]
+if ( $successRequired ) {
+	Write-Host "[winrmtest.ps1] successRequired : $successRequired"
 } else {
 	$successRequired = 2
+	Write-Host "[winrmtest.ps1] successRequired : $successRequired (default)"
+}
+
+$retries = $args[4]
+if ( $retries ) {
+	Write-Host "[winrmtest.ps1] retries         : $retries"
+} else {
+	$retries = 5
+	Write-Host "[winrmtest.ps1] retries         : $retries (default)"
 }
 
 Write-Host "[winrmtest.ps1] successRequired : $successRequired"
@@ -42,7 +53,6 @@ try {
 $securePassword = ConvertTo-SecureString $userpass -asplaintext -force
 $cred = New-Object System.Management.Automation.PSCredential ($username, $securePassword)
 $i = 0
-$count = 20
 $timeout = 60
 $successCount = 0
 do {
@@ -61,16 +71,16 @@ do {
 	
 	if ($successCount -lt $successRequired) {
 		$i++
-		if ( $i -le $count) {
-			Write-Host "[winrmtest.ps1] Success count $successCount/$successRequired, retry WinRM ($i/$count) wait $timeout seconds before retry ..."
+		if ( $i -le $retries) {
+			Write-Host "[winrmtest.ps1] Success count $successCount/$successRequired, retry WinRM ($i/$retries) wait $timeout seconds before retry ..."
 			sleep $timeout
 		} else {
-			Write-Host "[winrmtest.ps1] WinRM Connection failed after $count tries, exit with error code 201"
+			Write-Host "[winrmtest.ps1] WinRM Connection failed after $retries tries, exit with error code 201"
 			exit 201
 		}
 	}
 } # End of 'Do'
-until (( $i -gt $count) -or ($successCount -ge $successRequired))
+until (( $i -gt $retries) -or ($successCount -ge $successRequired))
 if ($successCount -ge $successRequired) {
 	Write-Host "[winrmtest.ps1] Success count $successCount/$successRequired."
 }

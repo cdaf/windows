@@ -25,7 +25,7 @@ function vagrantUpRetry ($expression) {
 	    if ( $error[0] ) { Write-Host "[$scriptName] `$error[0] = $error"; $exitCode = 3 }
 
 	    # Specialised test for Vagrant
-		$vagrantStatus = $(cmd /c vagrant status dc 2`>`&1)
+		$vagrantStatus = $(& cmd /c vagrant status dc 2`>`&1)
 		Write-Host "[$scriptName][$retryCount] `$vagrantStatus = $vagrantStatus"
 		$array = $vagrantStatus.split([Environment]::NewLine)
 		$status = $array[2].split(" ")
