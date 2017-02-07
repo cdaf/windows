@@ -26,6 +26,7 @@ function vagrantUpRetry ($expression) {
 
 	    # Specialised test for Vagrant
 		$vagrantStatus = cmd /c vagrant status dc 2`>`&1
+		Write-Host "[$scriptName][$retryCount] `$vagrantStatus = $vagrantStatus"
 		$array = $vagrantStatus.split([Environment]::NewLine)
 		$status = $array[2].split(" ")
 		$status[24]
