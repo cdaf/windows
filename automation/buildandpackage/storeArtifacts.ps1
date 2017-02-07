@@ -106,8 +106,6 @@ else
         }
         else
         {
-            Write-Host
-
             foreach ($artifactItem in $artifactList)
             {
                 if (-not $artifactItem)
@@ -120,8 +118,15 @@ else
                     continue;
                 }
 
-                if (($artifactItem.StartsWith("[")) -or ($artifactItem.StartsWith("#")))
+                if ($artifactItem.StartsWith("#"))
                 {
+                    continue;
+                }
+
+                if ($artifactItem.StartsWith("["))
+                {
+                    Write-Host
+                    Write-Host "[$scriptName] Group: $artifactItem" -ForegroundColor Cyan                    
                     continue;
                 }
 
