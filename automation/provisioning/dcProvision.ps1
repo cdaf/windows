@@ -25,7 +25,8 @@ function vagrantUpRetry ($expression) {
 	    if ( $error[0] ) { Write-Host "[$scriptName] `$error[0] = $error"; $exitCode = 3 }
 
 	    # Specialised test for Vagrant
-		$array = $versionTest.split([Environment]::NewLine)
+		$vagrantStatus = cmd /c vagrant status dc 2`>`&1
+		$array = $vagrantStatus.split([Environment]::NewLine)
 		$status = $array[2].split(" ")
 		$status[24]
 		if ($vagrantAction -eq 'not') {
@@ -68,9 +69,9 @@ executeExpression "cd dc-provisioning"
 
 if ($vagrantAction -eq 'up') {
 
-	vagrantUpRetry "vagrant $vagrantAction $argument1 $argument2"
-
 	if ((! $argument1) -or ($argument1 -eq 'dc')) {
+		vagrantUpRetry "vagrant $vagrantAction $argument1 $argument2"
+
 		executeExpression "../automation/provisioning/winrmtest.ps1 172.16.17.102 vagrant vagrant"
 		vagrant powershell dc -c "/automation/provisioning/newUser.ps1 deployer swUwe5aG yes"
 		vagrant powershell dc -c "/automation/provisioning/newUser.ps1 sqlData p4ssWord! yes"
