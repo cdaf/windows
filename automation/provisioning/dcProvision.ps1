@@ -1,7 +1,18 @@
 # Common expression logging and error handling function, copied, not referenced to ensure atomic process
 function executeExpression ($expression) {
+	$error.clear()
+	Write-Host "[$scriptName] $expression"
+	try {
+		Invoke-Expression $expression
+	    if(!$?) { Write-Host "[$scriptName] `$? = $?"; exit 1 }
+	} catch { echo $_.Exception|format-list -force; exit 2 }
+    if ( $error[0] ) { Write-Host "[$scriptName] `$error[0] = $error"; exit 3 }
+}
+
+# Retry Logic for Vagrant up only
+function vagrantUpRetry ($expression) {
 	$wait = 10
-	$retryMax = 30
+	$retryMax = 10
 	$retryCount = 0
 	while (( $retryCount -lt $retryMax ) -and ($exitCode -ne 0)) {
 		$exitCode = 0
@@ -12,6 +23,15 @@ function executeExpression ($expression) {
 		    if(!$?) { Write-Host "[$scriptName] `$? = $?"; $exitCode = 1 }
 		} catch { echo $_.Exception|format-list -force; $exitCode = 2 }
 	    if ( $error[0] ) { Write-Host "[$scriptName] `$error[0] = $error"; $exitCode = 3 }
+
+	    # Specialised test for Vagrant
+		$array = $versionTest.split([Environment]::NewLine)
+		$status = $array[2].split(" ")
+		$status[24]
+		if ($vagrantAction -eq 'not') {
+			$exitCode = 4
+		}
+
 	    if ($exitCode -gt 0) {
 			$retryCount += 1
 			Write-Host "[$scriptName] Wait $wait seconds, then retry $retryCount of $retryMax"
@@ -46,9 +66,10 @@ $workDir = $(pwd)
 
 executeExpression "cd dc-provisioning"
 
-executeExpression "vagrant $vagrantAction $argument1 $argument2"
-
 if ($vagrantAction -eq 'up') {
+
+	vagrantUpRetry "vagrant $vagrantAction $argument1 $argument2"
+
 	if ((! $argument1) -or ($argument1 -eq 'dc')) {
 		executeExpression "../automation/provisioning/winrmtest.ps1 172.16.17.102 vagrant vagrant"
 		vagrant powershell dc -c "/automation/provisioning/newUser.ps1 deployer swUwe5aG yes"
@@ -62,6 +83,8 @@ if ($vagrantAction -eq 'up') {
 	} else {
 		Write-Host "[$scriptName] vagrantAction is up, but $argument1 is not dc or empty, so no action attempted."
 	}
+} else {
+	executeExpression "vagrant $vagrantAction $argument1 $argument2"
 }
 
 executeExpression "cd $workDir"
