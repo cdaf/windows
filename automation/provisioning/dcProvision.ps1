@@ -39,7 +39,7 @@ if ($vagrantAction -eq 'up') {
 
 	if ((! $argument1) -or ($argument1 -eq 'dc')) {
 
-		cat Vagrantfile
+		executeExpression "cat Vagrantfile"
 		
 		executeExpression "vagrant $vagrantAction $argument1 $argument2"
 		executeExpression "vagrant $vagrantAction $argument1 $argument2"
