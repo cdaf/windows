@@ -26,33 +26,44 @@ Write-Host "[$scriptName] New Active Directory Forest, requires Windows Server 2
 Write-Host
 $forest = $args[0]
 if ($forest) {
-    Write-Host "[$scriptName] forest   : $forest"
+    Write-Host "[$scriptName] forest        : $forest"
 } else {
 	$forest = 'sky.net'
-    Write-Host "[$scriptName] forest   : $forest (default)"
+    Write-Host "[$scriptName] forest        : $forest (default)"
 }
 
 $password = $args[1]
 if ($password) {
-    Write-Host "[$scriptName] password : ********** "
+    Write-Host "[$scriptName] password      : ********** "
 } else {
 	$password = 'Puwreyu5Asegucacr6za'
-    Write-Host "[$scriptName] password : ********** (default)"
+    Write-Host "[$scriptName] password      : ********** (default)"
 }
 
 $media = $args[2]
 if ($media) {
-    Write-Host "[$scriptName] media    : $media"
+    Write-Host "[$scriptName] media         : $media"
 } else {
 	$media = 'C:\.provision\install.wim'
-    Write-Host "[$scriptName] media    : $media (default)"
+    Write-Host "[$scriptName] media         : $media (default)"
 }
 
 $wimIndex = $args[3]
 if ($wimIndex) {
-    Write-Host "[$scriptName] wimIndex : $wimIndex"
+    Write-Host "[$scriptName] wimIndex      : $wimIndex"
 } else {
-    Write-Host "[$scriptName] wimIndex : (not passed)"
+    Write-Host "[$scriptName] wimIndex      : (not passed)"
+}
+
+$controlReboot = $args[4]
+if ($controlReboot) {
+    Write-Host "[$scriptName] controlReboot : $controlReboot"
+} else {
+	$controlReboot = 'yes'
+    Write-Host "[$scriptName] controlReboot : $controlReboot (default)"
+}
+if ($controlReboot -eq 'yes') {
+	$rebootOption = '-NoRebootOnCompletion'
 }
 
 # Cannot run interactive via remote PowerShell
@@ -129,23 +140,14 @@ if ( Test-Path "$defaultMount\windows" ) {
 	executeExpression "Dism /Unmount-Image /MountDir:$defaultMount /Discard /Quiet"
 }
 
-# from https://github.com/mitchellh/vagrant/issues/6430
-# Add to the Vagrantfile 
-#   override.winrm.retry_limit = 60
-#   override.winrm.retry_delay = 10
-
 # https://github.com/rgl/windows-domain-controller-vagrant/blob/master/provision/domain-controller.ps1
-#   Do not use -NoRebootOnCompletion as it causes Vagrant to fail (raise_if_auth_error) after 
-#   ==> dc: Message        : You must restart this computer to complete the operation.
-#   ==> dc: Context        : DCPromo.General.4
-#   ==> dc: RebootRequired : True
-#   ==> dc: Status         : Success
+#   If using -NoRebootOnCompletion do not use reload module in Vagrant or it will fail (raise_if_auth_error)
 
 Write-Host
 Write-Host "[$scriptName] Create the new Forest and convert this host into the FSMO Domain Controller"
 Write-Host
 $securePassword = ConvertTo-SecureString $password -asplaintext -force
-executeExpression "Install-ADDSForest -Force -DomainName `"$forest`" -SafeModeAdministratorPassword `$securePassword"
+executeExpression "Install-ADDSForest -Force $rebootOption -DomainName `"$forest`" -SafeModeAdministratorPassword `$securePassword"
 
 # https://github.com/dbroeglin/windows-lab/blob/master/provision/02_install_forest.ps1
 #   Tried putting a sleep in, but reboot still triggered a Vagrant error
@@ -155,6 +157,11 @@ executeExpression "Install-ADDSForest -Force -DomainName `"$forest`" -SafeModeAd
 
 # https://groups.google.com/forum/#!topic/vagrant-up/JNMOCYpHSt8
 #   This attempt using chef_solo also appears to fail with the same problem.
+
+if ($controlReboot -eq 'yes') {
+	Write-Host "[$scriptName] Controlled Reboot requested, initiating reboot ..."
+	executeExpression "shutdown /r /t 0"
+}
 
 Write-Host
 Write-Host "[$scriptName] ---------- stop ----------"
