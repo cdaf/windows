@@ -43,6 +43,8 @@ if ($vagrantAction -eq 'up') {
 		
 		executeExpression "vagrant $vagrantAction $argument1 $argument2"
 		executeExpression "vagrant $vagrantAction $argument1 $argument2"
+		executeExpression "vagrant $vagrantAction $argument1 $argument2"
+		executeExpression "vagrant $vagrantAction $argument1 $argument2"
 
 		executeExpression "../automation/provisioning/winrmtest.ps1 172.16.17.102 vagrant vagrant 2 2"
 		executeExpression 'vagrant powershell dc -c "/automation/provisioning/newUser.ps1 deployer swUwe5aG yes"'
