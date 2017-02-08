@@ -9,39 +9,6 @@ function executeExpression ($expression) {
     if ( $error[0] ) { Write-Host "[$scriptName] `$error[0] = $error"; exit 3 }
 }
 
-# Retry Logic for Vagrant up only
-function vagrantUpRetry ($expression) {
-	$wait = 10
-	$retryMax = 10
-	$retryCount = 0
-	while (( $retryCount -lt $retryMax ) -and ($exitCode -ne 0)) {
-		$exitCode = 0
-		$error.clear()
-		Write-Host "[$scriptName][$retryCount] $expression"
-		try {
-			Invoke-Expression $expression
-		    if(!$?) { Write-Host "[$scriptName] `$? = $?"; $exitCode = 1 }
-		} catch { echo $_.Exception|format-list -force; $exitCode = 2 }
-	    if ( $error[0] ) { Write-Host "[$scriptName] `$error[0] = $error"; $exitCode = 3 }
-
-	    # Specialised test for Vagrant
-		$vagrantStatus = $(& cmd /c vagrant status dc 2`>`&1)
-		Write-Host "[$scriptName][$retryCount] `$vagrantStatus = $vagrantStatus"
-		$array = $vagrantStatus.split([Environment]::NewLine)
-		$status = $array[2].split(" ")
-		$status[24]
-		if ($vagrantAction -eq 'not') {
-			$exitCode = 4
-		}
-
-	    if ($exitCode -gt 0) {
-			$retryCount += 1
-			Write-Host "[$scriptName] Wait $wait seconds, then retry $retryCount of $retryMax"
-			sleep $wait
-		}
-    }
-}
-
 # This script is combined with the following in the Vagrantfile to offload the DC provisioning to this wrapper
 #require 'vagrant-reload'
 #Vagrant.configure(2) do |allhosts|
@@ -71,25 +38,30 @@ executeExpression "cd dc-provisioning"
 if ($vagrantAction -eq 'up') {
 
 	if ((! $argument1) -or ($argument1 -eq 'dc')) {
-		vagrantUpRetry "vagrant $vagrantAction $argument1 $argument2"
 
-		executeExpression "../automation/provisioning/winrmtest.ps1 172.16.17.102 vagrant vagrant"
-		vagrant powershell dc -c "/automation/provisioning/newUser.ps1 deployer swUwe5aG yes"
-		vagrant powershell dc -c "/automation/provisioning/newUser.ps1 sqlData p4ssWord! yes"
-		vagrant powershell dc -c "/automation/provisioning/newUser.ps1 sqlSA p4ssWord!"
-		vagrant powershell dc -c "/automation/provisioning/newUser.ps1 sqlDBA p4ssWord!"
-		vagrant powershell dc -c "/automation/provisioning/setSPN.ps1 MSSQLSvc/DB:1433 SKY\SQLSA"
-		vagrant powershell dc -c "/automation/provisioning/setSPN.ps1 MSSQLSvc/db.sky.net:1433 SKY\SQLSA"
-		vagrant powershell dc -c "/automation/provisioning/setenv.ps1 interactive yes User"
-		vagrant powershell dc -c "/automation/remote/capabilities.ps1"
+		executeExpression "vagrant $vagrantAction $argument1 $argument2"
+		executeExpression "vagrant $vagrantAction $argument1 $argument2"
+
+		executeExpression "../automation/provisioning/winrmtest.ps1 172.16.17.102 vagrant vagrant 2 2"
+		executeExpression 'vagrant powershell dc -c "/automation/provisioning/newUser.ps1 deployer swUwe5aG yes"'
+		executeExpression 'vagrant powershell dc -c "/automation/provisioning/newUser.ps1 sqlData p4ssWord! yes"'
+		executeExpression 'vagrant powershell dc -c "/automation/provisioning/newUser.ps1 sqlSA p4ssWord!"'
+		executeExpression 'vagrant powershell dc -c "/automation/provisioning/newUser.ps1 sqlDBA p4ssWord!"'
+		executeExpression 'vagrant powershell dc -c "/automation/provisioning/setSPN.ps1 MSSQLSvc/DB:1433 SKY\SQLSA"'
+		executeExpression 'vagrant powershell dc -c "/automation/provisioning/setSPN.ps1 MSSQLSvc/db.sky.net:1433 SKY\SQLSA"'
+		executeExpression 'vagrant powershell dc -c "/automation/provisioning/setenv.ps1 interactive yes User"'
+		executeExpression 'vagrant powershell dc -c "/automation/remote/capabilities.ps1"'
+		
 	} else {
 		Write-Host "[$scriptName] vagrantAction is up, but $argument1 is not dc or empty, so no action attempted."
 	}
 } else {
 	executeExpression "vagrant $vagrantAction $argument1 $argument2"
+    & vagrant status dc
 }
 
 executeExpression "cd $workDir"
 
 Write-Host
 Write-Host "[$scriptName] ---------- stop ----------"
+Write-Host

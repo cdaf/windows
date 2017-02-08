@@ -38,8 +38,6 @@ if ( $retries ) {
 	$retries = 5
 	Write-Host "[winrmtest.ps1] retries         : $retries (default)"
 }
-
-Write-Host "[winrmtest.ps1] successRequired : $successRequired"
 Write-Host
 
 # Add target host to trusted hosts list
