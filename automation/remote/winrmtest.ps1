@@ -40,13 +40,6 @@ if ( $retries ) {
 	$retries = 5
 	Write-Host "[$scriptName] retries         : $retries (default)"
 }
-
-$remoteCmd = $args[5]
-if ( $remoteCmd ) {
-	Write-Host "[$scriptName] remoteCmd       : $remoteCmd"
-} else {
-	Write-Host "[$scriptName] remoteCmd       : (not passed)"
-}
 Write-Host
 
 # Add target host to trusted hosts list
@@ -87,11 +80,6 @@ do {
 until (( $i -gt $retries) -or ($successCount -ge $successRequired))
 if ($successCount -ge $successRequired) {
 	Write-Host "[$scriptName] Success count $successCount/$successRequired."
-	if ( $remoteCmd ) {
-		$script = "{ $remoteCmd }"
-		Write-Host "[$scriptName] Executing : $script"
-		Invoke-Command -ComputerName $vmHost -credential $cred -SessionOption (New-PSSessionOption -SkipRevocationCheck -SkipCACheck -SkipCNCheck) -ScriptBlock $script
-	}
 }
 
 Write-Host
