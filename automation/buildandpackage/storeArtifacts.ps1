@@ -76,7 +76,6 @@ $artifactListFile=".\$SOLUTIONROOT\storeForArtifact"
 $DTSTAMP = Get-Date
 $typeDirectory = 'Directory';
 $typeFile = 'File';
-#$zaFilename = '7za.exe';
 
 # Cannot brute force clear the workspace as the Visual Studio solution file is here
 write-host
@@ -227,13 +226,8 @@ else
                     if(!$?){ exitWithCode ("New-Item $targetPath -Force -ItemType $targetType") }
 
                     # Now we can actually build and invoke the Zip Command.
-                    $fullPath = Convert-Path $artifactFile;
-                    #$zipCommand = "& $zaFilename a $targetPath $fullPath\*"
-                    ZipFiles( $zaFilename, $fullPath )
-
-                    Write-Host "[$scriptName] $zipCommand" -ForegroundColor Cyan;
-                    Invoke-Expression $zipCommand;
-                    if(!$?){ exitWithCode ("Invoke-Expression $zipCommand") }
+                    $artifactFullPath = Convert-Path $artifactFile;
+                    ZipFiles $targetPath $artifactFullPath;
                 }
                 else
                 {
