@@ -33,6 +33,23 @@ function isFilePath ($path)
     }
 }
 
+function ZipFiles( $zipfilename, $sourcedir )
+{
+	try {
+		Add-Type -Assembly System.IO.Compression.FileSystem
+	} catch {
+		taskFailure "Failed to load Compression assembly, is .NET 4.5 or above installed?"
+	}
+	$compressionLevel = [System.IO.Compression.CompressionLevel]::Optimal
+	Write-Host
+	Write-Host "[$scriptName] Create zip package $zipfilename from $sourcedir"
+	[System.IO.Compression.ZipFile]::CreateFromDirectory($sourcedir, $zipfilename, $compressionLevel, $false)
+	foreach ($item in (Get-ChildItem -Path $sourcedir)) {
+		Write-Host "[$scriptName]   --> $item"
+	}
+	
+}
+
 if (-not($SOLUTION)) {exitWithCode SOLUTION_NOT_SET }
 if (-not($BUILDNUMBER)) {exitWithCode BUILDNUMBER_NOT_SET }
 if (-not($REVISION)) {exitWithCode REVISION_NOT_SET }
@@ -59,7 +76,7 @@ $artifactListFile=".\$SOLUTIONROOT\storeForArtifact"
 $DTSTAMP = Get-Date
 $typeDirectory = 'Directory';
 $typeFile = 'File';
-$zaFilename = '7za.exe';
+#$zaFilename = '7za.exe';
 
 # Cannot brute force clear the workspace as the Visual Studio solution file is here
 write-host
@@ -211,7 +228,8 @@ else
 
                     # Now we can actually build and invoke the Zip Command.
                     $fullPath = Convert-Path $artifactFile;
-                    $zipCommand = "& $zaFilename a $targetPath $fullPath\*"
+                    #$zipCommand = "& $zaFilename a $targetPath $fullPath\*"
+                    ZipFiles( $zaFilename, $fullPath )
 
                     Write-Host "[$scriptName] $zipCommand" -ForegroundColor Cyan;
                     Invoke-Expression $zipCommand;
