@@ -41,7 +41,7 @@ if ($domain) {
 	$de = [ADSI]"WinNT://$env:computername/$group,group"
 	$de.psbase.Invoke("Add",([ADSI]"WinNT://$domain/$userName").path)
 } else {
-	executeExpression "net localgroup `"Remote $group Users`" $userName /add"
+	executeExpression "net localgroup `"$group`" $userName /add"
 }
 
 Write-Host
