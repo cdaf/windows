@@ -90,38 +90,57 @@ switch ($version) {
 		$defaultMount = 'C:\mountdir'
 		
 		Write-Host
-		if ( Test-Path $media ) {
-			Write-Host "[$scriptName] Media path ($media) found"
-			if ($wimIndex) {
-				Write-Host "[$scriptName] Index ($wimIndex) passed, treating media as Windows Imaging Format (WIM)"
-				if ( Test-Path "$defaultMount" ) {
-					if ( Test-Path "$defaultMount\windows" ) {
-						Write-Host "[$scriptName] Default mount path found ($defaultMount\windows), found, mount not attempted."
+		if ( $media ) {
+			if ( Test-Path $media ) {
+				Write-Host "[$scriptName] Media path ($media) found"
+				if ($wimIndex) {
+					Write-Host "[$scriptName] Index ($wimIndex) passed, treating media as Windows Imaging Format (WIM)"
+					if ( Test-Path "$defaultMount" ) {
+						if ( Test-Path "$defaultMount\windows" ) {
+							Write-Host "[$scriptName] Default mount path found ($defaultMount\windows), assume already mounted, mount not attempted."
+						} else {
+							mountWim "$media" "$wimIndex" "$defaultMount"
+						}
 					} else {
+						Write-Host "[$scriptName] Create default mount directory to $defaultMount"
+						mkdir $defaultMount
 						mountWim "$media" "$wimIndex" "$defaultMount"
 					}
+					$sourceOption = "/Source:$defaultMount\windows\WinSxS"
 				} else {
-					Write-Host "[$scriptName] Create default mount directory to $defaultMount"
-					mkdir $defaultMount
-					mountWim "$media" "$wimIndex" "$defaultMount"
+					$sourceOption = "/Source:$media"
+					Write-Host "[$scriptName] Media path found, using source option $sourceOption"
 				}
-				$sourceOption = "/Source:$defaultMount\windows\WinSxS"
-			} else {
-				$sourceOption = "/Source:$media"
-				Write-Host "[$scriptName] Media path found, using source option $sourceOption"
+				
+				executeExpression "DISM /Online /Enable-Feature /FeatureName:NetFx3 /All /LimitAccess $sourceOption"
+			    if ( $lastExitCode -ne 0 ) {
+					Write-Host "[$scriptName] Install failed, attempt to remove KB"
+					executeExpression "wusa.exe /uninstall /KB:2966828 /quiet /norestart"
+					executeExpression "DISM /Online /Enable-Feature /FeatureName:NetFx3 /All /LimitAccess $sourceOption"
+				    if ( $lastExitCode -ne 0 ) {
+						Write-Host "[$scriptName] Install failed, fallback to WSUS download"
+						executeExpression "Dism /Unmount-Image /MountDir:$defaultMount /Discard /Quiet"
+					    if ( $lastExitCode -ne 0 ) {
+							Write-Host "[$scriptName] Install failed, exit with $lastExitCode"; exit $lastExitCode
+					    }
+				    }
+				}
+	
+				if ( Test-Path "$defaultMount\windows" ) {
+					Write-Host "[$scriptName] Dismount default mount path ($defaultMount)"
+					executeExpression "Dism /Unmount-Image /MountDir:$defaultMount /Discard /Quiet"
+				}
 			}
-			
-			executeExpression "DISM /Online /Enable-Feature /FeatureName:NetFx3 /All /LimitAccess $sourceOption"
-
-			if ( Test-Path "$defaultMount\windows" ) {
-				Write-Host "[$scriptName] Dismount default mount path ($defaultMount)"
-				executeExpression "Dism /Unmount-Image /MountDir:$defaultMount /Discard /Quiet"
+		} else { # Media not passed or not valid, attempt download from internet
+			executeExpression "DISM /Online /Enable-Feature /FeatureName:NetFx3 /All"
+		    if ( $lastExitCode -ne 0 ) {
+				Write-Host "[$scriptName] Install failed, attempt to remove KB"
+				executeExpression "wusa.exe /uninstall /KB:2966828 /quiet /norestart"
+				executeExpression "DISM /Online /Enable-Feature /FeatureName:NetFx3 /All"
+			    if ( $lastExitCode -ne 0 ) {
+					Write-Host "[$scriptName] Install failed, exit with $lastExitCode"; exit $lastExitCode
+			    }
 			}
-
-		} else {
-		    Write-Host "[$scriptName] media path not found, will attempt to download and install from offline installer."
-			$file = 'dotnetfx35.exe'
-			$uri = 'https://download.microsoft.com/download/2/0/E/20E90413-712F-438C-988E-FDAA79A8AC3D/' + $file
 		}
 	}
     default {
@@ -155,6 +174,7 @@ if ($file) {
 		exit 201
 	}
 }
+
 Write-Host
 Write-Host "[$scriptName] ---------- stop -----------"
 Write-Host

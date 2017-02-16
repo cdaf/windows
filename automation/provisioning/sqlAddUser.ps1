@@ -13,7 +13,15 @@ if ($dbUser) {
     exit 101
 }
 
-$dbhost = $args[1]
+$domain = $args[1]
+if ($domain) {
+    Write-Host "[$scriptName] domain     : $domain"
+} else {
+	$domain = $(hostname)
+    Write-Host "[$scriptName] domain     : $domain (not supplied, default to hostname)"
+}
+
+$dbhost = $args[2]
 if ($dbhost) {
     Write-Host "[$scriptName] dbhost     : $dbhost"
 } else {
@@ -32,11 +40,11 @@ if ($dbinstance) {
 
 try {
 
-	$SqlUser = New-Object -TypeName Microsoft.SqlServer.Management.Smo.Login -ArgumentList $smo,"$dbUser"
+	$SqlUser = New-Object -TypeName Microsoft.SqlServer.Management.Smo.Login -ArgumentList $smo,"$domain\$dbUser"
 	$SqlUser.LoginType = 'WindowsUser'
 	$sqlUser.PasswordPolicyEnforced = $false
 	$SqlUser.Create()
-	Write-Host; Write-Host "[$scriptName] User $dbUser added to $dbhost\$dbinstance"; Write-Host 
+	Write-Host; Write-Host "[$scriptName] User $domain\$dbUser added to $dbhost\$dbinstance"; Write-Host 
 	
 } catch {
 
