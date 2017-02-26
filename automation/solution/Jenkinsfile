@@ -1,15 +1,15 @@
 node ('w10e2') {
-    stage 'build'
-    checkout scm
-    bat "automation\\processor\\buildPackage.bat ${BUILD_NUMBER} ${BRANCH_NAME}"
-   
-    stage 'CD'
-    bat "TasksLocal\\delivery.bat CD"
-    stage 'TEST'
-    bat "TasksLocal\\delivery.bat TEST"
-    stage 'PROD'
-    input 'Ready to go?'
-    bat "TasksLocal\\delivery.bat PROD"
-  
-    archiveArtifacts artifacts: '*.gz'
+  stage 'build'
+  checkout scm
+  bat "automation\\processor\\buildPackage.bat ${BUILD_NUMBER} ${BRANCH_NAME}"
+
+  stage 'CD'
+  bat "TasksLocal\\delivery.bat CD"
+  stage 'TEST'
+  bat "TasksLocal\\delivery.bat TEST"
+  stage 'PROD'
+  input 'Ready to go?'
+  bat "TasksLocal\\delivery.bat PROD"
+
+  archiveArtifacts artifacts: '*.gz'
 }
