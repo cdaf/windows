@@ -140,13 +140,8 @@ switch ($version) {
 				
 				executeExpression "DISM /Online /Enable-Feature /FeatureName:NetFx3 /All /LimitAccess $sourceOption"
 			    if ( $lastExitCode -ne 0 ) {
-					Write-Host "[$scriptName] Install failed, attempt to remove KB"
-					executeExpression "wusa.exe /uninstall /KB:2966828 /quiet /norestart"
-					executeExpression "DISM /Online /Enable-Feature /FeatureName:NetFx3 /All /LimitAccess $sourceOption"
-				    if ( $lastExitCode -ne 0 ) {
-						Write-Host "[$scriptName] Install failed, fallback to WSUS download"
-						executeRetry "Dism /Unmount-Image /MountDir:$defaultMount /Discard /Quiet"
-				    }
+					Write-Host "[$scriptName] Install failed, fallback to WSUS/Internet download"
+					executeRetry "DISM /Online /Enable-Feature /FeatureName:NetFx3 /All"
 				}
 	
 				if ( Test-Path "$defaultMount\windows" ) {
@@ -154,22 +149,12 @@ switch ($version) {
 					executeExpression "Dism /Unmount-Image /MountDir:$defaultMount /Discard /Quiet"
 				}
 			} else {
-				Write-Host "[$scriptName] Media passed but not found, attempt download from internet"
-				executeExpression "DISM /Online /Enable-Feature /FeatureName:NetFx3 /All"
-			    if ( $lastExitCode -ne 0 ) {
-					Write-Host "[$scriptName] Install failed, attempt to remove KB"
-					executeExpression "wusa.exe /uninstall /KB:2966828 /quiet /norestart"
-					executeRetry "DISM /Online /Enable-Feature /FeatureName:NetFx3 /All"
-				}
-			}
-		} else {
-			Write-Host "[$scriptName] Media not passed, attempt download from internet"
-			executeExpression "DISM /Online /Enable-Feature /FeatureName:NetFx3 /All"
-		    if ( $lastExitCode -ne 0 ) {
-				Write-Host "[$scriptName] Install failed, attempt to remove KB"
-				executeExpression "wusa.exe /uninstall /KB:2966828 /quiet /norestart"
+				Write-Host "[$scriptName] Media passed but not found, attempt download from WSUS/Internet"
 				executeRetry "DISM /Online /Enable-Feature /FeatureName:NetFx3 /All"
 			}
+		} else {
+			Write-Host "[$scriptName] Media not passed, attempt download from WSUS/Internet"
+			executeRetry "DISM /Online /Enable-Feature /FeatureName:NetFx3 /All"
 		}
 	}
     default {
