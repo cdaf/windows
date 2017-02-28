@@ -25,16 +25,16 @@ if ($imagePath) {
 $sourcePath = $args[1]
 if ($sourcePath) {
     Write-Host "[$scriptName] sourcePath : $sourcePath"
+	$fallBack = $args[2]
+	if ($fallBack) {
+	    Write-Host "[$scriptName] fallBack   : $fallBack"
+	} else {
+		$fallBack = 'c:\.provision'
+	    Write-Host "[$scriptName] fallBack   : not supplied defaulting to $fallBack"
+	}
 } else {
-    Write-Host "[$scriptName] sourcePath not supplied, dismounting $imagePath"
-}
-
-$fallBack = $args[2]
-if ($fallBack) {
-    Write-Host "[$scriptName] fallBack   : $fallBack"
-} else {
-	$fallBack = 'c:\.provision'
-    Write-Host "[$scriptName] fallBack   : not supplied defaulting to $fallBack"
+    Write-Host "[$scriptName] sourcePath : not supplied, dismounting $imagePath"
+    Write-Host "[$scriptName] fallBack   : (not applicable when sourcePath not passed)"
 }
 Write-Host
 
