@@ -9,6 +9,32 @@ function executeExpression ($expression) {
     if ( $error[0] ) { Write-Host "[$scriptName] `$error[0] = $error"; exit 3 }
 }
 
+function executeRetry ($expression) {
+	$wait = 10
+	$retryMax = 10
+	$retryCount = 0
+	while (( $retryCount -le $retryMax ) -and ($exitCode -ne 0)) {
+		$exitCode = 0
+		$error.clear()
+		Write-Host "[$scriptName][$retryCount] $expression"
+		try {
+			Invoke-Expression $expression
+		    if(!$?) { Write-Host "[$scriptName] `$? = $?"; $exitCode = 1 }
+		} catch { echo $_.Exception|format-list -force; $exitCode = 2 }
+	    if ( $error[0] ) { Write-Host "[$scriptName] `$error[0] = $error"; $exitCode = 3 }
+	    if ( $lastExitCode -ne 0 ) { Write-Host "[$scriptName] `$lastExitCode = $lastExitCode "; $exitCode = $lastExitCode }
+	    if ($exitCode -ne 0) {
+			if ($retryCount -ge $retryMax ) {
+				Write-Host "[$scriptName] Retry maximum ($retryCount) reached, exiting with code $exitCode"; exit $exitCode
+			} else {
+				$retryCount += 1
+				Write-Host "[$scriptName] Wait $wait seconds, then retry $retryCount of $retryMax"
+				sleep $wait
+			}
+		}
+    }
+}
+
 # Create or reuse mount directory
 function mountWim ($media, $wimIndex, $mountDir) {
 	Write-Host "[$scriptName] Validate WIM source ${media}:${wimIndex} using Deployment Image Servicing and Management (DISM)"
@@ -35,17 +61,16 @@ if ($configuration) {
 $media = $args[1]
 if ($media) {
     Write-Host "[$scriptName] media           : $media"
+	$wimIndex = $args[2]
+	if ($wimIndex) {
+	    Write-Host "[$scriptName] wimIndex        : $wimIndex"
+	} else {
+		$wimIndex = '2'
+	    Write-Host "[$scriptName] wimIndex        : $wimIndex (default, Standard Edition)"
+	}
 } else {
-	$media = 'C:\.provision\install.wim'
-    Write-Host "[$scriptName] media           : $media (default)"
-}
-
-$wimIndex = $args[2]
-if ($wimIndex) {
-    Write-Host "[$scriptName] wimIndex        : $wimIndex"
-} else {
-	$wimIndex = '2'
-    Write-Host "[$scriptName] wimIndex        : $wimIndex (default, Standard Edition)"
+    Write-Host "[$scriptName] media           : (not supplied)"
+    Write-Host "[$scriptName] wimIndex        : (not applicable when media not supplied)"
 }
 
 Write-Host
@@ -56,28 +81,34 @@ if (Test-Path "$env:windir\Logs\DISM\dism.log") {
 $defaultMount = 'C:\mountdir'
 
 Write-Host
-if ( Test-Path $media ) {
-	Write-Host "[$scriptName] Media path ($media) found"
-	if ($wimIndex) {
-		Write-Host "[$scriptName] Index ($wimIndex) passed, treating media as Windows Imaging Format (WIM)"
-		if ( Test-Path "$defaultMount" ) {
-			if ( Test-Path "$defaultMount\windows" ) {
-				Write-Host "[$scriptName] Default mount path found ($defaultMount\windows), found, mount not attempted."
+if ( $media ) {
+	if ( Test-Path $media ) {
+		Write-Host "[$scriptName] Media path ($media) found"
+		if ($wimIndex) {
+			Write-Host "[$scriptName] Index ($wimIndex) passed, treating media as Windows Imaging Format (WIM)"
+			if ( Test-Path "$defaultMount" ) {
+				if ( Test-Path "$defaultMount\windows" ) {
+					Write-Host "[$scriptName] Default mount path found ($defaultMount\windows), found, mount not attempted."
+				} else {
+					mountWim "$media" "$wimIndex" '$defaultMount'
+				}
 			} else {
+				Write-Host "[$scriptName] Create default mount directory to $defaultMount"
+				mkdir $defaultMount
 				mountWim "$media" "$wimIndex" '$defaultMount'
 			}
+			$sourceOption = "/Source:$defaultMount\windows /LimitAccess /Quiet"
 		} else {
-			Write-Host "[$scriptName] Create default mount directory to $defaultMount"
-			mkdir $defaultMount
-			mountWim "$media" "$wimIndex" '$defaultMount'
+			$sourceOption = "/Source:$media /LimitAccess /Quiet"
+			Write-Host "[$scriptName] Media path found, using source option $sourceOption"
 		}
-		$sourceOption = "/Source:$defaultMount\windows /LimitAccess /Quiet"
 	} else {
-		$sourceOption = "/Source:$media /LimitAccess /Quiet"
-		Write-Host "[$scriptName] Media path found, using source option $sourceOption"
+		$sourceOption = "/Quiet"
+	    Write-Host "[$scriptName] media path not found, will attempt to download from windows update/internet, with option $sourceOption."
 	}
 } else {
-    Write-Host "[$scriptName] media path not found, will attempt to download from windows update."
+	$sourceOption = "/Quiet"
+    Write-Host "[$scriptName] media path not supplied, will attempt to download from windows update/internet, with option $sourceOption."
 }
 
 # Cannot run interactive via remote PowerShell
@@ -115,11 +146,27 @@ switch ($configuration) {
 Write-Host
 Write-Host "[$scriptName] Install Web Server"
 $featureList = "/featurename:IIS-WebServerRole /FeatureName:IIS-ApplicationDevelopment /FeatureName:IIS-ISAPIFilter /FeatureName:IIS-ISAPIExtensions /featurename:IIS-WebServerManagementTools /featurename:IIS-ManagementScriptingTools /featurename:IIS-Metabase /featurename:IIS-ManagementService /FeatureName:IIS-Security /FeatureName:IIS-BasicAuthentication /FeatureName:IIS-RequestFiltering /FeatureName:IIS-WindowsAuthentication"
-executeExpression "dism /online /NoRestart /enable-feature /All $featureList $sourceOption"
-	
+if ( $sourceOption -eq '/Quiet' ) {
+	executeRetry "dism /online /NoRestart /enable-feature /All $featureList $sourceOption"
+} else { 
+	executeExpression "dism /online /NoRestart /enable-feature /All $featureList $sourceOption"
+	if ( $lastExitCode -ne 0 ) {
+		Write-Host "[$scriptName] DISM failed with `$lastExitCode = $lastExitCode, retry from WSUS/Internet"
+		executeRetry "dism /online /NoRestart /enable-feature /All $featureList /Quiet"
+	}
+}	
+
 Write-Host
 Write-Host "[$scriptName] Install ASP.NET"
-executeExpression "dism /online /NoRestart /enable-feature /All $aspNET $sourceOption"
+if ( $sourceOption -eq '/Quiet' ) {
+	executeRetry "dism /online /NoRestart /enable-feature /All $aspNET $sourceOption"
+} else { 
+	executeExpression "dism /online /NoRestart /enable-feature /All $aspNET $sourceOption"
+	if ( $lastExitCode -ne 0 ) {
+		Write-Host "[$scriptName] DISM failed with `$lastExitCode = $lastExitCode, retry from WSUS/Internet"
+		executeRetry "dism /online /NoRestart /enable-feature /All $aspNET /Quiet"
+	}
+}	
 	
 Write-Host
 Write-Host "[$scriptName] List Web Server status"
