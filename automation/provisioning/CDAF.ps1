@@ -60,14 +60,12 @@ if ($userName) {
 
 	Write-Host "[$scriptName] Execute as $userName using workspace ($workspace)"
 	executeExpression "Invoke-Command -ComputerName localhost -Credential `$cred -ScriptBlock { cd $workspace; .\automation\cdEmulate.bat $OPT_ARG }"
-	executeExpression "Invoke-Command -ComputerName localhost -Credential `$cred -ScriptBlock { cd $workspace; .\automation\cdEmulate.bat clean }"
 
 } else {
 
 	Write-Host "[$scriptName] Execute as $(whoami) using workspace ($workspace)"
 	executeExpression "cd $workspace"
 	executeExpression ".\automation\processor\cdEmulate.ps1 $OPT_ARG"
-	executeExpression ".\automation\processor\cdEmulate.ps1 clean"
 }
 
 Write-Host
