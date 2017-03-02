@@ -65,7 +65,8 @@ write-host "[$scriptName] Load solution properties ..."
 Write-Host 
 Write-Host "[$scriptName] Clean temp files and folders from workspace" 
 removeTempFiles
-itemRemove .\*.txt
+itemRemove .\projectDirectories.txt
+itemRemove .\projectsToBuild.txt
 itemRemove .\*.zip
 itemRemove .\*.nupkg
 
