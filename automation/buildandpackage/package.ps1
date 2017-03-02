@@ -177,7 +177,7 @@ Write-Host "[$scriptName]   CDAF Version            : $cdafVersion"
 write-host
 write-host "[$scriptName]   --- Start Package Process ---" -ForegroundColor Green
 Write-Host
-itemRemove .\*.txt
+itemRemove .\manifest.txt
 itemRemove .\*.zip
 itemRemove .\*.nupkg
 itemRemove $LOCAL_WORK_DIR
