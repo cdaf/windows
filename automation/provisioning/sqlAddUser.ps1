@@ -1,6 +1,13 @@
-# Load the assemblies
-[reflection.assembly]::LoadWithPartialName("Microsoft.SqlServer.Smo")
-[reflection.assembly]::LoadWithPartialName("Microsoft.SqlServer.SqlWmiManagement")
+# Common expression logging and error handling function, copied, not referenced to ensure atomic process
+function executeExpression ($expression) {
+	$error.clear()
+	Write-Host "[$scriptName] $expression"
+	try {
+		Invoke-Expression $expression
+	    if(!$?) { Write-Host "[$scriptName] `$? = $?"; exit 1 }
+	} catch { echo $_.Exception|format-list -force; exit 2 }
+    if ( $error[0] ) { Write-Host "[$scriptName] `$error[0] = $error"; exit 3 }
+}
 
 $scriptName = 'sqlAddUser.ps1'
 Write-Host
@@ -17,8 +24,8 @@ $domain = $args[1]
 if ($domain) {
     Write-Host "[$scriptName] domain     : $domain"
 } else {
-	$domain = $(hostname)
-    Write-Host "[$scriptName] domain     : $domain (not supplied, default to hostname)"
+	$domain = '.'
+    Write-Host "[$scriptName] domain     : $domain (not supplied, default value set)"
 }
 
 $dbhost = $args[2]
@@ -29,19 +36,35 @@ if ($dbhost) {
     Write-Host "[$scriptName] dbhost     : $dbhost (default)"
 }
 
-$dbinstance = $args[2]
+$dbinstance = $args[3]
 if ($dbinstance) {
     Write-Host "[$scriptName] dbinstance : $dbinstance"
-	$smo = new-Object Microsoft.SqlServer.Management.Smo.Server("$dbhost\$dbinstance")
 } else {
     Write-Host "[$scriptName] dbinstance : not supplied, let SQL Server decide"
-	$smo = new-Object Microsoft.SqlServer.Management.Smo.Server("$dbhost")
+}
+
+$loginType = $args[4]
+if ($loginType) {
+    Write-Host "[$scriptName] loginType  : $loginType"
+} else {
+	$loginType = 'WindowsUser'
+    Write-Host "[$scriptName] loginType  : $loginType (not supplied, set to default)"
+}
+
+# Load the assemblies
+executeExpression '[reflection.assembly]::LoadWithPartialName("Microsoft.SqlServer.Smo")'
+executeExpression '[reflection.assembly]::LoadWithPartialName("Microsoft.SqlServer.SqlWmiManagement")'
+
+if ($dbinstance) {
+	$srv = new-Object Microsoft.SqlServer.Management.Smo.Server("$dbhost\$dbinstance")
+} else {
+	$srv = new-Object Microsoft.SqlServer.Management.Smo.Server("$dbhost")
 }
 
 try {
 
-	$SqlUser = New-Object -TypeName Microsoft.SqlServer.Management.Smo.Login -ArgumentList $smo,"$domain\$dbUser"
-	$SqlUser.LoginType = 'WindowsUser'
+	$SqlUser = New-Object -TypeName Microsoft.SqlServer.Management.Smo.Login -ArgumentList $srv,"$domain\$dbUser"
+	$SqlUser.LoginType = $loginType
 	$sqlUser.PasswordPolicyEnforced = $false
 	$SqlUser.Create()
 	Write-Host; Write-Host "[$scriptName] User $domain\$dbUser added to $dbhost\$dbinstance"; Write-Host 

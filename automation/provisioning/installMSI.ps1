@@ -17,32 +17,39 @@ Write-Host
 Write-Host "[$scriptName] ---------- start ----------"
 $msiFile = $args[0]
 if ($msiFile) {
-    Write-Host "[$scriptName] msiFile         : $msiFile"
+    Write-Host "[$scriptName] msiFile          : $msiFile"
 } else {
     Write-Host "[$scriptName] MSI file not supplied, exiting with error code 1"; exit 1
 }
 Write-Host
-if (!( Test-Path $msiFile )) {
+if ( Test-Path $msiFile ) {
+	$fileName = Split-Path $msiFile -leaf
+} else {
 	Write-Host "[$scriptName] $msiFile not found, exiting with error code 2"; exit 2
 }
 
 $opt_arg = $args[1]
 if ($opt_arg) {
-    Write-Host "[$scriptName] opt_arg         : $opt_arg"
+    Write-Host "[$scriptName] opt_arg          : $opt_arg"
 } else {
-    Write-Host "[$scriptName] opt_arg         : (not supplied)"
+    Write-Host "[$scriptName] opt_arg          : (not supplied)"
 }
 
 if ($env:interactive) {
-    Write-Host "[$scriptName] env:interactive : $env:interactive, run in current window"
+    Write-Host "[$scriptName] `$env:interactive : $env:interactive, run in current window"
     $sessionControl = '-PassThru -Wait -NoNewWindow'
 } else {
     $sessionControl = '-PassThru -Wait'
 }
 
-$logFile = $installDir = [Environment]::GetEnvironmentVariable('TEMP', 'user') + '\' + $file + '.log'
-Write-Host "[$scriptName] logFile         : $logFile"
+$logFile = $installDir = [Environment]::GetEnvironmentVariable('TEMP', 'user') + '\' + $fileName + '.log'
+Write-Host "[$scriptName] logFile          : $logFile"
 
+if (Test-Path $logFile) { 
+	Write-Host; executeExpression "Remove-Item $logFile"
+}
+
+Write-Host
 $argList = @(
 	"/qn",
 	"/L*V",
@@ -55,5 +62,10 @@ $argList = @(
 # Perform Install
 executeExpression "`$process = Start-Process -FilePath `'msiexec`' -ArgumentList `'$argList`' $sessionControl"
 
+$failed = Select-String $logFile -Pattern "Installation failed"
+if ( $failed  ) { 
+	Select-String $logFile -Pattern "Installation success or error status"
+	exit 4
+}
 Write-Host
 Write-Host "[$scriptName] ---------- stop ----------"

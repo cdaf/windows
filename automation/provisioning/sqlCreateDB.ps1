@@ -1,6 +1,13 @@
-# Load the assemblies
-[reflection.assembly]::LoadWithPartialName("Microsoft.SqlServer.Smo")
-[reflection.assembly]::LoadWithPartialName("Microsoft.SqlServer.SqlWmiManagement")
+# Common expression logging and error handling function, copied, not referenced to ensure atomic process
+function executeExpression ($expression) {
+	$error.clear()
+	Write-Host "[$scriptName] $expression"
+	try {
+		Invoke-Expression $expression
+	    if(!$?) { Write-Host "[$scriptName] `$? = $?"; exit 1 }
+	} catch { echo $_.Exception|format-list -force; exit 2 }
+    if ( $error[0] ) { Write-Host "[$scriptName] `$error[0] = $error"; exit 3 }
+}
 
 $scriptName = 'sqlCreateDB.ps1'
 Write-Host
@@ -13,14 +20,7 @@ if ($dbName) {
     exit 100
 }
 
-$dbOwner = $args[1]
-if ($dbOwner) {
-    Write-Host "[$scriptName] dbOwner    : $dbOwner"
-} else {
-    Write-Host "[$scriptName] dbOwner    : not supplied"
-}
-
-$dbhost = $args[2]
+$dbhost = $args[1]
 if ($dbhost) {
     Write-Host "[$scriptName] dbhost     : $dbhost"
 } else {
@@ -28,20 +28,45 @@ if ($dbhost) {
     Write-Host "[$scriptName] dbhost     : $dbhost (default)"
 }
 
-$dbinstance = $args[3]
+$dbinstance = $args[2]
 if ($dbinstance) {
     Write-Host "[$scriptName] dbinstance : $dbinstance"
-	$srv = new-Object Microsoft.SqlServer.Management.Smo.Server("$dbhost\$dbinstance")
 } else {
     Write-Host "[$scriptName] dbinstance : not supplied, let SQL Server decide"
+}
+
+$dbOwner = $args[3]
+if ($dbOwner) {
+    Write-Host "[$scriptName] dbOwner    : $dbOwner"
+} else {
+    Write-Host "[$scriptName] dbOwner    : not supplied"
+}
+
+Write-Host
+# Load the assemblies
+executeExpression '[reflection.assembly]::LoadWithPartialName("Microsoft.SqlServer.Smo")'
+executeExpression '[reflection.assembly]::LoadWithPartialName("Microsoft.SqlServer.SqlWmiManagement")'
+
+Write-Host
+if ($dbinstance) {
+	Write-Host "[$scriptName] `$srv = new-Object Microsoft.SqlServer.Management.Smo.Server(`"$dbhost\$dbinstance`")"
+	$srv = new-Object Microsoft.SqlServer.Management.Smo.Server("$dbhost\$dbinstance")
+} else {
+	Write-Host "[$scriptName] `$srv = new-Object Microsoft.SqlServer.Management.Smo.Server(`"$dbhost`")"
 	$srv = new-Object Microsoft.SqlServer.Management.Smo.Server("$dbhost")
 }
 
+executeExpression '$srv.databases | select name'
+
+Write-Host
 try {
 
+    Write-Host "[$scriptName] `$db = New-Object Microsoft.SqlServer.Management.Smo.Database($srv, $dbName)"
 	$db = New-Object Microsoft.SqlServer.Management.Smo.Database($srv, $dbName)
+    Write-Host "[$scriptName] `$db.Create()"
 	$db.Create()
 	if ($dbOwner) {
+	    Write-Host "[$scriptName] `$db.SetOwner($dbOwner, `$TRUE)"
 		$db.SetOwner($dbOwner, $TRUE)
 	}
 	
@@ -52,9 +77,12 @@ try {
 	exit 2
 }
 
-$createdDate = $($db.CreateDate)
 Write-Host
+$createdDate = $($db.CreateDate)
 Write-Host "[$scriptName] Created $dbName on $dbhost\$dbinstance at $createdDate."
+
+Write-Host
+executeExpression '$srv.databases | select name'
 
 Write-Host
 Write-Host "[$scriptName] ---------- stop ----------"
