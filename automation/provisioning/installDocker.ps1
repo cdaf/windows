@@ -24,12 +24,23 @@ function executeExpression ($expression) {
     }
 }
 
+# Only from Windows Server 2016 and above
 $scriptName = 'installDocker.ps1'
 Write-Host
 Write-Host "[$scriptName] ---------- start ----------"
 
+# From https://docs.microsoft.com/en-us/virtualization/windowscontainers/quick-start/quick-start-windows-server
+
 executeExpression  "Install-Module -Name DockerMsftProvider -Repository PSGallery -Force"
 executeExpression  "Install-Package -Name docker -ProviderName DockerMsftProvider -Force"
+
+# From https://marckean.com/2016/06/01/use-powershell-to-install-windows-updates/
+
+executeExpression  "Install-Module PSWindowsUpdate"
+executeExpression  "Get-Command –module PSWindowsUpdate"
+
+executeExpression  "Add-WUServiceManager -ServiceID 7971f918-a847-4430-9279-4a52d1efe18d"
+executeExpression  "Get-WUInstall –MicrosoftUpdate –AcceptAll –AutoReboot"
 
 Write-Host
 Write-Host "[$scriptName] ---------- stop ----------"
