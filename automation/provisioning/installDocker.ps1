@@ -32,6 +32,7 @@ Write-Host "[$scriptName] ---------- start ----------"
 # Requires KB3176936
 
 executeExpression  "Install-Module -Name DockerMsftProvider -Repository PSGallery -Force -Confirm:`$False"
+executeExpression  "Enable-WindowsOptionalFeature -Online -FeatureName Containers -All"
 executeExpression  "Install-Package -Name docker -ProviderName DockerMsftProvider -Force -Confirm:`$False"
 
 Write-Host
