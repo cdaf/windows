@@ -24,15 +24,12 @@ function executeExpression ($expression) {
     }
 }
 
-# Only from Windows Server 2016 and above
+# Only for Windows Server 2016 and above
 $scriptName = 'installDocker.ps1'
 Write-Host
 Write-Host "[$scriptName] ---------- start ----------"
 
-# Requires KB3176936
-
-executeExpression  "Install-Module -Name DockerMsftProvider -Repository PSGallery -Force -Confirm:`$False"
-executeExpression  "Install-Package -Name docker -ProviderName DockerMsftProvider -Force -Confirm:`$False"
+executeExpression  "Get-WUInstall –Verbose –AcceptAll –AutoReboot:`$False -Confirm:`$False"
 
 Write-Host
 Write-Host "[$scriptName] ---------- stop ----------"

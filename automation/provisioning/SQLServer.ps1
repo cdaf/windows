@@ -96,12 +96,26 @@ $argList = @(
 	'/SQLSVCSTARTUPTYPE="Automatic"',
 	'/SQLCOLLATION="SQL_Latin1_General_CP1_CI_AS"',
 	"/SQLSVCACCOUNT=`"$serviceAccount`"",
-	"/SQLSVCPASSWORD=$password",
+	"/SQLSVCPASSWORD=`"$password`"",
 	"/SQLSYSADMINACCOUNTS=`"$adminAccount`"",
 	'/TCPENABLED=1',
 	'/NPENABLED=1'
 )
 Write-Host
 executeExpression "`$proc = Start-Process -FilePath `"$media$executable`" -ArgumentList `'$argList`' $sessionControl"
+
+foreach ( $sqlVersions in Get-ChildItem "C:\Program Files\Microsoft SQL Server\" ) {
+	$logPath = $sqlVersions.FullName + '\Setup Bootstrap\Log\Summary.txt'
+	if ( Test-Path $logPath ) {
+		$result = cat $logPath | findstr "Failed:"
+		if ($result) {
+			Write-Host
+		    Write-Host "[$scriptName] `'Failed:`' found in $logPath, first 40 lines follow ..."
+			Get-Content $logPath | select -First 40
+		}
+	} 
+}
+
+
 Write-Host
 Write-Host "[$scriptName] ---------- stop ----------"
