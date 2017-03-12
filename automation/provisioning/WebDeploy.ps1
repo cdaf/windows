@@ -3,10 +3,11 @@ function executeExpression ($expression) {
 	$error.clear()
 	Write-Host "[$scriptName] $expression"
 	try {
-		Invoke-Expression $expression
+		$output = Invoke-Expression $expression
 	    if(!$?) { Write-Host "[$scriptName] `$? = $?"; exit 1 }
 	} catch { echo $_.Exception|format-list -force; exit 2 }
     if ( $error[0] ) { Write-Host "[$scriptName] `$error[0] = $error"; exit 3 }
+    return $output
 }
 
 $scriptName = 'WebDeploy.ps1'
@@ -127,10 +128,10 @@ $key = "HKLM:\SOFTWARE\Microsoft\IIS Extensions\MSDeploy\$installPath"
 $name = 'InstallPath'
 
 # Retrieve the install path from the registry key, if missing, halt with error
-executeExpression "`$InstallPath = (Get-ItemProperty -Path `'$key`' -Name $name).$name"
+$InstallPath = executeExpression "(Get-ItemProperty -Path `'$key`' -Name $name).$name"
 
 write-host "Set environment variable MSDeployPath to $InstallPath"
-[Environment]::SetEnvironmentVariable('MSDeployPath', "$InstallPath", 'User')
+executeExpression "[Environment]::SetEnvironmentVariable('MSDeployPath', `'$InstallPath`', `'Machine`')"
 
 Write-Host
 Write-Host "[$scriptName] ---------- stop ----------"
