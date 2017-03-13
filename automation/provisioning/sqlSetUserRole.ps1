@@ -9,43 +9,32 @@ function executeExpression ($expression) {
     if ( $error[0] ) { Write-Host "[$scriptName] `$error[0] = $error"; exit 3 }
 }
 
-$scriptName = 'sqlAddUser.ps1'
+$scriptName = 'sqlSetUserRole.ps1'
 Write-Host
 Write-Host "[$scriptName] ---------- start ----------"
 $dbUser = $args[0]
 if ($dbUser) {
-    Write-Host "[$scriptName] dbUser      : $dbUser"
+    Write-Host "[$scriptName] dbUser : $dbUser"
 } else {
     Write-Host "[$scriptName] dbUser not supplied, exiting with code 101"; exit 101
 }
 
-$dbhost = $args[1]
+$dbRole = $args[1]
+if ($dbRole) {
+    Write-Host "[$scriptName] dbRole : $dbRole"
+} else {
+    Write-Host "[$scriptName] dbRole not supplied, exiting with code 102"; exit 102
+}
+
+$dbhost = $args[2]
 if ($dbhost) {
-    Write-Host "[$scriptName] dbhost      : $dbhost"
+    Write-Host "[$scriptName] dbhost : $dbhost"
 } else {
 	$dbhost = '.'
-    Write-Host "[$scriptName] dbhost      : $dbhost (default)"
+    Write-Host "[$scriptName] dbhost : $dbhost (default)"
 }
 
-$loginType = $args[3]
-if ($loginType) {
-    Write-Host "[$scriptName] loginType   : $loginType"
-} else {
-	$loginType = 'WindowsUser'
-    Write-Host "[$scriptName] loginType   : $loginType (not supplied, set to default)"
-}
-
-$sqlPassword = $args[4]
-if ($sqlPassword) {
-    Write-Host "[$scriptName] sqlPassword : *********************** (only applicable if loginType is SQLLogin)"
-} else {
-	if ( $loginType -eq 'SQLLogin' ) {
-    	Write-Host "[$scriptName] sqlPassword : not supplied, required when loginType is SQLLogin, exiting with code 102."; exit 102
-	} else {
-	    Write-Host "[$scriptName] sqlPassword : not supplied (only applicable if loginType is SQLLogin)"
-    }
-}
-
+Write-Host
 # Load the assemblies
 executeExpression '[reflection.assembly]::LoadWithPartialName("Microsoft.SqlServer.Smo")'
 executeExpression '[reflection.assembly]::LoadWithPartialName("Microsoft.SqlServer.SqlWmiManagement")'
@@ -56,10 +45,10 @@ $srv = new-Object Microsoft.SqlServer.Management.Smo.Server("$dbhost")
 try {
 
 	$SqlUser = New-Object -TypeName Microsoft.SqlServer.Management.Smo.Login -ArgumentList $srv,"$dbUser"
-	$SqlUser.LoginType = $loginType
-	$sqlUser.PasswordPolicyEnforced = $false
-	$SqlUser.Create($sqlPassword)
-	Write-Host; Write-Host "[$scriptName] User $domain\$dbUser added to $dbhost\$dbinstance"; Write-Host 
+	$dbrole = $srv.Roles[$dbRole]
+	$dbrole.AddMember($adminUser)
+	$dbrole.Alter()
+	Write-Host; Write-Host "[$scriptName] User $dbUser added to role "; Write-Host 
 	
 } catch {
 
@@ -69,7 +58,7 @@ try {
 }
 
 Write-Host
-executeExpression '$srv.Logins | select name'
+executeExpression '$dbrole.EnumMemberNames()'
 
 Write-Host
 Write-Host "[$scriptName] ---------- stop ----------"

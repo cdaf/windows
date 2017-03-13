@@ -50,8 +50,12 @@ if ($sourcePath) {
 		
 			$webclient = new-object system.net.webclient
 			Write-Host "[$scriptName] $webclient.DownloadFile($sourcePath, $imagePath)"
-			$webclient.DownloadFile($sourcePath, $imagePath)
-			# TODO: fallback if download fails
+			try {
+				$webclient.DownloadFile($sourcePath, $imagePath)
+			} catch {
+				Write-Host "[$scriptName] Download from $sourcePath failed, falling back to $fallBack"
+				executeExpression "Copy-Item `"$fallBack`" `"$imagePath`""
+			}
 		}
 	} else {
 	    Write-Host "[$scriptName] Attempt copy from file share $sourcePath"

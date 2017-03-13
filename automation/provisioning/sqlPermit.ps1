@@ -1,6 +1,13 @@
-# Load the assemblies
-[reflection.assembly]::LoadWithPartialName("Microsoft.SqlServer.Smo")
-[reflection.assembly]::LoadWithPartialName("Microsoft.SqlServer.SqlWmiManagement")
+# Common expression logging and error handling function, copied, not referenced to ensure atomic process
+function executeExpression ($expression) {
+	$error.clear()
+	Write-Host "[$scriptName] $expression"
+	try {
+		Invoke-Expression $expression
+	    if(!$?) { Write-Host "[$scriptName] `$? = $?"; exit 1 }
+	} catch { echo $_.Exception|format-list -force; exit 2 }
+    if ( $error[0] ) { Write-Host "[$scriptName] `$error[0] = $error"; exit 3 }
+}
 
 $scriptName = 'sqlPermit.ps1'
 Write-Host
@@ -37,22 +44,22 @@ if ($dbhost) {
     Write-Host "[$scriptName] dbhost       : $dbhost (default)"
 }
 
-$dbinstance = $args[4]
-if ($dbinstance) {
-    Write-Host "[$scriptName] dbinstance : $dbinstance"
-	$smo = new-Object Microsoft.SqlServer.Management.Smo.Server("$dbhost\$dbinstance")
-} else {
-    Write-Host "[$scriptName] dbinstance : not supplied, let SQL Server decide"
-	$smo = new-Object Microsoft.SqlServer.Management.Smo.Server("$dbhost")
-}
+Write-Host
+# Load the assemblies
+executeExpression '[reflection.assembly]::LoadWithPartialName("Microsoft.SqlServer.Smo")'
+executeExpression '[reflection.assembly]::LoadWithPartialName("Microsoft.SqlServer.SqlWmiManagement")'
+
+# Rely on caller passing host or host\instance as they desire
+$srv = new-Object Microsoft.SqlServer.Management.Smo.Server("$dbhost")
 
 try {
 
-	$SqlUser = New-Object -TypeName Microsoft.SqlServer.Management.Smo.Login -ArgumentList $smo,"$dbUser"
-	$SqlUser.LoginType = 'WindowsUser'
-	$sqlUser.PasswordPolicyEnforced = $false
-	$SqlUser.Create()
-	Write-Host; Write-Host "[$scriptName] User $dbUser added to $dbhost\$dbinstance"; Write-Host 
+	$db = $srv.Databases[$dbName]
+	$dbRole = $db.Roles[$dbPermission]
+	$dbRole.AddMember($dbUser)
+	$dbRole.Alter()
+
+	Write-Host; Write-Host "[$scriptName] Permission $dbPermission applied for user $dbUser to database $dbName"; Write-Host 
 
 } catch {
 
@@ -61,9 +68,11 @@ try {
 	exit 2
 }
 
-$createdDate = $($db.CreateDate)
 Write-Host
-Write-Host "[$scriptName] Created $dbName on $dbhost\$dbinstance at $createdDate."
+executeExpression '$dbrole | select name'
+
+Write-Host
+$dbUser.EnumDatabaseMappings()
 
 Write-Host
 Write-Host "[$scriptName] ---------- stop ----------"
