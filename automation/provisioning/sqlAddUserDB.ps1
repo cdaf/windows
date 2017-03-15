@@ -10,7 +10,7 @@ function executeExpression ($expression) {
     return $output
 }
 
-$scriptName = 'sqlPermit.ps1'
+$scriptName = 'sqlAddUserDB.ps1'
 Write-Host
 Write-Host "[$scriptName] ---------- start ----------"
 $dbName = $args[0]
@@ -27,15 +27,7 @@ if ($dbUser) {
     Write-Host "[$scriptName] dbUser not supplied, exiting with code 101"; exit 101
 }
 
-$dbPermission = $args[2]
-if ($dbPermission) {
-    Write-Host "[$scriptName] dbPermission : $dbPermission"
-} else {
-    Write-Host "[$scriptName] dbPermission not supplied, exiting with code 102"
-	exit 102
-}
-
-$dbhost = $args[3]
+$dbhost = $args[2]
 if ($dbhost) {
     Write-Host "[$scriptName] dbhost       : $dbhost"
 } else {
@@ -66,23 +58,16 @@ if ( $db ) {
 }
 
 $usr = executeExpression "New-Object ('Microsoft.SqlServer.Management.Smo.User') (`$db, `"$dbUser`")"
-executeExpression "`$usr | select Urn"
-
-$dbRole = executeExpression "`$db.Roles[`"$dbPermission`"]"
-if ( $dbRole ) {
-	executeExpression "`$dbRole | select Urn"
+if ( $usr ) {
+	executeExpression "`$usr | select Urn"
 } else {
-    Write-Host "[$scriptName] Database Role $dbPermission not found!, Exit with code 105"; exit 105
+    Write-Host "[$scriptName] User $dbUser not found!, Exit with code 105"; exit 105
 }
-
-executeExpression "`$dbRole.AddMember(`"$dbUser`")"
-executeExpression "`$dbRole.Alter()"
-
-Write-Host
-executeExpression "`$dbrole | select name"
+executeExpression "`$usr.Login = `$dbUser"
+executeExpression "`$usr.Create()"
 
 Write-Host
-executeExpression "`$usr.EnumRoles()"
+executeExpression "`$usr.EnumObjectPermissions()"
 
 Write-Host
 Write-Host "[$scriptName] ---------- stop ----------"
