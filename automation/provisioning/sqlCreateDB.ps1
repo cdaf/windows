@@ -25,7 +25,7 @@ $dbOwner = $args[1]
 if ($dbOwner) {
     Write-Host "[$scriptName] dbOwner    : $dbOwner"
 } else {
-    Write-Host "[$scriptName] dbOwner    : not supplied"
+    Write-Host "[$scriptName] dbOwner    : (not supplied)"
 }
 
 $dbhost = $args[2]
@@ -55,7 +55,11 @@ $db = executeExpression "New-Object Microsoft.SqlServer.Management.Smo.Database(
 executeExpression "`$db | select name"
 executeExpression "`$db.Create()"
 if ($dbOwner) {
-	executeExpression "`$db.SetOwner(`"$dbOwner`", `$True)"
+	if ($dbOwner -eq $env:UserName) {
+	    Write-Host "[$scriptName] Requested owner is current user, no action taken."
+	} else }
+		executeExpression "`$db.SetOwner(`"$dbOwner`", `$True)"
+	}
 }
 
 Write-Host
