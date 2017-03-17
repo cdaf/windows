@@ -57,7 +57,7 @@ executeExpression "`$db.Create()"
 if ($dbOwner) {
 	if ($dbOwner -eq $env:UserName) {
 	    Write-Host "[$scriptName] Requested owner is current user, no action taken."
-	} else }
+	} else {
 		executeExpression "`$db.SetOwner(`"$dbOwner`", `$True)"
 	}
 }
