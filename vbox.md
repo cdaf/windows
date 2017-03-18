@@ -50,15 +50,9 @@ Insert Guest Additions CD image and reboot from prompt
 
     D:\VBoxWindowsAdditions-amd64.exe
 
-After reboot, logon as vagrant# Disable EIP in Server Management then disable Server Management automatically opening
+After reboot, logon as vagrant
 
-    $securePassword = ConvertTo-SecureString 'vagrant' -asplaintext -force
-    $cred = New-Object System.Management.Automation.PSCredential ('vagrant', $securePassword)
-    enter-pssession 127.0.0.1 -port 15985 -Auth CredSSP -credential $cred 
-
-Create a admin PowerShell link for the following
-
-    reg add HKEY_LOCAL_MACHINE\Software\Microsoft\Windows\CurrentVersion\Policies\System /v EnableLUA /d 0 /t REG_DWORD /f /reg:64
+* Disable EIP in Server Management then disable Server Management automatically opening
 
 Settings to support Vagrant integration, Unencypted Remote PowerShell
 
@@ -108,6 +102,12 @@ Allow "hop"
 
     Enable-WSManCredSSP -Force -Role Server
 
+Logoff and log back on from remote PowerShell to verify access
+
+    $securePassword = ConvertTo-SecureString 'vagrant' -asplaintext -force
+    $cred = New-Object System.Management.Automation.PSCredential ('vagrant', $securePassword)
+    enter-pssession 127.0.0.1 -port 15985 -Auth CredSSP -credential $cred 
+
 Remove (not uninstall yet) the features that are currently enabled, GUI ...
 
     @('Server-Media-Foundation', 'Powershell-ISE') | Remove-WindowsFeature
@@ -120,10 +120,15 @@ Now we can iterate over every feature that is not installed but 'Available' and 
 
     Get-WindowsFeature | ? { $_.InstallState -eq 'Available' } | Uninstall-WindowsFeature -Remove
 
-Apply windows updates, server 2016 or above ...
+Apply windows updates, server 2016 or above (likely to reboot automatically)...
 
-    Get-WUInstall –Verbose –AcceptAll –AutoReboot:$True -Confirm:$False
-    
+    $zipFile = "WU-CDAF-1.5.2.zip" 
+    $url = "http://cdaf.io/static/app/downloads/$zipFile" 
+    (New-Object System.Net.WebClient).DownloadFile($url, "$PWD\$zipFile") 
+    Add-Type -AssemblyName System.IO.Compression.FileSystem 
+    [System.IO.Compression.ZipFile]::ExtractToDirectory("$PWD\$zipfile", "$PWD") 
+    .\automation\provisioning\applyWindowsUpdates.ps1
+
 ... or interactively
 
     sconfig
@@ -133,9 +138,6 @@ Apply windows updates, server 2016 or above ...
 
     Stop-Service wuauserv
     Remove-Item  $env:systemroot\SoftwareDistribution -Recurse -Force
-
-Shutdown to apply pagefile and remove install media
-
     shutdown /s /t 0
 
 ## On host
