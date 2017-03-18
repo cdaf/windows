@@ -36,6 +36,8 @@ if ($autoRestart) {
     Write-Host "[$scriptName] autoRestart   : $autoRestart (default)"
 }
 
+executeExpression  "Import-Module PSWindowsUpdate"
+
 if ($autoRestart -eq 'yes') {
 	executeExpression  "Get-WUInstall –Verbose –AcceptAll –AutoReboot:`$True -Confirm:`$False"
 } else {
