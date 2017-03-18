@@ -120,7 +120,11 @@ Now we can iterate over every feature that is not installed but 'Available' and 
 
     Get-WindowsFeature | ? { $_.InstallState -eq 'Available' } | Uninstall-WindowsFeature -Remove
 
-Apply windows updates
+Apply windows updates, server 2016 or above ...
+
+    Get-WUInstall –Verbose –AcceptAll –AutoReboot:$True -Confirm:$False
+    
+... or interactively
 
     sconfig
     >6
