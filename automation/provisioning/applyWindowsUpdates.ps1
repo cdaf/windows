@@ -36,6 +36,9 @@ if ($autoRestart) {
     Write-Host "[$scriptName] autoRestart   : $autoRestart (default)"
 }
 
+executeExpression  "Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.201 -Force"
+executeExpression  "Set-PSRepository -Name PSGallery -InstallationPolicy Trusted"
+executeExpression  "Install-Module -Name PSWindowsUpdate -Confirm:`$False"
 executeExpression  "Import-Module PSWindowsUpdate"
 
 if ($autoRestart -eq 'yes') {
