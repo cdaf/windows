@@ -1,8 +1,10 @@
 # Manual process for VirtualBox Image Construction
 
-Working on building using Packer, however, will endevour to keep this document aligned for reference puposes.
+Working on building using Packer. Will create 3 stage scripting as preparation in next (1.5.3) CDAF release.
 
 ## Image Preparation
+
+* Disable EIP in Server Management then disable Server Management automatically opening
 
 Enable Remote Desktop and Open firewall
 
@@ -14,8 +16,7 @@ Ensure all adapters set to private
 
     Get-NetConnectionProfile | Set-NetConnectionProfile -NetworkCategory Private  
 
-configure the computer to receive remote commands
-http://technet.microsoft.com/en-us/library/hh849694.aspx
+configure the computer to receive [remote commands](http://technet.microsoft.com/en-us/library/hh849694.aspx)
 
     Enable-PSRemoting -Force
 
@@ -46,87 +47,53 @@ Add the Vagrant user in the local administrators group
     $de = [ADSI]"WinNT://$env:computername/Administrators,group"
     $de.psbase.Invoke("Add",([ADSI]"WinNT://$env:computername/vagrant").path)
 
-Insert Guest Additions CD image and reboot from prompt
+Open Firewall for WinRM
+
+    Set-NetFirewallRule -Name WINRM-HTTP-In-TCP-PUBLIC -RemoteAddress Any
+
+Allow arbitrary script execution
+
+    Set-ExecutionPolicy -ExecutionPolicy Unrestricted -Force
+
+Allow "hop"
+
+    Enable-WSManCredSSP -Role Server -Force
+
+### Insert Guest Additions CD image and reboot from prompt
 
     D:\VBoxWindowsAdditions-amd64.exe
 
-After reboot, logon as vagrant
+### On host (in VirtualBox) remove media
 
-* Disable EIP in Server Management then disable Server Management automatically opening
+After reboot, logon as vagrant via remote PowerShell to verify access
+
+    $securePassword = ConvertTo-SecureString 'vagrant' -asplaintext -force
+    $cred = New-Object System.Management.Automation.PSCredential ('vagrant', $securePassword)
+    enter-pssession 127.0.0.1 -port 15985 -Auth CredSSP -credential $cred 
+
+Download and leave on Vagrant desktop so subsequent users can view the point-in-time scripts.
+
+    $zipFile = "WU-CDAF-1.5.2.zip"
+    $url = "http://cdaf.io/static/app/downloads/$zipFile"
+    (New-Object System.Net.WebClient).DownloadFile($url, "$PWD\$zipFile") 
+    Add-Type -AssemblyName System.IO.Compression.FileSystem
+    [System.IO.Compression.ZipFile]::ExtractToDirectory("$PWD\$zipfile", "$PWD")
 
 Settings to support Vagrant integration, Unencypted Remote PowerShell
 
     winrm set winrm/config '@{MaxTimeoutms="1800000"}'
     winrm set winrm/config/service '@{AllowUnencrypted="true"}'
     winrm set winrm/config/service/auth '@{Basic="true"}'
-
-Check the defaults, as of 2016, set to maximum, to set for Windows Server 2012 R2
-
-    dir WSMan:\localhost\Shell
-
-    Type            Name                           SourceOfValue   Value
-    ----            ----                           -------------   -----
-    System.String   AllowRemoteShellAccess                         true
-    System.String   IdleTimeout                                    7200000
-    System.String   MaxConcurrentUsers                             10
-    System.String   MaxShellRunTime                                2147483647
-    System.String   MaxProcessesPerShell                           25
-    System.String   MaxMemoryPerShellMB                            1024
-    System.String   MaxShellsPerUser                               30
-
-    winrm set winrm/config/winrs '@{MaxConcurrentUsers="100"}'
-    winrm set winrm/config/winrs '@{MaxProcessesPerShell="2147483647"}'
-    winrm set winrm/config/winrs '@{MaxMemoryPerShellMB="2147483647"}'
-    winrm set winrm/config/winrs '@{MaxShellsPerUser="2147483647"}'
-
-    Type            Name                           SourceOfValue   Value
-    ----            ----                           -------------   -----
-    System.String   AllowRemoteShellAccess                         true
-    System.String   IdleTimeout                                    7200000
-    System.String   MaxConcurrentUsers                             100  # Note: this is 2147483647 in 2016.
-    System.String   MaxShellRunTime                                2147483647
-    System.String   MaxProcessesPerShell                           2147483647
-    System.String   MaxMemoryPerShellMB                            2147483647
-    System.String   MaxShellsPerUser                               2147483647
-
-Open Firewall for WinRM
-
-    Set-NetFirewallRule -Name WINRM-HTTP-In-TCP-PUBLIC -RemoteAddress Any
-
-Allow arbitrary script execution
-TODO: Set to all without prompt
-
-    Set-ExecutionPolicy -ExecutionPolicy Unrestricted
-
-Allow "hop"
-
-    Enable-WSManCredSSP -Force -Role Server
-
-Logoff and log back on from remote PowerShell to verify access
-
-    $securePassword = ConvertTo-SecureString 'vagrant' -asplaintext -force
-    $cred = New-Object System.Management.Automation.PSCredential ('vagrant', $securePassword)
-    enter-pssession 127.0.0.1 -port 15985 -Auth CredSSP -credential $cred 
-
-Remove (not uninstall yet) the features that are currently enabled, GUI ...
-
-    @('Server-Media-Foundation', 'Powershell-ISE') | Remove-WindowsFeature
-
-... core
-
-    @('Server-Media-Foundation') | Remove-WindowsFeature
+    winrm set winrm/config/client/auth '@{Basic="true"}'
 
 Now we can iterate over every feature that is not installed but 'Available' and physically uninstall them from disk:
 
     Get-WindowsFeature | ? { $_.InstallState -eq 'Available' } | Uninstall-WindowsFeature -Remove
 
-Apply windows updates, server 2016 or above (likely to reboot automatically)...
+### Apply windows updates,
 
-    $zipFile = "WU-CDAF-1.5.2.zip" 
-    $url = "http://cdaf.io/static/app/downloads/$zipFile" 
-    (New-Object System.Net.WebClient).DownloadFile($url, "$PWD\$zipFile") 
-    Add-Type -AssemblyName System.IO.Compression.FileSystem 
-    [System.IO.Compression.ZipFile]::ExtractToDirectory("$PWD\$zipfile", "$PWD") 
+server 2016 or above (likely to reboot automatically)...
+
     .\automation\provisioning\applyWindowsUpdates.ps1
 
 ... or interactively
@@ -135,30 +102,19 @@ Apply windows updates, server 2016 or above (likely to reboot automatically)...
     >6
     >R # don't bother with optional updates
     >A
-
-    Stop-Service wuauserv
-    Remove-Item  $env:systemroot\SoftwareDistribution -Recurse -Force
     shutdown /s /t 0
-
-## On host
-
-In VirtualBox remove media
 
 ## On Image
 
-Perform from console or RDP as this will close the WinRM (Remote Powershell) connections
-From https://github.com/mitchellh/vagrant/issues/7680 (in the link, name="WinRM-HTTP")
-See also https://technet.microsoft.com/en-us/library/cc766314(v=ws.10).aspx
-
-    mkdir -Path $env:windir/setup/scripts/
-    Add-Content $env:windir/setup/scripts/SetupComplete.cmd 'netsh advfirewall firewall set rule name="Windows Remote Management (HTTP-in)" new action=allow'
-    cat $env:windir/setup/scripts/SetupComplete.cmd
-    netsh advfirewall firewall set rule name="Windows Remote Management (HTTP-in)" new action=block
-
 Cleanup WinSXS update debris
 
-    Dism.exe /online /Cleanup-Image /StartComponentCleanup /ResetBase
+v    Dism.exe /online /Cleanup-Image /StartComponentCleanup /ResetBase
     Optimize-Volume -DriveLetter C
+
+Clean up Windows Updates
+
+    Stop-Service wuauserv
+    Remove-Item  $env:systemroot\SoftwareDistribution -Recurse -Force
 
 Cleanup Trim pagefile (windows rebuilds that on start-up)
 
@@ -180,8 +136,18 @@ From http://huestones.co.uk/node/305, important especially for VirtualBox
     [System.IO.Compression.ZipFile]::ExtractToDirectory("$PWD\$zipfile", "$PWD") 
     ./sdelete.exe -z c:
 
-As per this URL, https://technet.microsoft.com/en-us/library/cc749415(v=ws.10).aspx
-there are implicit places windows looks for unattended files, I'm using C:\Windows\Panther\Unattend
+### Sysprep (reboot)
+
+Perform from console or RDP as this will close the WinRM (Remote Powershell) connections
+From https://github.com/mitchellh/vagrant/issues/7680 (in the link, name="WinRM-HTTP")
+See also https://technet.microsoft.com/en-us/library/cc766314(v=ws.10).aspx
+
+    mkdir -Path $env:windir/setup/scripts/
+    Add-Content $env:windir/setup/scripts/SetupComplete.cmd 'netsh advfirewall firewall set rule name="Windows Remote Management (HTTP-in)" new action=allow'
+    cat $env:windir/setup/scripts/SetupComplete.cmd
+    netsh advfirewall firewall set rule name="Windows Remote Management (HTTP-in)" new action=block
+
+As per this [URL](https://technet.microsoft.com/en-us/library/cc749415(v=ws.10).aspx) there are implicit places windows looks for unattended files, I'm using C:\Windows\Panther\Unattend
 
     cd ~
     (New-Object System.Net.WebClient).DownloadFile('http://cdaf.io/static/app/downloads/unattend.xml', "$PWD\unattend.xml")
