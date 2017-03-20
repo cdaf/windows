@@ -27,14 +27,14 @@ Disable password policy
     secedit /configure /db c:\windows\security\local.sdb /cfg c:\secpol.cfg /areas SECURITYPOLICY
     rm -force c:\secpol.cfg -confirm:$false
 
-Change default Administrator user to Vagrant
+Set default Administrator password to "vagrant"
 
     $admin=[adsi]"WinNT://./Administrator,user"
     $admin.SetPassword("vagrant")
     $admin.UserFlags.value = $admin.UserFlags.value -bor 0x10000 # Password never expires
     $admin.CommitChanges() 
 
-Add the Vagrant user in the local administrators group
+Create the Vagrant user (with password vagrant) in the local administrators group
 
     $ADSIComp = [ADSI]"WinNT://$Env:COMPUTERNAME,Computer"
     $LocalUser = $ADSIComp.Create("User", "vagrant")
@@ -71,14 +71,6 @@ After reboot, logon as vagrant via remote PowerShell to verify access
     $cred = New-Object System.Management.Automation.PSCredential ('vagrant', $securePassword)
     enter-pssession 127.0.0.1 -port 15985 -Auth CredSSP -credential $cred 
 
-Download and leave on Vagrant desktop so subsequent users can view the point-in-time scripts.
-
-    $zipFile = "WU-CDAF-1.5.2.zip"
-    $url = "http://cdaf.io/static/app/downloads/$zipFile"
-    (New-Object System.Net.WebClient).DownloadFile($url, "$PWD\$zipFile") 
-    Add-Type -AssemblyName System.IO.Compression.FileSystem
-    [System.IO.Compression.ZipFile]::ExtractToDirectory("$PWD\$zipfile", "$PWD")
-
 Settings to support Vagrant integration, Unencypted Remote PowerShell
 
     winrm set winrm/config '@{MaxTimeoutms="1800000"}'
@@ -86,35 +78,28 @@ Settings to support Vagrant integration, Unencypted Remote PowerShell
     winrm set winrm/config/service/auth '@{Basic="true"}'
     winrm set winrm/config/client/auth '@{Basic="true"}'
 
-Now we can iterate over every feature that is not installed but 'Available' and physically uninstall them from disk:
-
-    Get-WindowsFeature | ? { $_.InstallState -eq 'Available' } | Uninstall-WindowsFeature -Remove
-
 ### Apply windows updates,
 
-server 2016 or above (likely to reboot automatically)...
+Server 2016 or above (likely to reboot automatically)...
 
-    .\automation\provisioning\applyWindowsUpdates.ps1
+    Set-PSRepository -Name PSGallery -InstallationPolicy Trusted
+    Install-Module -Name PSWindowsUpdate -Confirm:$False
+    Import-Module PSWindowsUpdate
+    Get-WUInstall -Verbose -AcceptAll -AutoReboot:$True -Confirm:$False
 
-... or interactively
+## Recover Disk space
 
-    sconfig
-    >6
-    >R # don't bother with optional updates
-    >A
-    shutdown /s /t 0
+Remove the features that are not required, then remove media for available features that are not installed
 
-## On Image
+    @('Server-Media-Foundation', 'Powershell-ISE') | Remove-WindowsFeature
+    Get-WindowsFeature | ? { $_.InstallState -eq 'Available' } | Uninstall-WindowsFeature -Remove
 
-Cleanup WinSXS update debris
-
-v    Dism.exe /online /Cleanup-Image /StartComponentCleanup /ResetBase
-    Optimize-Volume -DriveLetter C
-
-Clean up Windows Updates
+Clean up Windows Updates and WinSXS, then optimise disk
 
     Stop-Service wuauserv
     Remove-Item  $env:systemroot\SoftwareDistribution -Recurse -Force
+    Dism.exe /online /Cleanup-Image /StartComponentCleanup /ResetBase
+    Optimize-Volume -DriveLetter C
 
 Cleanup Trim pagefile (windows rebuilds that on start-up)
 
@@ -136,7 +121,7 @@ From http://huestones.co.uk/node/305, important especially for VirtualBox
     [System.IO.Compression.ZipFile]::ExtractToDirectory("$PWD\$zipfile", "$PWD") 
     ./sdelete.exe -z c:
 
-### Sysprep (reboot)
+### Sysprep (Results in host shutdown)
 
 Perform from console or RDP as this will close the WinRM (Remote Powershell) connections
 From https://github.com/mitchellh/vagrant/issues/7680 (in the link, name="WinRM-HTTP")
