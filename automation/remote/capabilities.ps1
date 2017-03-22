@@ -109,6 +109,15 @@ if ($versionTest -like '*not recognized*') {
 	Write-Host "  curl.exe                : $($array[1])"
 }
 
+
+$versionTest = cmd /c docker --version 2`>`&1
+if ($versionTest -like '*not recognized*') {
+	Write-Host "  Docker                  : not installed"
+} else {
+	$array = $versionTest.split(" ")
+	Write-Host "  Docker                  : $($array[2])"
+}
+
 Write-Host
 Write-Host "[$scriptName] List the build tools"
 $regkey = 'HKLM:\Software\Microsoft\MSBuild\ToolsVersions'

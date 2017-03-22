@@ -111,7 +111,7 @@ Cleanup Trim pagefile (windows rebuilds that on start-up)
     $CurrentPageFile.MaximumSize = 512
     $CurrentPageFile.Put()
 
-From http://huestones.co.uk/node/305, important especially for VirtualBox
+Use [sysinternals guidance](http://huestones.co.uk/node/305), important especially for VirtualBox
 
     cd ~
     $zipFile = "SDelete.zip"
@@ -123,9 +123,7 @@ From http://huestones.co.uk/node/305, important especially for VirtualBox
 
 ### Sysprep (Results in host shutdown)
 
-Perform from console or RDP as this will close the WinRM (Remote Powershell) connections
-From https://github.com/mitchellh/vagrant/issues/7680 (in the link, name="WinRM-HTTP")
-See also https://technet.microsoft.com/en-us/library/cc766314(v=ws.10).aspx
+Perform from console or RDP as this will close the WinRM (Remote Powershell) connections [in the link, name="WinRM-HTTP"](https://github.com/mitchellh/vagrant/issues/7680), see also [Microsoft guide](https://technet.microsoft.com/en-us/library/cc766314(v=ws.10).aspx)
 
     mkdir -Path $env:windir/setup/scripts/
     Add-Content $env:windir/setup/scripts/SetupComplete.cmd 'netsh advfirewall firewall set rule name="Windows Remote Management (HTTP-in)" new action=allow'
@@ -148,9 +146,6 @@ Compress the HDD and pack the image
     $boxName = 'WindowsServer'
     $packageFile = $boxname + '.box'
     & "C:\Program Files\Oracle\VirtualBox\VBoxManage.exe" modifyhd "C:\Users\jules\VirtualBox VMs\${boxName}\${boxName}.vdi" --compact  
-
-Create the .box package
-
     (New-Object System.Net.WebClient).DownloadFile('http://cdaf.io/static/app/downloads/Vagrantfile', "$PWD\Vagrantfile") 
     vagrant package --base $boxName --output $packageFile --vagrantfile Vagrantfile
     vagrant box add $boxName $packageFile --force

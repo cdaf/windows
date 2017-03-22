@@ -43,8 +43,8 @@ To alleviate the burden of argument passing, exception handling and logging, the
 |         | decrypt specific file             | DECRYP cryptLocal encrypt.dat   |
 | DETOKN  | Detokenise file with target prop  | DETOKN tokenised.file           |
 |         | Detokenise with specific file     | DETOKN tokenised.file prop.file |
-| EXCREM  | Execute command                   | EXCREM hostname                 |
-|         | Execute script                    | EXCREM ./capabilities.sh        |
+| EXCREM  | Execute Remote Command            | EXCREM hostname                 |
+|         | Execute Remote script             | EXCREM ./capabilities.sh        |
 | EXITIF  | Exit normally is argument set     | EXITIF $ACTION                  |
 | INVOKE  | call a custom script              | INVOKE ./script "Hello"         |
 | MAKDIR  | Create a directory and path (opt) | MAKDIR directory/and/path       |
@@ -52,6 +52,13 @@ To alleviate the burden of argument passing, exception handling and logging, the
 | REMOVE  | Delete files, including wildcard  | REMOVE *.war                    |
 | REPLAC  | Replace token in file   		  | REPLAC fileName %token% $value  |
 | VECOPY  | Verbose copy					  | VECOPY *.war                    |
+
+Notes on EXCREM use, the properties are similar to those used for remote tasks, where the minimum requried is the host, if other properties are not used, must be set to NOT_SUPPLIED, i.e.
+
+  deployHost=localhost
+  remUser=NOT_SUPPLIED
+  remCred=NOT_SUPPLIED
+  remThb=NOT_SUPPLIED
 
 Runtime variables, automatically set
 

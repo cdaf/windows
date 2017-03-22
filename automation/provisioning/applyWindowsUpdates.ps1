@@ -1,29 +1,3 @@
-# Common expression logging and error handling function, copied, not referenced to ensure atomic process
-function executeExpression ($expression) {
-	$wait = 10
-	$retryMax = 10
-	$retryCount = 0
-	while (( $retryCount -le $retryMax ) -and ($exitCode -ne 0)) {
-		$exitCode = 0
-		$error.clear()
-		Write-Host "[$scriptName][$retryCount] $expression"
-		try {
-			Invoke-Expression $expression
-		    if(!$?) { Write-Host "[$scriptName] `$? = $?"; $exitCode = 1 }
-		} catch { echo $_.Exception|format-list -force; $exitCode = 2 }
-	    if ( $error[0] ) { Write-Host "[$scriptName] `$error[0] = $error"; $exitCode = 3 }
-	    if ($exitCode -gt 0) {
-			if ($retryCount -ge $retryMax ) {
-				Write-Host "[$scriptName] Retry maximum ($retryCount) reached, exiting with code $exitCode"; exit $exitCode
-			} else {
-				$retryCount += 1
-				Write-Host "[$scriptName] Wait $wait seconds, then retry $retryCount of $retryMax"
-				sleep $wait
-			}
-		}
-    }
-}
-
 # Only for Windows Server 2016 and above
 $scriptName = 'applyWindowsUpdates.ps1'
 Write-Host
@@ -36,16 +10,28 @@ if ($autoRestart) {
     Write-Host "[$scriptName] autoRestart   : $autoRestart (default)"
 }
 
-executeExpression  "Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.201 -Force"
-executeExpression  "Set-PSRepository -Name PSGallery -InstallationPolicy Trusted"
-executeExpression  "Install-Module -Name PSWindowsUpdate -Confirm:`$False"
-executeExpression  "Import-Module PSWindowsUpdate"
+try {
+	Write-Host "[$scriptName] Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.201 -Force"
+	Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.201 -Force
+	
+	Write-Host "[$scriptName] Set-PSRepository -Name PSGallery -InstallationPolicy Trusted"
+	Set-PSRepository -Name PSGallery -InstallationPolicy Trusted
+	
+	Write-Host "[$scriptName] Install-Module -Name PSWindowsUpdate -Confirm:`$False"
+	Install-Module -Name PSWindowsUpdate -Confirm:$False
+	
+	Write-Host "[$scriptName] Import-Module PSWindowsUpdate"
+	Import-Module PSWindowsUpdate
 
-if ($autoRestart -eq 'yes') {
-	executeExpression  "Get-WUInstall –Verbose –AcceptAll –AutoReboot:`$True -Confirm:`$False"
-} else {
-	executeExpression  "Get-WUInstall –Verbose –AcceptAll –AutoReboot:`$False -Confirm:`$False"
-}
+	if ($autoRestart -eq 'yes') {
+		Write-Host "[$scriptName] Get-WUInstall –Verbose –AcceptAll –AutoReboot:`$True -Confirm:`$False"
+		Get-WUInstall –Verbose –AcceptAll –AutoReboot:$True -Confirm:$False
+	} else {
+		Write-Host "[$scriptName] Get-WUInstall –Verbose –AcceptAll –AutoReboot:`$False -Confirm:`$False"
+		Get-WUInstall –Verbose –AcceptAll –AutoReboot:$False -Confirm:$False
+	}
+	
+} catch { echo $_.Exception|format-list -force; $exitCode = 5 }
 
 Write-Host
 Write-Host "[$scriptName] ---------- stop ----------"
