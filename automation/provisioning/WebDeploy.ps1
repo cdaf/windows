@@ -37,7 +37,7 @@ $version = $args[2]
 if ($version) {
     Write-Host "[$scriptName] version         : $version"
 } else {
-	$version = '3.5'
+	$version = '3.6'
     Write-Host "[$scriptName] version         : $version (default, choices $versionChoices)"
 }
 
@@ -63,6 +63,11 @@ if ($env:interactive) {
 
 # Install path is used for reading from registry after install is complete
 switch ($version) {
+	'3.6' {
+		$installPath = '3'
+		$file = 'WebDeploy_amd64_en-US.msi'
+		$uri = 'http://download.microsoft.com/download/0/1/D/01DC28EA-638C-4A22-A57B-4CEF97755C6C/' + $file
+	}
 	'3.5' {
 		$installPath = '3'
 		$file = 'WebDeploy_amd64_en-US.msi'
@@ -132,6 +137,12 @@ $InstallPath = executeExpression "(Get-ItemProperty -Path `'$key`' -Name $name).
 
 write-host "Set environment variable MSDeployPath to $InstallPath"
 executeExpression "[Environment]::SetEnvironmentVariable('MSDeployPath', `'$InstallPath`', `'Machine`')"
+
+$failed = Select-String $logFile -Pattern "Installation failed"
+if ( $failed  ) { 
+	Select-String $logFile -Pattern "Installation success or error status"
+	exit 4
+}
 
 Write-Host
 Write-Host "[$scriptName] ---------- stop ----------"
