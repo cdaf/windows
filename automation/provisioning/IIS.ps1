@@ -10,6 +10,7 @@ function executeExpression ($expression) {
 }
 
 function executeRetry ($expression) {
+	$exitCode = 1
 	$wait = 10
 	$retryMax = 10
 	$retryCount = 0
