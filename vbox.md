@@ -12,6 +12,10 @@ Enable Remote Desktop and Open firewall
     $obj.SetAllowTsConnections(1,1)
     Set-NetFirewallRule -Name RemoteDesktop-UserMode-In-TCP -Enabled True
 
+Disable User Account Controls (UAC)
+
+    reg add HKEY_LOCAL_MACHINE\Software\Microsoft\Windows\CurrentVersion\Policies\System /v EnableLUA /d 0 /t REG_DWORD /f /reg:64
+
 Ensure all adapters set to private
 
     Get-NetConnectionProfile | Set-NetConnectionProfile -NetworkCategory Private  
@@ -71,17 +75,18 @@ After reboot, logon as vagrant via remote PowerShell to verify access
     $cred = New-Object System.Management.Automation.PSCredential ('vagrant', $securePassword)
     enter-pssession 127.0.0.1 -port 15985 -Auth CredSSP -credential $cred 
 
-Settings to support Vagrant integration, Unencypted Remote PowerShell
+exit and return to remote desktop, settings to support Vagrant integration, Unencypted Remote PowerShell
 
     winrm set winrm/config '@{MaxTimeoutms="1800000"}'
     winrm set winrm/config/service '@{AllowUnencrypted="true"}'
     winrm set winrm/config/service/auth '@{Basic="true"}'
     winrm set winrm/config/client/auth '@{Basic="true"}'
 
-### Apply windows updates,
+### Apply windows updates
 
 Server 2016 or above (likely to reboot automatically)...
 
+    Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.201 -Force
     Set-PSRepository -Name PSGallery -InstallationPolicy Trusted
     Install-Module -Name PSWindowsUpdate -Confirm:$False
     Import-Module PSWindowsUpdate
@@ -144,8 +149,9 @@ As per this [URL](https://technet.microsoft.com/en-us/library/cc749415(v=ws.10).
 Compress the HDD and pack the image
 
     $boxName = 'WindowsServer'
+    mkdir build;cd build
     $packageFile = $boxname + '.box'
-    & "C:\Program Files\Oracle\VirtualBox\VBoxManage.exe" modifyhd "C:\Users\jules\VirtualBox VMs\${boxName}\${boxName}.vdi" --compact  
+    & "C:\Program Files\Oracle\VirtualBox\VBoxManage.exe" modifyhd "$env:userprofile\VirtualBox VMs\${boxName}\${boxName}.vdi" --compact  
     (New-Object System.Net.WebClient).DownloadFile('http://cdaf.io/static/app/downloads/Vagrantfile', "$PWD\Vagrantfile") 
     vagrant package --base $boxName --output $packageFile --vagrantfile Vagrantfile
     vagrant box add $boxName $packageFile --force
