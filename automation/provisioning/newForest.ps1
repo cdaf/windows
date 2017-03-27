@@ -9,6 +9,34 @@ function executeExpression ($expression) {
     if ( $error[0] ) { Write-Host "[$scriptName] `$error[0] = $error"; exit 3 }
 }
 
+function executeRetry ($expression) {
+	$exitCode = 1
+	$wait = 10
+	$retryMax = 10
+	$retryCount = 0
+	while (( $retryCount -le $retryMax ) -and ($exitCode -ne 0)) {
+		$exitCode = 0
+		$error.clear()
+		Write-Host "[$scriptName][$retryCount] $expression"
+		try {
+			Invoke-Expression $expression
+		    if(!$?) { Write-Host "[$scriptName] `$? = $?"; $exitCode = 1 }
+		} catch { echo $_.Exception|format-list -force; $exitCode = 2 }
+	    if ( $error[0] ) { Write-Host "[$scriptName] `$error[0] = $error"; $exitCode = 3 }
+		if ( $LASTEXITCODE -eq 3010 ) { $LASTEXITCODE = 0 } # 3010 is a normal exit
+	    if ( $lastExitCode -ne 0 ) { Write-Host "[$scriptName] `$lastExitCode = $lastExitCode "; $exitCode = $lastExitCode }
+	    if ($exitCode -ne 0) {
+			if ($retryCount -ge $retryMax ) {
+				Write-Host "[$scriptName] Retry maximum ($retryCount) reached, exiting with code $exitCode"; exit $exitCode
+			} else {
+				$retryCount += 1
+				Write-Host "[$scriptName] Wait $wait seconds, then retry $retryCount of $retryMax"
+				sleep $wait
+			}
+		}
+    }
+}
+
 # Create or reuse mount directory
 function mountWim ($media, $wimIndex, $mountDir) {
 	Write-Host "[$scriptName] Validate WIM source ${media}:${wimIndex} using Deployment Image Servicing and Management (DISM)"
@@ -120,19 +148,27 @@ if ( Test-Path $media ) {
 Write-Host
 Write-Host "[$scriptName] Install Active Directory Domain Roles and Services using Deployment Image Servicing and Management (DISM)"
 Write-Host
-Write-Host "[$scriptName] Source not required for RSAT (Remote Server Administration Tools)"
+Write-Host "[$scriptName]   Remote Server Administration Tools (RSAT)"
 Write-Host
 $featureList = @('ServerManager-Core-RSAT', 'ServerManager-Core-RSAT-Role-Tools', 'RSAT-AD-Tools-Feature')
 foreach ($feature in $featureList) {
-	executeExpression "dism /online /NoRestart /enable-feature /featurename:$feature /LimitAccess /Quiet"
+	executeExpression "dism /online /NoRestart /enable-feature /featurename:$feature $sourceOption"
+	if ( $lastExitCode -ne 0 ) {
+		Write-Host "[$scriptName] DISM failed with `$lastExitCode = $lastExitCode, retry from WSUS/Internet"
+		executeRetry "dism /online /NoRestart /enable-feature /featurename:$feature /Quiet"
+	}
 }
 
 Write-Host
-Write-Host "[$scriptName] Source required for Directory Services"
+Write-Host "[$scriptName]   Source required for Directory Services"
 Write-Host
 $featureList = @('ActiveDirectory-PowerShell', 'DirectoryServices-DomainController', 'RSAT-ADDS-Tools-Feature', 'DirectoryServices-DomainController-Tools', 'DNS-Server-Full-Role', 'DNS-Server-Tools', 'DirectoryServices-AdministrativeCenter')
 foreach ($feature in $featureList) {
 	executeExpression "dism /online /NoRestart /enable-feature /featurename:$feature $sourceOption"
+	if ( $lastExitCode -ne 0 ) {
+		Write-Host "[$scriptName] DISM failed with `$lastExitCode = $lastExitCode, retry from WSUS/Internet"
+		executeRetry "dism /online /NoRestart /enable-feature /featurename:$feature /Quiet"
+	}
 }
 
 if ( Test-Path "$defaultMount\windows" ) {

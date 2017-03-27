@@ -151,7 +151,7 @@ Compress the HDD and pack the image
     $boxName = 'WindowsServer'
     mkdir build;cd build
     $packageFile = $boxname + '.box'
-    & "C:\Program Files\Oracle\VirtualBox\VBoxManage.exe" modifyhd "$env:userprofile\VirtualBox VMs\${boxName}\${boxName}.vdi" --compact  
+    & "C:\Program Files\Oracle\VirtualBox\VBoxManage.exe" modifyhd "$env:userprofile\VirtualBox VMs\${boxName}\${boxName}.vdi" --compact
     (New-Object System.Net.WebClient).DownloadFile('http://cdaf.io/static/app/downloads/Vagrantfile', "$PWD\Vagrantfile") 
     vagrant package --base $boxName --output $packageFile --vagrantfile Vagrantfile
     vagrant box add $boxName $packageFile --force
