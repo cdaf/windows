@@ -109,7 +109,6 @@ function ZipFiles( $zipfilename, $sourcedir )
 {
 	$currentDir = $(pwd)
 	$targetFile = "$currentDir\$zipfilename"
-	Write-Host "[$scriptName] DEBUG $targetFile"
 	Write-Host
 	Write-Host "[$scriptName] Create zip package $targetFile from $sourcedir"
 	$compressionLevel = [System.IO.Compression.CompressionLevel]::Optimal

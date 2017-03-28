@@ -3,11 +3,13 @@ function executeExpression ($expression) {
 	$error.clear()
 	Write-Host "[$scriptName] $expression"
 	try {
-		Invoke-Expression $expression
+		$output = Invoke-Expression $expression
 	    if(!$?) { Write-Host "[$scriptName] `$? = $?"; exit 1 }
 	} catch { echo $_.Exception|format-list -force; exit 2 }
     if ( $error[0] ) { Write-Host "[$scriptName] `$error[0] = $error"; exit 3 }
+    return $output
 }
+
 
 # This script is designed for media that is on a file share or web server, it will download the media to the
 # local file system tehn mount it.
@@ -63,7 +65,8 @@ if ($sourcePath) {
 		executeExpression "Copy-Item `"$sourcePath`" `"$imagePath`""
 	}
 
-	executeExpression "Mount-DiskImage -ImagePath `"$imagePath`""
+	$result = executeExpression "Mount-DiskImage -ImagePath `"$imagePath`""
+    Write-Host "`n[$scriptName] Result of mount : $result"
 
 # Dismount image
 } else {

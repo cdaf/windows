@@ -35,13 +35,12 @@ if ($dbhost) {
     Write-Host "[$scriptName] dbhost       : $dbhost (default)"
 }
 
-Write-Host
-# Load the assemblies
+Write-Host "`n[$scriptName] Load the assemblies ...`n"
 executeExpression '[reflection.assembly]::LoadWithPartialName("Microsoft.SqlServer.Smo")'
 executeExpression '[reflection.assembly]::LoadWithPartialName("Microsoft.SqlServer.SqlWmiManagement")'
 
-Write-Host
 # Rely on caller passing host or host\instance as they desire
+Write-Host "`n[$scriptName] Connect to the SQL Server instance ($dbhost) ...`n"
 $srv = executeExpression "new-Object Microsoft.SqlServer.Management.Smo.Server(`"$dbhost`")"
 if ( $srv ) {
 	executeExpression "`$srv | select Urn"
@@ -49,25 +48,29 @@ if ( $srv ) {
     Write-Host "[$scriptName] Server $dbhost not found!, Exit with code 103"; exit 103
 }
 
-Write-Host
+Write-Host "`n[$scriptName] List current permissions for database ($dbName) ...`n"
 $db = executeExpression "`$srv.Databases[`"$dbName`"]"
 if ( $db ) {
 	executeExpression "`$db | select Urn"
+	executeExpression "`$db.EnumDatabasePermissions() | select Grantee, PermissionState"
 } else {
     Write-Host "[$scriptName] Database $dbName not found!, Exit with code 104"; exit 104
 }
 
+Write-Host "`n[$scriptName] List user permission before update ...`n"
 $usr = executeExpression "New-Object ('Microsoft.SqlServer.Management.Smo.User') (`$db, `"$dbUser`")"
 if ( $usr ) {
 	executeExpression "`$usr | select Urn"
+	executeExpression "`$usr.EnumObjectPermissions()"
 } else {
     Write-Host "[$scriptName] User $dbUser not found!, Exit with code 105"; exit 105
 }
 executeExpression "`$usr.Login = `$dbUser"
 executeExpression "`$usr.Create()"
 
-Write-Host
+Write-Host "`n[$scriptName] List user and database permissions after update ...`n"
 executeExpression "`$usr.EnumObjectPermissions()"
+executeExpression "`$db.EnumDatabasePermissions() | select Grantee, PermissionState"
 
 Write-Host
 Write-Host "[$scriptName] ---------- stop ----------"

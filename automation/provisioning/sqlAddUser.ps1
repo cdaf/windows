@@ -47,21 +47,22 @@ if ($sqlPassword) {
     }
 }
 
-Write-Host
-# Load the assemblies
+Write-Host "`n[$scriptName] Load the assemblies ...`n"
 executeExpression '[reflection.assembly]::LoadWithPartialName("Microsoft.SqlServer.Smo")'
 executeExpression '[reflection.assembly]::LoadWithPartialName("Microsoft.SqlServer.SqlWmiManagement")'
 
 Write-Host
 # Rely on caller passing host or host\instance as they desire
+Write-Host "`n[$scriptName] List currentl Logins for SQL Server instance ($dbhost) ...`n"
 $srv = executeExpression "new-Object Microsoft.SqlServer.Management.Smo.Server(`"$dbhost`")"
 if ( $srv ) {
 	executeExpression "`$srv | select Urn"
+	executeExpression "`$srv.Logins | select name"
 } else {
     Write-Host "[$scriptName] Server $dbhost not found!, Exit with code 103"; exit 103
 }
 
-Write-Host; Write-Host "[$scriptName] Instantiate `$SqlUser"
+Write-Host "`n[$scriptName] Create login for ($dbUser) ...`n"
 $SqlUser = executeExpression "New-Object -TypeName Microsoft.SqlServer.Management.Smo.Login -ArgumentList `$srv,`"$dbUser`""
 executeExpression "`$SqlUser | select Urn"
 
@@ -72,10 +73,8 @@ if ( $sqlPassword ) {
 } else {
 	executeExpression "`$SqlUser.Create()"
 }
-Write-Host
-Write-Host; Write-Host "[$scriptName] Login $dbUser added to $dbhost, listing all Logins"
 
-Write-Host
+Write-Host; Write-Host "`n[$scriptName] Login $dbUser added to $dbhost, listing all Logins after update ...`n"
 executeExpression '$srv.Logins | select name'
 
 Write-Host
