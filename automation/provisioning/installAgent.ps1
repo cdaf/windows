@@ -24,6 +24,11 @@ if ( $mediaDirectory ) {
 	Write-Host "[$scriptName] mediaDirectory : $mediaDirectory (default)"
 }
 
+# Provisionig Script builder
+if ( $env:PROV_SCRIPT_PATH ) {
+	Add-Content "$env:PROV_SCRIPT_PATH" "executeExpression `"./automation/provisioning/$scriptName $mediaDirectory`""
+}
+
 $files = Get-ChildItem "$mediaDirectory/vsts-*"
 if ($files) {
 	Write-Host;	Write-Host "[$scriptName] Files available ..."

@@ -21,6 +21,11 @@ if ($instanceName) {
     Write-Host "[$scriptName] instanceName          : $instanceName (not supplied, so default used)"
 }
 
+# Provisionig Script builder
+if ( $env:PROV_SCRIPT_PATH ) {
+	Add-Content "$env:PROV_SCRIPT_PATH" "executeExpression `"./automation/provisioning/$scriptName $instanceName`""
+}
+
 $exists = SqlLocalDB.exe info | findstr.exe $instanceName
 
 Write-Host

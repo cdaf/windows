@@ -37,6 +37,11 @@ if ($Installtype) {
     Write-Host "[$scriptName] Installtype : $Installtype (default, choices $installChoices)"
 }
 
+# Provisionig Script builder
+if ( $env:PROV_SCRIPT_PATH ) {
+	Add-Content "$env:PROV_SCRIPT_PATH" "executeExpression `"./automation/provisioning/$scriptName $Installtype`""
+}
+
 switch ($Installtype) {
 	'client' {
 		$ntlmFreshPath = 'HKLM:\SOFTWARE\Policies\Microsoft\Windows\CredentialsDelegation\AllowFreshCredentialsWhenNTLMOnly'

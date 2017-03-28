@@ -20,6 +20,11 @@ if ($directoryName) {
     exit 100
 }
 
+# Provisionig Script builder
+if ( $env:PROV_SCRIPT_PATH ) {
+	Add-Content "$env:PROV_SCRIPT_PATH" "executeExpression `"./automation/provisioning/$scriptName $directoryName`""
+}
+
 if ( Test-Path $directoryName ) {
 	Write-Host "[$scriptName] Directory $directoryName already exists, no action attempted."
 } else {

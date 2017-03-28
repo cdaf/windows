@@ -38,6 +38,11 @@ if ($target) {
     Write-Host "[$scriptName] target   : $target (default, choices user or machine)"
 }
 
+# Provisionig Script builder
+if ( $env:PROV_SCRIPT_PATH ) {
+	Add-Content "$env:PROV_SCRIPT_PATH" "executeExpression `"./automation/provisioning/$scriptName $variable $value $target`""
+}
+
 Write-Host
 executeExpression "[Environment]::SetEnvironmentVariable(`'$variable`', `'$value`', `'$target`')"
 

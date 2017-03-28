@@ -1,3 +1,15 @@
+# Common expression logging and error handling function, copied, not referenced to ensure atomic process
+function executeExpression ($expression) {
+	$error.clear()
+	Write-Host "[$scriptName] $expression"
+	try {
+		$output = Invoke-Expression $expression
+	    if(!$?) { Write-Host "[$scriptName] `$? = $?"; exit 1 }
+	} catch { echo $_.Exception|format-list -force; exit 2 }
+    if ( $error[0] ) { Write-Host "[$scriptName] `$error[0] = $error"; exit 3 }
+    return $output
+}
+
 $scriptName = 'GetMedia.ps1'
 Write-Host
 Write-Host "[$scriptName] ---------- start ----------"
@@ -17,6 +29,11 @@ if ($mediaDir) {
     Write-Host "[$scriptName] mediaDir : $mediaDir (default)"
 }
 
+# Provisionig Script builder
+if ( $env:PROV_SCRIPT_PATH ) {
+	Add-Content "$env:PROV_SCRIPT_PATH" "executeExpression `"./automation/provisioning/$scriptName $uri $mediaDir`""
+}
+
 if (!( Test-Path $mediaDir )) {
 	Write-Host "[$scriptName] mkdir $mediaDir"
 	mkdir $mediaDir
@@ -28,9 +45,8 @@ if ( Test-Path $fullpath ) {
 	Write-Host "[scriptName.ps1] $fullpath exists, download not required"
 } else {
 
-	$webclient = new-object system.net.webclient
-	Write-Host "[$scriptName] $webclient.DownloadFile($uri, $fullpath)"
-	$webclient.DownloadFile($uri, $fullpath)
+	$webclient = executeExpression "new-object system.net.webclient"
+	executeExpression "`$webclient.DownloadFile($uri, $fullpath)"
 }
 
 Write-Host

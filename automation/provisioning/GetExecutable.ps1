@@ -44,6 +44,11 @@ if ($useCache) {
     Write-Host "[$scriptName] useCache : (not passed, default to Yes)"
 }
 
+# Provisionig Script builder
+if ( $env:PROV_SCRIPT_PATH ) {
+	Add-Content "$env:PROV_SCRIPT_PATH" "executeExpression `"./automation/provisioning/$scriptName $exename $mediaDir $uri $useCache`""
+}
+
 if (!( Test-Path $mediaDir )) {
 	Write-Host "[$scriptName] mkdir $mediaDir"
 	mkdir $mediaDir

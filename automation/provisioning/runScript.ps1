@@ -40,6 +40,7 @@ Add-Content "$scriptPath" '	    if(!$?) { Write-Host "[$scriptName] `$? = $?"; e
 Add-Content "$scriptPath" '	} catch { echo $_.Exception|format-list -force; exit 2 }'
 Add-Content "$scriptPath" '    if ( $error[0] ) { Write-Host "[$scriptName] `$error[0] = $error"; exit 3 }'
 Add-Content "$scriptPath" '}'
+Add-Content "$scriptPath" '$scriptName = $MyInvocation.MyCommand.Name'
 
 Write-Host
 Write-Host "[$scriptName] ---------- stop ----------"
