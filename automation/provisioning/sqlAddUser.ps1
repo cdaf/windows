@@ -28,7 +28,7 @@ if ($dbhost) {
     Write-Host "[$scriptName] dbhost      : $dbhost (default)"
 }
 
-$loginType = $args[3]
+$loginType = $args[2]
 if ($loginType) {
     Write-Host "[$scriptName] loginType   : $loginType"
 } else {
@@ -36,7 +36,7 @@ if ($loginType) {
     Write-Host "[$scriptName] loginType   : $loginType (not supplied, set to default)"
 }
 
-$sqlPassword = $args[4]
+$sqlPassword = $args[3]
 if ($sqlPassword) {
     Write-Host "[$scriptName] sqlPassword : *********************** (only applicable if loginType is SQLLogin)"
 } else {

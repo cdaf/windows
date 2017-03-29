@@ -54,6 +54,10 @@ if ($media) {
 	$media = 'D:\'
     Write-Host "[$scriptName] media          : $media (default)"
 }
+# Provisionig Script builder
+if ( $env:PROV_SCRIPT_PATH ) {
+	Add-Content "$env:PROV_SCRIPT_PATH" "executeExpression `"./automation/provisioning/$scriptName $serviceAccount ********** $adminAccount $instance $media`""
+}
 
 $EditionId = (Get-ItemProperty -Path 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion' -Name 'EditionID').EditionId
 if (($EditionId -like "*nano*") -or ($EditionId -like "*core*") ) {

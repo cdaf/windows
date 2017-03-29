@@ -38,31 +38,36 @@ if ($sourcePath) {
     Write-Host "[$scriptName] sourcePath : not supplied, dismounting $imagePath"
     Write-Host "[$scriptName] fallBack   : (not applicable when sourcePath not passed)"
 }
-Write-Host
+# Provisionig Script builder
+if ( $env:PROV_SCRIPT_PATH ) {
+	Add-Content "$env:PROV_SCRIPT_PATH" "executeExpression `"./automation/provisioning/$scriptName $imagePath $sourcePath $fallBack`""
+}
 
-# Obtain image and mount
+Write-Host "`n[$scriptName] Obtain image and mount...`n"
 if ($sourcePath) {
-	if ($sourcePath -like 'http*') {	
-	    Write-Host "[$scriptName] Attempt download from web server $sourcePath"
-	    Write-Host
-		$filename = $sourcePath.Substring($sourcePath.LastIndexOf("/") + 1)
-		if ( Test-Path $imagePath ) {
-			Write-Host "[scriptName.ps1] $imagePath exists, download not required"
-		} else {
-		
-			$webclient = new-object system.net.webclient
-			Write-Host "[$scriptName] $webclient.DownloadFile($sourcePath, $imagePath)"
-			try {
-				$webclient.DownloadFile($sourcePath, $imagePath)
-			} catch {
-				Write-Host "[$scriptName] Download from $sourcePath failed, falling back to $fallBack"
-				executeExpression "Copy-Item `"$fallBack`" `"$imagePath`""
-			}
-		}
+	if ($imagePath -eq $sourcePath ) {
+		Write-Host "`n[$scriptName] Source and image are the same, do not attempt copy, just mount $imagePath ...`n"
 	} else {
-	    Write-Host "[$scriptName] Attempt copy from file share $sourcePath"
-	    Write-Host
-		executeExpression "Copy-Item `"$sourcePath`" `"$imagePath`""
+		if ($sourcePath -like 'http*') {	
+		    Write-Host "[$scriptName] Attempt download from web server $sourcePath`n"
+			$filename = $sourcePath.Substring($sourcePath.LastIndexOf("/") + 1)
+			if ( Test-Path $imagePath ) {
+				Write-Host "[scriptName.ps1] $imagePath exists, download not required"
+			} else {
+			
+				$webclient = new-object system.net.webclient
+				Write-Host "[$scriptName] $webclient.DownloadFile($sourcePath, $imagePath)"
+				try {
+					$webclient.DownloadFile($sourcePath, $imagePath)
+				} catch {
+					Write-Host "[$scriptName] Download from $sourcePath failed, falling back to $fallBack"
+					executeExpression "Copy-Item `"$fallBack`" `"$imagePath`""
+				}
+			}
+		} else {
+		    Write-Host "[$scriptName] Attempt copy from file share $sourcePath`n"
+			executeExpression "Copy-Item `"$sourcePath`" `"$imagePath`""
+		}
 	}
 
 	$result = executeExpression "Mount-DiskImage -ImagePath `"$imagePath`""

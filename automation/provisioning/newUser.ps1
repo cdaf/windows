@@ -52,7 +52,12 @@ if ($TrustedForDelegation) {
 	$TrustedForDelegation = 'no'
     Write-Host "[$scriptName] TrustedForDelegation : $TrustedForDelegation (default, choices yes or no)"
 }
- 
+
+# Provisionig Script builder
+if ( $env:PROV_SCRIPT_PATH ) {
+	Add-Content "$env:PROV_SCRIPT_PATH" "executeExpression `"./automation/provisioning/$scriptName $userName **********`""
+}
+
 if ((gwmi win32_computersystem).partofdomain -eq $true) {
 
 	executeExpression  "Import-Module ActiveDirectory"

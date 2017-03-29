@@ -35,6 +35,11 @@ if ($domain) {
     Write-Host "[$scriptName] domain   : not supplied, will treat as local machine (workgroup)"
 }
 
+# Provisionig Script builder
+if ( $env:PROV_SCRIPT_PATH ) {
+	Add-Content "$env:PROV_SCRIPT_PATH" "executeExpression `"./automation/provisioning/$scriptName $group $userName $domain`""
+}
+
 if ($domain) {
 	Write-Host
 	Write-Host "[$scriptName] Add $domain/$userName to local group $group."
