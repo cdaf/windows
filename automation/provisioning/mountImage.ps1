@@ -10,10 +10,10 @@ function executeExpression ($expression) {
     return $output
 }
 
-
 # This script is designed for media that is on a file share or web server, it will download the media to the
 # local file system tehn mount it.
 $scriptName = 'mountImage.ps1'
+$lastExitCode = 0
 Write-Host
 Write-Host "[$scriptName] ---------- start ----------"
 $imagePath = $args[0]
@@ -43,13 +43,13 @@ if ( $env:PROV_SCRIPT_PATH ) {
 	Add-Content "$env:PROV_SCRIPT_PATH" "executeExpression `"./automation/provisioning/$scriptName $imagePath $sourcePath $fallBack`""
 }
 
-Write-Host "`n[$scriptName] Obtain image and mount...`n"
 if ($sourcePath) {
 	if ($imagePath -eq $sourcePath ) {
 		Write-Host "`n[$scriptName] Source and image are the same, do not attempt copy, just mount $imagePath ...`n"
 	} else {
+		Write-Host "`n[$scriptName] Obtain image and mount...`n"
 		if ($sourcePath -like 'http*') {	
-		    Write-Host "[$scriptName] Attempt download from web server $sourcePath`n"
+		    Write-Host "[$scriptName] Attempt download from web server $sourcePath"
 			$filename = $sourcePath.Substring($sourcePath.LastIndexOf("/") + 1)
 			if ( Test-Path $imagePath ) {
 				Write-Host "[scriptName.ps1] $imagePath exists, download not required"
@@ -65,20 +65,22 @@ if ($sourcePath) {
 				}
 			}
 		} else {
-		    Write-Host "[$scriptName] Attempt copy from file share $sourcePath`n"
+		    Write-Host "[$scriptName] Attempt copy from file share $sourcePath"
 			executeExpression "Copy-Item `"$sourcePath`" `"$imagePath`""
 		}
 	}
 
-	$result = executeExpression "Mount-DiskImage -ImagePath `"$imagePath`""
-    Write-Host "`n[$scriptName] Result of mount : $result"
+	$result = executeExpression "Mount-DiskImage -ImagePath `"$imagePath`" -Passthru"
+	$driveLetter = ($result | Get-Volume).DriveLetter
+    Write-Host "`n[$scriptName] Drive Letter : $driveLetter"
+	$result = executeExpression "[Environment]::SetEnvironmentVariable(`'MOUNT_DRIVE_LETTER`', `"$driveLetter`:\`", `'User`')"
 
 # Dismount image
 } else {
 
     Write-Host
 	executeExpression "Dismount-DiskImage -ImagePath `"$imagePath`""
-
 }
 Write-Host
 Write-Host "[$scriptName] ---------- stop ----------"
+exit 0

@@ -39,12 +39,20 @@ if ($loginType) {
 $sqlPassword = $args[3]
 if ($sqlPassword) {
     Write-Host "[$scriptName] sqlPassword : *********************** (only applicable if loginType is SQLLogin)"
+	# Provisionig Script builder
+	if ( $env:PROV_SCRIPT_PATH ) {
+		Add-Content "$env:PROV_SCRIPT_PATH" "executeExpression `"./automation/provisioning/$scriptName $dbUser $dbhost $loginType `'***********************`'`""
+	}
 } else {
 	if ( $loginType -eq 'SQLLogin' ) {
     	Write-Host "[$scriptName] sqlPassword : not supplied, required when loginType is SQLLogin, exiting with code 102."; exit 102
 	} else {
 	    Write-Host "[$scriptName] sqlPassword : not supplied (only applicable if loginType is SQLLogin)"
     }
+	# Provisionig Script builder
+	if ( $env:PROV_SCRIPT_PATH ) {
+		Add-Content "$env:PROV_SCRIPT_PATH" "executeExpression `"./automation/provisioning/$scriptName $dbUser $dbhost $loginType`""
+	}
 }
 
 Write-Host "`n[$scriptName] Load the assemblies ...`n"
@@ -53,11 +61,11 @@ executeExpression '[reflection.assembly]::LoadWithPartialName("Microsoft.SqlServ
 
 Write-Host
 # Rely on caller passing host or host\instance as they desire
-Write-Host "`n[$scriptName] List currentl Logins for SQL Server instance ($dbhost) ...`n"
+Write-Host "`n[$scriptName] Connect to SQL Server Instance ($dbhost) ...`n"
 $srv = executeExpression "new-Object Microsoft.SqlServer.Management.Smo.Server(`"$dbhost`")"
 if ( $srv ) {
-	executeExpression "`$srv | select Urn"
-	executeExpression "`$srv.Logins | select name"
+	Write-Host "`n[$scriptName] List currentl Logins for SQL Server Instance ($dbhost) ...`n"
+	executeExpression "`$srv.Logins | Format-Table -Property Name"
 } else {
     Write-Host "[$scriptName] Server $dbhost not found!, Exit with code 103"; exit 103
 }
@@ -75,7 +83,7 @@ if ( $sqlPassword ) {
 }
 
 Write-Host; Write-Host "`n[$scriptName] Login $dbUser added to $dbhost, listing all Logins after update ...`n"
-executeExpression '$srv.Logins | select name'
+executeExpression "`$srv.Logins | Format-Table -Property Name"
 
 Write-Host
 Write-Host "[$scriptName] ---------- stop ----------"

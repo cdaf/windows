@@ -1,5 +1,16 @@
 # Common expression logging and error handling function, copied, not referenced to ensure atomic process
 function executeExpression ($expression) {
+	$error.clear()
+	Write-Host "[$scriptName] $expression"
+	try {
+		$output = Invoke-Expression $expression
+	    if(!$?) { Write-Host "[$scriptName] `$? = $?"; exit 1 }
+	} catch { echo $_.Exception|format-list -force; exit 2 }
+    if ( $error[0] ) { Write-Host "[$scriptName] `$error[0] = $error"; exit 3 }
+    return $output
+}
+
+function executeRetry ($expression) {
 	$wait = 10
 	$retryMax = 10
 	$retryCount = 0
@@ -55,21 +66,19 @@ if ($TrustedForDelegation) {
 
 # Provisionig Script builder
 if ( $env:PROV_SCRIPT_PATH ) {
-	Add-Content "$env:PROV_SCRIPT_PATH" "executeExpression `"./automation/provisioning/$scriptName $userName **********`""
+	Add-Content "$env:PROV_SCRIPT_PATH" "executeExpression `"./automation/provisioning/$scriptName `"$userName`" `"**********`"`""
 }
 
 if ((gwmi win32_computersystem).partofdomain -eq $true) {
 
-	executeExpression  "Import-Module ActiveDirectory"
+	executeRetry  "Import-Module ActiveDirectory"
 
-	Write-Host
-	Write-Host "[$scriptName] Add the new user, enabled with password"
-	Write-Host
-	executeExpression  "New-ADUser -Name $userName -AccountPassword (ConvertTo-SecureString -AsPlainText `$password -Force)"
-	executeExpression  "Enable-ADAccount -Identity $userName"
+	Write-Host "`n[$scriptName] Add the new user, enabled with password`n"
+	executeRetry  "New-ADUser -Name $userName -AccountPassword (ConvertTo-SecureString -AsPlainText `$password -Force)"
+	executeRetry  "Enable-ADAccount -Identity $userName"
 
 	if ($TrustedForDelegation -eq 'yes') {
-		executeExpression  "Set-ADUser -Identity $userName -TrustedForDelegation `$True"
+		executeRetry  "Set-ADUser -Identity $userName -TrustedForDelegation `$True"
 	}
 
 } else {
@@ -78,14 +87,13 @@ if ((gwmi win32_computersystem).partofdomain -eq $true) {
 	    Write-Host "[$scriptName] TrustedForDelegation is not applicable to workgroup computer, no action will be attempted."
 	}
 
-	Write-Host
-	Write-Host "[$scriptName] Workgroup Host, create as local user ($userName)."
-	$ADSIComp = [ADSI]"WinNT://$Env:COMPUTERNAME,Computer"
-	$LocalUser = $ADSIComp.Create("User", $userName)
-	$LocalUser.SetPassword($password)
-	$LocalUser.SetInfo()
-	$LocalUser.FullName = "$userName"
-	$LocalUser.SetInfo()
+	Write-Host "`n[$scriptName] Workgroup Host, create as local user ($userName)."
+	$ADSIComp = executeExpression "[ADSI]`"WinNT://$Env:COMPUTERNAME,Computer`""
+	$LocalUser = executeExpression "`$ADSIComp.Create(`'User`', `"$userName`")"
+	executeExpression "`$LocalUser.SetPassword(`$password)"
+	executeExpression "`$LocalUser.SetInfo()"
+	executeExpression "`$LocalUser.FullName = `"$userName`""
+	executeExpression "`$LocalUser.SetInfo()"
 
 }
 
