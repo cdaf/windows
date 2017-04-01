@@ -9,6 +9,10 @@ if ($autoRestart) {
 	$autoRestart = 'yes'
     Write-Host "[$scriptName] autoRestart   : $autoRestart (default)"
 }
+# Provisionig Script builder
+if ( $env:PROV_SCRIPT_PATH ) {
+	Add-Content "$env:PROV_SCRIPT_PATH" "executeExpression `"./automation/provisioning/$scriptName $autoRestart`""
+}
 
 try {
 	Write-Host "[$scriptName] Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.201 -Force"

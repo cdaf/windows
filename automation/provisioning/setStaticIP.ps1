@@ -8,6 +8,10 @@ if ($staticIP) {
     Write-Host "[$scriptName] staticIP not supplied, exiting with exit code 100"
     exit 100
 }
+# Provisionig Script builder
+if ( $env:PROV_SCRIPT_PATH ) {
+	Add-Content "$env:PROV_SCRIPT_PATH" "executeExpression `"./automation/provisioning/$scriptName $staticIP`""
+}
 
 foreach ($interface in (Get-DnsClient -InterfaceAlias 'Ethernet*')) {
 	if ($staticIP -eq  (Get-NetIPAddress -InterfaceIndex $interface.InterfaceIndex -AddressFamily 'IPv4').IPAddress ) {
