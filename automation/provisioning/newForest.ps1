@@ -185,7 +185,7 @@ if ( Test-Path "$defaultMount\windows" ) {
 # https://github.com/rgl/windows-domain-controller-vagrant/blob/master/provision/domain-controller.ps1
 #   If using -NoRebootOnCompletion do not use reload module in Vagrant or it will fail (raise_if_auth_error)
 
-if ($controlReboot -eq 'none') {
+if ($controlReboot -ne 'none') {
 	Write-Host
 	Write-Host "[$scriptName] Create the new Forest and convert this host into the FSMO Domain Controller"
 	Write-Host
