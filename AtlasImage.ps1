@@ -194,14 +194,14 @@ if ($smtpServer) {
 $scriptDir = "$env:windir/setup/scripts"
 if (Test-Path "$scriptDir") {
     Write-Host "`n[$scriptName] $scriptDir exists, skip create."
-} eles {
+} else {
     executeExpression "mkdir -Path $scriptDir"
 }
 
 $setupCommand = "$scriptDir/SetupComplete.cmd"
 if (Test-Path "$setupCommand") {
     Write-Host "`n[$scriptName] $setupCommand exists, skip create."
-} eles {
+} else {
     executeExpression "Add-Content $scriptDir/SetupComplete.cmd `'netsh advfirewall firewall set rule name=`"Windows Remote Management (HTTP-in)`" new action=allow`'"
 }
 executeExpression "cat $scriptDir/SetupComplete.cmd"
@@ -213,14 +213,14 @@ executeExpression "(New-Object System.Net.WebClient).DownloadFile(`'http://cdaf.
 $scriptDir = "C:\Windows\Panther\Unattend"
 if (Test-Path "$scriptDir") {
     Write-Host "`n[$scriptName] $scriptDir exists, skip create."
-} eles {
+} else {
     executeExpression "mkdir -Path $scriptDir"
 }
 
 $sysprepXML = "$scriptDir\unattend.xml"
 if (Test-Path "$sysprepXML") {
     Write-Host "`n[$scriptName] $sysprepXML exists, skip create."
-} eles {
+} else {
     executeExpression "Copy-Item $PWD\unattend.xml $scriptDir"
 }
 executeExpression "cat $scriptDir\unattend.xml"
