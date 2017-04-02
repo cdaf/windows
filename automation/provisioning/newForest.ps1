@@ -185,24 +185,26 @@ if ( Test-Path "$defaultMount\windows" ) {
 # https://github.com/rgl/windows-domain-controller-vagrant/blob/master/provision/domain-controller.ps1
 #   If using -NoRebootOnCompletion do not use reload module in Vagrant or it will fail (raise_if_auth_error)
 
-Write-Host
-Write-Host "[$scriptName] Create the new Forest and convert this host into the FSMO Domain Controller"
-Write-Host
-$securePassword = ConvertTo-SecureString $password -asplaintext -force
-executeExpression "Install-ADDSForest -Force $rebootOption -DomainName `"$forest`" -SafeModeAdministratorPassword `$securePassword"
+if ($controlReboot -eq 'none') {
+	Write-Host
+	Write-Host "[$scriptName] Create the new Forest and convert this host into the FSMO Domain Controller"
+	Write-Host
+	$securePassword = ConvertTo-SecureString $password -asplaintext -force
+	executeExpression "Install-ADDSForest -Force $rebootOption -DomainName `"$forest`" -SafeModeAdministratorPassword `$securePassword"
 
-# https://github.com/dbroeglin/windows-lab/blob/master/provision/02_install_forest.ps1
-#   Tried putting a sleep in, but reboot still triggered a Vagrant error
-#   rescue in block in parse_header': HTTPClient::KeepAliveDisconnected: An existing connection was forcibly closed by the remote host. @ io_fillbuf - fd:3  (HTTPClient::KeepAliveDisconnected)
-#   Write-Host "Start sleeping until reboot to prevent vagrant connection failures..."
-#   executeExpression "Start-Sleep 180"
+	# https://github.com/dbroeglin/windows-lab/blob/master/provision/02_install_forest.ps1
+	#   Tried putting a sleep in, but reboot still triggered a Vagrant error
+	#   rescue in block in parse_header': HTTPClient::KeepAliveDisconnected: An existing connection was forcibly closed by the remote host. @ io_fillbuf - fd:3  (HTTPClient::KeepAliveDisconnected)
+	#   Write-Host "Start sleeping until reboot to prevent vagrant connection failures..."
+	#   executeExpression "Start-Sleep 180"
 
-# https://groups.google.com/forum/#!topic/vagrant-up/JNMOCYpHSt8
-#   This attempt using chef_solo also appears to fail with the same problem.
+	# https://groups.google.com/forum/#!topic/vagrant-up/JNMOCYpHSt8
+	#   This attempt using chef_solo also appears to fail with the same problem.
 
-if ($controlReboot -eq 'yes') {
-	Write-Host "[$scriptName] Controlled Reboot requested, initiating reboot ..."
-	executeExpression "shutdown /r /t 0"
+	if ($controlReboot -eq 'yes') {
+		Write-Host "[$scriptName] Controlled Reboot requested, initiating reboot ..."
+		executeExpression "shutdown /r /t 0"
+	}
 }
 
 Write-Host
