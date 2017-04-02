@@ -14,8 +14,9 @@ function executeExpression ($expression) {
 # local file system tehn mount it.
 $scriptName = 'mountImage.ps1'
 $lastExitCode = 0
-Write-Host
-Write-Host "[$scriptName] ---------- start ----------"
+Write-Host "`n[$scriptName] Usage example"
+Write-Host "[$scriptName]   mountImage.ps1 $env:userprofile\image.iso http:\\the.internet\image.iso"
+Write-Host "`n[$scriptName] ---------- start ----------"
 $imagePath = $args[0]
 if ($imagePath) {
     Write-Host "[$scriptName] imagePath  : $imagePath"
