@@ -185,10 +185,10 @@ if ( Test-Path "$defaultMount\windows" ) {
 # https://github.com/rgl/windows-domain-controller-vagrant/blob/master/provision/domain-controller.ps1
 #   If using -NoRebootOnCompletion do not use reload module in Vagrant or it will fail (raise_if_auth_error)
 
-if ($controlReboot -ne 'none') {
-	Write-Host
-	Write-Host "[$scriptName] Create the new Forest and convert this host into the FSMO Domain Controller"
-	Write-Host
+if ( $controlReboot -eq 'none' ) {
+	Write-Host "`n[$scriptName] controlReboot is $controlReboot, skipping forest configuration.`n"
+} else {
+	Write-Host "`n[$scriptName] Create the new Forest and convert this host into the FSMO Domain Controller`n"
 	$securePassword = ConvertTo-SecureString $password -asplaintext -force
 	executeExpression "Install-ADDSForest -Force $rebootOption -DomainName `"$forest`" -SafeModeAdministratorPassword `$securePassword"
 
