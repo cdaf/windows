@@ -90,7 +90,9 @@ if ($controlReboot) {
 	$controlReboot = 'yes'
     Write-Host "[$scriptName] controlReboot : $controlReboot (default)"
 }
-if ($controlReboot -eq 'yes') {
+if ($controlReboot -eq 'no') {
+    Write-Host "`n[$scriptName] controlReboot is $controlReboot, allow Active Directory feature to reboot"
+} else {
 	$rebootOption = '-NoRebootOnCompletion'
 }
 # Provisionig Script builder
