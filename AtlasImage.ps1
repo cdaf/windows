@@ -79,6 +79,7 @@ executeExpression "`$admin.CommitChanges()"
 
 Write-Host "`n[$scriptName] Create the Vagrant user (with password vagrant) in the local administrators group"
 $ADSIComp = executeExpression "[ADSI]`"WinNT://$Env:COMPUTERNAME,Computer`""
+$ADSIComp.Create('User', 'vagrant')
 $LocalUser = executeExpression "`$ADSIComp.Create(`'User`', `'vagrant`')"
 executeExpression "`$LocalUser.SetPassword(`'vagrant`')"
 executeExpression "`$LocalUser.SetInfo()"
