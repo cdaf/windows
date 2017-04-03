@@ -134,7 +134,7 @@ if ( $hypervisor -eq 'virtualbox' ) {
 }
 
 Write-Host "`n[$scriptName] Remove the features that are not required, then remove media for available features that are not installed"
-executeExpression "@(`'Server-Media-Foundation`', `'Powershell-ISE`') | Remove-WindowsFeature"
+executeExpression "@(`'Server-Media-Foundation`') | Remove-WindowsFeature"
 executeExpression "Get-WindowsFeature | ? { `$_.InstallState -eq `'Available`' } | Uninstall-WindowsFeature -Remove"
 if ($smtpServer) {
 	executeExpression "Send-MailMessage -To `"$emailTo`" -From `'no-reply@cdaf.info`' -Subject `"$scriptName Removed unused Windows Features`" -SmtpServer `"$smtpServer`""
