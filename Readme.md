@@ -6,7 +6,7 @@ For framework details, see the readme in the automation folder. For stable relea
 
 To download and extract this repository
 
-    curl -o windows-master.zip https://codeload.github.com/cdaf/windows/zip/master
+    curl -Outfile windows-master.zip https://codeload.github.com/cdaf/windows/zip/master
     Add-Type -AssemblyName System.IO.Compression.FileSystem
     [System.IO.Compression.ZipFile]::ExtractToDirectory("$PWD\windows-master.zip", "$PWD") 
 
