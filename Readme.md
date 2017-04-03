@@ -1,29 +1,36 @@
-Continuous Delivery Automation Framework for Windows
-====================================================
+# Continuous Delivery Automation Framework for Windows
 
 For usage details, see https://github.com/cdaf/windows/blob/master/automation/Readme.md
 
 For framework details, see the readme in the automation folder. For stable release packages see : http://cdaf.io
 
-Desktop Testing
-===============
+To download and extract this repository
+
+    curl -o windows-master.zip https://codeload.github.com/cdaf/windows/zip/master
+    Add-Type -AssemblyName System.IO.Compression.FileSystem
+    [System.IO.Compression.ZipFile]::ExtractToDirectory("$PWD\windows-master.zip", "$PWD") 
+
+# Desktop Testing
+
 This approach creates a desktop "build server" which allows the user to perform end-to-end continuous delivery testing.
 
-Prerequisites
--------------
+## VirtualBox
+
 Oracle VirtualBox and Vagrant
 
 Note: on Windows Server 2012 R2 need to manually install x86 (not 64 bit) C++ Redistributable.
 
-Create Desktop Build Server
----------------------------
+## Hyper-V
+
+Install from the Windows features
+
+# Create Desktop Build Server
 
 To create a desktop environment, navigate to the solution root and run:
 
     vagrant up
     
-Continuous Delivery Testing
----------------------------
+## Continuous Delivery Testing
 
 Once the environment is running access the build server an execute the CD emulation. Note: On a Linux host bash Python WINRM can be used to provide native PowerShell access.
 
@@ -32,8 +39,7 @@ Once the environment is running access the build server an execute the CD emulat
     .\automation\cdEmulate.bat
     
 
-Direct PowerShell Access
-------------------------
+## Direct PowerShell Access
 
 To access the buildserver using native remote PowerShell.
 Allow credential delegation, on-off step needed on the host when using VirtualBox/Vagrant. 
@@ -48,8 +54,8 @@ Once delegation configured, the build emulation can be executed.
     cd C:\vagrant
 	.\automation\cdEmulate.bat
 
-Cleanup and Destroy
--------------------
+# Cleanup and Destroy
+
 If change made that need to be checked in, clean the workspace:
 
 	.\automation\cdEmulate.bat clean
