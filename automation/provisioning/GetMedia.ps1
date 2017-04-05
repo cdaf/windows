@@ -1,3 +1,9 @@
+Param (
+  [string]$uri,
+  [string]$mediaDir
+)
+$scriptName = 'GetMedia.ps1'
+
 # Common expression logging and error handling function, copied, not referenced to ensure atomic process
 function executeExpression ($expression) {
 	$error.clear()
@@ -10,10 +16,8 @@ function executeExpression ($expression) {
     return $output
 }
 
-$scriptName = 'GetMedia.ps1'
 Write-Host
 Write-Host "[$scriptName] ---------- start ----------"
-$uri = $args[0]
 if ($uri) {
     Write-Host "[$scriptName] uri      : $uri"
 } else {
@@ -21,7 +25,6 @@ if ($uri) {
     exit 101
 }
 
-$mediaDir = $args[1]
 if ($mediaDir) {
     Write-Host "[$scriptName] mediaDir : $mediaDir"
 } else {
@@ -46,7 +49,7 @@ if ( Test-Path $fullpath ) {
 } else {
 
 	$webclient = executeExpression "new-object system.net.webclient"
-	executeExpression "`$webclient.DownloadFile($uri, $fullpath)"
+	executeExpression "`$webclient.DownloadFile(`"$uri`", `"$fullpath`")"
 }
 
 Write-Host
