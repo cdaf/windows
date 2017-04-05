@@ -1,3 +1,10 @@
+Param (
+  [string]$tomcat_version,
+  [string]$sourceInstallDir,
+  [string]$destinationInstallDir
+)
+$scriptName = 'installApacheTomcat.ps1'
+
 # Common expression logging and error handling function, copied, not referenced to ensure atomic process
 function executeExpression ($expression) {
 	$error.clear()
@@ -9,23 +16,16 @@ function executeExpression ($expression) {
     if ( $error[0] ) { Write-Host "[$scriptName] `$error[0] = $error"; exit 3 }
 }
 
-$scriptName = 'installApacheTomcat.ps1'
+Write-Host "`n[$scriptName] Requires 32-bit/64-bit Windows Service Installer"
+Write-Host "`n[$scriptName] ---------- start ----------"
 
-Write-Host
-Write-Host "[$scriptName] Requires 32-bit/64-bit Windows Service Installer"
-Write-Host
-Write-Host "[$scriptName] ---------- start ----------"
-Write-Host
-
-$tomcat_version = $args[0]
 if ( $tomcat_version ) {
 	Write-Host "[$scriptName] tomcat_version        : $tomcat_version"
 } else {
-	$tomcat_version = '8.5.4'
+	$tomcat_version = '8.5.13'
 	Write-Host "[$scriptName] tomcat_version        : $tomcat_version (default)"
 }
 
-$sourceInstallDir = $args[1]
 if ( $sourceInstallDir ) {
 	Write-Host "[$scriptName] sourceInstallDir      : $sourceInstallDir"
 } else {
@@ -33,7 +33,6 @@ if ( $sourceInstallDir ) {
 	Write-Host "[$scriptName] sourceInstallDir      : $sourceInstallDir (default)"
 }
 
-$destinationInstallDir = $args[2]
 if ( $destinationInstallDir ) {
 	Write-Host "[$scriptName] destinationInstallDir : $destinationInstallDir"
 } else {
