@@ -3,10 +3,13 @@ Param (
   [string]$media,
   [string]$wimIndex,
   [string]$mediaDir,
+  [string]$sdk,
   [string]$reboot
 )
-$scriptName = 'dotNET.ps1' # args example: 4.5.1 install.wim 2
-                           # args example: 4.6.2 -reboot yes
+$scriptName = 'dotNET.ps1' # (no arguments)                    | install latest .NET runtime
+                           # 4.5.1 install.wim 2               | install 4.5.1 from Windows Image file, found on install media
+                           # 4.6.1 -reboot yes                 | install 4.6.1 and reboot when complete
+                           # -sdk yes -reboot shutdown  | install latest, including devpack then shutdown
                            
 # Common expression logging and error handling function, copied, not referenced to ensure atomic process
 function executeExpression ($expression) {
@@ -87,14 +90,20 @@ function installFourAndAbove {
 }
 
 $scriptName = 'dotNET.ps1'
-$versionChoices = '4.6.2, 4.6.1, 4.5.2, 4.5.1, 4.0 or 3.5' 
+$latest = '4.6.2'
+$versionChoices = "$latest, 4.6.1, 4.5.2, 4.5.1, 4.0, 3.5 or latest"
 Write-Host
 Write-Host "[$scriptName] ---------- start ----------"
-if (($version) -and ($version -ne 'latest')) {
-    Write-Host "[$scriptName] version  : $version"
+if ($version) {
+	if ($version -eq 'latest') {
+		$version = $latest
+	    Write-Host "[$scriptName] version  : $version (latest)"
+	} else {
+	    Write-Host "[$scriptName] version  : $version"
+    }
 } else {
-	$version = '4.6.2'
-    Write-Host "[$scriptName] version  : $version (default, choices $versionChoices)"
+	$version = $latest
+    Write-Host "[$scriptName] version  : $version (default to latest, choices $versionChoices)"
 }
 
 if ($media) {
@@ -116,15 +125,22 @@ if ($mediaDir) {
     Write-Host "[$scriptName] mediaDir : $mediaDir (default)"
 }
 
+if ($sdk) {
+    Write-Host "[$scriptName] sdk      : $sdk"
+} else {
+	$sdk = 'no'
+    Write-Host "[$scriptName] sdk      : $sdk (default)"
+}
+
 if ($reboot) {
-    Write-Host "[$scriptName] reboot   : $reboot"
+    Write-Host "[$scriptName] reboot   : $reboot (options yes, no or shutdown)"
 } else {
 	$reboot = 'no'
-    Write-Host "[$scriptName] reboot   : $reboot (default)"
+    Write-Host "[$scriptName] reboot   : $reboot (default, options yes, no or shutdown)"
 }
 # Provisionig Script builder
 if ( $env:PROV_SCRIPT_PATH ) {
-	Add-Content "$env:PROV_SCRIPT_PATH" "executeExpression `"./automation/provisioning/$scriptName $version $media $wimIndex $mediaDir $reboot`""
+	Add-Content "$env:PROV_SCRIPT_PATH" "executeExpression `"./automation/provisioning/$scriptName $version $media $wimIndex $mediaDir $reboot $sdk`""
 }
 
 if (!( Test-Path $mediaDir )) {
@@ -145,9 +161,15 @@ if ($env:interactive) {
 Write-Host
 switch ($version) {
 	'4.6.2' {
-		$file = 'NDP462-KB3151800-x86-x64-AllOS-ENU.exe'
-		$uri = 'https://download.microsoft.com/download/F/9/4/F942F07D-F26F-4F30-B4E3-EBD54FABA377/' + $file
-		$release = '394802'
+		if ($sdk = 'yes') {
+			$file = 'NDP462-DevPack-KB3151934-ENU.exe'
+			$uri = 'https://download.microsoft.com/download/E/F/D/EFD52638-B804-4865-BB57-47F4B9C80269/' + $file
+			$release = '394802'
+		} else {
+			$file = 'NDP462-KB3151800-x86-x64-AllOS-ENU.exe'
+			$uri = 'https://download.microsoft.com/download/F/9/4/F942F07D-F26F-4F30-B4E3-EBD54FABA377/' + $file
+			$release = '394802'
+		}
 	}
 	'4.6.1' {
 		$file = 'NDP461-KB3102436-x86-x64-AllOS-ENU.exe'
@@ -239,6 +261,10 @@ if ($file) {
 	        if ($reboot -eq 'yes') {
 		        Write-Host "`n[$scriptName] Reboot in 2 seconds ..."
 		        executeExpression "shutdown /r /t 2"
+	        }
+	        if ($reboot -eq 'shutdown') {
+		        Write-Host "`n[$scriptName] Reboot in 2 seconds ..."
+		        executeExpression "shutdown /s /t 2"
 	        }
 	    }
     }

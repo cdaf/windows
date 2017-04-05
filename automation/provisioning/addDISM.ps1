@@ -1,7 +1,8 @@
 Param (
   [string]$featureList,
   [string]$media,
-  [string]$wimIndex
+  [string]$wimIndex,
+  [string]$dismount
 )
 $scriptName = 'addDISM.ps1' # TelnetClient
                             # 'IIS-WebServerRole IIS-WebServer' install.wim 2
@@ -78,6 +79,13 @@ if ($wimIndex) {
     Write-Host "[$scriptName] wimIndex      : (not passed)"
 }
 
+if ($dismount) {
+    Write-Host "[$scriptName] dismount      : $dismount"
+} else {
+	$dismount = 'yes'
+    Write-Host "[$scriptName] dismount      : $dismount (not passed, set to default)"
+}
+
 # Cannot run interactive via remote PowerShell
 if ($env:interactive) {
     Write-Host "[$scriptName] env:interactive : $env:interactive, run in current window"
@@ -131,9 +139,13 @@ foreach ($feature in $featureArray) {
 }
 
 if ( Test-Path "$defaultMount\windows" ) {
-	Write-Host "[$scriptName] Dismount default mount path ($defaultMount)"
-	executeExpression "Dism /Unmount-Image /MountDir:$defaultMount /Discard /Quiet"
+	if ($dismount -eq 'yes') {
+		Write-Host "`n[$scriptName] Dismount default mount path ($defaultMount)"
+		executeExpression "Dism /Unmount-Image /MountDir:$defaultMount /Discard /Quiet"
+	} else {
+	    Write-Host "`n[$scriptName] dismount set to $dismount, leave $defaultMount\windows in place."
+	}
 }
 
-Write-Host
-Write-Host "[$scriptName] ---------- stop ----------"
+Write-Host "`n[$scriptName] ---------- stop ----------"
+exit 0
