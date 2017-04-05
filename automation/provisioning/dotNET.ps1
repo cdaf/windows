@@ -1,3 +1,13 @@
+Param (
+  [string]$version,
+  [string]$media,
+  [string]$wimIndex,
+  [string]$mediaDir,
+  [string]$reboot
+)
+$scriptName = 'dotNET.ps1' # args example: 4.5.1 install.wim 2
+                           # args example: 4.6.2 -reboot yes
+                           
 # Common expression logging and error handling function, copied, not referenced to ensure atomic process
 function executeExpression ($expression) {
 	$error.clear()
@@ -44,38 +54,77 @@ function mountWim ($media, $wimIndex, $mountDir) {
 	executeExpression "Dism /Mount-Image /ImageFile:$media /index:$wimIndex /MountDir:$mountDir /ReadOnly /Optimize /Quiet"
 }
 
+# .NET 4.5 and above
+function IsInstalled ($release) {
+	Write-Host "`n[$scriptName] Target .NET Release is $release"
+    $ver = executeExpression "(Get-ItemProperty -Path `'HKLM:\SOFTWARE\Microsoft\NET Framework Setup\NDP\v4\Full`').Release"
+	Write-Host "`n[$scriptName] Current .NET Release is $ver"
+    return (!($ver -eq $null) -and ($ver -ge $release))
+}
+
+function installFourAndAbove {
+	$fullpath = $mediaDir + '\' + $file
+	if ( Test-Path $fullpath -PathType Leaf) {
+		Write-Host "`n[$scriptName] $fullpath exists, download not required"
+	} else {
+	
+		$webclient = new-object system.net.webclient
+		Write-Host "[$scriptName] $webclient.DownloadFile($uri, $fullpath)"
+		try {
+			$webclient.DownloadFile($uri, $fullpath)
+		    	if(!$?) { exit 1 }
+		} catch { echo $_.Exception|format-list -force; exit 2 }
+	}
+	
+	try {
+		$argList = @("/q", "/norestart", "/log `"$env:temp\$file.log`"")
+		Write-Host "[$scriptName] Start-Process -FilePath $fullpath -ArgumentList $argList -PassThru -Wait"
+		$proc = Start-Process -FilePath $fullpath -ArgumentList $argList -PassThru -Wait
+	} catch {
+		Write-Host "[$scriptName] .NET Install Exception : $_" -ForegroundColor Red
+		exit 201
+	}
+}
+
 $scriptName = 'dotNET.ps1'
-$versionChoices = '4.6.1, 4.5.2, 4.5.1, 4.0 or 3.5' 
+$versionChoices = '4.6.2, 4.6.1, 4.5.2, 4.5.1, 4.0 or 3.5' 
 Write-Host
 Write-Host "[$scriptName] ---------- start ----------"
-$version = $args[0]
 if (($version) -and ($version -ne 'latest')) {
     Write-Host "[$scriptName] version  : $version"
 } else {
-	$version = '4.6.1'
+	$version = '4.6.2'
     Write-Host "[$scriptName] version  : $version (default, choices $versionChoices)"
 }
 
-$media = $args[1]
 if ($media) {
     Write-Host "[$scriptName] media    : $media"
 } else {
     Write-Host "[$scriptName] media    : not supplied"
 }
 
-$wimIndex = $args[2]
 if ($wimIndex) {
     Write-Host "[$scriptName] wimIndex : $wimIndex"
 } else {
     Write-Host "[$scriptName] wimIndex : (not supplied, use media directly)"
 }
 
-$mediaDir = $args[3]
 if ($mediaDir) {
     Write-Host "[$scriptName] mediaDir : $mediaDir"
 } else {
 	$mediaDir = '/.provision'
     Write-Host "[$scriptName] mediaDir : $mediaDir (default)"
+}
+
+if ($reboot) {
+    Write-Host "[$scriptName] reboot   : $reboot"
+} else {
+	$reboot = 'no'
+    Write-Host "[$scriptName] reboot   : $reboot (default)"
+}
+# Provisionig Script builder
+if ( $env:PROV_SCRIPT_PATH ) {
+	Add-Content "$env:PROV_SCRIPT_PATH" "executeExpression `"./automation/provisioning/$scriptName $version $media $wimIndex $mediaDir $reboot`""
 }
 
 if (!( Test-Path $mediaDir )) {
@@ -95,17 +144,25 @@ if ($env:interactive) {
 
 Write-Host
 switch ($version) {
+	'4.6.2' {
+		$file = 'NDP462-KB3151800-x86-x64-AllOS-ENU.exe'
+		$uri = 'https://download.microsoft.com/download/F/9/4/F942F07D-F26F-4F30-B4E3-EBD54FABA377/' + $file
+		$release = '394802'
+	}
 	'4.6.1' {
 		$file = 'NDP461-KB3102436-x86-x64-AllOS-ENU.exe'
 		$uri = 'https://download.microsoft.com/download/E/4/1/E4173890-A24A-4936-9FC9-AF930FE3FA40/' + $file
+		$release = '394254'
 	}
 	'4.5.2' {
 		$file = 'NDP452-KB2901907-x86-x64-AllOS-ENU.exe'
 		$uri = 'https://download.microsoft.com/download/E/2/1/E21644B5-2DF2-47C2-91BD-63C560427900/' + $file
+		$release = '379893'
 	}
 	'4.5.1' {
 		$file = 'NDP451-KB2858728-x86-x64-AllOS-ENU.exe'
 		$uri = 'https://download.microsoft.com/download/1/6/7/167F0D79-9317-48AE-AEDB-17120579F8E2/' + $file
+		$release = '378675'
 	}
 	'4.0' {
 		$file = 'dotNetFx40_Full_x86_x64.exe'
@@ -166,29 +223,26 @@ switch ($version) {
 # Not installed via DISM, attempt to install using offline file
 if ($file) {
 
-	$fullpath = $mediaDir + '\' + $file
-	if ( Test-Path $fullpath -PathType Leaf) {
-		Write-Host "[$scriptName] $fullpath exists, download not required"
+	if ($release) {
+		if (IsInstalled $release) {
+		    Write-Host "[$scriptName] Microsoft .NET Framework $version or later is already installed"
+		} else {
+			installFourAndAbove # .NET 4.5 and above
+		}
 	} else {
-	
-		$webclient = new-object system.net.webclient
-		Write-Host "[$scriptName] $webclient.DownloadFile($uri, $fullpath)"
-		try {
-			$webclient.DownloadFile($uri, $fullpath)
-		    	if(!$?) { exit 1 }
-		} catch { echo $_.Exception|format-list -force; exit 2 }
+		installFourAndAbove # .NET 4
 	}
 	
-	try {
-		$argList = @("/q", "/norestart")
-		Write-Host "[$scriptName] Start-Process -FilePath $fullpath -ArgumentList $argList -PassThru -Wait"
-		$proc = Start-Process -FilePath $fullpath -ArgumentList $argList -PassThru -Wait
-	} catch {
-		Write-Host "[$scriptName] .NET Install Exception : $_" -ForegroundColor Red
-		exit 201
-	}
+	if ($release) {
+	    if (-Not (IsInstalled $release)) {
+	        Write-Host "`n[$scriptName] A restart is required to finalise the Microsoft .NET Framework $version installation"
+	        if ($reboot -eq 'yes') {
+		        Write-Host "`n[$scriptName] Reboot in 2 seconds ..."
+		        executeExpression "shutdown /r /t 2"
+	        }
+	    }
+    }
 }
 
-Write-Host
-Write-Host "[$scriptName] ---------- stop -----------"
-Write-Host
+Write-Host "`n[$scriptName] ---------- stop -----------`n"
+exit 0

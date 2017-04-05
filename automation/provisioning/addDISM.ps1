@@ -1,3 +1,11 @@
+Param (
+  [string]$featureList,
+  [string]$media,
+  [string]$wimIndex
+)
+$scriptName = 'addDISM.ps1' # TelnetClient
+                            # 'IIS-WebServerRole IIS-WebServer' install.wim 2
+
 # Common expression logging and error handling function, copied, not referenced to ensure atomic process
 function executeExpression ($expression) {
 	$error.clear()
@@ -49,25 +57,21 @@ function mountWim ($media, $wimIndex, $mountDir) {
 
 # Not using powershell commandlets for provisioning as they do not support /LimitAccess
 # $featureList = @('ActiveDirectory-PowerShell', 'DirectoryServices-DomainController', 'RSAT-ADDS-Tools-Feature', 'DirectoryServices-DomainController-Tools', 'DNS-Server-Full-Role', 'DNS-Server-Tools', 'DirectoryServices-AdministrativeCenter')
-$scriptName = 'newDISM.ps1'
 Write-Host
 Write-Host "[$scriptName] ---------- start ----------"
 Write-Host
-$featureList= $args[0]
 if ($featureList) {
     Write-Host "[$scriptName] featureList   : $featureList"
 } else {
     Write-Host "[$scriptName] ERROR: List of Features not passed, halting with LASTEXITCODE=1"; exit 1
 }
 
-$media = $args[1]
 if ($media) {
     Write-Host "[$scriptName] media         : $media"
 } else {
     Write-Host "[$scriptName] media         : (not passed)"
 }
 
-$wimIndex = $args[2]
 if ($wimIndex) {
     Write-Host "[$scriptName] wimIndex      : $wimIndex"
 } else {
