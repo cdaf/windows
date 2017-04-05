@@ -1,3 +1,12 @@
+Param (
+  [string]$serviceAccount,
+  [string]$password,
+  [string]$adminAccount,
+  [string]$instance,
+  [string]$media
+)
+$scriptName = 'SQLServer.ps1'
+
 # Common expression logging and error handling function, copied, not referenced to ensure atomic process
 function executeExpression ($expression) {
 	$error.clear()
@@ -10,13 +19,9 @@ function executeExpression ($expression) {
     return $output
 }
 
-$scriptName = 'SQLServer.ps1'
-Write-Host
-Write-Host "If provisioing to server core, the management console is not installed, for GUI server,"
+Write-Host "`nIf provisioing to server core, the management console is not installed, for GUI server,"
 Write-Host "Management console will be installed."
-Write-Host
-Write-Host "[$scriptName] ---------- start ----------"
-$serviceAccount = $args[0]
+Write-Host "`n[$scriptName] ---------- start ----------"
 if ($serviceAccount) {
     Write-Host "[$scriptName] serviceAccount : $serviceAccount"
 } else {
@@ -24,7 +29,6 @@ if ($serviceAccount) {
     Write-Host "[$scriptName] serviceAccount : $serviceAccount (default)"
 }
 
-$password = $args[1]
 if ($password) {
     Write-Host "[$scriptName] password       : **********"
 } else {
@@ -32,7 +36,6 @@ if ($password) {
     Write-Host "[$scriptName] password       : ********** (default)"
 }
 
-$adminAccount = $args[2]
 if ($adminAccount) {
     Write-Host "[$scriptName] adminAccount   : $adminAccount"
 } else {
@@ -40,7 +43,6 @@ if ($adminAccount) {
     Write-Host "[$scriptName] adminAccount   : $adminAccount (default)"
 }
 
-$instance = $args[3]
 if ($instance) {
     Write-Host "[$scriptName] instance       : $instance"
 } else {
@@ -48,7 +50,6 @@ if ($instance) {
     Write-Host "[$scriptName] instance       : $instance (default)"
 }
 
-$media = $args[4]
 if ($media) {
 	if ($media -like '*$*') {
 		if ($media -like '$env:*') {
