@@ -140,7 +140,7 @@ if ($reboot) {
 }
 # Provisionig Script builder
 if ( $env:PROV_SCRIPT_PATH ) {
-	Add-Content "$env:PROV_SCRIPT_PATH" "executeExpression `"./automation/provisioning/$scriptName $version $media $wimIndex $mediaDir $reboot $sdk`""
+	Add-Content "$env:PROV_SCRIPT_PATH" "executeExpression `"./automation/provisioning/$scriptName -version $version -media $media -wimIndex $wimIndex -mediaDir $mediaDir -sdk $sdk -reboot $reboot`""
 }
 
 if (!( Test-Path $mediaDir )) {
