@@ -161,7 +161,7 @@ if ($env:interactive) {
 Write-Host
 switch ($version) {
 	'4.6.2' {
-		if ($sdk = 'yes') {
+		if ($sdk -eq 'yes') {
 			$file = 'NDP462-DevPack-KB3151934-ENU.exe'
 			$uri = 'https://download.microsoft.com/download/E/F/D/EFD52638-B804-4865-BB57-47F4B9C80269/' + $file
 			$release = '394802'
