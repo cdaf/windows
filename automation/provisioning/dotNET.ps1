@@ -263,7 +263,7 @@ if ($file) {
 		        executeExpression "shutdown /r /t 2"
 	        }
 	        if ($reboot -eq 'shutdown') {
-		        Write-Host "`n[$scriptName] Reboot in 2 seconds ..."
+		        Write-Host "`n[$scriptName] Shutdown in 2 seconds ..."
 		        executeExpression "shutdown /s /t 2"
 	        }
 	    }
