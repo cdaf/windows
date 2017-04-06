@@ -58,32 +58,36 @@ function mountWim ($media, $wimIndex, $mountDir) {
 
 # Not using powershell commandlets for provisioning as they do not support /LimitAccess
 # $featureList = @('ActiveDirectory-PowerShell', 'DirectoryServices-DomainController', 'RSAT-ADDS-Tools-Feature', 'DirectoryServices-DomainController-Tools', 'DNS-Server-Full-Role', 'DNS-Server-Tools', 'DirectoryServices-AdministrativeCenter')
-Write-Host
-Write-Host "[$scriptName] ---------- start ----------"
-Write-Host
+Write-Host "`n[$scriptName] ---------- start ----------`n"
 if ($featureList) {
-    Write-Host "[$scriptName] featureList   : $featureList"
+    Write-Host "[$scriptName] featureList     : $featureList"
 } else {
     Write-Host "[$scriptName] ERROR: List of Features not passed, halting with LASTEXITCODE=1"; exit 1
 }
 
 if ($media) {
-    Write-Host "[$scriptName] media         : $media"
+    Write-Host "[$scriptName] media           : $media"
+    $mediaRun = "-media $media"
 } else {
-    Write-Host "[$scriptName] media         : (not passed)"
+    Write-Host "[$scriptName] media           : not supplied"
 }
 
 if ($wimIndex) {
-    Write-Host "[$scriptName] wimIndex      : $wimIndex"
+    Write-Host "[$scriptName] wimIndex        : $wimIndex"
+    $indexRun = "-wimIndex $wimIndex"
 } else {
-    Write-Host "[$scriptName] wimIndex      : (not passed)"
+    Write-Host "[$scriptName] wimIndex        : (not supplied, use media directly)"
 }
 
 if ($dismount) {
-    Write-Host "[$scriptName] dismount      : $dismount"
+    Write-Host "[$scriptName] dismount        : $dismount"
 } else {
 	$dismount = 'yes'
-    Write-Host "[$scriptName] dismount      : $dismount (not passed, set to default)"
+    Write-Host "[$scriptName] dismount        : $dismount (not passed, set to default)"
+}
+# Provisionig Script builder
+if ( $env:PROV_SCRIPT_PATH ) {
+	Add-Content "$env:PROV_SCRIPT_PATH" "executeExpression `"./automation/provisioning/$scriptName $featureList $mediaRun $indexRun -dismount $dismount`""
 }
 
 # Cannot run interactive via remote PowerShell

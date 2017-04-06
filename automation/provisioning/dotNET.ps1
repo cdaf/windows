@@ -115,9 +115,9 @@ if ($media) {
 
 if ($wimIndex) {
     Write-Host "[$scriptName] wimIndex : $wimIndex"
+    $indexRun = "-wimIndex $wimIndex"
 } else {
     Write-Host "[$scriptName] wimIndex : (not supplied, use media directly)"
-    $indexRun = "-wimIndex $wimIndex"
 }
 
 if ($mediaDir) {

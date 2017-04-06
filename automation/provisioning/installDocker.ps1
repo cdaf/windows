@@ -14,6 +14,10 @@ function executeExpression ($expression) {
 $scriptName = 'installDocker.ps1'
 Write-Host
 Write-Host "[$scriptName] ---------- start ----------"
+# Provisionig Script builder
+if ( $env:PROV_SCRIPT_PATH ) {
+	Add-Content "$env:PROV_SCRIPT_PATH" "executeExpression `"./automation/provisioning/$scriptName`""
+}
 
 # Requires KB3176936
 
