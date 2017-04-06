@@ -108,6 +108,7 @@ if ($version) {
 
 if ($media) {
     Write-Host "[$scriptName] media    : $media"
+    $mediaRun = "-media $media"
 } else {
     Write-Host "[$scriptName] media    : not supplied"
 }
@@ -116,6 +117,7 @@ if ($wimIndex) {
     Write-Host "[$scriptName] wimIndex : $wimIndex"
 } else {
     Write-Host "[$scriptName] wimIndex : (not supplied, use media directly)"
+    $indexRun = "-wimIndex $wimIndex"
 }
 
 if ($mediaDir) {
@@ -140,7 +142,7 @@ if ($reboot) {
 }
 # Provisionig Script builder
 if ( $env:PROV_SCRIPT_PATH ) {
-	Add-Content "$env:PROV_SCRIPT_PATH" "executeExpression `"./automation/provisioning/$scriptName -version $version -media $media -wimIndex $wimIndex -mediaDir $mediaDir -sdk $sdk -reboot $reboot`""
+	Add-Content "$env:PROV_SCRIPT_PATH" "executeExpression `"./automation/provisioning/$scriptName $version $mediaRun $indexRun -mediaDir $mediaDir -sdk $sdk -reboot $reboot`""
 }
 
 if (!( Test-Path $mediaDir )) {
