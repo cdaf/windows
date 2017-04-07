@@ -71,6 +71,9 @@ if ($smtpServer) {
 	executeExpression "Send-MailMessage -To `"$emailTo`" -From `'no-reply@cdaf.info`' -Subject `"$scriptName export complete`" -SmtpServer `"$smtpServer`""
 }
 
+if (Test-Path $packageFile) {
+	executeExpression "Remove-Item $packageFile"
+}
 Write-Host "`n[$scriptName] Compress VM into .box format"
 executeExpression "cd $boxName"
 executeExpression "Remove-Item Snapshots -Force -Recurse"
@@ -89,13 +92,12 @@ if ($smtpServer) {
 	executeExpression "Send-MailMessage -To `"$emailTo`" -From `'no-reply@cdaf.info`' -Subject `"$scriptName package complete`" -SmtpServer `"$smtpServer`""
 }
 
+Write-Host "`n[$scriptName] Initialise and start"
 $testDir = 'packageTest'
 if (Test-Path "$testDir ") {
 	executeExpression "Remove-Item $testDir  -Recurse -Force"
-	executeExpression "mkdir $testDir"
 }
-
-Write-Host "`n[$scriptName] Initialise and start"
+executeExpression "mkdir $testDir"
 executeExpression "cd $testDir"
 executeExpression "vagrant box add $boxName ../$packageFile --force"
 if ($smtpServer) {
