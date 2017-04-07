@@ -1,3 +1,12 @@
+Param (
+  [string]$boxname,
+  [string]$hypervisor,
+  [string]$diskDir,
+  [string]$emailTo,
+  [string]$smtpServer
+)
+$scriptName = 'AtlasPackage.ps1'
+
 # Common expression logging and error handling function, copied, not referenced to ensure atomic process
 function emailAndExit ($exitCode) {
 	if ($smtpServer) {
@@ -18,9 +27,7 @@ function executeExpression ($expression) {
     return $output
 }
 
-$scriptName = 'AtlasPackage.ps1'
 Write-Host "`n[$scriptName] ---------- start ----------"
-$boxname = $args[0]
 if ($boxname) {
     Write-Host "[$scriptName] boxname    : $boxname"
 } else {
@@ -28,7 +35,6 @@ if ($boxname) {
     Write-Host "[$scriptName] boxname    : (not specified, defaulted to $boxname)"
 }
 
-$hypervisor = $args[1]
 if ($hypervisor) {
     Write-Host "[$scriptName] hypervisor : $hypervisor"
 } else {
@@ -36,14 +42,18 @@ if ($hypervisor) {
     Write-Host "[$scriptName] hypervisor : (not specified, defaulted to $hypervisor)"
 }
 
-$emailTo = $args[2]
+if ($diskDir) {
+    Write-Host "[$scriptName] diskDir    : $diskDir"
+} else {
+    Write-Host "[$scriptName] diskDir    : (not specified, required if VirtualBox)"
+}
+
 if ($emailTo) {
     Write-Host "[$scriptName] emailTo    : $emailTo"
 } else {
     Write-Host "[$scriptName] emailTo    : (not specified, email will not be attempted)"
 }
 
-$smtpServer = $args[3]
 if ($smtpServer) {
     Write-Host "[$scriptName] smtpServer : $smtpServer"
 } else {
@@ -67,29 +77,44 @@ if (Test-Path "$buildDir") {
 executeExpression "mkdir $buildDir"
 executeExpression "cd $buildDir"
 
-Write-Host "`n[$scriptName] Export VM"
-$packageFile = $boxname + '.box'
-executeExpression "Export-VM -Name $boxName -Path ."
-if ($smtpServer) {
-	executeExpression "Send-MailMessage -To `"$emailTo`" -From `'no-reply@cdaf.info`' -Subject `"$scriptName export complete`" -SmtpServer `"$smtpServer`""
-}
+if ($hypervisor = 'virtualbox') {
 
-if (Test-Path $packageFile) {
-	executeExpression "Remove-Item $packageFile"
+	Write-Host "`n[$scriptName] Export VirtualBox VM"
+	executeExpression "& `"C:\Program Files\Oracle\VirtualBox\VBoxManage.exe`" modifyhd `"${diskDir}\${boxName}\${boxName}.vdi`" --compact"
+	if ($smtpServer) {
+		executeExpression "Send-MailMessage -To `"$emailTo`" -From `'no-reply@cdaf.info`' -Subject `"$scriptName export complete`" -SmtpServer `"$smtpServer`""
+	}
+
+	executeExpression "(New-Object System.Net.WebClient).DownloadFile(`'http://cdaf.io/static/app/downloads/Vagrantfile`', `"$PWD\Vagrantfile`")"
+	executeExpression "vagrant package --base $boxName --output $packageFile --vagrantfile Vagrantfile"
+	executeExpression "vagrant box add $boxName $packageFile --force"
+
+} else {
+
+	Write-Host "`n[$scriptName] Export Hyper-V VM"
+	$packageFile = $boxname + '.box'
+	executeExpression "Export-VM -Name $boxName -Path ."
+	if ($smtpServer) {
+		executeExpression "Send-MailMessage -To `"$emailTo`" -From `'no-reply@cdaf.info`' -Subject `"$scriptName export complete`" -SmtpServer `"$smtpServer`""
+	}
+	
+	if (Test-Path $packageFile) {
+		executeExpression "Remove-Item $packageFile"
+	}
+	Write-Host "`n[$scriptName] Compress VM into .box format"
+	executeExpression "cd $boxName"
+	executeExpression "Remove-Item Snapshots -Force -Recurse"
+	if (Test-Path metadata.json ) {
+		executeExpression "Remove-Item metadata.json"
+	} 
+	Add-Content metadata.json "{`n  ""provider"": ""hyperv""`n}"
+	executeExpression "cat metadata.json"
+	executeExpression "tar cvzf ../$packageFile ./*"
+	  
+	Write-Host "`n[$scriptName] Remove VM export files"
+	executeExpression "cd.."
+	executeExpression "Remove-Item $boxname -Force -Recurse"
 }
-Write-Host "`n[$scriptName] Compress VM into .box format"
-executeExpression "cd $boxName"
-executeExpression "Remove-Item Snapshots -Force -Recurse"
-if (Test-Path metadata.json ) {
-	executeExpression "Remove-Item metadata.json"
-} 
-Add-Content metadata.json "{`n  ""provider"": ""hyperv""`n}"
-executeExpression "cat metadata.json"
-executeExpression "tar cvzf ../$packageFile ./*"
-  
-Write-Host "`n[$scriptName] Remove VM export files"
-executeExpression "cd.."
-executeExpression "Remove-Item $boxname -Force -Recurse"
 
 if ($smtpServer) {
 	executeExpression "Send-MailMessage -To `"$emailTo`" -From `'no-reply@cdaf.info`' -Subject `"$scriptName package complete`" -SmtpServer `"$smtpServer`""
