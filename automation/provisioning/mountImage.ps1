@@ -71,7 +71,7 @@ if ($sourcePath) {
 		}
 	}
 
-    Write-Host "[$scriptName] $result = Mount-DiskImage -ImagePath `"$imagePath`" -Passthru"
+    Write-Host "[$scriptName] `$result = Mount-DiskImage -ImagePath `"$imagePath`" -Passthru"
 	$result = Mount-DiskImage -ImagePath "$imagePath" -Passthru
 	if ($result) {
 		$driveLetter = ($result | Get-Volume).DriveLetter
