@@ -59,10 +59,13 @@ if ($smtpServer) {
 	executeExpression "Send-MailMessage -To `"$emailTo`" -From `'no-reply@cdaf.info`' -Subject `"$scriptName starting, logging to $imageLog`" -SmtpServer `"$smtpServer`""
 }
 
+Write-Host "`n[$scriptName] Prepare Temporary build directory"
 $buildDir = 'tempBuildDir'
 if (Test-Path "$buildDir") {
 	executeExpression "Remove-Item $buildDir -Recurse -Force"
 }
+executeExpression "mkdir $buildDir"
+executeExpression "cd $buildDir"
 
 Write-Host "`n[$scriptName] Export VM"
 $packageFile = $boxname + '.box'
