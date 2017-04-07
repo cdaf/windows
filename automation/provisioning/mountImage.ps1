@@ -71,10 +71,15 @@ if ($sourcePath) {
 		}
 	}
 
-	$result = executeExpression "Mount-DiskImage -ImagePath `"$imagePath`" -Passthru"
-	$driveLetter = ($result | Get-Volume).DriveLetter
-    Write-Host "`n[$scriptName] Drive Letter : $driveLetter"
-	$result = executeExpression "[Environment]::SetEnvironmentVariable(`'MOUNT_DRIVE_LETTER`', `"$driveLetter`:\`", `'User`')"
+    Write-Host "[$scriptName] $result = Mount-DiskImage -ImagePath `"$imagePath`" -Passthru"
+	$result = Mount-DiskImage -ImagePath "$imagePath" -Passthru
+	if ($result) {
+		$driveLetter = ($result | Get-Volume).DriveLetter
+	    Write-Host "`n[$scriptName] Drive Letter : $driveLetter"
+		$result = executeExpression "[Environment]::SetEnvironmentVariable(`'MOUNT_DRIVE_LETTER`', `"$driveLetter`:\`", `'User`')"
+	} else {
+	    Write-Host "`n[$scriptName] Mount failed! Exit with lastexitcode=22`n";exit 22
+	}
 
 # Dismount image
 } else {

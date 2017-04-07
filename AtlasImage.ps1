@@ -1,3 +1,10 @@
+Param (
+  [string]$hypervisor,
+  [string]$emailTo,
+  [string]$smtpServer
+)
+$scriptName = 'AtlasImage.ps1'
+
 # Common expression logging and error handling function, copied, not referenced to ensure atomic process
 function emailAndExit ($exitCode) {
 	if ($smtpServer) {
@@ -18,9 +25,7 @@ function executeExpression ($expression) {
     return $output
 }
 
-$scriptName = 'AtlasImage.ps1'
 Write-Host "`n[$scriptName] ---------- start ----------"
-$hypervisor = $args[0]
 if ($hypervisor) {
     Write-Host "[$scriptName] hypervisor : $hypervisor"
 } else {
@@ -28,14 +33,12 @@ if ($hypervisor) {
     Write-Host "[$scriptName] hypervisor : (not specified, defaulted to $hypervisor)"
 }
 
-$emailTo = $args[1]
 if ($emailTo) {
     Write-Host "[$scriptName] emailTo    : $emailTo"
 } else {
     Write-Host "[$scriptName] emailTo    : (not specified, email will not be attempted)"
 }
 
-$smtpServer = $args[2]
 if ($smtpServer) {
     Write-Host "[$scriptName] smtpServer : $smtpServer"
 } else {
