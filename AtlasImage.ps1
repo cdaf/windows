@@ -109,24 +109,6 @@ executeExpression "winrm set winrm/config/service/auth `'@{Basic=`"true`"}`'"
 executeExpression "winrm set winrm/config/client/auth `'@{Basic=`"true`"}`'"
 
 if ( $hypervisor -eq 'virtualbox' ) {
-	Write-Host "`n[$scriptName] Install download and install VirutalBox Guest Additions"
-	$zipFile = "WU-CDAF.zip"
-	$url = "http://cdaf.io/static/app/downloads/$zipFile"
-	if (Test-Path "readme.md") {
-	    executeExpression "rm readme.md"
-    }
-	if (Test-Path "Vagrantfile") {
-	    executeExpression "rm Vagrantfile"
-    }
-	if (Test-Path "WU-CDAF.zip") {
-	    executeExpression "rm WU-CDAF.zip"
-    }
-	if (Test-Path "automation") {
-	    executeExpression "rm automation -Recurse -Force"
-    }
-	executeExpression "(New-Object System.Net.WebClient).DownloadFile(`$url, `"$PWD\$zipFile`")"
-	executeExpression "Add-Type -AssemblyName System.IO.Compression.FileSystem"
-	executeExpression "[System.IO.Compression.ZipFile]::ExtractToDirectory(`"$PWD\$zipfile`", `"$PWD`")"
 	executeExpression ".\automation\provisioning\mountImage.ps1 $env:userprofile\VBoxGuestAdditions_5.1.18.iso http://download.virtualbox.org/virtualbox/5.1.18/VBoxGuestAdditions_5.1.18.iso"
 	$result = executeExpression "[Environment]::GetEnvironmentVariable(`'MOUNT_DRIVE_LETTER`', `'User`')"
 	executeExpression "`$proc = Start-Process -FilePath `"$result\VBoxWindowsAdditions-amd64.exe`" -ArgumentList `'/S`' -PassThru -Wait"
