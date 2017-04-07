@@ -74,6 +74,9 @@ if ($smtpServer) {
 Write-Host "`n[$scriptName] Compress VM into .box format"
 executeExpression "cd $boxName"
 executeExpression "Remove-Item Snapshots -Force -Recurse"
+if (Test-Path metadata.json ) {
+	executeExpression "Remove-Item metadata.json"
+} 
 Add-Content metadata.json "{`n  ""provider"": ""hyperv""`n}"
 executeExpression "cat metadata.json"
 executeExpression "tar cvzf ../$packageFile ./*"
