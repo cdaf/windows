@@ -74,7 +74,8 @@ if ($smtpServer) {
 Write-Host "`n[$scriptName] Compress VM into .box format"
 executeExpression "cd $boxName"
 executeExpression "Remove-Item Snapshots -Force -Recurse"
-executeExpression "Add-Content metadata.json `"{`n  `"`"provider`"`": `"`"hyperv`"`"`n}`""
+Add-Content metadata.json "{`n  ""provider"": ""hyperv""`n}"
+executeExpression "cat metadata.json"
 executeExpression "tar cvzf ../$packageFile ./*"
   
 Write-Host "`n[$scriptName] Remove VM export files"
@@ -88,6 +89,7 @@ if ($smtpServer) {
 $testDir = 'packageTest'
 if (Test-Path "$testDir ") {
 	executeExpression "Remove-Item $testDir  -Recurse -Force"
+	executeExpression "mkdir $testDir"
 }
 
 Write-Host "`n[$scriptName] Initialise and start"
