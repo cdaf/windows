@@ -39,6 +39,10 @@ if ( $destinationInstallDir ) {
 	$destinationInstallDir = 'C:\apache'
 	Write-Host "[$scriptName] destinationInstallDir : $destinationInstallDir (default)"
 }
+# Provisionig Script builder
+if ( $env:PROV_SCRIPT_PATH ) {
+	Add-Content "$env:PROV_SCRIPT_PATH" "executeExpression `"./automation/provisioning/$scriptName $tomcat_version $sourceInstallDir $destinationInstallDir`""
+}
 
 # Cannot run interactive via remote PowerShell
 if ($env:interactive) {
