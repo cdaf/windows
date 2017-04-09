@@ -1,6 +1,7 @@
 Param (
   [string]$uri,
-  [string]$mediaDir
+  [string]$mediaDir,
+  [string]$md5
 )
 $scriptName = 'GetMedia.ps1'
 
@@ -16,8 +17,7 @@ function executeExpression ($expression) {
     return $output
 }
 
-Write-Host
-Write-Host "[$scriptName] ---------- start ----------"
+Write-Host "`n[$scriptName] ---------- start ----------"
 if ($uri) {
     Write-Host "[$scriptName] uri      : $uri"
 } else {
@@ -30,6 +30,12 @@ if ($mediaDir) {
 } else {
 	$mediaDir = '/.provision'
     Write-Host "[$scriptName] mediaDir : $mediaDir (default)"
+}
+
+if ($md5) {
+    Write-Host "[$scriptName] md5      : $md5"
+} else {
+    Write-Host "[$scriptName] md5      : (not supplied)"
 }
 
 # Provisionig Script builder
@@ -52,5 +58,14 @@ if ( Test-Path $fullpath ) {
 	executeExpression "`$webclient.DownloadFile(`"$uri`", `"$fullpath`")"
 }
 
-Write-Host
-Write-Host "[$scriptName] ---------- stop ----------"
+if ( $md5 ) {
+	Write-Host
+	$hashValue = executeExpression "Get-FileHash `"$fullpath`" -Algorithm MD5"
+	if ($hashValue = $md5) {
+		Write-Host "[scriptName.ps1] MD5 check successful"
+	} else {
+		Write-Host "[scriptName.ps1] MD5 check failed! Halting with `$lastexitcode 65"; exit 65
+	}
+}
+
+Write-Host "`n[$scriptName] ---------- stop ----------`n"
