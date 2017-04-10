@@ -11,7 +11,7 @@
 Vagrant.configure(2) do |allhosts|
 
   allhosts.vm.define 'target' do |target|
-    target.vm.box = 'mwrock/Windows2016'
+    target.vm.box = 'cdaf/WindowsServerStandard'
     target.vm.communicator = 'winrm'
     target.vm.boot_timeout = 600
     # Oracle VirtualBox, relaxed configuration for Desktop environment
@@ -35,7 +35,7 @@ Vagrant.configure(2) do |allhosts|
   end
 
   allhosts.vm.define 'buildserver' do |buildserver|
-    buildserver.vm.box = 'mwrock/Windows2016'
+    buildserver.vm.box = 'cdaf/WindowsServerStandard'
     buildserver.vm.communicator = 'winrm'
     buildserver.vm.boot_timeout = 600
     buildserver.vm.provision 'shell', path: './automation/remote/capabilities.ps1'
