@@ -60,7 +60,7 @@ if ($smtpServer) {
     Write-Host "[$scriptName] smtpServer : (not specified, email will not be attempted)"
 }
 
-$logFile = 'atlasPackage_${hypervisor}.txt'
+$logFile = "atlasPackage_${hypervisor}.txt"
 if (Test-Path "$logFile") {
     Write-Host "`n[$scriptName] Logfile exists ($logFile), delete for new run."
 	executeExpression "Remove-Item `"$logFile`""
@@ -76,6 +76,8 @@ if (Test-Path "$buildDir") {
 }
 executeExpression "mkdir $buildDir"
 executeExpression "cd $buildDir"
+
+$packageFile = "${boxName}_${hypervisor}.box"
 
 if ($hypervisor -eq 'virtualbox') {
 
