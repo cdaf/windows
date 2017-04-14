@@ -125,20 +125,18 @@ if (Test-Path "$testDir ") {
 }
 executeExpression "vagrant box remove cdaf/$boxName"
 executeExpression "vagrant box add cdaf/$boxName $packageFile --force"
-if ($boxname -eq 'WindowsServerStandard') {
-	executeExpression "cd .."
-} else {
-	executeExpression "mkdir $testDir"
-	executeExpression "cd $testDir"
-	executeExpression "vagrant init $boxName"
+executeExpression "cd .."
+if (!($boxname -eq 'WindowsServerStandard')) {
+	executeExpression "mv Vagrantfile Vagrantfiledefault"
+	executeExpression "mv VagrantfileDC Vagrantfile"
 }
 executeExpression "vagrant up"
 
 Write-Host "`n[$scriptName] Cleanup after test"
 executeExpression "vagrant destroy -f"
 if (!($boxname -eq 'WindowsServerStandard')) {
-	executeExpression "cd .."
-	executeExpression "Remove-Item $testDir -Recurse"
+	executeExpression "mv Vagrantfile VagrantfileDC"
+	executeExpression "mv Vagrantfiledefault Vagrantfile"
 }
 
 if ($smtpServer) {

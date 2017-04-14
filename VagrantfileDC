@@ -1,0 +1,33 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+# All Vagrant configuration is done below. The "2" in Vagrant.configure
+# configures the configuration version (we support older styles for
+# backwards compatibility). Please don't change it unless you know what
+# you're doing.
+
+# Zip Package creation requires PowerShell v3 or above and .NET 4.5 or above.
+
+Vagrant.configure(2) do |allhosts|
+
+  allhosts.vm.define 'dc' do |dc|
+    dc.vm.box = 'cdaf/WindowsServerDC'
+    dc.vm.communicator = 'winrm'
+    dc.vm.boot_timeout = 600 # 10 minutes, default is 5 minutes (300 seconds)
+
+    dc.vm.provider 'virtualbox' do |virtualbox, override|
+      virtualbox.gui = false
+      override.vm.network 'private_network', ip: '172.16.17.101'
+      override.vm.network 'forwarded_port', guest: 3389, host: 33389 # Remote Desktop
+      override.vm.network 'forwarded_port', guest: 5985, host: 35985 # WinRM HTTP
+      override.vm.provision 'shell', path: './automation/remote/capabilities.ps1'
+    end
+
+    # Microsoft Hyper-V does not support NAT or setting hostname. vagrant up app --provider hyperv
+    dc.vm.provider 'hyperv' do |hyperv, override|
+      hyperv.ip_address_timeout = 300 # 5 minutes, default is 2 minutes (120 seconds)
+      override.vm.provision 'shell', path: './automation/remote/capabilities.ps1'
+    end
+  end
+
+end
