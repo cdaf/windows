@@ -56,29 +56,21 @@ if ($sysprep) {
 
 $imageLog = 'imageLog.txt'
 
-if ($sysprep -eq 'yes') {
+if ($smtpServer) {
+	executeExpression "Send-MailMessage -To `"$emailTo`" -From `'no-reply@cdaf.info`' -Subject `"$scriptName [$hypervisor] starting, logging to $imageLog`" -SmtpServer `"$smtpServer`""
+}
+	
+if ( $hypervisor -eq 'virtualbox' ) {
 	if ($smtpServer) {
-		executeExpression "Send-MailMessage -To `"$emailTo`" -From `'no-reply@cdaf.info`' -Subject `"$scriptName [$hypervisor] starting, logging to $imageLog`" -SmtpServer `"$smtpServer`""
+		executeExpression "Send-MailMessage -To `"$emailTo`" -From `'no-reply@cdaf.info`' -Subject `"$scriptName [$hypervisor] Guest Additiions requires manual intervention ...`" -SmtpServer `"$smtpServer`""
 	}
-		
-	if ( $hypervisor -eq 'virtualbox' ) {
-		if ($smtpServer) {
-			executeExpression "Send-MailMessage -To `"$emailTo`" -From `'no-reply@cdaf.info`' -Subject `"$scriptName [$hypervisor] Guest Additiions requires manual intervention ...`" -SmtpServer `"$smtpServer`""
-		}
-		executeExpression ".\automation\provisioning\mountImage.ps1 $env:userprofile\VBoxGuestAdditions_5.1.18.iso http://download.virtualbox.org/virtualbox/5.1.18/VBoxGuestAdditions_5.1.18.iso"
-		$result = executeExpression "[Environment]::GetEnvironmentVariable(`'MOUNT_DRIVE_LETTER`', `'User`')"
-		executeExpression "`$proc = Start-Process -FilePath `"$result\VBoxWindowsAdditions-amd64.exe`" -ArgumentList `'/S`' -PassThru -Wait"
-		executeExpression ".\automation\provisioning\mountImage.ps1 $env:userprofile\VBoxGuestAdditions_5.1.18.iso"
-		executeExpression "Remove-Item $env:userprofile\VBoxGuestAdditions_5.1.18.iso"
-	} else {
-		Write-Host "`n[$scriptName] Hypervisor ($hypervisor) not virtualbox, skip Guest Additions install"
-	}
+	executeExpression ".\automation\provisioning\mountImage.ps1 $env:userprofile\VBoxGuestAdditions_5.1.18.iso http://download.virtualbox.org/virtualbox/5.1.18/VBoxGuestAdditions_5.1.18.iso"
+	$result = executeExpression "[Environment]::GetEnvironmentVariable(`'MOUNT_DRIVE_LETTER`', `'User`')"
+	executeExpression "`$proc = Start-Process -FilePath `"$result\VBoxWindowsAdditions-amd64.exe`" -ArgumentList `'/S`' -PassThru -Wait"
+	executeExpression ".\automation\provisioning\mountImage.ps1 $env:userprofile\VBoxGuestAdditions_5.1.18.iso"
+	executeExpression "Remove-Item $env:userprofile\VBoxGuestAdditions_5.1.18.iso"
 } else {
-
-	if ($smtpServer) {
-		executeExpression "Send-MailMessage -To `"$emailTo`" -From `'no-reply@cdaf.info`' -Subject `"$scriptName [$hypervisor] starting clean-up only, logging to $imageLog`" -SmtpServer `"$smtpServer`""
-	}
-
+	Write-Host "`n[$scriptName] Hypervisor ($hypervisor) not virtualbox, skip Guest Additions install"
 }
 
 Write-Host "`n[$scriptName] Remove the features that are not required, then remove media for available features that are not installed"
