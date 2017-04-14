@@ -10,7 +10,7 @@ $scriptName = 'AtlasPackage.ps1'
 # Common expression logging and error handling function, copied, not referenced to ensure atomic process
 function emailAndExit ($exitCode) {
 	if ($smtpServer) {
-		executeExpression "Send-MailMessage -To `"$emailTo`" -From `'no-reply@cdaf.info`' -Subject `"$scriptName [$hypervisor] ERROR $exitCode`" -SmtpServer `"$smtpServer`""
+		executeExpression "Send-MailMessage -To `"$emailTo`" -From `'no-reply@cdaf.info`' -Subject `"[$scriptName][$hypervisor] ERROR $exitCode`" -SmtpServer `"$smtpServer`""
 	}
 	exit $exitCode
 }
@@ -65,8 +65,10 @@ if (Test-Path "$logFile") {
     Write-Host "`n[$scriptName] Logfile exists ($logFile), delete for new run."
 	executeExpression "Remove-Item `"$logFile`""
 }
+
+$packageFile = "${boxName}_${hypervisor}.box"
 if ($smtpServer) {
-	executeExpression "Send-MailMessage -To `"$emailTo`" -From `'no-reply@cdaf.info`' -Subject `"$scriptName [$hypervisor] starting, logging to $logFile`" -SmtpServer `"$smtpServer`""
+	executeExpression "Send-MailMessage -To `"$emailTo`" -From `'no-reply@cdaf.info`' -Subject `"[$scriptName] packaging ${packageFile}, logging to ${logFile}.`" -SmtpServer `"$smtpServer`""
 }
 
 Write-Host "`n[$scriptName] Prepare Temporary build directory"
@@ -76,8 +78,6 @@ if (Test-Path "$buildDir") {
 }
 executeExpression "mkdir $buildDir"
 executeExpression "cd $buildDir"
-
-$packageFile = "${boxName}_${hypervisor}.box"
 
 if ($hypervisor -eq 'virtualbox') {
 
@@ -137,7 +137,7 @@ executeExpression "Remove-Item $testDir -Force -Recurse"
 executeExpression "vagrant box remove $boxName"
 
 if ($smtpServer) {
-	executeExpression "Send-MailMessage -To `"$emailTo`" -From `'no-reply@cdaf.info`' -Subject `"$scriptName [$hypervisor] final notifcation, package test complete`" -SmtpServer `"$smtpServer`""
+	executeExpression "Send-MailMessage -To `"$emailTo`" -From `'no-reply@cdaf.info`' -Subject `"[$scriptName] Final notifcation, package of ${packageFile} complete`" -SmtpServer `"$smtpServer`""
 }
 
 Write-Host "`n[$scriptName] ---------- stop ----------"
