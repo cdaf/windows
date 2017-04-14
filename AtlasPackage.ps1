@@ -77,7 +77,7 @@ if (Test-Path "$buildDir") {
 executeExpression "mkdir $buildDir"
 executeExpression "cd $buildDir"
 
-if ($hypervisor = 'virtualbox') {
+if ($hypervisor -eq 'virtualbox') {
 
 	$diskPath = "${diskDir}\${boxName}\WindowsServerCore.vdi"
 	Write-Host "`n[$scriptName] Export VirtualBox VM"
