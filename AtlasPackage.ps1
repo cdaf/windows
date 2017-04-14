@@ -127,7 +127,7 @@ executeExpression "cd $testDir"
 executeExpression "vagrant box remove cdaf/$boxName"
 executeExpression "vagrant box add cdaf/$boxName ../$packageFile --force"
 if ($boxname -eq 'WindowsServerStandard') {
-	executeExpression "Copy-Item ../Vagrantfile ."
+	executeExpression "cd .."
 } else {
 	executeExpression "vagrant init $boxName"
 }
