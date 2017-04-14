@@ -18,12 +18,12 @@ function emailAndExit ($exitCode) {
 function executeExpression ($expression) {
 	$error.clear()
 	Write-Host "[$scriptName] $expression"
-	Add-Content "$imageLog" "[$scriptName] $expression"
+	Add-Content "$logFile" "[$scriptName] $expression"
 	try {
 		$output = Invoke-Expression $expression
-	    if(!$?) { Write-Host "[$scriptName] `$? = $?"; Add-Content "$imageLog" "[$scriptName] `$? = $?"; emailAndExit 1 }
-	} catch { echo $_.Exception|format-list -force; Add-Content "$imageLog" "$_.Exception|format-list"; emailAndExit 2 }
-    if ( $error[0] ) { Write-Host "[$scriptName] `$error[0] = $error"; Add-Content "$imageLog" "[$scriptName] `$error[0] = $error"; emailAndExit 3 }
+	    if(!$?) { Write-Host "[$scriptName] `$? = $?"; Add-Content "$logFile" "[$scriptName] `$? = $?"; emailAndExit 1 }
+	} catch { echo $_.Exception|format-list -force; Add-Content "$logFile" "$_.Exception|format-list"; emailAndExit 2 }
+    if ( $error[0] ) { Write-Host "[$scriptName] `$error[0] = $error"; Add-Content "$logFile" "[$scriptName] `$error[0] = $error"; emailAndExit 3 }
     return $output
 }
 
@@ -31,7 +31,7 @@ Write-Host "`n[$scriptName] ---------- start ----------"
 if ($boxname) {
     Write-Host "[$scriptName] boxname    : $boxname"
 } else {
-	$boxname = 'WindowsServer'
+	$boxname = 'WindowsServerStandard'
     Write-Host "[$scriptName] boxname    : (not specified, defaulted to $boxname)"
 }
 
@@ -60,13 +60,13 @@ if ($smtpServer) {
     Write-Host "[$scriptName] smtpServer : (not specified, email will not be attempted)"
 }
 
-$imageLog = 'imageLog.txt'
-if (Test-Path "$imageLog") {
-    Write-Host "`n[$scriptName] Logfile exists ($imageLog), delete for new run."
-	executeExpression "Remove-Item `"$imageLog`""
+$logFile = 'atlasPackage_${hypervisor}.txt'
+if (Test-Path "$logFile") {
+    Write-Host "`n[$scriptName] Logfile exists ($logFile), delete for new run."
+	executeExpression "Remove-Item `"$logFile`""
 }
 if ($smtpServer) {
-	executeExpression "Send-MailMessage -To `"$emailTo`" -From `'no-reply@cdaf.info`' -Subject `"$scriptName [$hypervisor] starting, logging to $imageLog`" -SmtpServer `"$smtpServer`""
+	executeExpression "Send-MailMessage -To `"$emailTo`" -From `'no-reply@cdaf.info`' -Subject `"$scriptName [$hypervisor] starting, logging to $logFile`" -SmtpServer `"$smtpServer`""
 }
 
 Write-Host "`n[$scriptName] Prepare Temporary build directory"
@@ -79,8 +79,14 @@ executeExpression "cd $buildDir"
 
 if ($hypervisor = 'virtualbox') {
 
+	$diskPath = "${diskDir}\${boxName}\WindowsServerCore.vdi"
 	Write-Host "`n[$scriptName] Export VirtualBox VM"
-	executeExpression "& `"C:\Program Files\Oracle\VirtualBox\VBoxManage.exe`" modifyhd `"${diskDir}\${boxName}\${boxName}.vdi`" --compact"
+	if (Test-Path "$diskPath") {
+		executeExpression "& `"C:\Program Files\Oracle\VirtualBox\VBoxManage.exe`" modifyhd `"$diskPath`" --compact"
+	} else {
+		Write-Host "`n[$scriptName] Disk ($diskPath) not found! Exiting with lastExitCode 200"
+		emailAndExit 200
+	}
 
 	executeExpression "(New-Object System.Net.WebClient).DownloadFile(`'http://cdaf.io/static/app/downloads/Vagrantfile`', `"$PWD\Vagrantfile`")"
 	executeExpression "vagrant package --base $boxName --output $packageFile --vagrantfile Vagrantfile"

@@ -231,6 +231,7 @@ if ($sysprep -eq 'yes') {
 	if ($smtpServer) {
 		executeExpression "Send-MailMessage -To `"$emailTo`" -From `'no-reply@cdaf.info`' -Subject `"$scriptName [$hypervisor] last comms, sysprep = $sysprep, skipping unattended install and sysrep.`" -SmtpServer `"$smtpServer`""
 	}
+	executeExpression "shutdown /s /t 2"
 }
 
 Write-Host "`n[$scriptName] ---------- stop ----------"
