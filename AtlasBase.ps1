@@ -1,13 +1,14 @@
 Param (
   [string]$emailTo,
-  [string]$smtpServer
+  [string]$smtpServer,
+  [string]$skipUpdates
 )
 $scriptName = 'AtlasBase.ps1'
 
 # Common expression logging and error handling function, copied, not referenced to ensure atomic process
 function emailAndExit ($exitCode) {
 	if ($smtpServer) {
-		executeExpression "Send-MailMessage -To `"$emailTo`" -From `'no-reply@cdaf.info`' -Subject `"$scriptName ERROR $exitCode`" -SmtpServer `"$smtpServer`""
+		executeExpression "Send-MailMessage -To `"$emailTo`" -From `'no-reply@cdaf.info`' -Subject `"[$scriptName] ERROR $exitCode`" -SmtpServer `"$smtpServer`""
 	}
 	exit $exitCode
 }
@@ -38,6 +39,13 @@ if ($smtpServer) {
     Write-Host "[$scriptName] smtpServer : $smtpServer"
 } else {
     Write-Host "[$scriptName] smtpServer : (not specified, email will not be attempted)"
+}
+
+if ($skipUpdates) {
+    Write-Host "[$scriptName] skipUpdates : $skipUpdates"
+} else {
+	$skipUpdates = 'no'
+    Write-Host "[$scriptName] skipUpdates : $skipUpdates (default)"
 }
 
 $imageLog = 'c:\VagrantBox.txt'
@@ -100,11 +108,18 @@ executeExpression "`$LocalUser.CommitChanges()"
 $de = executeExpression "[ADSI]`"WinNT://$env:computername/Administrators,group`""
 executeExpression "`$de.psbase.Invoke(`'Add`',([ADSI]`"WinNT://$env:computername/vagrant`").path)"
 
-Write-Host "`n[$scriptName] Apply Windows Updates"
-executeExpression "./automation/provisioning/applyWindowsUpdates.ps1 no"
-if ($smtpServer) {
-	Send-MailMessage -To "jules@xtra.co.nz" -From 'no-reply@cdaf.info' -Subject "Windows Updates applied, rebooting"
+if ( $skipUpdates -eq 'no' ) {
+	if ($smtpServer) {
+		Send-MailMessage -To "jules@xtra.co.nz" -From 'no-reply@cdaf.info' -Subject "[$scriptName] Base image complete (no updates applied), shutdown ..."
+	}
+} else {
+	Write-Host "`n[$scriptName] Apply Windows Updates"
+	executeExpression "./automation/provisioning/applyWindowsUpdates.ps1 no"
+	if ($smtpServer) {
+		Send-MailMessage -To "jules@xtra.co.nz" -From 'no-reply@cdaf.info' -Subject "[$scriptName] Windows Updates applied, shutdown ..."
+	}
 }
+
 executeExpression "shutdown /r /t 60"
 
 Write-Host "`n[$scriptName] ---------- stop ----------"
