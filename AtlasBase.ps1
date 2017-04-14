@@ -21,6 +21,7 @@ function executeExpression ($expression) {
 	    if(!$?) { Write-Host "[$scriptName] `$? = $?"; Add-Content "$imageLog" "[$scriptName] `$? = $?"; emailAndExit 1 }
 	} catch { echo $_.Exception|format-list -force; Add-Content "$imageLog" "$_.Exception|format-list"; emailAndExit 2 }
     if ( $error[0] ) { Write-Host "[$scriptName] `$error[0] = $error"; Add-Content "$imageLog" "[$scriptName] `$error[0] = $error"; emailAndExit 3 }
+    if ( $lastExitCode -ne 0 ) { Write-Host "[$scriptName] `$lastExitCode = $lastExitCode "; exit $lastExitCode }
     return $output
 }
 
@@ -58,6 +59,19 @@ $admin = executeExpression "[adsi]`'WinNT://./Administrator,user`'"
 executeExpression "`$admin.SetPassword(`'vagrant`')"
 executeExpression "`$admin.UserFlags.value = `$admin.UserFlags.value -bor 0x10000" # Password never expires
 executeExpression "`$admin.CommitChanges()" 
+
+Write-Host "`n[$scriptName] Create the Vagrant user (with password vagrant) in the local administrators group"
+$ADSIComp = executeExpression "[ADSI]`"WinNT://$Env:COMPUTERNAME,Computer`""
+$ADSIComp.Delete('User', 'vagrant')
+$LocalUser = executeExpression "`$ADSIComp.Create(`'User`', `'vagrant`')"
+executeExpression "`$LocalUser.SetPassword(`'vagrant`')"
+executeExpression "`$LocalUser.SetInfo()"
+executeExpression "`$LocalUser.FullName = `'Vagrant Administrator`'"
+executeExpression "`$LocalUser.SetInfo()"
+executeExpression "`$LocalUser.UserFlags.value = `$LocalUser.UserFlags.value -bor 0x10000" # Password never expires
+executeExpression "`$LocalUser.CommitChanges()"
+$de = executeExpression "[ADSI]`"WinNT://$env:computername/Administrators,group`""
+executeExpression "`$de.psbase.Invoke(`'Add`',([ADSI]`"WinNT://$env:computername/vagrant`").path)"
 
 Write-Host "`n[$scriptName] Apply Windows Updates"
 executeExpression "./automation/provisioning/applyWindowsUpdates.ps1 no"

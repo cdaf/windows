@@ -24,6 +24,7 @@ function executeExpression ($expression) {
 	    if(!$?) { Write-Host "[$scriptName] `$? = $?"; Add-Content "$logFile" "[$scriptName] `$? = $?"; emailAndExit 1 }
 	} catch { echo $_.Exception|format-list -force; Add-Content "$logFile" "$_.Exception|format-list"; emailAndExit 2 }
     if ( $error[0] ) { Write-Host "[$scriptName] `$error[0] = $error"; Add-Content "$logFile" "[$scriptName] `$error[0] = $error"; emailAndExit 3 }
+    if ( $lastExitCode -ne 0 ) { Write-Host "[$scriptName] `$lastExitCode = $lastExitCode "; exit $lastExitCode }
     return $output
 }
 
