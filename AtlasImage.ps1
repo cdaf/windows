@@ -142,14 +142,15 @@ if ( Test-Path $env:systemroot\SoftwareDistribution ) {
     executeExpression "Remove-Item  $env:systemroot\SoftwareDistribution -Recurse -Force"
 }
 
-Write-Host "`n[$scriptName] Discard page file (is rebuilt at start-up)"
-$System = executeExpression "GWMI Win32_ComputerSystem -EnableAllPrivileges"
-executeExpression "`$System.AutomaticManagedPagefile = `$False"
-executeExpression "`$System.Put()"
-$CurrentPageFile = executeExpression "gwmi -query `"select * from Win32_PageFileSetting where name=`'c:\\pagefile.sys`'`""
-executeExpression "`$CurrentPageFile.InitialSize = 512"
-executeExpression "`$CurrentPageFile.MaximumSize = 512"
-executeExpression "`$CurrentPageFile.Put()"
+# Disabled, does not work in PowerShell 5.1, $System.Put() Exception calling "Put" with "0" argument(s): "Generic failure
+#Write-Host "`n[$scriptName] Discard page file (is rebuilt at start-up)"
+#$System = executeExpression "GWMI Win32_ComputerSystem -EnableAllPrivileges"
+#executeExpression "`$System.AutomaticManagedPagefile = `$False"
+#executeExpression "`$System.Put()"
+#$CurrentPageFile = executeExpression "gwmi -query `"select * from Win32_PageFileSetting where name=`'c:\\pagefile.sys`'`""
+#executeExpression "`$CurrentPageFile.InitialSize = 512"
+#executeExpression "`$CurrentPageFile.MaximumSize = 512"
+#executeExpression "`$CurrentPageFile.Put()"
 
 Write-Host "`n[$scriptName] Prepare for Zeroing"
 executeExpression "Optimize-Volume -DriveLetter C"
