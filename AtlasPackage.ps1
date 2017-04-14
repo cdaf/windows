@@ -66,16 +66,17 @@ if (Test-Path "$logFile") {
 	executeExpression "Remove-Item `"$logFile`""
 }
 
-$packageFile = "${boxName}_${hypervisor}.box"
+Write-Host "`n[$scriptName] Prepare Temporary build directory"
+$buildDir = "${boxName}_${hypervisor}"
+if (Test-Path "$buildDir") {
+	executeExpression "Remove-Item $buildDir -Recurse -Force"
+}
+
+$packageFile = "${buildDir}.box"
 if ($smtpServer) {
 	executeExpression "Send-MailMessage -To `"$emailTo`" -From `'no-reply@cdaf.info`' -Subject `"[$scriptName] packaging ${packageFile}, logging to ${logFile}.`" -SmtpServer `"$smtpServer`""
 }
 
-Write-Host "`n[$scriptName] Prepare Temporary build directory"
-$buildDir = 'tempBuildDir'
-if (Test-Path "$buildDir") {
-	executeExpression "Remove-Item $buildDir -Recurse -Force"
-}
 executeExpression "mkdir $buildDir"
 executeExpression "cd $buildDir"
 
