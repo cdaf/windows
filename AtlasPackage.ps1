@@ -3,7 +3,8 @@ Param (
   [string]$hypervisor,
   [string]$diskDir,
   [string]$emailTo,
-  [string]$smtpServer
+  [string]$smtpServer,
+  [string]$destroy
 )
 $scriptName = 'AtlasPackage.ps1'
 
@@ -59,6 +60,13 @@ if ($smtpServer) {
     Write-Host "[$scriptName] smtpServer : $smtpServer"
 } else {
     Write-Host "[$scriptName] smtpServer : (not specified, email will not be attempted)"
+}
+
+if ($destroy) {
+    Write-Host "[$scriptName] destroy : $destroy"
+} else {
+	$destroy = 'yes'
+    Write-Host "[$scriptName] destroy : $destroy (default)"
 }
 
 $logFile = "atlasPackage_${hypervisor}.txt"
@@ -128,14 +136,19 @@ executeExpression "vagrant box remove cdaf/$boxName --box-version 0" # Remove an
 executeExpression "vagrant box add cdaf/$boxName $packageFile --force"
 executeExpression "cd .."
 if (!($boxname -eq 'WindowsServerStandard')) {
+	Write-Host "`n[$scriptName] Override default Vagrantfile"
 	executeExpression "mv Vagrantfile Vagrantfiledefault"
 	executeExpression "mv VagrantfileDC Vagrantfile"
 }
 executeExpression "vagrant up"
 
-Write-Host "`n[$scriptName] Cleanup after test"
-executeExpression "vagrant destroy -f"
+if ($destroy -eq 'yes') { 
+	Write-Host "`n[$scriptName] Cleanup after test"
+	executeExpression "vagrant destroy -f"
+}
+
 if (!($boxname -eq 'WindowsServerStandard')) {
+	Write-Host "`n[$scriptName] Reinstate default Vagrantfile"
 	executeExpression "mv Vagrantfile VagrantfileDC"
 	executeExpression "mv Vagrantfiledefault Vagrantfile"
 }
