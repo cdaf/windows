@@ -58,75 +58,84 @@ if (Test-Path "$imageLog") {
     Write-Host "`n[$scriptName] Logfile exists ($imageLog), delete for new run."
 	executeExpression "Remove-Item `"$imageLog`""
 }
-if ($smtpServer) {
-	executeExpression "Send-MailMessage -To `"$emailTo`" -From `'no-reply@cdaf.info`' -Subject `"$scriptName [$hypervisor] starting, logging to $imageLog`" -SmtpServer `"$smtpServer`""
-}
 
-Write-Host "`n[$scriptName] Enable Remote Desktop and Open firewall"
-$obj = executeExpression "Get-WmiObject -Class `"Win32_TerminalServiceSetting`" -Namespace root\cimv2\terminalservices"
-executeExpression "`$obj.SetAllowTsConnections(1,1)"
-executeExpression "Set-NetFirewallRule -Name RemoteDesktop-UserMode-In-TCP -Enabled True"
-
-Write-Host "`n[$scriptName] Disable User Account Controls (UAC)"
-executeExpression "reg add HKEY_LOCAL_MACHINE\Software\Microsoft\Windows\CurrentVersion\Policies\System /v EnableLUA /d 0 /t REG_DWORD /f /reg:64"
-
-Write-Host "`n[$scriptName] Ensure all adapters set to private (ignore failure if on DC)"
-Get-NetConnectionProfile | Set-NetConnectionProfile -NetworkCategory Private
-
-Write-Host "`n[$scriptName] configure the computer to receive remote commands"
-executeExpression "Enable-PSRemoting -Force"
-
-Write-Host "`n[$scriptName] Disable password policy"
-executeExpression "secedit /export /cfg c:\secpol.cfg"
-executeExpression "(gc C:\secpol.cfg).replace(`"PasswordComplexity = 1`", `"PasswordComplexity = 0`") | Out-File C:\secpol.cfg"
-executeExpression "secedit /configure /db c:\windows\security\local.sdb /cfg c:\secpol.cfg /areas SECURITYPOLICY"
-executeExpression "rm -force c:\secpol.cfg -confirm:`$false"
-
-Write-Host "`n[$scriptName] Set default Administrator password to `'vagrant`'"
-$admin = executeExpression "[adsi]`'WinNT://./Administrator,user`'"
-executeExpression "`$admin.SetPassword(`'vagrant`')"
-executeExpression "`$admin.UserFlags.value = `$admin.UserFlags.value -bor 0x10000" # Password never expires
-executeExpression "`$admin.CommitChanges()" 
-
-Write-Host "`n[$scriptName] Create the Vagrant user (with password vagrant) in the local administrators group"
-$ADSIComp = executeExpression "[ADSI]`"WinNT://$Env:COMPUTERNAME,Computer`""
-$ADSIComp.Delete('User', 'vagrant')
-$LocalUser = executeExpression "`$ADSIComp.Create(`'User`', `'vagrant`')"
-executeExpression "`$LocalUser.SetPassword(`'vagrant`')"
-executeExpression "`$LocalUser.SetInfo()"
-executeExpression "`$LocalUser.FullName = `'Vagrant Administrator`'"
-executeExpression "`$LocalUser.SetInfo()"
-executeExpression "`$LocalUser.UserFlags.value = `$LocalUser.UserFlags.value -bor 0x10000" # Password never expires
-executeExpression "`$LocalUser.CommitChanges()"
-$de = executeExpression "[ADSI]`"WinNT://$env:computername/Administrators,group`""
-executeExpression "`$de.psbase.Invoke(`'Add`',([ADSI]`"WinNT://$env:computername/vagrant`").path)"
-
-Write-Host "`n[$scriptName] Open Firewall for WinRM"
-executeExpression "Set-NetFirewallRule -Name WINRM-HTTP-In-TCP-PUBLIC -RemoteAddress Any"
-
-Write-Host "`n[$scriptName] Allow arbitrary script execution"
-executeExpression "Set-ExecutionPolicy -ExecutionPolicy Unrestricted -Force"
-
-Write-Host "`n[$scriptName] Allow `"hop`""
-executeExpression "Enable-WSManCredSSP -Role Server -Force"
-
-Write-Host "`n[$scriptName] settings to support Vagrant integration, Unencypted Remote PowerShell"
-executeExpression "winrm set winrm/config `'@{MaxTimeoutms=`"1800000`"}`'"
-executeExpression "winrm set winrm/config/service `'@{AllowUnencrypted=`"true`"}`'"
-executeExpression "winrm set winrm/config/service/auth `'@{Basic=`"true`"}`'"
-executeExpression "winrm set winrm/config/client/auth `'@{Basic=`"true`"}`'"
-
-if ( $hypervisor -eq 'virtualbox' ) {
+if ($sysprep -eq 'yes') {
 	if ($smtpServer) {
-		executeExpression "Send-MailMessage -To `"$emailTo`" -From `'no-reply@cdaf.info`' -Subject `"$scriptName [$hypervisor] Guest Additiions requires manual intervention ...`" -SmtpServer `"$smtpServer`""
+		executeExpression "Send-MailMessage -To `"$emailTo`" -From `'no-reply@cdaf.info`' -Subject `"$scriptName [$hypervisor] starting, logging to $imageLog`" -SmtpServer `"$smtpServer`""
 	}
-	executeExpression ".\automation\provisioning\mountImage.ps1 $env:userprofile\VBoxGuestAdditions_5.1.18.iso http://download.virtualbox.org/virtualbox/5.1.18/VBoxGuestAdditions_5.1.18.iso"
-	$result = executeExpression "[Environment]::GetEnvironmentVariable(`'MOUNT_DRIVE_LETTER`', `'User`')"
-	executeExpression "`$proc = Start-Process -FilePath `"$result\VBoxWindowsAdditions-amd64.exe`" -ArgumentList `'/S`' -PassThru -Wait"
-	executeExpression ".\automation\provisioning\mountImage.ps1 $env:userprofile\VBoxGuestAdditions_5.1.18.iso"
-	executeExpression "Remove-Item $env:userprofile\VBoxGuestAdditions_5.1.18.iso"
+
+	Write-Host "`n[$scriptName] Enable Remote Desktop and Open firewall"
+	$obj = executeExpression "Get-WmiObject -Class `"Win32_TerminalServiceSetting`" -Namespace root\cimv2\terminalservices"
+	executeExpression "`$obj.SetAllowTsConnections(1,1)"
+	executeExpression "Set-NetFirewallRule -Name RemoteDesktop-UserMode-In-TCP -Enabled True"
+	
+	Write-Host "`n[$scriptName] Disable User Account Controls (UAC)"
+	executeExpression "reg add HKEY_LOCAL_MACHINE\Software\Microsoft\Windows\CurrentVersion\Policies\System /v EnableLUA /d 0 /t REG_DWORD /f /reg:64"
+	
+	Write-Host "`n[$scriptName] Ensure all adapters set to private (ignore failure if on DC)"
+	executeExpression "Get-NetConnectionProfile | Set-NetConnectionProfile -NetworkCategory Private"
+	
+	Write-Host "`n[$scriptName] configure the computer to receive remote commands"
+	executeExpression "Enable-PSRemoting -Force"
+	
+	Write-Host "`n[$scriptName] Disable password policy"
+	executeExpression "secedit /export /cfg c:\secpol.cfg"
+	executeExpression "(gc C:\secpol.cfg).replace(`"PasswordComplexity = 1`", `"PasswordComplexity = 0`") | Out-File C:\secpol.cfg"
+	executeExpression "secedit /configure /db c:\windows\security\local.sdb /cfg c:\secpol.cfg /areas SECURITYPOLICY"
+	executeExpression "rm -force c:\secpol.cfg -confirm:`$false"
+	
+	Write-Host "`n[$scriptName] Set default Administrator password to `'vagrant`'"
+	$admin = executeExpression "[adsi]`'WinNT://./Administrator,user`'"
+	executeExpression "`$admin.SetPassword(`'vagrant`')"
+	executeExpression "`$admin.UserFlags.value = `$admin.UserFlags.value -bor 0x10000" # Password never expires
+	executeExpression "`$admin.CommitChanges()" 
+	
+	Write-Host "`n[$scriptName] Create the Vagrant user (with password vagrant) in the local administrators group"
+	$ADSIComp = executeExpression "[ADSI]`"WinNT://$Env:COMPUTERNAME,Computer`""
+	$ADSIComp.Delete('User', 'vagrant')
+	$LocalUser = executeExpression "`$ADSIComp.Create(`'User`', `'vagrant`')"
+	executeExpression "`$LocalUser.SetPassword(`'vagrant`')"
+	executeExpression "`$LocalUser.SetInfo()"
+	executeExpression "`$LocalUser.FullName = `'Vagrant Administrator`'"
+	executeExpression "`$LocalUser.SetInfo()"
+	executeExpression "`$LocalUser.UserFlags.value = `$LocalUser.UserFlags.value -bor 0x10000" # Password never expires
+	executeExpression "`$LocalUser.CommitChanges()"
+	$de = executeExpression "[ADSI]`"WinNT://$env:computername/Administrators,group`""
+	executeExpression "`$de.psbase.Invoke(`'Add`',([ADSI]`"WinNT://$env:computername/vagrant`").path)"
+	
+	Write-Host "`n[$scriptName] Open Firewall for WinRM"
+	executeExpression "Set-NetFirewallRule -Name WINRM-HTTP-In-TCP-PUBLIC -RemoteAddress Any"
+	
+	Write-Host "`n[$scriptName] Allow arbitrary script execution"
+	executeExpression "Set-ExecutionPolicy -ExecutionPolicy Unrestricted -Force"
+	
+	Write-Host "`n[$scriptName] Allow `"hop`""
+	executeExpression "Enable-WSManCredSSP -Role Server -Force"
+	
+	Write-Host "`n[$scriptName] settings to support Vagrant integration, Unencypted Remote PowerShell"
+	executeExpression "winrm set winrm/config `'@{MaxTimeoutms=`"1800000`"}`'"
+	executeExpression "winrm set winrm/config/service `'@{AllowUnencrypted=`"true`"}`'"
+	executeExpression "winrm set winrm/config/service/auth `'@{Basic=`"true`"}`'"
+	executeExpression "winrm set winrm/config/client/auth `'@{Basic=`"true`"}`'"
+	
+	if ( $hypervisor -eq 'virtualbox' ) {
+		if ($smtpServer) {
+			executeExpression "Send-MailMessage -To `"$emailTo`" -From `'no-reply@cdaf.info`' -Subject `"$scriptName [$hypervisor] Guest Additiions requires manual intervention ...`" -SmtpServer `"$smtpServer`""
+		}
+		executeExpression ".\automation\provisioning\mountImage.ps1 $env:userprofile\VBoxGuestAdditions_5.1.18.iso http://download.virtualbox.org/virtualbox/5.1.18/VBoxGuestAdditions_5.1.18.iso"
+		$result = executeExpression "[Environment]::GetEnvironmentVariable(`'MOUNT_DRIVE_LETTER`', `'User`')"
+		executeExpression "`$proc = Start-Process -FilePath `"$result\VBoxWindowsAdditions-amd64.exe`" -ArgumentList `'/S`' -PassThru -Wait"
+		executeExpression ".\automation\provisioning\mountImage.ps1 $env:userprofile\VBoxGuestAdditions_5.1.18.iso"
+		executeExpression "Remove-Item $env:userprofile\VBoxGuestAdditions_5.1.18.iso"
+	} else {
+		Write-Host "`n[$scriptName] Hypervisor ($hypervisor) not virtualbox, skip Guest Additions install"
+	}
 } else {
-	Write-Host "`n[$scriptName] Hypervisor ($hypervisor) not virtualbox, skip Guest Additions install"
+
+	if ($smtpServer) {
+		executeExpression "Send-MailMessage -To `"$emailTo`" -From `'no-reply@cdaf.info`' -Subject `"$scriptName [$hypervisor] starting clean-up only, logging to $imageLog`" -SmtpServer `"$smtpServer`""
+	}
+
 }
 
 Write-Host "`n[$scriptName] Remove the features that are not required, then remove media for available features that are not installed"
