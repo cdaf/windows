@@ -39,7 +39,7 @@ if ($smtpServer) {
     Write-Host "[$scriptName] smtpServer : (not specified, email will not be attempted)"
 }
 
-$imageLog = 'baseLog.txt'
+$imageLog = 'c:\VagrantBox.txt'
 
 if ($smtpServer) {
 	executeExpression "Send-MailMessage -To `"$emailTo`" -From `'no-reply@cdaf.info`' -Subject `"$scriptName starting, logging to $imageLog`" -SmtpServer `"$smtpServer`""

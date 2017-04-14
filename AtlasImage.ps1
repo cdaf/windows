@@ -54,7 +54,7 @@ if ($sysprep) {
     Write-Host "[$scriptName] sysprep    : $sysprep (default)"
 }
 
-$imageLog = 'imageLog.txt'
+$imageLog = 'c:\VagrantBox.txt'
 
 if ($smtpServer) {
 	executeExpression "Send-MailMessage -To `"$emailTo`" -From `'no-reply@cdaf.info`' -Subject `"$scriptName [$hypervisor] starting, logging to $imageLog`" -SmtpServer `"$smtpServer`""
