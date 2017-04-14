@@ -40,13 +40,39 @@ if ($smtpServer) {
 }
 
 $imageLog = 'baseLog.txt'
-if (Test-Path "$imageLog") {
-    Write-Host "`n[$scriptName] Logfile exists ($imageLog), delete for new run."
-	executeExpression "Remove-Item `"$imageLog`""
-}
+
 if ($smtpServer) {
 	executeExpression "Send-MailMessage -To `"$emailTo`" -From `'no-reply@cdaf.info`' -Subject `"$scriptName starting, logging to $imageLog`" -SmtpServer `"$smtpServer`""
 }
+
+Write-Host "`n[$scriptName] Enable Remote Desktop and Open firewall"
+$obj = executeExpression "Get-WmiObject -Class `"Win32_TerminalServiceSetting`" -Namespace root\cimv2\terminalservices"
+executeExpression "`$obj.SetAllowTsConnections(1,1)"
+executeExpression "Set-NetFirewallRule -Name RemoteDesktop-UserMode-In-TCP -Enabled True"
+
+Write-Host "`n[$scriptName] Disable User Account Controls (UAC)"
+executeExpression "reg add HKEY_LOCAL_MACHINE\Software\Microsoft\Windows\CurrentVersion\Policies\System /v EnableLUA /d 0 /t REG_DWORD /f /reg:64"
+
+Write-Host "`n[$scriptName] Ensure all adapters set to private (ignore failure if on DC)"
+executeExpression "Get-NetConnectionProfile | Set-NetConnectionProfile -NetworkCategory Private"
+
+Write-Host "`n[$scriptName] configure the computer to receive remote commands"
+executeExpression "Enable-PSRemoting -Force"
+
+Write-Host "`n[$scriptName] Open Firewall for WinRM"
+executeExpression "Set-NetFirewallRule -Name WINRM-HTTP-In-TCP-PUBLIC -RemoteAddress Any"
+
+Write-Host "`n[$scriptName] Allow arbitrary script execution"
+executeExpression "Set-ExecutionPolicy -ExecutionPolicy Unrestricted -Force"
+
+Write-Host "`n[$scriptName] Allow `"hop`""
+executeExpression "Enable-WSManCredSSP -Role Server -Force"
+
+Write-Host "`n[$scriptName] settings to support Vagrant integration, Unencypted Remote PowerShell"
+executeExpression "winrm set winrm/config `'@{MaxTimeoutms=`"1800000`"}`'"
+executeExpression "winrm set winrm/config/service `'@{AllowUnencrypted=`"true`"}`'"
+executeExpression "winrm set winrm/config/service/auth `'@{Basic=`"true`"}`'"
+executeExpression "winrm set winrm/config/client/auth `'@{Basic=`"true`"}`'"
 
 Write-Host "`n[$scriptName] Disable password policy"
 executeExpression "secedit /export /cfg c:\secpol.cfg"
