@@ -16,6 +16,7 @@ function emailAndExit ($exitCode) {
 
 function executeExpression ($expression) {
 	$error.clear()
+	$lastExitCode = 0
 	Write-Host "[$scriptName] $expression"
 	Add-Content "$imageLog" "[$scriptName] $expression"
 	try {
