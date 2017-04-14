@@ -1,7 +1,8 @@
 Param (
   [string]$hypervisor,
   [string]$emailTo,
-  [string]$smtpServer
+  [string]$smtpServer,
+  [string]$sysprep
 )
 $scriptName = 'AtlasImage.ps1'
 
@@ -43,6 +44,13 @@ if ($smtpServer) {
     Write-Host "[$scriptName] smtpServer : $smtpServer"
 } else {
     Write-Host "[$scriptName] smtpServer : (not specified, email will not be attempted)"
+}
+
+if ($sysprep) {
+    Write-Host "[$scriptName] sysprep    : $sysprep"
+} else {
+	$sysprep = 'yes'
+    Write-Host "[$scriptName] sysprep    : $sysprep (default)"
 }
 
 $imageLog = 'imageLog.txt'
@@ -109,14 +117,14 @@ executeExpression "winrm set winrm/config/service/auth `'@{Basic=`"true`"}`'"
 executeExpression "winrm set winrm/config/client/auth `'@{Basic=`"true`"}`'"
 
 if ( $hypervisor -eq 'virtualbox' ) {
+	if ($smtpServer) {
+		executeExpression "Send-MailMessage -To `"$emailTo`" -From `'no-reply@cdaf.info`' -Subject `"$scriptName Guest Additiions requires manual intervention ...`" -SmtpServer `"$smtpServer`""
+	}
 	executeExpression ".\automation\provisioning\mountImage.ps1 $env:userprofile\VBoxGuestAdditions_5.1.18.iso http://download.virtualbox.org/virtualbox/5.1.18/VBoxGuestAdditions_5.1.18.iso"
 	$result = executeExpression "[Environment]::GetEnvironmentVariable(`'MOUNT_DRIVE_LETTER`', `'User`')"
 	executeExpression "`$proc = Start-Process -FilePath `"$result\VBoxWindowsAdditions-amd64.exe`" -ArgumentList `'/S`' -PassThru -Wait"
 	executeExpression ".\automation\provisioning\mountImage.ps1 $env:userprofile\VBoxGuestAdditions_5.1.18.iso"
 	executeExpression "Remove-Item $env:userprofile\VBoxGuestAdditions_5.1.18.iso"
-	if ($smtpServer) {
-		executeExpression "Send-MailMessage -To `"$emailTo`" -From `'no-reply@cdaf.info`' -Subject `"$scriptName Guest Additiions installed`" -SmtpServer `"$smtpServer`""
-	}
 } else {
 	Write-Host "`n[$scriptName] Hypervisor ($hypervisor) not virtualbox, skip Guest Additions install"
 }
@@ -124,9 +132,6 @@ if ( $hypervisor -eq 'virtualbox' ) {
 Write-Host "`n[$scriptName] Remove the features that are not required, then remove media for available features that are not installed"
 executeExpression "@(`'Server-Media-Foundation`') | Remove-WindowsFeature"
 executeExpression "Get-WindowsFeature | ? { `$_.InstallState -eq `'Available`' } | Uninstall-WindowsFeature -Remove"
-if ($smtpServer) {
-	executeExpression "Send-MailMessage -To `"$emailTo`" -From `'no-reply@cdaf.info`' -Subject `"$scriptName Removed unused Windows Features`" -SmtpServer `"$smtpServer`""
-}
 
 Write-Host "`n[$scriptName] Deployment Image Servicing and Management (DISM.exe) clean-up"
 executeExpression "Dism.exe /online /Cleanup-Image /StartComponentCleanup /ResetBase"
@@ -148,10 +153,6 @@ executeExpression "`$CurrentPageFile.Put()"
 
 Write-Host "`n[$scriptName] Prepare for Zeroing"
 executeExpression "Optimize-Volume -DriveLetter C"
-
-if ($smtpServer) {
-	executeExpression "Send-MailMessage -To `"$emailTo`" -From `'no-reply@cdaf.info`' -Subject `"$scriptName C drive optimised`" -SmtpServer `"$smtpServer`""
-}
 
 Write-Host "`n[$scriptName] See https://technet.microsoft.com/en-us/sysinternals/sdelete.aspx"
 $zipFile = "SDelete.zip"
@@ -175,48 +176,52 @@ executeExpression "& reg.exe ADD `"HKCU\Software\Sysinternals\SDelete`" /v EulaA
 Write-Host "`n[$scriptName] Zero unused disk"
 executeExpression "./$secureDeleteExe -z c:"
 
-if ($smtpServer) {
-	executeExpression "Send-MailMessage -To `"$emailTo`" -From `'no-reply@cdaf.info`' -Subject `"$scriptName zeroing complete`" -SmtpServer `"$smtpServer`""
-}
+if ($sysprep -eq 'yes') {
 
-$scriptDir = "$env:windir/setup/scripts"
-if (Test-Path "$scriptDir") {
-    Write-Host "`n[$scriptName] $scriptDir exists, skip create."
+	$scriptDir = "$env:windir/setup/scripts"
+	if (Test-Path "$scriptDir") {
+	    Write-Host "`n[$scriptName] $scriptDir exists, skip create."
+	} else {
+	    executeExpression "mkdir -Path $scriptDir"
+	}
+	
+	$setupCommand = "$scriptDir/SetupComplete.cmd"
+	if (Test-Path "$setupCommand") {
+	    Write-Host "`n[$scriptName] $setupCommand exists, skip create."
+	} else {
+	    executeExpression "Add-Content $scriptDir/SetupComplete.cmd `'netsh advfirewall firewall set rule name=`"Windows Remote Management (HTTP-in)`" new action=allow`'"
+	}
+	executeExpression "cat $scriptDir/SetupComplete.cmd"
+	executeExpression "netsh advfirewall firewall set rule name=`'Windows Remote Management (HTTP-in)`' new action=block"
+	
+	Write-Host "`n[$scriptName] As per this URL there are implicit places windows looks for unattended files, I'm using C:\Windows\Panther\Unattend"
+	executeExpression "(New-Object System.Net.WebClient).DownloadFile(`'http://cdaf.io/static/app/downloads/unattend.xml`', `"$PWD\unattend.xml`")"
+	
+	$scriptDir = "C:\Windows\Panther\Unattend"
+	if (Test-Path "$scriptDir") {
+	    Write-Host "`n[$scriptName] $scriptDir exists, skip create."
+	} else {
+	    executeExpression "mkdir -Path $scriptDir"
+	}
+	
+	$sysprepXML = "$scriptDir\unattend.xml"
+	if (Test-Path "$sysprepXML") {
+	    Write-Host "`n[$scriptName] $sysprepXML exists, skip create."
+	} else {
+	    executeExpression "Copy-Item $PWD\unattend.xml $scriptDir"
+	}
+	executeExpression "cat $scriptDir\unattend.xml"
+	if ($smtpServer) {
+		executeExpression "Send-MailMessage -To `"$emailTo`" -From `'no-reply@cdaf.info`' -Subject `"$scriptName last comms, starting sysprep`" -SmtpServer `"$smtpServer`""
+	}
+	executeExpression "& C:\windows\system32\sysprep\sysprep.exe /generalize /oobe /shutdown /unattend:$scriptDir\unattend.xml"
+	
 } else {
-    executeExpression "mkdir -Path $scriptDir"
+	Write-Host "[$scriptName] sysprep = $sysprep, skipping unattended install and sysrep."
+	if ($smtpServer) {
+		executeExpression "Send-MailMessage -To `"$emailTo`" -From `'no-reply@cdaf.info`' -Subject `"$scriptName last comms, sysprep = $sysprep, skipping unattended install and sysrep.`" -SmtpServer `"$smtpServer`""
+	}
 }
 
-$setupCommand = "$scriptDir/SetupComplete.cmd"
-if (Test-Path "$setupCommand") {
-    Write-Host "`n[$scriptName] $setupCommand exists, skip create."
-} else {
-    executeExpression "Add-Content $scriptDir/SetupComplete.cmd `'netsh advfirewall firewall set rule name=`"Windows Remote Management (HTTP-in)`" new action=allow`'"
-}
-executeExpression "cat $scriptDir/SetupComplete.cmd"
-executeExpression "netsh advfirewall firewall set rule name=`'Windows Remote Management (HTTP-in)`' new action=block"
-
-Write-Host "`n[$scriptName] As per this URL there are implicit places windows looks for unattended files, I'm using C:\Windows\Panther\Unattend"
-executeExpression "(New-Object System.Net.WebClient).DownloadFile(`'http://cdaf.io/static/app/downloads/unattend.xml`', `"$PWD\unattend.xml`")"
-
-$scriptDir = "C:\Windows\Panther\Unattend"
-if (Test-Path "$scriptDir") {
-    Write-Host "`n[$scriptName] $scriptDir exists, skip create."
-} else {
-    executeExpression "mkdir -Path $scriptDir"
-}
-
-$sysprepXML = "$scriptDir\unattend.xml"
-if (Test-Path "$sysprepXML") {
-    Write-Host "`n[$scriptName] $sysprepXML exists, skip create."
-} else {
-    executeExpression "Copy-Item $PWD\unattend.xml $scriptDir"
-}
-executeExpression "cat $scriptDir\unattend.xml"
-if ($smtpServer) {
-	executeExpression "Send-MailMessage -To `"$emailTo`" -From `'no-reply@cdaf.info`' -Subject `"$scriptName last comms, starting sysprep`" -SmtpServer `"$smtpServer`""
-}
-executeExpression "& C:\windows\system32\sysprep\sysprep.exe /generalize /oobe /shutdown /unattend:$scriptDir\unattend.xml"
-
-Write-Host
-Write-Host "[$scriptName] ---------- stop ----------"
+Write-Host "`n[$scriptName] ---------- stop ----------"
 exit 0
