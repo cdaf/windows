@@ -124,16 +124,15 @@ if (Test-Path "$testDir ") {
 }
 executeExpression "mkdir $testDir"
 executeExpression "cd $testDir"
-executeExpression "vagrant box add $boxName ../$packageFile --force"
+executeExpression "vagrant box remove cdaf/$boxName"
+executeExpression "vagrant box add cdaf/$boxName ../$packageFile --force"
 executeExpression "vagrant init $boxName"
 executeExpression "vagrant up"
-
 
 Write-Host "`n[$scriptName] Cleanup after test"
 executeExpression "vagrant destroy -f"
 executeExpression "cd .."
 executeExpression "Remove-Item $testDir -Force -Recurse"
-executeExpression "vagrant box remove $boxName"
 
 if ($smtpServer) {
 	executeExpression "Send-MailMessage -To `"$emailTo`" -From `'no-reply@cdaf.info`' -Subject `"[$scriptName] Final notifcation, package of ${packageFile} complete`" -SmtpServer `"$smtpServer`""
