@@ -9,7 +9,7 @@ $scriptName = 'AtlasImage.ps1'
 # Common expression logging and error handling function, copied, not referenced to ensure atomic process
 function emailAndExit ($exitCode) {
 	if ($smtpServer) {
-		executeExpression "Send-MailMessage -To `"$emailTo`" -From `'no-reply@cdaf.info`' -Subject `"$scriptName ERROR $exitCode`" -SmtpServer `"$smtpServer`""
+		executeExpression "Send-MailMessage -To `"$emailTo`" -From `'no-reply@cdaf.info`' -Subject `"$scriptName [$hypervisor] ERROR $exitCode`" -SmtpServer `"$smtpServer`""
 	}
 	exit $exitCode
 }
@@ -59,7 +59,7 @@ if (Test-Path "$imageLog") {
 	executeExpression "Remove-Item `"$imageLog`""
 }
 if ($smtpServer) {
-	executeExpression "Send-MailMessage -To `"$emailTo`" -From `'no-reply@cdaf.info`' -Subject `"$scriptName starting, logging to $imageLog`" -SmtpServer `"$smtpServer`""
+	executeExpression "Send-MailMessage -To `"$emailTo`" -From `'no-reply@cdaf.info`' -Subject `"$scriptName [$hypervisor] starting, logging to $imageLog`" -SmtpServer `"$smtpServer`""
 }
 
 Write-Host "`n[$scriptName] Enable Remote Desktop and Open firewall"
@@ -118,7 +118,7 @@ executeExpression "winrm set winrm/config/client/auth `'@{Basic=`"true`"}`'"
 
 if ( $hypervisor -eq 'virtualbox' ) {
 	if ($smtpServer) {
-		executeExpression "Send-MailMessage -To `"$emailTo`" -From `'no-reply@cdaf.info`' -Subject `"$scriptName Guest Additiions requires manual intervention ...`" -SmtpServer `"$smtpServer`""
+		executeExpression "Send-MailMessage -To `"$emailTo`" -From `'no-reply@cdaf.info`' -Subject `"$scriptName [$hypervisor] Guest Additiions requires manual intervention ...`" -SmtpServer `"$smtpServer`""
 	}
 	executeExpression ".\automation\provisioning\mountImage.ps1 $env:userprofile\VBoxGuestAdditions_5.1.18.iso http://download.virtualbox.org/virtualbox/5.1.18/VBoxGuestAdditions_5.1.18.iso"
 	$result = executeExpression "[Environment]::GetEnvironmentVariable(`'MOUNT_DRIVE_LETTER`', `'User`')"
@@ -213,14 +213,14 @@ if ($sysprep -eq 'yes') {
 	}
 	executeExpression "cat $scriptDir\unattend.xml"
 	if ($smtpServer) {
-		executeExpression "Send-MailMessage -To `"$emailTo`" -From `'no-reply@cdaf.info`' -Subject `"$scriptName last comms, starting sysprep`" -SmtpServer `"$smtpServer`""
+		executeExpression "Send-MailMessage -To `"$emailTo`" -From `'no-reply@cdaf.info`' -Subject `"$scriptName [$hypervisor] last comms, starting sysprep`" -SmtpServer `"$smtpServer`""
 	}
 	executeExpression "& C:\windows\system32\sysprep\sysprep.exe /generalize /oobe /shutdown /unattend:$scriptDir\unattend.xml"
 	
 } else {
 	Write-Host "[$scriptName] sysprep = $sysprep, skipping unattended install and sysrep."
 	if ($smtpServer) {
-		executeExpression "Send-MailMessage -To `"$emailTo`" -From `'no-reply@cdaf.info`' -Subject `"$scriptName last comms, sysprep = $sysprep, skipping unattended install and sysrep.`" -SmtpServer `"$smtpServer`""
+		executeExpression "Send-MailMessage -To `"$emailTo`" -From `'no-reply@cdaf.info`' -Subject `"$scriptName [$hypervisor] last comms, sysprep = $sysprep, skipping unattended install and sysrep.`" -SmtpServer `"$smtpServer`""
 	}
 }
 

@@ -10,7 +10,7 @@ $scriptName = 'AtlasPackage.ps1'
 # Common expression logging and error handling function, copied, not referenced to ensure atomic process
 function emailAndExit ($exitCode) {
 	if ($smtpServer) {
-		executeExpression "Send-MailMessage -To `"$emailTo`" -From `'no-reply@cdaf.info`' -Subject `"$scriptName ERROR $exitCode`" -SmtpServer `"$smtpServer`""
+		executeExpression "Send-MailMessage -To `"$emailTo`" -From `'no-reply@cdaf.info`' -Subject `"$scriptName [$hypervisor] ERROR $exitCode`" -SmtpServer `"$smtpServer`""
 	}
 	exit $exitCode
 }
@@ -66,7 +66,7 @@ if (Test-Path "$imageLog") {
 	executeExpression "Remove-Item `"$imageLog`""
 }
 if ($smtpServer) {
-	executeExpression "Send-MailMessage -To `"$emailTo`" -From `'no-reply@cdaf.info`' -Subject `"$scriptName starting, logging to $imageLog`" -SmtpServer `"$smtpServer`""
+	executeExpression "Send-MailMessage -To `"$emailTo`" -From `'no-reply@cdaf.info`' -Subject `"$scriptName [$hypervisor] starting, logging to $imageLog`" -SmtpServer `"$smtpServer`""
 }
 
 Write-Host "`n[$scriptName] Prepare Temporary build directory"
@@ -81,9 +81,6 @@ if ($hypervisor = 'virtualbox') {
 
 	Write-Host "`n[$scriptName] Export VirtualBox VM"
 	executeExpression "& `"C:\Program Files\Oracle\VirtualBox\VBoxManage.exe`" modifyhd `"${diskDir}\${boxName}\${boxName}.vdi`" --compact"
-	if ($smtpServer) {
-		executeExpression "Send-MailMessage -To `"$emailTo`" -From `'no-reply@cdaf.info`' -Subject `"$scriptName export complete`" -SmtpServer `"$smtpServer`""
-	}
 
 	executeExpression "(New-Object System.Net.WebClient).DownloadFile(`'http://cdaf.io/static/app/downloads/Vagrantfile`', `"$PWD\Vagrantfile`")"
 	executeExpression "vagrant package --base $boxName --output $packageFile --vagrantfile Vagrantfile"
@@ -94,9 +91,6 @@ if ($hypervisor = 'virtualbox') {
 	Write-Host "`n[$scriptName] Export Hyper-V VM"
 	$packageFile = $boxname + '.box'
 	executeExpression "Export-VM -Name $boxName -Path ."
-	if ($smtpServer) {
-		executeExpression "Send-MailMessage -To `"$emailTo`" -From `'no-reply@cdaf.info`' -Subject `"$scriptName export complete`" -SmtpServer `"$smtpServer`""
-	}
 	
 	if (Test-Path $packageFile) {
 		executeExpression "Remove-Item $packageFile"
@@ -116,10 +110,6 @@ if ($hypervisor = 'virtualbox') {
 	executeExpression "Remove-Item $boxname -Force -Recurse"
 }
 
-if ($smtpServer) {
-	executeExpression "Send-MailMessage -To `"$emailTo`" -From `'no-reply@cdaf.info`' -Subject `"$scriptName package complete`" -SmtpServer `"$smtpServer`""
-}
-
 Write-Host "`n[$scriptName] Initialise and start"
 $testDir = 'packageTest'
 if (Test-Path "$testDir ") {
@@ -128,9 +118,6 @@ if (Test-Path "$testDir ") {
 executeExpression "mkdir $testDir"
 executeExpression "cd $testDir"
 executeExpression "vagrant box add $boxName ../$packageFile --force"
-if ($smtpServer) {
-	executeExpression "Send-MailMessage -To `"$emailTo`" -From `'no-reply@cdaf.info`' -Subject `"$scriptName package imported`" -SmtpServer `"$smtpServer`""
-}
 executeExpression "vagrant init $boxName"
 executeExpression "vagrant up"
 
@@ -142,7 +129,7 @@ executeExpression "Remove-Item $testDir -Force -Recurse"
 executeExpression "vagrant box remove $boxName"
 
 if ($smtpServer) {
-	executeExpression "Send-MailMessage -To `"$emailTo`" -From `'no-reply@cdaf.info`' -Subject `"$scriptName final notifcation, package test complete`" -SmtpServer `"$smtpServer`""
+	executeExpression "Send-MailMessage -To `"$emailTo`" -From `'no-reply@cdaf.info`' -Subject `"$scriptName [$hypervisor] final notifcation, package test complete`" -SmtpServer `"$smtpServer`""
 }
 
 Write-Host "`n[$scriptName] ---------- stop ----------"
