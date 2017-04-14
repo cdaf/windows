@@ -124,7 +124,7 @@ $testDir = 'packageTest'
 if (Test-Path "$testDir ") {
 	executeExpression "Remove-Item $testDir  -Recurse -Force"
 }
-executeExpression "vagrant box remove cdaf/$boxName"
+executeExpression "vagrant box remove cdaf/$boxName --box-version 0" # Remove any local (non-Atlas) images
 executeExpression "vagrant box add cdaf/$boxName $packageFile --force"
 executeExpression "cd .."
 if (!($boxname -eq 'WindowsServerStandard')) {
