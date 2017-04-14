@@ -30,7 +30,7 @@ Vagrant.configure(2) do |allhosts|
     end
     # Microsoft Hyper-V does not support NAT or setting hostname. vagrant up app --provider hyperv
     target.vm.provider 'hyperv' do |hyperv, override|
-      override.vm.provision 'shell', path: './automation/provisioning/deleteVagrantAccount.ps1'
+      override.vm.provision 'shell', path: './automation/provisioning/deleteLocalUser.ps1', args: 'vagrant'
     end
   end
 
@@ -54,10 +54,6 @@ Vagrant.configure(2) do |allhosts|
       override.vm.provision 'shell', path: './automation/provisioning/setenv.ps1', args: 'environmentDelivery VAGRANT Machine'
       override.vm.provision 'shell', path: './automation/provisioning/CDAF_Desktop_Certificate.ps1'
       override.vm.provision 'shell', path: './automation/provisioning/CDAF.ps1'
-    end
-    # Microsoft Hyper-V does not support NAT or setting hostname. vagrant up buildserver --provider hyperv
-    buildserver.vm.provider 'hyperv' do |hyperv, override|
-      override.vm.provision 'shell', path: './automation/provisioning/deleteVagrantAccount.ps1'
     end
   end
 
