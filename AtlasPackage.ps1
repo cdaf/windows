@@ -122,21 +122,23 @@ $testDir = 'packageTest'
 if (Test-Path "$testDir ") {
 	executeExpression "Remove-Item $testDir  -Recurse -Force"
 }
-executeExpression "mkdir $testDir"
-executeExpression "cd $testDir"
 executeExpression "vagrant box remove cdaf/$boxName"
-executeExpression "vagrant box add cdaf/$boxName ../$packageFile --force"
+executeExpression "vagrant box add cdaf/$boxName $packageFile --force"
 if ($boxname -eq 'WindowsServerStandard') {
 	executeExpression "cd .."
 } else {
+	executeExpression "mkdir $testDir"
+	executeExpression "cd $testDir"
 	executeExpression "vagrant init $boxName"
 }
 executeExpression "vagrant up"
 
 Write-Host "`n[$scriptName] Cleanup after test"
 executeExpression "vagrant destroy -f"
-executeExpression "cd .."
-executeExpression "Remove-Item $testDir -Force -Recurse"
+if (!($boxname -eq 'WindowsServerStandard')) {
+	executeExpression "cd .."
+	executeExpression "Remove-Item $testDir -Recurse"
+}
 
 if ($smtpServer) {
 	executeExpression "Send-MailMessage -To `"$emailTo`" -From `'no-reply@cdaf.info`' -Subject `"[$scriptName] Final notifcation, package of ${packageFile} complete`" -SmtpServer `"$smtpServer`""
