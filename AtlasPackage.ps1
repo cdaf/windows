@@ -97,7 +97,6 @@ if ($hypervisor -eq 'virtualbox') {
 } else {
 
 	Write-Host "`n[$scriptName] Export Hyper-V VM"
-	$packageFile = $boxname + '.box'
 	executeExpression "Export-VM -Name $boxName -Path ."
 	
 	if (Test-Path $packageFile) {
