@@ -70,8 +70,8 @@ executeExpression "Set-NetFirewallRule -Name RemoteDesktop-UserMode-In-TCP -Enab
 Write-Host "`n[$scriptName] Disable User Account Controls (UAC)"
 executeExpression "reg add HKEY_LOCAL_MACHINE\Software\Microsoft\Windows\CurrentVersion\Policies\System /v EnableLUA /d 0 /t REG_DWORD /f /reg:64"
 
-Write-Host "`n[$scriptName] Ensure all adapters set to private"
-executeExpression "Get-NetConnectionProfile | Set-NetConnectionProfile -NetworkCategory Private"
+Write-Host "`n[$scriptName] Ensure all adapters set to private (ignore failure if on DC)"
+Get-NetConnectionProfile | Set-NetConnectionProfile -NetworkCategory Private
 
 Write-Host "`n[$scriptName] configure the computer to receive remote commands"
 executeExpression "Enable-PSRemoting -Force"
