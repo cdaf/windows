@@ -126,7 +126,11 @@ executeExpression "mkdir $testDir"
 executeExpression "cd $testDir"
 executeExpression "vagrant box remove cdaf/$boxName"
 executeExpression "vagrant box add cdaf/$boxName ../$packageFile --force"
-executeExpression "vagrant init $boxName"
+if ($boxname -eq 'WindowsServerStandard') {
+	executeExpression "Copy-Item ../Vagrantfile ."
+} else {
+	executeExpression "vagrant init $boxName"
+}
 executeExpression "vagrant up"
 
 Write-Host "`n[$scriptName] Cleanup after test"
