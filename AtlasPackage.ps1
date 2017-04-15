@@ -103,7 +103,6 @@ if ($hypervisor -eq 'virtualbox') {
 
 	executeExpression "(New-Object System.Net.WebClient).DownloadFile(`'http://cdaf.io/static/app/downloads/Vagrantfile`', `"$PWD\Vagrantfile`")"
 	executeExpression "vagrant package --base $boxName --output $packageFile --vagrantfile Vagrantfile"
-	executeExpression "vagrant box add $boxName $packageFile --force"
 
 } else {
 
