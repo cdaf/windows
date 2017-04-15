@@ -51,7 +51,7 @@ if ($skipUpdates) {
 $imageLog = 'c:\VagrantBox.txt'
 
 if ($smtpServer) {
-	executeExpression "Send-MailMessage -To `"$emailTo`" -From `'no-reply@cdaf.info`' -Subject `"$scriptName starting, logging to $imageLog`" -SmtpServer `"$smtpServer`""
+	executeExpression "Send-MailMessage -To `"$emailTo`" -From `'no-reply@cdaf.info`' -Subject `"[$scriptName] starting, logging to $imageLog`" -SmtpServer `"$smtpServer`""
 }
 
 Write-Host "`n[$scriptName] Enable Remote Desktop and Open firewall"
@@ -108,19 +108,20 @@ executeExpression "`$LocalUser.CommitChanges()"
 $de = executeExpression "[ADSI]`"WinNT://$env:computername/Administrators,group`""
 executeExpression "`$de.psbase.Invoke(`'Add`',([ADSI]`"WinNT://$env:computername/vagrant`").path)"
 
-if ( $skipUpdates -eq 'no' ) {
+if ( $skipUpdates -eq 'yes' ) {
 	if ($smtpServer) {
-		Send-MailMessage -To "jules@xtra.co.nz" -From 'no-reply@cdaf.info' -Subject "[$scriptName] Base image complete (no updates applied), shutdown ..."
+		executeExpression "Send-MailMessage -To `"$emailTo`" -From `'no-reply@cdaf.info`' -Subject `"[$scriptName] Base image complete (no updates applied), shutdown ...`" -SmtpServer `"$smtpServer`""
 	}
+	executeExpression "shutdown /s /t 60"
+	
 } else {
 	Write-Host "`n[$scriptName] Apply Windows Updates"
 	executeExpression "./automation/provisioning/applyWindowsUpdates.ps1 no"
 	if ($smtpServer) {
-		Send-MailMessage -To "jules@xtra.co.nz" -From 'no-reply@cdaf.info' -Subject "[$scriptName] Windows Updates applied, shutdown ..."
+		executeExpression "Send-MailMessage -To `"$emailTo`" -From `'no-reply@cdaf.info`' -Subject `"[$scriptName] Windows Updates applied, reboot ...`" -SmtpServer `"$smtpServer`""
 	}
+	executeExpression "shutdown /r /t 60"
 }
-
-executeExpression "shutdown /r /t 60"
 
 Write-Host "`n[$scriptName] ---------- stop ----------"
 exit 0
