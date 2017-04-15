@@ -5,8 +5,11 @@ $ipList = $args[0]
 if ($ipList) {
     Write-Host "[$scriptName] ipList : $ipList"
 } else {
-    Write-Host "[$scriptName] ipList no supplied"
-    exit 100
+    Write-Host "[$scriptName] ipList no supplied"; exit 100
+}
+# Provisionig Script builder
+if ( $env:PROV_SCRIPT_PATH ) {
+	Add-Content "$env:PROV_SCRIPT_PATH" "executeExpression `"./automation/provisioning/$scriptName $ipList`""
 }
 
 Write-Host "[$scriptName] Update and list the interface setttings"
