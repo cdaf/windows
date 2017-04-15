@@ -18,7 +18,7 @@ $scriptPath = $args[0]
 if ($scriptPath) {
     Write-Host "[$scriptName] scriptPath   : $scriptPath (choices $configChoices)"
 } else {
-	$scriptPath = 'C:\vagrant\provWrapper.ps1'
+	$scriptPath = 'C:\portable.ps1'
     Write-Host "[$scriptName] scriptPath   : $scriptPath (default, choices $configChoices)"
 }
 
