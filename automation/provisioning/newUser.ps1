@@ -66,7 +66,7 @@ if ($TrustedForDelegation) {
 
 # Provisionig Script builder
 if ( $env:PROV_SCRIPT_PATH ) {
-	Add-Content "$env:PROV_SCRIPT_PATH" "executeExpression `"./automation/provisioning/$scriptName `"$userName`" `"**********`"`""
+	Add-Content "$env:PROV_SCRIPT_PATH" "executeExpression `"./automation/provisioning/$scriptName $userName `'**********`'`""
 }
 
 if ((gwmi win32_computersystem).partofdomain -eq $true) {
