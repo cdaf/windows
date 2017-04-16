@@ -30,6 +30,11 @@ if ($targetAccount) {
     Write-Host "[$scriptName] targetAccount : $targetAccount (default)"
 }
 
+# Provisionig Script builder
+if ( $env:PROV_SCRIPT_PATH ) {
+	Add-Content "$env:PROV_SCRIPT_PATH" "executeExpression `"./automation/provisioning/$scriptName $spn $targetAccount `""
+}
+
 executeExpression "setspn.exe -a $spn $targetAccount"
 
 Write-Host
