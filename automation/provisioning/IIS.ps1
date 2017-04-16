@@ -74,6 +74,10 @@ if ($media) {
     Write-Host "[$scriptName] media           : (not supplied)"
     Write-Host "[$scriptName] wimIndex        : (not applicable when media not supplied)"
 }
+# Provisioning Script builder
+if ( $env:PROV_SCRIPT_PATH ) {
+	Add-Content "$env:PROV_SCRIPT_PATH" "executeExpression `"./automation/provisioning/$scriptName $configuration $media $wimIndex `""
+}
 
 Write-Host
 if (Test-Path "$env:windir\Logs\DISM\dism.log") {

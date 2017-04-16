@@ -78,16 +78,13 @@ if ($media) {
     Write-Host "[$scriptName] media          : $media (default)"
 }
 
-# Provisionig Script builder
+# Provisioning Script builder
 if ( $env:PROV_SCRIPT_PATH ) {
 	Add-Content "$env:PROV_SCRIPT_PATH" "executeExpression `"./automation/provisioning/$scriptName $serviceAccount `'**********`' $adminAccount $instance $media`""
 }
 
 $EditionId = (Get-ItemProperty -Path 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion' -Name 'EditionID').EditionId
-if (($EditionId -like "*nano*") -or ($EditionId -like "*core*") ) {
-	$noGUI = '(no GUI)'
-}
-write-host "[$scriptName] EditionId      : $EditionId $noGUI"
+write-host "[$scriptName] EditionId      : $EditionId"
 
 if ($env:interactive) {
 	Write-Host
@@ -97,14 +94,6 @@ if ($env:interactive) {
 } else {
     $sessionControl = '-PassThru -Wait'
 	$logToConsole = 'false'
-}
-
-if ($noGUI) {
-    Write-Host "[$scriptName]   O/S GUI not installed, management tools will be excluded"
-	$sqlFeatures = 'SQL'
-} else {	
-    Write-Host "[$scriptName]   O/S GUI installed, management tools will be included"
-	$sqlFeatures = 'SQL,Tools'
 }
 
 $executable = Get-ChildItem $media -Filter *.exe
@@ -117,7 +106,7 @@ $argList = @(
 	'/IACCEPTSQLSERVERLICENSETERMS',
 	'/ENU=true',
 	'/UPDATEENABLED=false',
-	"/FEATURES=$sqlFeatures",
+	"/FEATURES=SQL",
 	'/INSTALLSHAREDDIR="C:\Program Files\Microsoft SQL Server"',
 	"/INSTANCENAME=`"$instance`"",
 	'/INSTANCEDIR="C:\Program Files\Microsoft SQL Server"',

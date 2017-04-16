@@ -17,16 +17,14 @@ $poolid = $args[0]
 if ($poolid) {
     Write-Host "[$scriptName] poolid       : $poolid"
 } else {
-    Write-Host "[$scriptName] poolid not supplied! Exit with code 100"
-    exit 100
+    Write-Host "[$scriptName] poolid not supplied! Exit with code 100"; exit 100
 }
 
 $poolPassword = $args[1]
 if ($poolPassword) {
     Write-Host "[$scriptName] poolPassword : *********************"
 } else {
-    Write-Host "[$scriptName] pool ID password not supplied! Exit with code 101"
-    exit 101
+    Write-Host "[$scriptName] pool ID password not supplied! Exit with code 101"; exit 101
 }
 
 $poolName = $args[2]
@@ -35,6 +33,10 @@ if ($poolName) {
 } else {
 	$poolName = 'DefaultAppPool'
     Write-Host "[$scriptName] poolName     : $poolName (default)"
+}
+# Provisioning Script builder
+if ( $env:PROV_SCRIPT_PATH ) {
+	Add-Content "$env:PROV_SCRIPT_PATH" "executeExpression `"./automation/provisioning/$scriptName $poolid `'**********`' $poolName `""
 }
 
 executeExpression 'Import-Module ServerManager'

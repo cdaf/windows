@@ -12,11 +12,9 @@ function executeExpression ($expression) {
 
 $scriptName = 'WebDeploy.ps1'
 $versionChoices = '2 or 3.5' 
-Write-Host
-Write-Host "[$scriptName] Install Web Deploy. As of Visual Studio 2015 Web Deploy build targets are automatically"
+Write-Host "`n[$scriptName] Install Web Deploy. As of Visual Studio 2015 Web Deploy build targets are automatically"
 Write-Host "[$scriptName] included, so the default action for this provisioner is now agent."
-Write-Host
-Write-Host "[$scriptName] ---------- start ----------"
+Write-Host "`n[$scriptName] ---------- start ----------"
 $Installtype = $args[0]
 if ($Installtype) {
     Write-Host "[$scriptName] Installtype     : $Installtype"
@@ -47,6 +45,10 @@ if ($mediaDir) {
 } else {
 	$mediaDir = 'C:\.provision'
     Write-Host "[$scriptName] mediaDir        : $mediaDir (default)"
+}
+# Provisioning Script builder
+if ( $env:PROV_SCRIPT_PATH ) {
+	Add-Content "$env:PROV_SCRIPT_PATH" "executeExpression `"./automation/provisioning/$scriptName $Installtype $MsDepSvcPort $version $mediaDir `""
 }
 
 if (!( Test-Path $mediaDir )) {
@@ -144,5 +146,5 @@ if ( $failed  ) {
 	exit 4
 }
 
-Write-Host
-Write-Host "[$scriptName] ---------- stop ----------"
+Write-Host "`n[$scriptName] ---------- stop ----------"
+exit 0

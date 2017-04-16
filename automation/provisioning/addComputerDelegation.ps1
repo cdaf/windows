@@ -10,11 +10,9 @@ function executeExpression ($expression) {
 }
 
 $scriptName = 'addComputerDelegation.ps1'
-Write-Host
-Write-Host "[$scriptName] Allow a computer to delegate user credentials, combines with setSPN.ps1"
+Write-Host "`n[$scriptName] Allow a computer to delegate user credentials, combines with setSPN.ps1"
 Write-Host "[$scriptName] If on the domain controller, use setSPN.ps1 computer <computerName>"
-Write-Host
-Write-Host "[$scriptName] ---------- start ----------"
+Write-Host "`n[$scriptName] ---------- start ----------"
 $forest = $args[0]
 if ($forest) {
     Write-Host "[$scriptName] forest           : $forest"
@@ -23,7 +21,7 @@ if ($forest) {
     Write-Host "[$scriptName] forest           : $forest (default)"
 }
 
-$domainAdminUser = $args[2]
+$domainAdminUser = $args[1]
 if ($domainAdminUser) {
     Write-Host "[$scriptName] domainAdminUser  : $domainAdminUser"
 } else {
@@ -31,7 +29,7 @@ if ($domainAdminUser) {
     Write-Host "[$scriptName] domainAdminUser  : $domainAdminUser (default)"
 }
 
-$domainAdminPass = $args[3]
+$domainAdminPass = $args[2]
 if ($domainAdminPass) {
     Write-Host "[$scriptName] domainAdminPass  : **********"
 } else {
@@ -46,12 +44,16 @@ if ($domainController) {
 	$domainController = '172.16.17.102'
     Write-Host "[$scriptName] domainController : $domainController (default)"
 }
+# Provisioning Script builder
+if ( $env:PROV_SCRIPT_PATH ) {
+	Add-Content "$env:PROV_SCRIPT_PATH" "executeExpression `"./automation/provisioning/$scriptName $forest $domainAdminUser ********** $domainController `""
+}
 
 $securePassword = ConvertTo-SecureString $domainAdminPass -asplaintext -force
 $cred = New-Object System.Management.Automation.PSCredential ($domainAdminUser, $securePassword)
 
-Write-Host "[$scriptName] Set this computer ($(hostname)) delegation privileges on domain ($forest)"
+Write-Host "`n[$scriptName] Set this computer ($(hostname)) delegation privileges on domain ($forest)"
 executeExpression "Invoke-Command -ComputerName $domainController -Credential `$cred -ScriptBlock { Set-ADComputer -Identity $(hostname) -TrustedForDelegation `$True } "
 
-Write-Host
-Write-Host "[$scriptName] ---------- stop ----------"
+Write-Host "`n[$scriptName] ---------- stop ----------"
+exit 0
