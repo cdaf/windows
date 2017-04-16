@@ -12,7 +12,7 @@ function executeExpression ($expression) {
 function executeRetry ($expression) {
 	$exitCode = 1
 	$wait = 10
-	$retryMax = 10
+	$retryMax = 3
 	$retryCount = 0
 	while (( $retryCount -le $retryMax ) -and ($exitCode -ne 0)) {
 		$exitCode = 0

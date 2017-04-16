@@ -407,7 +407,7 @@ if ( $MMC_GROUP ) {
 Write-Host
 Write-Host -NoNewline "Verify Agent has installed : "
 $wait = 10
-$retryMax = 10
+$retryMax = 3
 $retryCount = 0
 $uri='http://localhost:9999/mule/domains'
 while ( $retryCount -lt $retryMax ) {
