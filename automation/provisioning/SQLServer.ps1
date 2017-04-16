@@ -3,7 +3,8 @@ Param (
   [string]$password,
   [string]$adminAccount,
   [string]$instance,
-  [string]$media
+  [string]$media,
+  [string]$features
 )
 $scriptName = 'SQLServer.ps1'
 
@@ -19,8 +20,7 @@ function executeExpression ($expression) {
     return $output
 }
 
-Write-Host "`nIf provisioing to server core, the management console is not installed, for GUI server,"
-Write-Host "Management console will be installed."
+Write-Host "`nSQL Server 2012 and above."
 Write-Host "`n[$scriptName] ---------- start ----------"
 if ($serviceAccount) {
     Write-Host "[$scriptName] serviceAccount : $serviceAccount"
@@ -78,9 +78,15 @@ if ($media) {
     Write-Host "[$scriptName] media          : $media (default)"
 }
 
+if ($features) { # https://docs.microsoft.com/en-us/sql/database-engine/install-windows/install-sql-server-on-server-core#a-namebksupportedfeaturesa-supported-features
+    Write-Host "[$scriptName] features       : $features"
+} else {
+	$features = 'SQLEngine,FullText,Conn'
+    Write-Host "[$scriptName] features       : $features (default)"
+}
 # Provisioning Script builder
 if ( $env:PROV_SCRIPT_PATH ) {
-	Add-Content "$env:PROV_SCRIPT_PATH" "executeExpression `"./automation/provisioning/$scriptName $serviceAccount `'**********`' $adminAccount $instance $media`""
+	Add-Content "$env:PROV_SCRIPT_PATH" "executeExpression `"./automation/provisioning/$scriptName $serviceAccount `'**********`' $adminAccount $instance $media $features `""
 }
 
 $EditionId = (Get-ItemProperty -Path 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion' -Name 'EditionID').EditionId
@@ -106,34 +112,35 @@ $argList = @(
 	'/IACCEPTSQLSERVERLICENSETERMS',
 	'/ENU=true',
 	'/UPDATEENABLED=false',
-	"/FEATURES=SQL",
+	"/FEATURES=$features",
 	'/INSTALLSHAREDDIR="C:\Program Files\Microsoft SQL Server"',
 	"/INSTANCENAME=`"$instance`"",
 	'/INSTANCEDIR="C:\Program Files\Microsoft SQL Server"',
 	'/SQLSVCSTARTUPTYPE="Automatic"',
 	'/SQLCOLLATION="SQL_Latin1_General_CP1_CI_AS"',
 	"/SQLSVCACCOUNT=`"$serviceAccount`"",
-	"/SQLSVCPASSWORD=`"$password`"",
+	"/SQLSVCPASSWORD=`"`$password`"",
 	"/SQLSYSADMINACCOUNTS=`"$adminAccount`"",
 	'/TCPENABLED=1',
 	'/NPENABLED=1'
 )
 Write-Host
-executeExpression "`$proc = Start-Process -FilePath `"$media$executable`" -ArgumentList `'$argList`' $sessionControl"
+$proc = executeExpression "Start-Process -FilePath `"$media$executable`" -ArgumentList `'$argList`' $sessionControl"
 
 foreach ( $sqlVersions in Get-ChildItem "C:\Program Files\Microsoft SQL Server\" ) {
 	$logPath = $sqlVersions.FullName + '\Setup Bootstrap\Log\Summary.txt'
 	if ( Test-Path $logPath ) {
 		$result = cat $logPath | findstr "Failed:"
 		if ($result) {
-			Write-Host
-		    Write-Host "[$scriptName] `'Failed:`' found in $logPath, first 40 lines follow ..."
+		    Write-Host "`n[$scriptName] Process output ..."
+			$proc | format-list 
+		    
+		    Write-Host "`n[$scriptName] `'Failed:`' found in $logPath, first 40 lines follow ..."
 			Get-Content $logPath | select -First 40
-		    Write-Host "[$scriptName] Exit with LASTEXITCODE = 20"; exit 20
+		    Write-Host "`n[$scriptName] Exit with LASTEXITCODE = 20"; exit 20
 		}
 	} 
 }
 
-Write-Host
-Write-Host "[$scriptName] ---------- stop ----------"
+Write-Host "`n[$scriptName] ---------- stop ----------"
 exit 0
