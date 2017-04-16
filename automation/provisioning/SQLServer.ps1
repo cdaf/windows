@@ -107,7 +107,7 @@ if ($noGUI) {
 	$sqlFeatures = 'SQL,Tools'
 }
 
-$executable = Get-ChildItem d:\ -Filter *.exe
+$executable = Get-ChildItem $media -Filter *.exe
 
 # Reference: https://msdn.microsoft.com/en-us/library/ms144259.aspx
 $argList = @(
