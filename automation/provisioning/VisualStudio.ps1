@@ -3,10 +3,11 @@ function executeExpression ($expression) {
 	$error.clear()
 	Write-Host "[$scriptName] $expression"
 	try {
-		Invoke-Expression $expression
-	    if(!$?) { Write-Host "[$scriptName] `$? = $?"; exit 1 }
-	} catch { echo $_.Exception|format-list -force; exit 2 }
-    if ( $error[0] ) { Write-Host "[$scriptName] `$error[0] = $error"; exit 3 }
+		$output = Invoke-Expression $expression
+	    if(!$?) { Write-Host "[$scriptName] `$? = $?"; $output|format-list -force; exit 1 }
+	} catch { echo $_.Exception|format-list -force; $output|format-list -force; exit 2 }
+    if ( $error[0] ) { Write-Host "[$scriptName] `$error[0] = $error";$output|format-list -force; exit 3 }
+    return $output
 }
 
 $scriptName = 'VisualStudio.ps1'
@@ -53,14 +54,12 @@ if ($version -eq '2010' ) {
 	executeExpression "Copy-Item -Path $media -Destination $installDir -Recurse -Force"
 	
 	$filePath = "$installDir\Setup\setup.exe"
-	try {
-		$argList = @("/unattendfile", "$initFile")
-		executeExpression "$proc = Start-Process -FilePath $filePath -ArgumentList $argList $sessionControl"
-	} catch {
-		Write-Host "[$scriptName] $media Install Exception : $_" -ForegroundColor Red
-		exit 200
-	}
+	$argList = @("/unattendfile", "$initFile")
+	$proc = executeExpression "Start-Process -FilePath $filePath -ArgumentList $argList $sessionControl"
 
+    Write-Host "`n[$scriptName] Install summary ...`n"
+ 	$output|format-list -force;
+ 
 } else {
 
 	$executable = Get-ChildItem $media -Filter *.exe
@@ -69,5 +68,5 @@ if ($version -eq '2010' ) {
 
 }
 
-Write-Host
-Write-Host "[$scriptName] ---------- stop ----------"
+Write-Host "`n[$scriptName] ---------- stop ----------"
+exit 0

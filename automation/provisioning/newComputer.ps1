@@ -1,10 +1,13 @@
-
+Param (
+  [string]$forest,
+  [string]$newComputerName,
+  [string]$domainAdminUser,
+  [string]$domainAdminPass
+)
 $scriptName = 'newComputer.ps1'
-Write-Host
-Write-Host "[$scriptName] New Computer on Domain, Windows Server 2012 and above"
-Write-Host
-Write-Host "[$scriptName] ---------- start ----------"
-$forest = $args[0]
+
+Write-Host "`n[$scriptName] New Computer on Domain, Windows Server 2012 and above"
+Write-Host "`n[$scriptName] ---------- start ----------"
 if ($forest) {
     Write-Host "[$scriptName] forest          : $forest"
 } else {
@@ -12,15 +15,12 @@ if ($forest) {
     Write-Host "[$scriptName] forest          : $forest (default)"
 }
 
-$newComputerName = $args[1]
 if ($newComputerName) {
     Write-Host "[$scriptName] newComputerName : $newComputerName"
 } else {
-	$newComputerName = "$(hostname)"
     Write-Host "[$scriptName] newComputerName : (not supplied, will add as $newComputerName)"
 }
 
-$domainAdminUser = $args[2]
 if ($domainAdminUser) {
     Write-Host "[$scriptName] domainAdminUser : $domainAdminUser"
 } else {
@@ -28,7 +28,6 @@ if ($domainAdminUser) {
     Write-Host "[$scriptName] domainAdminUser : $domainAdminUser (default)"
 }
 
-$domainAdminPass = $args[3]
 if ($domainAdminPass) {
     Write-Host "[$scriptName] domainAdminPass : **********"
 } else {
@@ -37,7 +36,7 @@ if ($domainAdminPass) {
 }
 # Provisionig Script builder
 if ( $env:PROV_SCRIPT_PATH ) {
-	Add-Content "$env:PROV_SCRIPT_PATH" "executeExpression `"./automation/provisioning/$scriptName $forest $newComputerName $domainAdminUser ********** `""
+	Add-Content "$env:PROV_SCRIPT_PATH" "executeExpression `"./automation/provisioning/$scriptName $forest $newComputerName $domainAdminUser `'**********`' `""
 }
 
 $securePassword = ConvertTo-SecureString $domainAdminPass -asplaintext -force
