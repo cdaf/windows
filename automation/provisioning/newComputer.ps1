@@ -48,6 +48,7 @@ $retryMax = 3
 $retryCount = 0
 while (( $retryCount -le $retryMax ) -and ($exitCode -ne 0)) {
 	$exitCode = 0
+	$lastExitCode = 0
 	$error.clear()
 	try {
 		if ($newComputerName) {
