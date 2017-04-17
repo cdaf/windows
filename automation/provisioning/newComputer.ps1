@@ -42,13 +42,7 @@ if ( $env:PROV_SCRIPT_PATH ) {
 $securePassword = ConvertTo-SecureString $domainAdminPass -asplaintext -force
 $cred = New-Object System.Management.Automation.PSCredential ($domainAdminUser, $securePassword)
 
-Write-Host "[$scriptName] Add this computer ($(hostname)) as $newComputerName to the domain"
-if ($newComputerName) {
-	Write-Host "[$scriptName] Add-Computer -DomainName $forest $newName -Passthru -Verbose -Credential `$cred"
-} else {
-	Write-Host "[$scriptName] Add-Computer -DomainName $forest -Passthru -Verbose -Credential `$cred"
-}
-	
+$exitCode = 1 # any non-zero value to enter the loop
 $wait = 10
 $retryMax = 3
 $retryCount = 0
@@ -57,8 +51,10 @@ while (( $retryCount -le $retryMax ) -and ($exitCode -ne 0)) {
 	$error.clear()
 	try {
 		if ($newComputerName) {
+			Write-Host "[$scriptName] Add-Computer -DomainName $forest -NewName $newComputerName -Passthru -Verbose -Credential `$cred"
 			Add-Computer -DomainName $forest -NewName $newComputerName -Passthru -Verbose -Credential $cred
 		} else {
+			Write-Host "[$scriptName] Add-Computer -DomainName $forest -Passthru -Verbose -Credential `$cred"
 			Add-Computer -DomainName $forest -Passthru -Verbose -Credential $cred
 		}
 	    if(!$?) { Write-Host "[$scriptName] `$? = $?"; $exitCode = 1 }
@@ -70,12 +66,14 @@ while (( $retryCount -le $retryMax ) -and ($exitCode -ne 0)) {
 			Write-Host "[$scriptName] Retry maximum ($retryCount) reached, exiting with code $exitCode"; exit $exitCode
 		} else {
 			$retryCount += 1
-			Write-Host "[$scriptName] Attempt to remove the machine, pause $wait seocnds and retry"
-			Remove-Computer -DomainName $forest -Passthru -Verbose -Credential $cred
+			Write-Host "[$scriptName] Attempt to remove the machine, pause $wait seconds and retry (ignore error)"
+			Write-Host "[$scriptName] Remove-Computer -UnjoinDomainCredential `$cred -confirm:$false -Force"
+			Remove-Computer -UnjoinDomainCredential $cred -Confirm:$false -Force
+			
 			sleep $wait
 		}
 	}
 }
 
-Write-Host
-Write-Host "[$scriptName] ---------- stop ----------"
+Write-Host "`n[$scriptName] ---------- stop ----------"
+exit 0
