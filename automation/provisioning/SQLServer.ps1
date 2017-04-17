@@ -125,7 +125,7 @@ $argList = @(
 	'/NPENABLED=1'
 )
 Write-Host
-$proc = executeExpression "Start-Process -FilePath `"$media$executable`" -ArgumentList `'$argList`' $sessionControl"
+$proc = executeExpression "Start-Process -FilePath `"$media$executable`" -ArgumentList `"$argList`" $sessionControl"
 
 foreach ( $sqlVersions in Get-ChildItem "C:\Program Files\Microsoft SQL Server\" ) {
 	$logPath = $sqlVersions.FullName + '\Setup Bootstrap\Log\Summary.txt'
