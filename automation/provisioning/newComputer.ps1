@@ -42,9 +42,11 @@ if ( $env:PROV_SCRIPT_PATH ) {
 $securePassword = ConvertTo-SecureString $domainAdminPass -asplaintext -force
 $cred = New-Object System.Management.Automation.PSCredential ($domainAdminUser, $securePassword)
 
+# The following intermitant issue can occur, to overcome it, the machine is removed and reapplied until successful
+# Computer 'WIN-2G2EARIF1B0' was successfully joined to the new domain 'sky.net', but renaming it to 'app' failed with the following error message: The directory service is busy.
 $exitCode = 1 # any non-zero value to enter the loop
 $wait = 10
-$retryMax = 3
+$retryMax = 5
 $retryCount = 0
 while (( $retryCount -le $retryMax ) -and ($exitCode -ne 0)) {
 	$exitCode = 0

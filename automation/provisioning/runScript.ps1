@@ -33,12 +33,14 @@ $literal = 'f' + 'unction executeExpression ($expression) {'
 
 Add-Content "$scriptPath" $literal 
 Add-Content "$scriptPath" '	$error.clear()'
+Add-Content "$scriptPath" '	$lastExitCode = 0'
 Add-Content "$scriptPath" '	Write-Host "[$scriptName] $expression"'
 Add-Content "$scriptPath" '	try {'
 Add-Content "$scriptPath" '		Invoke-Expression $expression'
 Add-Content "$scriptPath" '	    if(!$?) { Write-Host "[$scriptName] `$? = $?"; exit 1 }'
 Add-Content "$scriptPath" '	} catch { echo $_.Exception|format-list -force; exit 2 }'
 Add-Content "$scriptPath" '    if ( $error[0] ) { Write-Host "[$scriptName] `$error[0] = $error"; exit 3 }'
+Add-Content "$scriptPath" '    if ( $lastExitCode -ne 0 ) { Write-Host "[$scriptName] `$lastExitCode = $lastExitCode "; exit $lastExitCode }'
 Add-Content "$scriptPath" '}'
 Add-Content "$scriptPath" '$scriptName = $MyInvocation.MyCommand.Name'
 

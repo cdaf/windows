@@ -11,7 +11,6 @@ $scriptName = 'SQLServer.ps1'
 # Common expression logging and error handling function, copied, not referenced to ensure atomic process
 function executeExpression ($expression) {
 	$error.clear()
-	Write-Host "[$scriptName] $expression"
 	try {
 		$output = Invoke-Expression $expression
 	    if(!$?) { Write-Host "[$scriptName] `$? = $?"; exit 1 }
@@ -105,6 +104,7 @@ if ($env:interactive) {
 $executable = Get-ChildItem $media -Filter *.exe
 
 # Reference: https://msdn.microsoft.com/en-us/library/ms144259.aspx
+# Argument list initially loaded for logging purposes only ...
 $argList = @(
 	'/Q',
 	'/ACTION="Install"',
@@ -124,8 +124,31 @@ $argList = @(
 	'/TCPENABLED=1',
 	'/NPENABLED=1'
 )
-Write-Host
-$proc = executeExpression "Start-Process -FilePath `"$media$executable`" -ArgumentList `"$argList`" $sessionControl"
+Write-Host "[$scriptName] `$proc = Start-Process -FilePath `"$media$executable`" -ArgumentList `"$argList`" $sessionControl"
+
+# ... reload the argument list to use the service account password
+$argList = @(
+	'/Q',
+	'/ACTION="Install"',
+	"/INDICATEPROGRESS=$logToConsole",
+	'/IACCEPTSQLSERVERLICENSETERMS',
+	'/ENU=true',
+	'/UPDATEENABLED=false',
+	"/FEATURES=$features",
+	'/INSTALLSHAREDDIR="C:\Program Files\Microsoft SQL Server"',
+	"/INSTANCENAME=`"$instance`"",
+	'/INSTANCEDIR="C:\Program Files\Microsoft SQL Server"',
+	'/SQLSVCSTARTUPTYPE="Automatic"',
+	'/SQLCOLLATION="SQL_Latin1_General_CP1_CI_AS"',
+	"/SQLSVCACCOUNT=`"$serviceAccount`"",
+	"/SQLSVCPASSWORD=`"$password`"",
+	"/SQLSYSADMINACCOUNTS=`"$adminAccount`"",
+	'/TCPENABLED=1',
+	'/NPENABLED=1'
+)
+
+# Note, the actual call passes the argument list as a literal
+$proc = executeExpression "Start-Process -FilePath `"$media$executable`" -ArgumentList `'$argList`' $sessionControl"
 
 foreach ( $sqlVersions in Get-ChildItem "C:\Program Files\Microsoft SQL Server\" ) {
 	$logPath = $sqlVersions.FullName + '\Setup Bootstrap\Log\Summary.txt'
