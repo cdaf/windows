@@ -1,31 +1,31 @@
 Add-Type -AssemblyName System.IO.Compression.FileSystem
 
 function taskException ($taskName, $exception) {
-    write-host "[$scriptName] Caught an exception excuting $taskName :" -ForegroundColor Red
+    write-host "[$scriptName (taskException)] Caught an exception excuting $taskName :" -ForegroundColor Red
     write-host "     Exception Type: $($exception.Exception.GetType().FullName)" -ForegroundColor Red
     write-host "     Exception Message: $($exception.Exception.Message)" -ForegroundColor Red
 
 	If ($RELEASE -eq "remote") {
 		write-host
-		write-host "[$scriptName] Called from DOS, returning errorlevel -1" -ForegroundColor Blue
+		write-host "[$scriptName (taskException)] Called from DOS, returning errorlevel -1" -ForegroundColor Blue
 		$host.SetShouldExit(-1)
 	} else {
 		write-host
-		write-host "[$scriptName] Called from PowerShell, throwing error" -ForegroundColor Blue
+		write-host "[$scriptName (taskException)] Called from PowerShell, throwing error" -ForegroundColor Blue
 		throw "$taskName"
 	}
 }
 
 function throwErrorlevel ($taskName, $trappedExit) {
-    write-host "[$scriptName] Trapped DOS exit code : $trappedExit" -ForegroundColor Red
+    write-host "[$scriptName (throwErrorlevel)] Trapped DOS exit code : $trappedExit" -ForegroundColor Red
 
 	If ($RELEASE -eq "remote") {
 		write-host
-		write-host "[$scriptName] Called from DOS, returning exit code as errorlevel" -ForegroundColor Blue
+		write-host "[$scriptName (throwErrorlevel)] Called from DOS, returning exit code as errorlevel" -ForegroundColor Blue
 		$host.SetShouldExit($trappedExit)
 	} else {
 		write-host
-		write-host "[$scriptName] Called from PowerShell, throwing error" -ForegroundColor Blue
+		write-host "[$scriptName (throwErrorlevel)] Called from PowerShell, throwing error" -ForegroundColor Blue
 		throw "$taskName $trappedExit"
 	}
 }
@@ -34,16 +34,16 @@ function makeContainer ($itemPath) {
 # If directory already exists, just report, otherwise create the directory and report
 	if ( Test-Path $itemPath ) {
 		if (Test-Path $itemPath -PathType "Container") {
-			write-host "[makeContainer] $itemPath exists"
+			write-host "[$scriptName (makeContainer)] $itemPath exists"
 		} else {
 			Remove-Item $itemPath -Recurse -Force
-			if(!$?) {exitWithCode "[makeContainer] Remove-Item $itemPath -Recurse -Force" }
+			if(!$?) {exitWithCode "[$scriptName (makeContainer)] Remove-Item $itemPath -Recurse -Force" }
 			mkdir $itemPath > $null
-			if(!$?) {exitWithCode "[makeContainer] (replace) $itemPath Creation failed" }
+			if(!$?) {exitWithCode "[$scriptName (makeContainer)] (replace) $itemPath Creation failed" }
 		}	
 	} else {
 		mkdir $itemPath > $null
-		if(!$?) {exitWithCode "[makeContainer] $itemPath Creation failed" }
+		if(!$?) {exitWithCode "[$scriptName (makeContainer)] $itemPath Creation failed" }
 	}
 }
 
@@ -52,7 +52,7 @@ function itemRemove ($itemPath) {
 	if ( Test-Path $itemPath ) {
 		write-host "[itemRemove] Delete $itemPath"
 		Remove-Item $itemPath -Recurse -Force
-		if(!$?) {exitWithCode "[itemRemove] Remove-Item $itemPath -Recurse -Force" }
+		if(!$?) {exitWithCode "[$scriptName (itemRemove)] Remove-Item $itemPath -Recurse -Force" }
 	}
 }
 
@@ -77,10 +77,10 @@ function copyRecurse ($from, $to, $notFirstRun) {
 			
 				# The existing path is a file, not a directory, delete the file and replace with a directory
 				Remove-Item $to -Recurse -Force
-				if(!$?) {exitWithCode "[makeContainer] Remove-Item $to -Recurse -Force" }
+				if(!$?) {exitWithCode "[$scriptName (copyRecurse)] Remove-Item $to -Recurse -Force" }
 				Write-Host "  $from --> $to (replace file with directory)" 
 				mkdir $to > $null
-				if(!$?) {exitWithCode "[makeContainer] (replace) $to Creation failed" }
+				if(!$?) {exitWithCode "[$scriptName (copyRecurse)] (replace) $to Creation failed" }
 			}
 		}
 		
@@ -88,7 +88,7 @@ function copyRecurse ($from, $to, $notFirstRun) {
 		if ( ! (Test-Path $to)) {
 			Write-Host "  $from --> $to"
 			mkdir $to > $null
-			if(!$?) {exitWithCode "[makeContainer] $to Creation failed" }
+			if(!$?) {exitWithCode "[$scriptName (copyRecurse)] $to Creation failed" }
 		}
 
 		foreach ($child in (Get-ChildItem -Path "$from" -Name )) {
@@ -99,7 +99,7 @@ function copyRecurse ($from, $to, $notFirstRun) {
 
 		Write-Host "  $from --> $to" 
 		Copy-Item $from $to -force -recurse
-		if(!$?){ exitWithCode ("[copyRecurse] Copy remote script $from --> $to") }
+		if(!$?){ exitWithCode ("[$scriptName (copyRecurse)] Copy remote script $from --> $to") }
 		
 	}
 }
@@ -109,28 +109,29 @@ function ZipFiles( $zipfilename, $sourcedir )
 {
 	$currentDir = $(pwd)
 	$targetFile = "$currentDir\$zipfilename"
-	Write-Host
-	Write-Host "[$scriptName] Create zip package $targetFile from $sourcedir"
-	$compressionLevel = [System.IO.Compression.CompressionLevel]::Optimal
-	cd $sourcedir
-	$fullpath = $(pwd)
-	[System.IO.Compression.ZipFile]::CreateFromDirectory($fullpath, $targetFile, $compressionLevel, $false)
-	foreach ($item in (Get-ChildItem -Path $sourcedir)) {
-		Write-Host "[$scriptName]   --> $item"
+	Write-Host "`n[$scriptName] Create zip package $targetFile from $currentDir\$sourcedir"
+	if (Test-Path "$sourcedir") {
+		cd $currentDir\$sourcedir
+		$compressionLevel = [System.IO.Compression.CompressionLevel]::Optimal
+		[System.IO.Compression.ZipFile]::CreateFromDirectory("$(pwd)", "$targetFile", $compressionLevel, $false)
+		cd $currentDir
+		foreach ($item in (Get-ChildItem -Path "$sourcedir")) {
+			Write-Host "[$scriptName (ZipFiles)]   --> $item"
+		}
+	} else {
+		throwErrorlevel "ZIP_SOURCE_DIR_NOT_FOUND" 700
 	}
-	cd $currentDir
 }
 
 # Requires PowerShell v3 or above, pass zip file without .zip suffix
 function UnZipFiles( $packageFile, $packagePath )
 {
 	$currentDir = $(pwd)
-	Write-Host "[$scriptName] `$packageFile = $currentDir/$packageFile.zip"
 	if ($packagePath -eq '.') { $packagePath = $(pwd) }
-	Write-Host "[$scriptName] `$packagePath = $packagePath"
+	Write-Host "`n[$scriptName] Extract zip package $packageFile to $packagePath"
 	[System.IO.Compression.ZipFile]::ExtractToDirectory("$currentDir/$packageFile.zip", "$packagePath/$packageFile")
 	foreach ($item in (Get-ChildItem -Path $packagePath/$packageFile)) {
-		Write-Host "[$scriptName (remote)]    --> $item"
+		Write-Host "[$scriptName (UnZipFiles)]    --> $item"
 	}
 }
 
