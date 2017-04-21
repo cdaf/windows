@@ -29,3 +29,4 @@ if %result% NEQ 0 (
 	echo.
 	exit /b %result%
 )
+exit /b 0
