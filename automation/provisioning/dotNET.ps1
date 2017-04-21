@@ -261,12 +261,12 @@ if ($file) {
 	    if (-Not (IsInstalled $release)) {
 	        Write-Host "`n[$scriptName] A restart is required to finalise the Microsoft .NET Framework $version installation"
 	        if ($reboot -eq 'yes') {
-		        Write-Host "`n[$scriptName] Reboot in 2 seconds ..."
-		        executeExpression "shutdown /r /t 2"
+		        Write-Host "`n[$scriptName] Reboot in 1 second ..."
+		        executeExpression "shutdown /r /t 1"
 	        }
 	        if ($reboot -eq 'shutdown') {
-		        Write-Host "`n[$scriptName] Shutdown in 2 seconds ..."
-		        executeExpression "shutdown /s /t 2"
+		        Write-Host "`n[$scriptName] Shutdown in 1 second ..."
+		        executeExpression "shutdown /s /t 1"
 	        }
 	    }
     }

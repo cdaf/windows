@@ -28,7 +28,7 @@ if ($uri) {
 if ($mediaDir) {
     Write-Host "[$scriptName] mediaDir : $mediaDir"
 } else {
-	$mediaDir = '/.provision'
+	$mediaDir = 'C:\.provision'
     Write-Host "[$scriptName] mediaDir : $mediaDir (default)"
 }
 
@@ -38,14 +38,14 @@ if ($md5) {
     Write-Host "[$scriptName] md5      : (not supplied)"
 }
 
-# Provisionig Script builder
+# Provisioning Script builder
 if ( $env:PROV_SCRIPT_PATH ) {
 	Add-Content "$env:PROV_SCRIPT_PATH" "executeExpression `"./automation/provisioning/$scriptName $uri $mediaDir`""
 }
 
+# Create media cache if missing
 if (!( Test-Path $mediaDir )) {
-	Write-Host "[$scriptName] mkdir $mediaDir"
-	mkdir $mediaDir
+	executeExpression "mkdir $mediaDir"
 }
 
 $filename = $uri.Substring($uri.LastIndexOf("/") + 1)

@@ -1,3 +1,11 @@
+Param (
+  [string]$dbUser,
+  [string]$dbhost,
+  [string]$loginType,
+  [string]$sqlPassword
+)
+$scriptName = 'sqlAddUser.ps1'
+
 # Common expression logging and error handling function, copied, not referenced to ensure atomic process
 function executeExpression ($expression) {
 	$error.clear()
@@ -10,17 +18,14 @@ function executeExpression ($expression) {
     return $output
 }
 
-$scriptName = 'sqlAddUser.ps1'
 Write-Host
 Write-Host "[$scriptName] ---------- start ----------"
-$dbUser = $args[0]
 if ($dbUser) {
     Write-Host "[$scriptName] dbUser      : $dbUser"
 } else {
     Write-Host "[$scriptName] dbUser not supplied, exiting with code 101"; exit 101
 }
 
-$dbhost = $args[1]
 if ($dbhost) {
     Write-Host "[$scriptName] dbhost      : $dbhost"
 } else {
@@ -28,7 +33,6 @@ if ($dbhost) {
     Write-Host "[$scriptName] dbhost      : $dbhost (default)"
 }
 
-$loginType = $args[2]
 if ($loginType) {
     Write-Host "[$scriptName] loginType   : $loginType"
 } else {
@@ -36,7 +40,6 @@ if ($loginType) {
     Write-Host "[$scriptName] loginType   : $loginType (not supplied, set to default)"
 }
 
-$sqlPassword = $args[3]
 if ($sqlPassword) {
     Write-Host "[$scriptName] sqlPassword : *********************** (only applicable if loginType is SQLLogin)"
 	# Provisionig Script builder
