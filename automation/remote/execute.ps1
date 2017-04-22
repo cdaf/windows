@@ -108,11 +108,15 @@ function copyRecurse ($from, $to, $notFirstRun) {
 function ZipFiles( $zipfilename, $sourcedir )
 {
 	$currentDir = $(pwd)
-	$targetFile = "$currentDir\$zipfilename"
-	Write-Host "`n[$scriptName] Create zip package $targetFile from $currentDir\$sourcedir"
+	if ($zipfilename -like '*:*') { # Only resolve full path if a full path has not been supplied
+		$targetFile = "$zipfilename"
+	} else {
+		$targetFile = "$currentDir\$zipfilename"
+	}
 	if (Test-Path "$sourcedir") {
-		cd $currentDir\$sourcedir
+		cd $sourcedir
 		$compressionLevel = [System.IO.Compression.CompressionLevel]::Optimal
+		Write-Host "`n[$scriptName] Create zip package $targetFile from $(pwd)"
 		[System.IO.Compression.ZipFile]::CreateFromDirectory("$(pwd)", "$targetFile", $compressionLevel, $false)
 		cd $currentDir
 		foreach ($item in (Get-ChildItem -Path "$sourcedir")) {
