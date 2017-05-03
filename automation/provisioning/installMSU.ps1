@@ -34,6 +34,10 @@ if ($opt_arg) {
 } else {
     Write-Host "[$scriptName] opt_arg          : (not supplied)"
 }
+# Provisionig Script builder
+if ( $env:PROV_SCRIPT_PATH ) {
+	Add-Content "$env:PROV_SCRIPT_PATH" "executeExpression `"./automation/provisioning/$scriptName $msiFile $opt_arg`""
+}
 
 if ($env:interactive) {
     Write-Host "[$scriptName] `$env:interactive : $env:interactive, run in current window"
