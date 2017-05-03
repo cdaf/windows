@@ -85,8 +85,12 @@ function installFourAndAbove {
 		Write-Host "[$scriptName] Start-Process -FilePath $fullpath -ArgumentList $argList -PassThru -Wait"
 		$proc = Start-Process -FilePath $fullpath -ArgumentList $argList -PassThru -Wait
         if ( $proc.ExitCode -ne 0 ) {
-    		Write-Host "`n[$scriptName] Install Failed, see log file ($env:temp\${file}.html) for details. Exit with `$LASTEXITCODE $($proc.ExitCode)`n"
-            exit $proc.ExitCode
+	        if ( $proc.ExitCode -ne 0 ) {
+	    		Write-Host "`n[$scriptName] Exit 3010, The requested operation is successful. Changes will not be effective until the system is rebooted. ERROR_SUCCESS_REBOOT_REQUIRED`n"
+	        } else {
+	    		Write-Host "`n[$scriptName] Install Failed, see log file ($env:temp\${file}.html) for details. Exit with `$LASTEXITCODE $($proc.ExitCode)`n"
+	            exit $proc.ExitCode
+			}
         }
 	} catch {
 		Write-Host "[$scriptName] .NET Install Exception : $_" -ForegroundColor Red
@@ -264,7 +268,6 @@ if ($file) {
 	
 	if ($release) {
 	    if (-Not (IsInstalled $release)) {
-	        Write-Host "`n[$scriptName] A restart is required to finalise the Microsoft .NET Framework $version installation"
 	        if ($reboot -eq 'yes') {
 		        Write-Host "`n[$scriptName] Reboot in 1 second ..."
 		        executeExpression "shutdown /r /t 1"
