@@ -36,7 +36,7 @@ if ($opt_arg) {
 }
 # Provisionig Script builder
 if ( $env:PROV_SCRIPT_PATH ) {
-	Add-Content "$env:PROV_SCRIPT_PATH" "executeExpression `"./automation/provisioning/$scriptName $msiFile $opt_arg`""
+	Add-Content "$env:PROV_SCRIPT_PATH" "executeExpression `"./automation/provisioning/$scriptName $msuFile $opt_arg`""
 }
 
 if ($env:interactive) {
@@ -52,9 +52,14 @@ try {
 	$argList = @('/quiet', '/norestart')
 
 	$proc = executeExpression "Start-Process -FilePath `'$msuFile`' -ArgumentList `'$argList`' $sessionControl"
+	
     if ( $proc.ExitCode -ne 0 ) {
-		Write-Host "`n[$scriptName] Install Failed, see log file (c:\windows\logs\CBS\CBS.log) for details. Exit with `$LASTEXITCODE $($proc.ExitCode)`n"
-        exit $proc.ExitCode
+	    if ( $proc.ExitCode -eq 2359302 ) {
+			Write-Host "`n[$scriptName] MSU alreay installed, reboot maybe required.`n"
+	    } else {
+			Write-Host "`n[$scriptName] Install Failed, see log file (c:\windows\logs\CBS\CBS.log) for details. Exit with `$LASTEXITCODE $($proc.ExitCode)`n"
+	        exit $proc.ExitCode
+        }
     }
 } catch {
 	Write-Host "[$scriptName] PowerShell Install Exception : $_" -ForegroundColor Red
