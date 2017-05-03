@@ -54,11 +54,17 @@ try {
 	$proc = executeExpression "Start-Process -FilePath `'$msuFile`' -ArgumentList `'$argList`' $sessionControl"
 	
     if ( $proc.ExitCode -ne 0 ) {
-	    if ( $proc.ExitCode -eq 2359302 ) {
-			Write-Host "`n[$scriptName] MSU alreay installed, reboot maybe required.`n"
-	    } else {
-			Write-Host "`n[$scriptName] Install Failed, see log file (c:\windows\logs\CBS\CBS.log) for details. Exit with `$LASTEXITCODE $($proc.ExitCode)`n"
-	        exit $proc.ExitCode
+		switch ($proc.ExitCode) {
+			2359302 {
+				Write-Host "`n[$scriptName] Exit 2359302 MSU alreay installed, reboot maybe required.`n"
+			}
+			3010 {
+				Write-Host "`n[$scriptName] Exit 3010 The requested operation is successful. Changes will not be effective until the system is rebooted. ERROR_SUCCESS_REBOOT_REQUIRED.`n"
+			}
+		    default {
+				Write-Host "`n[$scriptName] Install Failed, see log file (c:\windows\logs\CBS\CBS.log) for details. Exit with `$LASTEXITCODE $($proc.ExitCode)`n"
+		        exit $proc.ExitCode
+		    }
         }
     }
 } catch {
