@@ -70,8 +70,11 @@ try {
 			2359302 {
 				Write-Host "`n[$scriptName] Exit 2359302 MSU alreay installed, reboot maybe required.`n"
 			}
+			-2145124329 {
+				Write-Host "`n[$scriptName] Exit -2145124329 MSU alreay installed.`n"
+			}
 			3010 {
-				Write-Host "`n[$scriptName] Exit 3010 The requested operation is successful. Changes will not be effective until the system is rebooted. ERROR_SUCCESS_REBOOT_REQUIRED.`n"
+				Write-Host "`n[$scriptName] Exit 3010 The requested operation is successful. Changes will not be effective until the system is rebooted.`n"
 			}
 		    default {
 				Write-Host "`n[$scriptName] Install Failed, see log file (c:\windows\logs\CBS\CBS.log) for details. Exit with `$LASTEXITCODE $($proc.ExitCode)`n"
