@@ -51,7 +51,7 @@ if ($scriptOverride ) {
 	    write-host "[$scriptName]   taskOverride         : $taskOverride"
     } else {
 	    $taskList = "tasksRunLocal.tsk"
-	    write-host "[$scriptName]   taskOverride         : $taskOverride (default, deployTaskOverride not found in properties file)"
+	    write-host "[$scriptName]   taskOverride         : $taskList (default, deployTaskOverride not found in properties file)"
     }
 
     Write-Host

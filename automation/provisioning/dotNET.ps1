@@ -81,9 +81,13 @@ function installFourAndAbove {
 	}
 	
 	try {
-		$argList = @("/q", "/norestart", "/log `"$env:temp\$file.log`"")
+		$argList = @("/q", "/norestart", "/log `"$env:temp\$file`"")
 		Write-Host "[$scriptName] Start-Process -FilePath $fullpath -ArgumentList $argList -PassThru -Wait"
 		$proc = Start-Process -FilePath $fullpath -ArgumentList $argList -PassThru -Wait
+        if ( $proc.ExitCode -ne 0 ) {
+    		Write-Host "`n[$scriptName] Install Failed, see log file ($env:temp\${file}.html) for details. Exit with `$LASTEXITCODE $($proc.ExitCode)`n"
+            exit $proc.ExitCode
+        }
 	} catch {
 		Write-Host "[$scriptName] .NET Install Exception : $_" -ForegroundColor Red
 		exit 201

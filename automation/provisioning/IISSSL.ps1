@@ -50,8 +50,13 @@ if (test-path IIS:\SslBindings\$ip!$port) {
 	executeExpression "remove-item IIS:\SslBindings\$ip!$port"
 }
 
-executeExpression "New-Item IIS:\SslBindings\$ip!$port -Thumbprint $thumbPrint | Out-Null"
-$value = get-item IIS:\SslBindings\$ip!$port | Format-Table
+$cert = executeExpression "Get-ChildItem -Path Cert:\LocalMachine\My\$thumbPrint"
+Write-Host "[$scriptName] New-Item `"IIS:\SslBindings\$ip!$port`" -Value `$cert | Format-Table"
+try {
+	$value = New-Item "IIS:\SslBindings\$ip!$port" -Value $cert | Format-Table
+    if(!$?) { Write-Host "[$scriptName] `$? = $?"; exit 1 }
+} catch { echo $_.Exception|format-list -force; exit 2 }
+if ( $LASTEXITCODE -ne 0 ) { Write-Host "[$scriptName] `$LASTEXITCODE = $LASTEXITCODE "; exit $LASTEXITCODE }
 $value
 
 Write-Host "`n[$scriptName] ---------- stop ----------"

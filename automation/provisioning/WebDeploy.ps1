@@ -98,7 +98,7 @@ if ( Test-Path $fullpath ) {
 	Write-Host "[$scriptName] $fullpath exists, download not required"
 } else {
 	$webclient = new-object system.net.webclient
-	Write-Host "[$scriptName] $webclient.DownloadFile($uri, $fullpath)"
+	Write-Host "[$scriptName] $webclient.DownloadFile(`"$uri`", `"$fullpath`")"
 	$webclient.DownloadFile($uri, $fullpath)
 }
 
