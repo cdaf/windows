@@ -1,3 +1,8 @@
+Param (
+  [string]$msuFile,
+  [string]$opt_arg,
+  [string]$reboot
+)
 # Common expression logging and error handling function, copied, not referenced to ensure atomic process
 function executeExpression ($expression) {
 	$error.clear()
@@ -15,9 +20,8 @@ function executeExpression ($expression) {
 $scriptName = 'installMSU.ps1'
 Write-Host "`n[$scriptName] Generic MSU installer"
 Write-Host "`n[$scriptName] ---------- start ----------"
-$msuFile = $args[0]
 if ($msuFile) {
-    Write-Host "[$scriptName] msuFile          : $msuFile"
+    Write-Host "[$scriptName] msuFile : $msuFile"
 } else {
     Write-Host "[$scriptName] MSI file not supplied, exiting with error code 1"; exit 1
 }
@@ -28,15 +32,24 @@ if ( Test-Path $msuFile ) {
 	Write-Host "[$scriptName] $msuFile not found, exiting with error code 2"; exit 2
 }
 
-$opt_arg = $args[1]
 if ($opt_arg) {
-    Write-Host "[$scriptName] opt_arg          : $opt_arg"
+    Write-Host "[$scriptName] opt_arg : $opt_arg"
 } else {
-    Write-Host "[$scriptName] opt_arg          : (not supplied)"
+    Write-Host "[$scriptName] opt_arg : (not supplied)"
+}
+
+if ($reboot) {
+    Write-Host "[$scriptName] reboot  : $reboot"
+    $optParm += "-reboot $reboot"
+	$argList = @('/quiet')
+} else {
+	$reboot = 'no'
+    Write-Host "[$scriptName] reboot  : $reboot (default)"
+	$argList = @('/quiet', '/norestart')
 }
 # Provisionig Script builder
 if ( $env:PROV_SCRIPT_PATH ) {
-	Add-Content "$env:PROV_SCRIPT_PATH" "executeExpression `"./automation/provisioning/$scriptName $msuFile $opt_arg`""
+	Add-Content "$env:PROV_SCRIPT_PATH" "executeExpression `"./automation/provisioning/$scriptName $msuFile $opt_arg $optParm`""
 }
 
 if ($env:interactive) {
@@ -49,7 +62,6 @@ if ($env:interactive) {
 Write-Host
 
 try {
-	$argList = @('/quiet', '/norestart')
 
 	$proc = executeExpression "Start-Process -FilePath `'$msuFile`' -ArgumentList `'$argList`' $sessionControl"
 	
