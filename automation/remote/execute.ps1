@@ -409,7 +409,7 @@ Foreach ($line in get-content $TASK_LIST) {
 	
 	            # Look for DOS exit codes
 		        $exitcode = $LASTEXITCODE
-		        if ( $exitcode -gt 0 ) { 
+		        if ( $exitcode -ne 0 ) { 
 			        Write-Host
 			        Write-Host "[$scriptName] $expression failed with LASTEXITCODE = $exitcode" -ForegroundColor Red
 			        throwErrorlevel "DOS_TERM" $exitcode
