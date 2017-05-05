@@ -25,7 +25,8 @@ if ($AUTOMATIONROOT) {
 }
 
 # Use timestamp to ensure unique build number
-$buildNumber = $(get-date -f mmss)
+$buildNumber = $(get-date -f hhmmss)
+$buildNumber = $buildNumber.TrimStart('0')
 Write-Host "[$scriptName]   buildNumber         : $buildNumber"
 $revision = 'master' # Assuming source control is Git
 Write-Host "[$scriptName]   revision            : $revision"
