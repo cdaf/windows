@@ -32,7 +32,7 @@ if ( $url ) {
 }
 if ( $pat ) {
 	Write-Host "[$scriptName] pat             : `$pat"
-	$optParms += " -servicePassword **pat**"
+	$optParms += " -pat **pat**"
 } else {
 	Write-Host "[$scriptName] url not supplied, exit with `$LASTEXITCODE = 2"; exit 2
 }
