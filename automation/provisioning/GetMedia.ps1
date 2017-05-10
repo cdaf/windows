@@ -51,7 +51,7 @@ if (!( Test-Path $mediaDir )) {
 $filename = $uri.Substring($uri.LastIndexOf("/") + 1)
 $fullpath = $mediaDir + '\' + $filename
 if ( Test-Path $fullpath ) {
-	Write-Host "[$scriptName.ps1] $fullpath exists, download not required"
+	Write-Host "[$scriptName] $fullpath exists, download not required"
 } else {
 
 	$webclient = executeExpression "new-object system.net.webclient"
@@ -62,9 +62,9 @@ if ( $md5 ) {
 	Write-Host
 	$hashValue = executeExpression "Get-FileHash `"$fullpath`" -Algorithm MD5"
 	if ($hashValue = $md5) {
-		Write-Host "[$scriptName.ps1] MD5 check successful"
+		Write-Host "[$scriptName] MD5 check successful"
 	} else {
-		Write-Host "[$scriptName.ps1] MD5 check failed! Halting with `$lastexitcode 65"; exit 65
+		Write-Host "[$scriptName] MD5 check failed! Halting with `$lastexitcode 65"; exit 65
 	}
 }
 

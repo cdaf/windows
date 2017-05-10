@@ -85,7 +85,7 @@ function installFourAndAbove {
 		Write-Host "[$scriptName] Start-Process -FilePath $fullpath -ArgumentList $argList -PassThru -Wait"
 		$proc = Start-Process -FilePath $fullpath -ArgumentList $argList -PassThru -Wait
         if ( $proc.ExitCode -ne 0 ) {
-	        if ( $proc.ExitCode -ne 0 ) {
+	        if ( $proc.ExitCode -eq 3010 ) {
 	    		Write-Host "`n[$scriptName] Exit 3010, The requested operation is successful. Changes will not be effective until the system is rebooted. ERROR_SUCCESS_REBOOT_REQUIRED`n"
 	        } else {
 	    		Write-Host "`n[$scriptName] Install Failed, see log file ($env:temp\${file}.html) for details. Exit with `$LASTEXITCODE $($proc.ExitCode)`n"

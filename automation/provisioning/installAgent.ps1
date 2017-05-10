@@ -1,11 +1,13 @@
 Param (
-  [string]$mediaDirectory,
   [string]$url,
   [string]$pat,
   [string]$pool,
   [string]$agentName,
   [string]$serviceAccount,
-  [string]$servicePassword
+  [string]$servicePassword,
+  [string]$deploymentgroup,
+  [string]$projectname,
+  [string]$mediaDirectory
 )
 $scriptName = 'installAgent.ps1'
 
@@ -23,55 +25,72 @@ function executeExpression ($expression) {
 }
 
 Write-Host "[$scriptName] ---------- start ----------"
-if ( $mediaDirectory ) {
-	Write-Host "[$scriptName] mediaDirectory  : $mediaDirectory"
-} else {
-	$mediaDirectory = 'C:\.provision'
-	Write-Host "[$scriptName] mediaDirectory  : $mediaDirectory (default)"
-}
 if ( $url ) {
 	Write-Host "[$scriptName] url             : $url"
 } else {
-	Write-Host "[$scriptName] url             : (not supplied)"
+	Write-Host "[$scriptName] url not supplied, exit with `$LASTEXITCODE = 1"; exit 1
 }
 if ( $pat ) {
-	Write-Host "[$scriptName] pat             : ***********************"
-	if ( $pat -eq 'INVALID_VSTS_PAT_NOT_SET' ) {
-		$provPAT = "-pat $pat" 
-	} else {
-		$provPAT = "-pat *******" 
-	}	
+	Write-Host "[$scriptName] pat             : `$pat"
+	$optParms += " -servicePassword **pat**"
 } else {
-	Write-Host "[$scriptName] pat             : (not supplied)"
+	Write-Host "[$scriptName] url not supplied, exit with `$LASTEXITCODE = 2"; exit 2
 }
 if ( $pool ) {
 	Write-Host "[$scriptName] pool            : $pool"
-	$provPool = "-pool $pool" 
 } else {
-	Write-Host "[$scriptName] pool            : (not supplied)"
+	$pool = 'default'
+	Write-Host "[$scriptName] pool            : $pool (not supplied, set to default)"
 }
+$optParms += " -pool $pool"
 if ( $agentName ) {
 	Write-Host "[$scriptName] agentName       : $agentName"
-	$provAgent = "-agentName $agentName" 
+	$optParms += " -agentName $agentName"
 } else {
-	Write-Host "[$scriptName] agentName       : (not supplied)"
+	$agentName = "$env:COMPUTERNAME" 
+	Write-Host "[$scriptName] agentName       : $agentName (not supplied, set to default)"
 }
+$optParms += " -agentName $agentName" 
 if ( $serviceAccount ) {
 	Write-Host "[$scriptName] serviceAccount  : $serviceAccount"
-	$provServ = "-serviceAccount $serviceAccount" 
+	$optParms += " -serviceAccount $serviceAccount"
 } else {
 	Write-Host "[$scriptName] serviceAccount  : (not supplied)"
 }
 if ( $servicePassword ) {
-	Write-Host "[$scriptName] servicePassword : ******************************"
-	$provPass = "-servicePassword ******" 
+	Write-Host "[$scriptName] servicePassword : `$servicePassword"
+	$optParms += " -servicePassword **servicePassword**"
 } else {
 	Write-Host "[$scriptName] servicePassword : (not supplied)"
 }
+if ( $deploymentgroup ) {
+	Write-Host "[$scriptName] deploymentgroup : $deploymentgroup"
+	$optParms += " -deploymentgroup $deploymentgroup"
+} else {
+	Write-Host "[$scriptName] deploymentgroup : (not supplied)"
+}
+if ( $projectname ) {
+	Write-Host "[$scriptName] projectname     : $projectname"
+	$optParms += " -projectname $projectname"
+} else {
+	if ( $deploymentgroup ) {
+		Write-Host "[$scriptName] deploymentgroup ($deploymentgroup) supplied, therefore projectname required but not supplied, exit with `$LASTEXITCODE = 3"; exit 3
+	} else {
+		Write-Host "[$scriptName] projectname     : (not supplied)"
+	}
+}
+if ( $mediaDirectory ) {
+	Write-Host "[$scriptName] mediaDirectory  : $mediaDirectory"
+} else {
+	$mediaDirectory = 'C:\.provision'
+	Write-Host "[$scriptName] mediaDirectory  : $mediaDirectory (not supplied, set to default)"
+}
+$optParms += " -mediaDirectory $mediaDirectory"
 # Provisioning Script builder
 if ( $env:PROV_SCRIPT_PATH ) {
-	Add-Content "$env:PROV_SCRIPT_PATH" "executeExpression `"./automation/provisioning/$scriptName $mediaDirectory $url $provPAT $provPool $provAgent $provServ $provPass`""
+	Add-Content "$env:PROV_SCRIPT_PATH" "executeExpression `"./automation/provisioning/$scriptName $url $optParms `""
 }
+$fullpath = 'C:\agent\config.cmd'
 
 executeExpression 'Add-Type -AssemblyName System.IO.Compression.FileSystem'
 
@@ -95,20 +114,28 @@ if (Test-Path "C:\agent") {
 executeExpression "mkdir C:\agent"
 executeExpression "[System.IO.Compression.ZipFile]::ExtractToDirectory(`"$mediaDirectory\$mediaFileName`", `"C:\agent`")"
 
-if ( $url ) {
+$argList = "--unattended --url $url --auth PAT"
+if ( $deploymentgroup ) {
+	$argList += " --deploymentgroup --deploymentgroupname `"$deploymentgroup`" --projectname `"$projectname`""
+}
 
-	if ( $serviceAccount ) {
-	
-		Write-Host "`nUnattend configuration for VSTS with PAT authentication"
-		executeExpression "cd C:\agent"
-		executeExpression ".\config.cmd --unattended --url $url --auth PAT --token `$pat --pool $pool --agent $agentName --replace --runasservice --windowslogonaccount $serviceAccount --windowslogonpassword `$servicePassword"
- 
-	} else {
+Write-Host "`nUnattend configuration for VSTS with PAT authentication"
+if ( $serviceAccount ) {
+	$printList = "$argList --token `$pat --pool $pool --agent $agentName --replace --runasservice --windowslogonaccount $serviceAccount --windowslogonpassword `$servicePassword"
+	$argList += " --token $pat --pool $pool --agent $agentName --replace --runasservice --windowslogonaccount $serviceAccount --windowslogonpassword $servicePassword"
+} else {
+	$printList = "$argList --token `$pat --pool $pool --agent $agentName --replace"
+	$argList += " --token $pat --pool $pool --agent $agentName --replace"
+}
 
-		Write-Host "`nUnattend configuration for VSTS with PAT authentication"
-		executeExpression "cd C:\agent"
-		executeExpression ".\config.cmd --unattended --url $url --auth PAT --token `$pat --pool $pool --agent $agentName --replace"
-	} 
+executeExpression "cd C:\agent"
+Write-Host "[$scriptName] Start-Process $fullpath -ArgumentList $printList -PassThru -Wait"
+$proc = Start-Process $fullpath -ArgumentList $argList -PassThru -Wait
+if ( $proc.ExitCode -ne 0 ) {
+	Write-Host "`n[$scriptName] Error occured, listing last 40 lines of log $((Get-ChildItem C:\agent\_diag)[0].FullName)`n"
+	Get-Content (Get-ChildItem C:\agent\_diag)[0].FullName -tail 40
+	Write-Host "`n[$scriptName] Install Failed! Exit with `$LASTEXITCODE $($proc.ExitCode)`n"
+    exit $proc.ExitCode
 }
 
 Write-Host "`n[$scriptName] ---------- stop -----------`n"
