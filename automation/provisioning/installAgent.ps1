@@ -32,7 +32,7 @@ if ( $url ) {
 }
 if ( $pat ) {
 	Write-Host "[$scriptName] pat             : `$pat"
-	$optParms += " -pat **pat**"
+	$optParms += "-pat **pat**"
 } else {
 	Write-Host "[$scriptName] url not supplied, exit with `$LASTEXITCODE = 2"; exit 2
 }
@@ -40,12 +40,11 @@ if ( $pool ) {
 	Write-Host "[$scriptName] pool            : $pool"
 } else {
 	$pool = 'default'
-	Write-Host "[$scriptName] pool            : $pool (not supplied, set to default)"
+	Write-Host "[$scriptName] pool            : $pool (not supplied, set to default, if Deployment Group is used, this will be ignored)"
 }
 $optParms += " -pool $pool"
 if ( $agentName ) {
 	Write-Host "[$scriptName] agentName       : $agentName"
-	$optParms += " -agentName $agentName"
 } else {
 	$agentName = "$env:COMPUTERNAME" 
 	Write-Host "[$scriptName] agentName       : $agentName (not supplied, set to default)"

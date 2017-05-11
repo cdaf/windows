@@ -67,6 +67,7 @@ function IsInstalled ($release) {
 }
 
 function installFourAndAbove {
+	$rebootRequired = $False
 	$fullpath = $mediaDir + '\' + $file
 	if ( Test-Path $fullpath -PathType Leaf) {
 		Write-Host "`n[$scriptName] $fullpath exists, download not required"
@@ -86,16 +87,16 @@ function installFourAndAbove {
 		$proc = Start-Process -FilePath $fullpath -ArgumentList $argList -PassThru -Wait
         if ( $proc.ExitCode -ne 0 ) {
 	        if ( $proc.ExitCode -eq 3010 ) {
-	    		Write-Host "`n[$scriptName] Exit 3010, The requested operation is successful. Changes will not be effective until the system is rebooted. ERROR_SUCCESS_REBOOT_REQUIRED`n"
+	    		Write-Host "`n[$scriptName] Exit 3010, The requested operation is successful. Changes will not be effective until the system is rebooted.`n"
+				$rebootRequired = $True
 	        } else {
-	    		Write-Host "`n[$scriptName] Install Failed, see log file ($env:temp\${file}.html) for details. Exit with `$LASTEXITCODE $($proc.ExitCode)`n"
-	            exit $proc.ExitCode
+	    		Write-Host "`n[$scriptName] Install Failed, see log file ($env:temp\${file}.html) for details. Exit with `$LASTEXITCODE = $proc.ExitCode`n"  -ForegroundColor Red; exit $proc.ExitCode
 			}
         }
 	} catch {
-		Write-Host "[$scriptName] .NET Install Exception : $_" -ForegroundColor Red
-		exit 201
+		Write-Host "[$scriptName] .NET Install Exception : $_" -ForegroundColor Red; exit 201
 	}
+    return $rebootRequired
 }
 
 $scriptName = 'dotNET.ps1'
@@ -260,23 +261,29 @@ if ($file) {
 		if (IsInstalled $release) {
 		    Write-Host "[$scriptName] Microsoft .NET Framework $version or later is already installed"
 		} else {
-			installFourAndAbove # .NET 4.5 and above
+			$rebootRequired = installFourAndAbove # .NET 4.5 and above
 		}
 	} else {
-		installFourAndAbove # .NET 4
+		$rebootRequired = installFourAndAbove # .NET 4
 	}
-	
-	if ($release) {
-	    if (-Not (IsInstalled $release)) {
-	        if ($reboot -eq 'yes') {
-		        Write-Host "`n[$scriptName] Reboot in 1 second ..."
+    Write-Host "[$scriptName][DEBUG] `$$rebootRequired = $$rebootRequired"
+
+	if ( $rebootRequired ) {
+		switch ($reboot) {
+			'yes' {
+		        Write-Host "`n[$scriptName] Reboot in 1 second and return `$LASTEXITCODE = 3010"
 		        executeExpression "shutdown /r /t 1"
+		        exit 3010
 	        }
-	        if ($reboot -eq 'shutdown') {
-		        Write-Host "`n[$scriptName] Shutdown in 1 second ..."
+			'shutdown' {
+		        Write-Host "`n[$scriptName] Shutdown in 1 second and return `$LASTEXITCODE = 3010"
 		        executeExpression "shutdown /s /t 1"
+		        exit 3010
 	        }
-	    }
+	        default {
+		        Write-Host "`n[$scriptName] Reboot is required, but reboot set to $reboot so no shutdown action not attempted and returning `$LASTEXITCODE = 0"
+	        }
+        }
     }
 }
 
