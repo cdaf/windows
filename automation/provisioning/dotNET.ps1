@@ -266,7 +266,6 @@ if ($file) {
 	} else {
 		$rebootRequired = installFourAndAbove # .NET 4
 	}
-    Write-Host "[$scriptName][DEBUG] `$$rebootRequired = $$rebootRequired"
 
 	if ( $rebootRequired ) {
 		switch ($reboot) {
