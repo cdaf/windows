@@ -11,7 +11,7 @@ function executeExpression ($expression) {
 }
 
 $scriptName = 'WebDeploy.ps1'
-$versionChoices = '2 or 3.5' 
+$versionChoices = '2, 3.5 or 3.6' 
 Write-Host "`n[$scriptName] Install Web Deploy. As of Visual Studio 2015 Web Deploy build targets are automatically"
 Write-Host "[$scriptName] included, so the default action for this provisioner is now agent."
 Write-Host "`n[$scriptName] ---------- start ----------"

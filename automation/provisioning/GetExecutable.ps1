@@ -1,3 +1,10 @@
+Param (
+  [string]$url,
+  [string]$mediaDir,
+  [string]$runTime
+)
+$scriptName = 'GetExecutable.ps1'
+
 # Common expression logging and error handling function, copied, not referenced to ensure atomic process
 function executeExpression ($expression) {
 	$error.clear()
@@ -9,44 +16,33 @@ function executeExpression ($expression) {
     if ( $error[0] ) { Write-Host "[$scriptName] `$error[0] = $error"; exit 3 }
 }
 
-$scriptName = 'GetExecutable.ps1'
-Write-Host
-Write-Host "[$scriptName] ---------- start ----------"
-$exename = $args[0]
-if ($exename) {
-    Write-Host "[$scriptName] exename  : $exename"
+Write-Host "`n[$scriptName] ---------- start ----------"
+if ($url) {
+    Write-Host "[$scriptName] url      : $url"
 } else {
-	$exename = 'Database.exe'
-    Write-Host "[$scriptName] exename  : $exename (default)"
+	$url = 'http://cdaf.azurewebsites.net/content/Database.exe'
+    Write-Host "[$scriptName] url      : $url (default)"
 }
 
-$mediaDir = $args[1]
 if ($mediaDir) {
     Write-Host "[$scriptName] mediaDir : $mediaDir"
 } else {
-	$mediaDir = '/.provision'
+	$mediaDir = 'c:\.provision'
     Write-Host "[$scriptName] mediaDir : $mediaDir (default)"
 }
 
-$uri = $args[2]
-if ($uri) {
-    Write-Host "[$scriptName] uri      : $uri"
+if ($runTime) {
+    Write-Host "[$scriptName] runTime  : $runTime"
 } else {
-	$uri = 'http://cdaf.azurewebsites.net/content/Database.exe'
-    Write-Host "[$scriptName] uri      : $uri (default)"
+	$runTime = '$env:windir'
+    Write-Host "[$scriptName] runTime  : $runTime (default)"
 }
 
-$useCache = $args[3]
-if ($useCache) {
-    Write-Host "[$scriptName] useCache : $useCache"
-} else {
-	$useCache = 'yes'
-    Write-Host "[$scriptName] useCache : (not passed, default to Yes)"
-}
+$exename = Split-Path -Path  $url -Leaf
 
 # Provisionig Script builder
 if ( $env:PROV_SCRIPT_PATH ) {
-	Add-Content "$env:PROV_SCRIPT_PATH" "executeExpression `"./automation/provisioning/$scriptName $exename $mediaDir $uri $useCache`""
+	Add-Content "$env:PROV_SCRIPT_PATH" "executeExpression `"./automation/provisioning/$scriptName -url $url -mediaDir $mediaDir -runTime $runTime `""
 }
 
 if (!( Test-Path $mediaDir )) {
@@ -57,19 +53,11 @@ if (!( Test-Path $mediaDir )) {
 Write-Host
 $fullpath = $mediaDir + '\' + $exename
 if ( Test-Path $fullpath ) {
-	if ($useCache -match 'yes') {
-		Write-Host "[$scriptName] $fullpath exists, download not required"
-	} else {
-		Write-Host "[$scriptName] $fullpath exist, but useCache set to $useCache, so replacing file..."
-		executeExpression "(New-Object System.Net.WebClient).DownloadFile(`$uri, `$fullpath)" 
-	}
+	Write-Host "[$scriptName] $fullpath exists, download not required"
 } else {
-
-	executeExpression "(New-Object System.Net.WebClient).DownloadFile(`$uri, `$fullpath)" 
-
+	executeExpression "(New-Object System.Net.WebClient).DownloadFile(`"`$url`", `"`$fullpath`")" 
 }
 
-executeExpression "Copy-Item `'$fullpath`' `'$env:SYSTEMROOT`'"
+executeExpression "Copy-Item `"$fullpath`" `"$runTime`""
 
-Write-Host
-Write-Host "[$scriptName] ---------- stop ----------"
+Write-Host "`n[$scriptName] ---------- stop ----------"

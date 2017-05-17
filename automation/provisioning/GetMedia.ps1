@@ -53,9 +53,7 @@ $fullpath = $mediaDir + '\' + $filename
 if ( Test-Path $fullpath ) {
 	Write-Host "[$scriptName] $fullpath exists, download not required"
 } else {
-
-	$webclient = executeExpression "new-object system.net.webclient"
-	executeExpression "`$webclient.DownloadFile(`"$uri`", `"$fullpath`")"
+	executeExpression "(New-Object System.Net.WebClient).DownloadFile(`"`$uri`", `"`$fullpath`")" 
 }
 
 if ( $md5 ) {
