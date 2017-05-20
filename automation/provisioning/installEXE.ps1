@@ -1,10 +1,9 @@
-Param (
-  [string]$exeFile,
-  [string]$opt_arg
-)
+# Cannot use parameters as opt_arg may contain parameters itself
+
 $scriptName = 'installEXE.ps1'
 
 Write-Host "`n[$scriptName] ---------- start ----------"
+$exeFile = $args[0]
 if ($exeFile) {
     Write-Host "[$scriptName] exeFile : $exeFile"
 } else {
@@ -13,17 +12,18 @@ if ($exeFile) {
 if (!(Test-Path $exeFile)) {
     Write-Host "[$scriptName] $exeFile not found, exiting with code 2";exit 2
 }
-$optParm = "-exeFile $exeFile"
+$arglist = " $exeFile"
 
+$opt_arg = $args[1]
 if ($opt_arg) {
     Write-Host "[$scriptName] opt_arg : $opt_arg"
-	$optParm += " -opt_arg $opt_arg"
+	$arglist += " $opt_arg"
 } else {
     Write-Host "[$scriptName] opt_arg : (not supplied)"
 }
 # Provisionig Script builder
 if ( $env:PROV_SCRIPT_PATH ) {
-	Add-Content "$env:PROV_SCRIPT_PATH" "executeExpression `"./automation/provisioning/$scriptName $optParm`""
+	Add-Content "$env:PROV_SCRIPT_PATH" "executeExpression `"./automation/provisioning/$scriptName $arglist`""
 }
 
 if ($opt_arg) {
