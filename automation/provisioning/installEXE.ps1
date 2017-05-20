@@ -12,7 +12,7 @@ if ($exeFile) {
 if (!(Test-Path $exeFile)) {
     Write-Host "[$scriptName] $exeFile not found, exiting with code 2";exit 2
 }
-$arglist = " $exeFile"
+$arglist = "$exeFile"
 
 $opt_arg = $args[1]
 if ($opt_arg) {
