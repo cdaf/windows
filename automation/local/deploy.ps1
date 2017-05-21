@@ -1,7 +1,7 @@
 function throwErrorlevel ($trappedExit) {
     write-host "[$scriptName] Trapped DOS exit code $trappedExit, throwing as exception" -ForegroundColor Red
 	write-host
-    throw "DOS $trappedExit"
+    throw "$trappedExit"
 }
 
 $TARGET            = $args[0]

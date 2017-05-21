@@ -1,21 +1,18 @@
-function taskException ($taskName) {
-    write-host "[$scriptName] Caught an exception executing $taskName :" -ForegroundColor Red
-    write-host "     Exception Type: $($_.Exception.GetType().FullName)" -ForegroundColor Red
-    write-host "     Exception Message: $($_.Exception.Message)" -ForegroundColor Red
-	write-host
-    throw "$scriptName HALT"
+# Entry Point for Build Process, child scripts inherit the functions of parent scripts, so these definitions are global for the CI process
+
+function exitWithCode ($exception) {
+    write-host "[$scriptName]   Exception details follow ..." -ForegroundColor Red
+    echo $exception.Exception|format-list -force
+    write-host "[$scriptName] Returning errorlevel (500) to DOS" -ForegroundColor Magenta
+    $host.SetShouldExit(500); exit
 }
 
-function exitWithCode ($taskName) {
+# Not used in this script because called from DOS, but defined here for all child scripts
+function taskFailure ($taskName) {
     write-host
-    write-host "[$scriptName] Caught an exception excuting $taskName :" -ForegroundColor Red
-    write-host "     Exception Type: $($_.Exception.GetType().FullName)" -ForegroundColor Red
-    write-host "     Exception Message: $($_.Exception.Message)" -ForegroundColor Red
-    write-host
-    write-host "     Returning errorlevel (-1) to DOS" -ForegroundColor Magenta
-    write-host
-    $host.SetShouldExit(-1)
-    exit
+    write-host "[$scriptName] Failure occured! Code returned ... $taskName" -ForegroundColor Red
+    write-host "[$scriptName] Returning errorlevel (510) to DOS" -ForegroundColor Magenta
+    $host.SetShouldExit(510); exit
 }
 
 function taskWarning { 
@@ -27,7 +24,7 @@ function getProp ($propName) {
 	try {
 		$propValue=$(& .\getProperty.ps1 .\$TARGET $propName)
 		if(!$?){ taskWarning }
-	} catch { exitWithCode "getProp" }
+	} catch { exitWithCode $_ }
 	
     return $propValue
 }
@@ -60,9 +57,13 @@ if ($scriptOverride ) {
     write-host $expression
 	try {
 		Invoke-Expression $expression
-	    if(!$?){ taskException "REMOTE_OVERRIDESCRIPT_TRAP" $_ }
-    } catch { taskException "REMOTE_OVERRIDESCRIPT_EXCEPTION" $_ }
-
+		if($LASTEXITCODE -ne 0){
+		    write-host "[$scriptName] OVERRIDE_EXECUTE_NON_ZERO_EXIT Invoke-Expression $expression" -ForegroundColor Magenta
+		    write-host "[$scriptName]   `$host.SetShouldExit($LASTEXITCODE)" -ForegroundColor Red
+		    $host.SetShouldExit($LASTEXITCODE); exit
+		}
+	    if(!$?){ taskFailure "REMOTE_OVERRIDESCRIPT_TRAP" }
+    } catch { exitWithCode $_ }
 
 } else {
 
@@ -78,8 +79,11 @@ if ($scriptOverride ) {
     Write-Host
     write-host "[$scriptName] Execute the Tasks defined in $taskList"
     Write-Host
-    try {
-	    & .\execute.ps1 $SOLUTION $BUILDNUMBER $TARGET $taskList
-	    if(!$?){ exitWithCode "POWERSHELL_TRAP_$_" }
-    } catch { exitWithCode "POWERSHELL_EXCEPTION_$_" }
+    & .\execute.ps1 $SOLUTION $BUILDNUMBER $TARGET $taskList
+	if($LASTEXITCODE -ne 0){
+	    write-host "[$scriptName] DEPLOY_EXECUTE_NON_ZERO_EXIT & .\execute.ps1 $SOLUTION $BUILDNUMBER $TARGET $taskList" -ForegroundColor Magenta
+	    write-host "[$scriptName]   `$host.SetShouldExit($LASTEXITCODE)" -ForegroundColor Red
+	    $host.SetShouldExit($LASTEXITCODE); exit
+	}
+    if(!$?){ taskFailure "POWERSHELL_TRAP" }
 }

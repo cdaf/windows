@@ -24,13 +24,19 @@ if ($AUTOMATIONROOT) {
 	Write-Host "[$scriptName]   AUTOMATIONROOT      : $AUTOMATIONROOT (default)"
 }
 
-# Use timestamp to ensure unique build number
-$buildNumber = $(get-date -f hhmmss)
-$buildNumber = $buildNumber.TrimStart('0')
+# Use a simple text file (buildnumber.counter) for incrimental build number
+if ( Test-Path buildnumber.counter ) {
+	$buildNumber = Get-Content buildnumber.counter
+} else {
+	$buildNumber = 0
+}
+[int]$buildnumber = [convert]::ToInt32($buildNumber)
+$buildNumber += 1
+Out-File buildnumber.counter -InputObject $buildNumber
 Write-Host "[$scriptName]   buildNumber         : $buildNumber"
 $revision = 'master' # Assuming source control is Git
 Write-Host "[$scriptName]   revision            : $revision"
-$release = '666' # Assuming Release is an integer
+$release = $buildNumber += 1 # Assuming Release is an integer, set it to a different value from build number 
 Write-Host "[$scriptName]   release             : $release"
 
 # Check for user defined solution folder, i.e. outside of automation root, if found override solution root

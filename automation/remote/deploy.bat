@@ -16,8 +16,7 @@ call powershell -NoProfile -ExecutionPolicy ByPass -command %cd%\%WORK_DIR_DEFAU
 set result=%errorlevel%
 if %result% NEQ 0 (
 	echo.
-	echo [%~nx0] Error %result% returned from ... 
-	echo [%~nx0]   call powershell -NoProfile -ExecutionPolicy ByPass -command %cd%\%WORK_DIR_DEFAULT%\executeTasks.ps1 %TARGET% %WORKSPACE% failed!
-	echo [%~nx0] Errorlevel = %result%
+	echo [%~nx0] DEPLOY_ERROR call powershell -NoProfile -ExecutionPolicy ByPass -command %cd%\%WORK_DIR_DEFAULT%\executeTasks.ps1 %TARGET% %WORKSPACE%
+	echo [%~nx0]   Return LASTEXITCODE %result% 
 	exit /b %result%
 )

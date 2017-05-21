@@ -58,8 +58,7 @@ if (-not(Test-Path $WORK_DIR_DEFAULT\$remoteProperties)) {
 			exit $LASTEXITCODE
 		}
 		if(!$?){ taskWarning }
-		Write-Host
-		write-host "[$scriptName]   --- Completed Target $propFilename --- " -ForegroundColor Green
-		Write-Host
+
+		write-host "`n[$scriptName]   --- Completed Target $propFilename ---`n" -ForegroundColor Green
 	}
 }

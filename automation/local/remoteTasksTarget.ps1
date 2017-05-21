@@ -125,4 +125,12 @@ write-host "[$scriptName] Transfer control to the remote host" -ForegroundColor 
 write-host 
 try {
 	Invoke-Command -session $session -File $WORK_DIR_DEFAULT\deploy.ps1 -Args $DEPLOY_TARGET,$deployLand\$SOLUTION-$BUILD,$warnondeployerror
-} catch { exitWithCode "REMOTEUSER_POWERSHELL_EXCEPTION" $_ }
+} catch { 
+	$exceptionExit = echo $_.tostring()
+	[int]$exceptionExit = [convert]::ToInt32($exceptionExit)
+	if ( $exceptionExit -ne 0 ){
+	    write-host "[$scriptName] EXCEPTION_PASS_BACK Invoke-Command -session $session -File $WORK_DIR_DEFAULT\deploy.ps1 -Args $DEPLOY_TARGET,$deployLand\$SOLUTION-$BUILD,$warnondeployerror" -ForegroundColor Magenta
+		write-host "[$scriptName]   Exit with `$LASTEXITCODE $exceptionExit" -ForegroundColor Red
+		exit $exceptionExit
+	}
+}

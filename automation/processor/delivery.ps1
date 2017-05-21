@@ -140,17 +140,17 @@ $cdafVersion = getProp 'productVersion'
 Write-Host "[$scriptName]   CDAF Version     : $cdafVersion"
 
 & .\$WORK_DIR_DEFAULT\remoteTasks.ps1 $ENVIRONMENT $BUILDNUMBER $SOLUTION $WORK_DIR_DEFAULT $OPT_ARG
-if($LASTEXITCODE -ne 0){
+if( $LASTEXITCODE -ne 0 ){
     write-host "[$scriptName] REMOTE_NON_ZERO_EXIT & .\$WORK_DIR_DEFAULT\remoteTasks.ps1 $ENVIRONMENT $BUILDNUMBER $SOLUTION $WORK_DIR_DEFAULT $OPT_ARG" -ForegroundColor Magenta
-	write-host "[$scriptName]   `$host.SetShouldExit(60)" -ForegroundColor Red
-	$host.SetShouldExit(60); exit
+	write-host "[$scriptName]   `$host.SetShouldExit($LASTEXITCODE)" -ForegroundColor Red
+	$host.SetShouldExit($LASTEXITCODE); exit
 }
 if(!$?){ taskWarning }
 
 & .\$WORK_DIR_DEFAULT\localTasks.ps1 $ENVIRONMENT $BUILDNUMBER $SOLUTION $WORK_DIR_DEFAULT $OPT_ARG
-if($LASTEXITCODE -ne 0){
+if( $LASTEXITCODE -ne 0 ){
     write-host "[$scriptName] LOCAL_NON_ZERO_EXIT & .\$WORK_DIR_DEFAULT\localTasks.ps1 $ENVIRONMENT $BUILDNUMBER $SOLUTION $WORK_DIR_DEFAULT $OPT_ARG" -ForegroundColor Magenta
-	write-host "[$scriptName]   `$host.SetShouldExit(70)" -ForegroundColor Red
-	$host.SetShouldExit(70); exit
+	write-host "[$scriptName]   `$host.SetShouldExit($LASTEXITCODE)" -ForegroundColor Red
+	$host.SetShouldExit($LASTEXITCODE); exit
 }
 if(!$?){ taskWarning }
