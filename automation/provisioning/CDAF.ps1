@@ -5,9 +5,9 @@ function executeExpression ($expression) {
 	Write-Host "[$scriptName] $expression"
 	try {
 		$output = Invoke-Expression $expression
-	    if(!$?) { Write-Host "[$scriptName] `$? = $?"; exit 1 }
-	} catch { echo $_.Exception|format-list -force; exit 2 }
-    if ( $error[0] ) { Write-Host "[$scriptName] `$error[0] = $error"; exit 3 }
+	    if(!$?) { Write-Host "[$scriptName] `$? = $?"; exit 10 }
+	} catch { echo $_.Exception|format-list -force; exit 11 }
+    if ( $error[0] ) { Write-Host "[$scriptName] `$error[0] = $error"; exit 12 }
     if ( $LASTEXITCODE -ne 0 ) { Write-Host "[$scriptName] `$LASTEXITCODE = $LASTEXITCODE "; exit $LASTEXITCODE }
     return $output
 }
@@ -54,7 +54,6 @@ if ($OPT_ARG) {
     Write-Host "[$scriptName] OPT_ARG   : (not supplied)"
 }
 
-
 if ($userName) {
 
 	# To capture the exit code of the remote execution, the LASTEXITCODE is stored in an environment variable, and retrieved in a subsequent
@@ -73,8 +72,17 @@ if ($userName) {
 
 	Write-Host "[$scriptName] Execute as $(whoami) using workspace ($workspace)"
 	executeExpression "cd $workspace"
-	executeExpression ".\automation\processor\cdEmulate.ps1 $OPT_ARG"
+	& .\automation\cdEmulate.bat $OPT_ARG
+	if($LASTEXITCODE -ne 0){
+	    write-host "[$scriptName] CURRENT_USER_NON_ZERO_EXIT & .\automation\cdEmulate.bat $OPT_ARG" -ForegroundColor Magenta
+	    write-host "[$scriptName]   Exit with `$LASTEXITCODE $LASTEXITCODE" -ForegroundColor Red
+	    exit $LASTEXITCODE
+	}
+    if(!$?){ 
+	    write-host "[$scriptName] CURRENT_USER_EXEC_FALSE & .\automation\cdEmulate.bat $OPT_ARG" -ForegroundColor Magenta
+	    write-host "[$scriptName]   Exit with `$LASTEXITCODE 900" -ForegroundColor Red
+	    exit 900
+	}
 }
 
 Write-Host "`n[$scriptName] ---------- stop -----------"
-exit 0

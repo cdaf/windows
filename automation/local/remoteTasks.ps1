@@ -23,7 +23,7 @@ $propName = "productVersion"
 try {
 	$cdafVersion=$(& .\$WORK_DIR_DEFAULT\getProperty.ps1 .\$WORK_DIR_DEFAULT\$propertiesFile $propName)
 	if(!$?){ taskWarning }
-} catch { taskFailure 'GET_CDAF_VERSION' }
+} catch { exitWithCode 'GET_CDAF_VERSION' $_ }
 Write-Host "[$scriptName]   CDAF Version     : $cdafVersion"
 Write-Host "[$scriptName]   pwd              : $(pwd)"
  
@@ -51,10 +51,13 @@ if (-not(Test-Path $WORK_DIR_DEFAULT\$remoteProperties)) {
 		Write-Host
 		write-host "[$scriptName]   --- Process Target $propFilename --- " -ForegroundColor Green
 		Write-Host
-		try {
-			& .\$WORK_DIR_DEFAULT\remoteTasksTarget.ps1 $ENVIRONMENT $SOLUTION $BUILDNUMBER $propFilename $WORK_DIR_DEFAULT
-			if(!$?){ taskWarning }
-		} catch { taskFailure $_ }
+		& .\$WORK_DIR_DEFAULT\remoteTasksTarget.ps1 $ENVIRONMENT $SOLUTION $BUILDNUMBER $propFilename $WORK_DIR_DEFAULT
+		if($LASTEXITCODE -ne 0){
+		    write-host "[$scriptName] REMOTE_NON_ZERO_EXIT & .\$WORK_DIR_DEFAULT\localTasks.ps1 $ENVIRONMENT $BUILDNUMBER $SOLUTION $WORK_DIR_DEFAULT $OPT_ARG" -ForegroundColor Magenta
+			write-host "[$scriptName]   Exit with `$LASTEXITCODE $LASTEXITCODE" -ForegroundColor Red
+			exit $LASTEXITCODE
+		}
+		if(!$?){ taskWarning }
 		Write-Host
 		write-host "[$scriptName]   --- Completed Target $propFilename --- " -ForegroundColor Green
 		Write-Host

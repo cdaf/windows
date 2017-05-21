@@ -1,20 +1,9 @@
-function taskException ($taskName, $invokeException) {
-    write-host "[$scriptName] Caught an exception excuting $taskName :" -ForegroundColor Red
-    write-host "     Exception Type: $($invokeException.Exception.GetType().FullName)" -ForegroundColor Red
-    write-host "     Exception Message: $($invokeException.Exception.Message)" -ForegroundColor Red
-	write-host
-    throw "$taskName HALT"
-}
-
-function taskWarning { 
-    write-host "[$scriptName] Warning, $taskName encountered an error that was allowed to proceed." -ForegroundColor Yellow
-}
 
 function getProp ($propName) {
 	try {
 		$propValue=$(& .\getProperty.ps1 $propertiesFile $propName)
 		if(!$?){ taskWarning }
-	} catch { taskException("getProp") }
+	} catch { exitWithCode "LOCAL_TASKS_TARGET_getProp" $_ }
 	
     return $propValue
 }
@@ -39,8 +28,8 @@ if ($scriptOverride ) {
     write-host $expression
 	try {
 		Invoke-Expression $expression
-	    if(!$?){ taskException "LOCAL_OVERRIDESCRIPT_TRAP" $_ }
-    } catch { taskException "LOCAL_OVERRIDESCRIPT_EXCEPTION" $_ }
+	    if(!$?){ exitWithCode "LOCAL_OVERRIDESCRIPT_TRAP" $_ }
+    } catch { exitWithCode "LOCAL_OVERRIDESCRIPT_EXCEPTION" $_ }
 
 
 } else {
@@ -58,6 +47,6 @@ if ($scriptOverride ) {
     # Execute the Tasks Driver File
     try {
 	    & .\execute.ps1 $SOLUTION $BUILD $TARGET $taskList
-	    if(!$?){ taskException "EXECUTE_TRAP" $_ }
-    } catch { taskException "EXECUTE_EXCEPTION" $_ }
+	    if(!$?){ exitWithCode "EXECUTE_TRAP" $_ }
+    } catch { exitWithCode "EXECUTE_EXCEPTION" $_ }
 }

@@ -1,20 +1,17 @@
-# Entry Point for Build Process, child scripts inherit the functions of parent scripts, so these definitions are global for the CI process
-
+# Entry Point for Build Process, child scripts inherit the functions of parent scripts, so these definitions are global for the CD process
 function exitWithCode ($exception) {
-    write-host "[$scriptName]   Exception details follow ..." -ForegroundColor Red
+    write-host "`n[$scriptName]   Exception details follow ..." -ForegroundColor Magenta
     echo $exception.Exception|format-list -force
-    write-host "[$scriptName] Returning errorlevel (-1) to DOS" -ForegroundColor Magenta
-    $host.SetShouldExit(-1)
-    exit
+	write-host "[$scriptName]   `$host.SetShouldExit(50)" -ForegroundColor Red
+	$host.SetShouldExit(50); exit
 }
 
-# Not used in this script because called from DOS, but defined here for all child scripts
+# Not used in this script, but defined here for all child scripts
 function taskFailure ($taskName) {
-    write-host
-    write-host "[$scriptName] Failure occured! Code returned ... $taskName" -ForegroundColor Red
-    throw "$scriptName $taskName"
+    write-host "`n[$scriptName] Failure occured! Code returned ... $taskName" -ForegroundColor Red
+	write-host "[$scriptName]   `$host.SetShouldExit(60)" -ForegroundColor Red
+	$host.SetShouldExit(60); exit
 }
-
 
 function taskWarning { 
     write-host "[$scriptName] Warning, $taskName encountered an error that was allowed to proceed." -ForegroundColor Yellow
@@ -48,8 +45,8 @@ function pathTest ($pathToTest) {
 
 function taskError ($taskName) {
     write-host "[$scriptName] Error occured when excuting $taskName :" -ForegroundColor Red
-	write-host
-    throw "$taskName HALT"
+    $host.SetShouldExit(70)
+    exit
 }
 
 function getProp ($propName) {
@@ -57,7 +54,7 @@ function getProp ($propName) {
 	try {
 		$propValue=$(& $WORK_DIR_DEFAULT\getProperty.ps1 $propertiesFile $propName)
 		if(!$?){ taskWarning }
-	} catch { taskFailure 'getProp' }
+	} catch { exitWithCode $_ }
 	
     return $propValue
 }
@@ -79,8 +76,9 @@ $ENVIRONMENT = $args[0]
 if ( $ENVIRONMENT ) {
 	Write-Host "[$scriptName]   ENVIRONMENT      : $ENVIRONMENT"
 } else { 
-	Write-Host "[$scriptName] Environment not supplied!"
-	exitWithCode "ENVIRONMENT_NOT_SUPPLIED" 
+	Write-Host "[$scriptName] ENVIRONMENT_NOT_SUPPLIED Environment not supplied!" -ForegroundColor Red
+    write-host "[$scriptName]   `$host.SetShouldExit(51)" -ForegroundColor Red
+    $host.SetShouldExit(51); exit
 }
 
 $RELEASE = $args[1]
@@ -111,8 +109,9 @@ if ($SOLUTION) {
 	if ($SOLUTION) {
 		Write-Host "[$scriptName]   SOLUTION         : $SOLUTION (from $WORK_DIR_DEFAULT\manifest.txt)"
 	} else {
-		Write-Host "[$scriptName] Solution not supplied and unable to derive from manifest.txt"
-		exitWithCode "SOLUTION_NOT_SUPPLIED" 
+		Write-Host "[$scriptName] DELIVERY_SOLUTION_NOT_FOUND Solution not supplied and unable to derive from manifest.txt"
+	    write-host "[$scriptName]   `$host.SetShouldExit(54)" -ForegroundColor Red
+	    $host.SetShouldExit(54); exit
 	}
 }
 
@@ -125,8 +124,9 @@ if ($BUILDNUMBER) {
 	if ($BUILDNUMBER) {
 		Write-Host "[$scriptName]   BUILDNUMBER      : $BUILDNUMBER (from $WORK_DIR_DEFAULT\manifest.txt)"
 	} else {
-		Write-Host "[$scriptName] Build number not supplied and unable to derive from manifest.txt"
-		exitWithCode "BUILDNUMBER_NOT_SUPPLIED" 
+		Write-Host "[$scriptName] DELIVERY_BUILD_NUMBER_NOT_FOUND Build number not supplied and unable to derive from manifest.txt"
+	    write-host "[$scriptName]   `$host.SetShouldExit(55)" -ForegroundColor Red
+	    $host.SetShouldExit(55); exit
 	}
 }
 
@@ -139,20 +139,18 @@ $propertiesFile = "$WORK_DIR_DEFAULT\CDAF.properties"
 $cdafVersion = getProp 'productVersion'
 Write-Host "[$scriptName]   CDAF Version     : $cdafVersion"
 
-try {
-	& .\$WORK_DIR_DEFAULT\remoteTasks.ps1 $ENVIRONMENT $BUILDNUMBER $SOLUTION $WORK_DIR_DEFAULT $OPT_ARG
-	if(!$?){ taskWarning }
-} catch {
-	Write-Host
-	Write-Host "[$scriptName] Exception thrown from & .\$WORK_DIR_DEFAULT\remoteTasks.ps1 $ENVIRONMENT $BUILDNUMBER $SOLUTION $WORK_DIR_DEFAULT $OPT_ARG"
-	exitWithCode $_ 
+& .\$WORK_DIR_DEFAULT\remoteTasks.ps1 $ENVIRONMENT $BUILDNUMBER $SOLUTION $WORK_DIR_DEFAULT $OPT_ARG
+if($LASTEXITCODE -ne 0){
+    write-host "[$scriptName] REMOTE_NON_ZERO_EXIT & .\$WORK_DIR_DEFAULT\remoteTasks.ps1 $ENVIRONMENT $BUILDNUMBER $SOLUTION $WORK_DIR_DEFAULT $OPT_ARG" -ForegroundColor Magenta
+	write-host "[$scriptName]   `$host.SetShouldExit(60)" -ForegroundColor Red
+	$host.SetShouldExit(60); exit
 }
+if(!$?){ taskWarning }
 
-try {
-	& .\$WORK_DIR_DEFAULT\localTasks.ps1 $ENVIRONMENT $BUILDNUMBER $SOLUTION $WORK_DIR_DEFAULT $OPT_ARG
-	if(!$?){ taskWarning }
-} catch {
-	Write-Host
-	Write-Host "[$scriptName] Exception thrown from & .\$WORK_DIR_DEFAULT\localTasks.ps1 $ENVIRONMENT $BUILDNUMBER $SOLUTION $WORK_DIR_DEFAULT $OPT_ARG"
-	exitWithCode $_ 
+& .\$WORK_DIR_DEFAULT\localTasks.ps1 $ENVIRONMENT $BUILDNUMBER $SOLUTION $WORK_DIR_DEFAULT $OPT_ARG
+if($LASTEXITCODE -ne 0){
+    write-host "[$scriptName] LOCAL_NON_ZERO_EXIT & .\$WORK_DIR_DEFAULT\localTasks.ps1 $ENVIRONMENT $BUILDNUMBER $SOLUTION $WORK_DIR_DEFAULT $OPT_ARG" -ForegroundColor Magenta
+	write-host "[$scriptName]   `$host.SetShouldExit(70)" -ForegroundColor Red
+	$host.SetShouldExit(70); exit
 }
+if(!$?){ taskWarning }

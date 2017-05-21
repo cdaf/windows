@@ -7,7 +7,7 @@ function exitWithCode ($taskName) {
     write-host
     write-host "[$scriptName] $taskName failed!" -ForegroundColor Red
     write-host "[$scriptName]   Returning errorlevel (-2) to emulation wrapper" -ForegroundColor Magenta
-    $host.SetShouldExit(-2)
+    $host.SetShouldExit(-2) # Returning exit code to DOS
     exit
 }
 
@@ -89,8 +89,10 @@ try {
 if ( $solutionName ) {
 	Write-Host "[$scriptName]   solutionName        : $solutionName (from ${solutionRoot}\CDAF.solution)"
 } else {
-	write-host "[$scriptName] Solution name (solutionName) not defined in ${solutionRoot}\CDAF.solution!"
-	exitWithCode "SOLUTION_NOT_FOUND"
+	write-host "[$scriptName] Solution name (solutionName) not defined in ${solutionRoot}\CDAF.solution!" -ForegroundColor Red
+    write-host "[$scriptName]   Exit with `$LASTEXITCODE 1" -ForegroundColor Magenta
+    $host.SetShouldExit(1) # Returning exit code to DOS
+    exit
 }
 
 $workDirLocal = 'TasksLocal'
@@ -139,7 +141,13 @@ if ( $ACTION -ne "clean" ) { # Case insensitive
 }
 # Process Build and Package
 & $ciProcess $buildNumber $revision $ACTION
-if(!$?){ exitWithCode $ciProcess }
+if($LASTEXITCODE -ne 0){
+    write-host "[$scriptName] CI_NON_ZERO_EXIT $ciProcess $buildNumber $revision $ACTION" -ForegroundColor Magenta
+    write-host "[$scriptName]   `$host.SetShouldExit($LASTEXITCODE)" -ForegroundColor Red
+    $host.SetShouldExit($LASTEXITCODE) # Returning exit code to DOS
+    exit
+}
+if(!$?){ exitWithCode "$ciProcess $buildNumber $revision $ACTION" }
 
 if ( $ACTION -ne "clean" ) {
 	write-host
@@ -214,7 +222,13 @@ if ( $ACTION -eq "clean" ) {
 	write-host "[$scriptName] -------------------------------------------------------"
 
 	& $cdProcess $environmentDelivery $release
-	if(!$?){ exitWithCode $ciProcess }
+	if($LASTEXITCODE -ne 0){
+	    write-host "[$scriptName] CD_NON_ZERO_EXIT $cdProcess $environmentDelivery $release" -ForegroundColor Magenta
+	    write-host "[$scriptName]   `$host.SetShouldExit($LASTEXITCODE)" -ForegroundColor Red
+	    $host.SetShouldExit($LASTEXITCODE) # Returning exit code to DOS
+	    exit
+	}
+	if(!$?){ exitWithCode "$cdProcess $environmentDelivery $release" }
 }
 write-host
 write-host "[$scriptName] ------------------"

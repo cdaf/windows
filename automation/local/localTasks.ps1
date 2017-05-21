@@ -28,13 +28,13 @@ if ( Test-Path $propertiesFile ) {
 	try {
 		$localEnvPreDeployTask=$(& .\getProperty.ps1 $propertiesFile "localEnvPreDeployTask")
 		if(!$?){ taskWarning }
-	} catch { taskFailure "GET_ENVIRONMENT_PRE_TASK_101" }
+	} catch { exitWithCode 'GET_ENVIRONMENT_PRE_TASK_101' $_ }
 	Write-Host "[$scriptName]   localEnvPreDeployTask  : $localEnvPreDeployTask" 
 	
 	try {
 		$localEnvPostDeployTask=$(& .\getProperty.ps1 $propertiesFile "localEnvPostDeployTask")
 		if(!$?){ taskWarning }
-	} catch { taskFailure "GET_ENVIRONMENT_POST_TASK_102" }
+	} catch { exitWithCode 'GET_ENVIRONMENT_POST_TASK_102' $_ }
 	Write-Host "[$scriptName]   localEnvPostDeployTask : $localEnvPostDeployTask" 
 
 } else {
@@ -48,7 +48,8 @@ $propName = "productVersion"
 try {
 	$cdafVersion=$(& .\getProperty.ps1 $propertiesFile $propName)
 	if(!$?){ taskWarning }
-} catch { taskFailure "GET_CDAF_VERSION_103" }
+} catch { exitWithCode 'GET_CDAF_VERSION_103' $_ }
+
 Write-Host "[$scriptName]   CDAF Version           : $cdafVersion"
 
 # list system info
@@ -65,7 +66,7 @@ if ( $localEnvPreDeployTask) {
     try {
 	    & .\execute.ps1 $SOLUTION $BUILD $localEnvironmentPath\$ENVIRONMENT $localEnvPreDeployTask
 	    if(!$?){ taskFailure "EXECUTE_TRAP_200" }
-    } catch { taskFailure "EXECUTE_EXCEPTION_201" }
+	} catch { exitWithCode 'EXECUTE_EXCEPTION_201' $_ }
 }
 
 # Perform Local Tasks for each target definition file for this environment
@@ -90,14 +91,16 @@ if (-not(Test-Path $localPropertiesFilter)) {
 
 		$propFilename = getFilename($propFile.ToString())
 
-		Write-Host
-		write-host "[$scriptName]   --- Process Target $propFilename --- " -ForegroundColor Green
-		try {
-			& .\localTasksTarget.ps1 $ENVIRONMENT $SOLUTION $BUILD $propFilename
-			if(!$?){ taskWarning }
-		} catch { taskFailure "${propFilename}_202" }
-		Write-Host
-		write-host "[$scriptName]   --- Completed Target $propFilename --- " -ForegroundColor Green
+		write-host "`n[$scriptName]   --- Process Target $propFilename --- " -ForegroundColor Green
+		& .\localTasksTarget.ps1 $ENVIRONMENT $SOLUTION $BUILD $propFilename
+		if($LASTEXITCODE -ne 0){
+		    write-host "[$scriptName] LOCAL_NON_ZERO_EXIT & .\localTasksTarget.ps1 $ENVIRONMENT $SOLUTION $BUILD $propFilename" -ForegroundColor Magenta
+			write-host "[$scriptName]   Exit with `$LASTEXITCODE $LASTEXITCODE" -ForegroundColor Red
+			exit $LASTEXITCODE
+		}
+		if(!$?){ taskWarning }
+
+		write-host "`n[$scriptName]   --- Completed Target $propFilename --- " -ForegroundColor Green
 	}
 }
 
@@ -108,7 +111,7 @@ if ( $localEnvPostDeployTask) {
     try {
 	    & .\execute.ps1 $SOLUTION $BUILD $localEnvironmentPath\$ENVIRONMENT $localEnvPostDeployTask
 	    if(!$?){ taskFailure "EXECUTE_TRAP_210" }
-    } catch { taskFailure "EXECUTE_EXCEPTION_211"}
+	} catch { exitWithCode 'EXECUTE_EXCEPTION_211' $_ }
 }
 
 # Return to root

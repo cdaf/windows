@@ -21,12 +21,10 @@ rem cannot elevate powershell
 call powershell -NoProfile -ExecutionPolicy ByPass -command %cd%\%automationRoot%\processor\cdEmulate.ps1 %ACTION% %AUTOMATION_ROOT%
 set result=%errorlevel%
 if %result% NEQ 0 (
+	echo [%~nx0] ERROR call powershell -NoProfile -ExecutionPolicy ByPass -command %cd%\%automationRoot%\processor\cdEmulate.ps1 %ACTION% %AUTOMATION_ROOT%
+	echo [%~nx0]   Return LASTEXITCODE %result% 
 	echo.
-	echo [%~nx0] Error %result% returned from ... 
-	echo [%~nx0]   call powershell -NoProfile -ExecutionPolicy ByPass -command %cd%\%automationRoot%\processor\cdEmulate.ps1 %ACTION% %AUTOMATION_ROOT%
-	echo.
-    echo [%~nx0] --- Emulation Error Handling ---
+    echo [%~nx0] --- End Emulation Error Handling ---
 	echo.
 	exit /b %result%
 )
-exit /b 0

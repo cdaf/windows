@@ -1,33 +1,12 @@
 Add-Type -AssemblyName System.IO.Compression.FileSystem
 
+# Convert exceptions and errors into generic exit code.
 function taskException ($taskName, $exception) {
     write-host "[$scriptName (taskException)] Caught an exception excuting $taskName :" -ForegroundColor Red
     write-host "     Exception Type: $($exception.Exception.GetType().FullName)" -ForegroundColor Red
     write-host "     Exception Message: $($exception.Exception.Message)" -ForegroundColor Red
-
-	If ($RELEASE -eq "remote") {
-		write-host
-		write-host "[$scriptName (taskException)] Called from DOS, returning errorlevel -1" -ForegroundColor Blue
-		$host.SetShouldExit(-1)
-	} else {
-		write-host
-		write-host "[$scriptName (taskException)] Called from PowerShell, throwing error" -ForegroundColor Blue
-		throw "$taskName"
-	}
-}
-
-function throwErrorlevel ($taskName, $trappedExit) {
-    write-host "[$scriptName (throwErrorlevel)] Trapped DOS exit code : $trappedExit" -ForegroundColor Red
-
-	If ($RELEASE -eq "remote") {
-		write-host
-		write-host "[$scriptName (throwErrorlevel)] Called from DOS, returning exit code as errorlevel" -ForegroundColor Blue
-		$host.SetShouldExit($trappedExit)
-	} else {
-		write-host
-		write-host "[$scriptName (throwErrorlevel)] Called from PowerShell, throwing error" -ForegroundColor Blue
-		throw "$taskName $trappedExit"
-	}
+	$host.SetShouldExit(-3)
+	exit -3
 }
 
 function makeContainer ($itemPath) { 
@@ -123,7 +102,8 @@ function ZipFiles( $zipfilename, $sourcedir )
 			Write-Host "[$scriptName (ZipFiles)]   --> $item"
 		}
 	} else {
-		throwErrorlevel "ZIP_SOURCE_DIR_NOT_FOUND" 700
+        Write-Host "`n[$scriptName] ZIP_SOURCE_DIR_NOT_FOUND, exit with LASTEXITCODE = 700" -ForegroundColor Red
+		exit 700
 	}
 }
 
@@ -183,7 +163,7 @@ if ( test-path -path "$TARGET" -pathtype leaf ) {
 	}
 	try {
 		& $transform "$propFile" | ForEach-Object { invoke-expression $_ }
-	    if(!$?) { taskException "PRODLD_TRAP" $_ }
+	    if(!$?) { taskException "PRODLD_TRAP" }
 	} catch { taskException "PRODLD_EXCEPTION" $_ }
 	Write-Host
 }	
@@ -238,7 +218,7 @@ Foreach ($line in get-content $TASK_LIST) {
 					Write-Host
 			        try {
 						& $transform "$propFile" | ForEach-Object { invoke-expression $_ }
-				        if(!$?) { taskException "PRODLD_TRAP" $_ }
+				        if(!$?) { taskException "PRODLD_TRAP" }
 			        } catch { taskException "PRODLD_EXCEPTION" $_ }
 	            }
 
@@ -410,16 +390,15 @@ Foreach ($line in get-content $TASK_LIST) {
 	            # Look for DOS exit codes
 		        $exitcode = $LASTEXITCODE
 		        if ( $exitcode -ne 0 ) { 
-			        Write-Host
-			        Write-Host "[$scriptName] $expression failed with LASTEXITCODE = $exitcode" -ForegroundColor Red
-			        throwErrorlevel "DOS_TERM" $exitcode
+			        Write-Host "`n[$scriptName] $expression failed with `$LASTEXITCODE $exitcode" -ForegroundColor Red
+			        exit $exitcode
 		        }
 	
 	            # Check for non-terminating errors, any error will terminate execution
 		        if ( $error[0] ) { 
 			        Write-Host
 			        Write-Host "[$scriptName] $expression failed with ERROR[0] = $error[0]" -ForegroundColor Red
-			        throwErrorlevel "DOS_NON_TERM" $error[0]
+			        exit $error[0]
 		        }
 		    }
         }

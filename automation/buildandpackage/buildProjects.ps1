@@ -78,8 +78,12 @@ if (Test-Path build.tsk) {
     # Because PowerShell variables are global, set the $WORKSPACE before invoking execution
     $WORKSPACE=$(pwd)
     & .\$automationHelper\execute.ps1 $SOLUTION $BUILDNUMBER $ENVIRONMENT "build.tsk" $ACTION
+	if($LASTEXITCODE -ne 0){
+	    write-host "[$scriptName] EXECUTE_NON_ZERO_EXIT .\$automationHelper\execute.ps1 $SOLUTION $BUILDNUMBER $ENVIRONMENT build.tsk $ACTION" -ForegroundColor Magenta
+	    write-host "[$scriptName]   Exit with `$LASTEXITCODE $LASTEXITCODE" -ForegroundColor Red
+	    exit $LASTEXITCODE
+	}
     if(!$?){ taskFailure("SOLUTION_EXECUTE_${SOLUTION}_${BUILDNUMBER}_${ENVIRONMENT}_build.tsk_${ACTION}") }
-
 } 
 
 # If there is a custom build script in the solution root, execute this.
