@@ -63,10 +63,9 @@ $exitStatus = 0
 if ( $localEnvPreDeployTask) {
     Write-Host
     # Execute the Tasks Driver File
-    try {
-	    & .\execute.ps1 $SOLUTION $BUILD $localEnvironmentPath\$ENVIRONMENT $localEnvPreDeployTask
-	    if(!$?){ taskFailure "EXECUTE_TRAP_200" }
-	} catch { exceptionExit 'EXECUTE_EXCEPTION_201' $_ }
+    & .\execute.ps1 $SOLUTION $BUILD $localEnvironmentPath\$ENVIRONMENT $localEnvPreDeployTask
+	if($LASTEXITCODE -ne 0){ passExitCode "LOCAL_TASKS_PRE_DEPLOY_NON_ZERO_EXIT .\execute.ps1 $SOLUTION $BUILD $localEnvironmentPath\$ENVIRONMENT $localEnvPreDeployTask" $LASTEXITCODE }
+    if(!$?){ taskFailure "LOCAL_TASKS_PRE_DEPLOY_TRAP" }
 }
 
 # Perform Local Tasks for each target definition file for this environment
@@ -93,11 +92,7 @@ if (-not(Test-Path $localPropertiesFilter)) {
 
 		write-host "`n[$scriptName]   --- Process Target $propFilename --- " -ForegroundColor Green
 		& .\localTasksTarget.ps1 $ENVIRONMENT $SOLUTION $BUILD $propFilename
-		if($LASTEXITCODE -ne 0){
-		    write-host "[$scriptName] LOCAL_NON_ZERO_EXIT & .\localTasksTarget.ps1 $ENVIRONMENT $SOLUTION $BUILD $propFilename" -ForegroundColor Magenta
-			write-host "[$scriptName]   Exit with `$LASTEXITCODE $LASTEXITCODE" -ForegroundColor Red
-			exit $LASTEXITCODE
-		}
+		if($LASTEXITCODE -ne 0){ passExitCode "LOCAL_NON_ZERO_EXIT & .\localTasksTarget.ps1 $ENVIRONMENT $SOLUTION $BUILD $propFilename" $LASTEXITCODE }
 		if(!$?){ taskWarning }
 
 		write-host "`n[$scriptName]   --- Completed Target $propFilename --- " -ForegroundColor Green
@@ -108,10 +103,9 @@ if (-not(Test-Path $localPropertiesFilter)) {
 if ( $localEnvPostDeployTask) {
     Write-Host
     # Execute the Tasks Driver File
-    try {
-	    & .\execute.ps1 $SOLUTION $BUILD $localEnvironmentPath\$ENVIRONMENT $localEnvPostDeployTask
-	    if(!$?){ taskFailure "EXECUTE_TRAP_210" }
-	} catch { exceptionExit 'EXECUTE_EXCEPTION_211' $_ }
+    & .\execute.ps1 $SOLUTION $BUILD $localEnvironmentPath\$ENVIRONMENT $localEnvPostDeployTask
+	if($LASTEXITCODE -ne 0){ passExitCode "LOCAL_TASKS_POST_DEPLOY_NON_ZERO_EXIT .\execute.ps1 $SOLUTION $BUILD $localEnvironmentPath\$ENVIRONMENT $localEnvPostDeployTask" $LASTEXITCODE }
+    if(!$?){ taskFailure "LOCAL_TASKS_POST_DEPLOY_TRAP" }
 }
 
 # Return to root

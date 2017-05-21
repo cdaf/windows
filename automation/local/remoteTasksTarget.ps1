@@ -47,9 +47,7 @@ if ($remoteUser) {
 
 	if ( $deployHost.contains(":") ) {
 
-		write-host 
-		write-host "[$scriptName] Connect using $remoteUser and URI $deployHost"
-		write-host 
+		write-host "`n[$scriptName] Connect using $remoteUser and URI $deployHost`n"
 		try {
 			$session = New-PSSession -credential $cred -connectionUri $deployHost -SessionOption (New-PSSessionOption -SkipRevocationCheck -SkipCACheck -SkipCNCheck)
 			if(!$?){ taskError "REMOTE_URI_SESSION_ERROR" }
@@ -57,9 +55,7 @@ if ($remoteUser) {
 
 	} else {
 
-		write-host 
-		write-host "[$scriptName] Connect using $remoteUser"
-		write-host 
+		write-host "`n[$scriptName] Connect using $remoteUser`n"
 		try {
 			$session = New-PSSession -credential $cred -ComputerName $deployHost -SessionOption (New-PSSessionOption -SkipRevocationCheck -SkipCACheck -SkipCNCheck)
 			if(!$?){ taskError "REMOTE_USER_SESSION_ERROR" }
@@ -71,9 +67,7 @@ if ($remoteUser) {
 
 	if ( $deployHost.contains(":") ) {
 
-		write-host 
-		write-host "[$scriptName] Connect using NTLM ($userName) URI $deployHost"
-		write-host 
+		write-host "`n[$scriptName] Connect using NTLM ($userName) URI $deployHost`n"
 		try {
 			$session = New-PSSession -connectionUri $deployHost -SessionOption (New-PSSessionOption -SkipRevocationCheck -SkipCACheck -SkipCNCheck)
 			if(!$?){ taskError "NTLM_URI_SESSION_ERROR" }
@@ -81,9 +75,7 @@ if ($remoteUser) {
 
 	} else {
 
-		write-host 
-		write-host "[$scriptName] Connect using NTLM ($userName)"
-		write-host 
+		write-host "`n[$scriptName] Connect using NTLM ($userName)`n"
 		try {
 			$session = New-PSSession -ComputerName $deployHost -SessionOption (New-PSSessionOption -SkipRevocationCheck -SkipCACheck -SkipCNCheck)
 			if(!$?){ taskError "NTLM_USER_SESSION_ERROR" }
@@ -104,8 +96,7 @@ try {
 } catch { exceptionExit "COPY_PACKAGE_EXCEPTION"  $_ }
 
 # Extract package artefacts and move to runtime location
-write-host 
-write-host "[$scriptName] Extract package artefacts to $deployLand\$SOLUTION-$BUILD"
+write-host "`n[$scriptName] Extract package artefacts to $deployLand\$SOLUTION-$BUILD"
 try {
 	Invoke-Command -session $session -File $WORK_DIR_DEFAULT\extract.ps1 -Args $deployLand,$SOLUTION-$BUILD
 	if(!$?){ taskError "EXTRACT_ERROR" }
@@ -120,9 +111,7 @@ try {
 # Trigger the Loosely coupled remote execution (principle is that this can be trigger manually for disconnected hosts)
 # Automated trigger passes workspace, this is not required for manual deploy as it is expected that the user has navigated to the workspace
 
-write-host 
-write-host "[$scriptName] Transfer control to the remote host" -ForegroundColor Blue
-write-host 
+write-host "`n[$scriptName] Transfer control to the remote host`n" -ForegroundColor Blue
 try {
 	Invoke-Command -session $session -File $WORK_DIR_DEFAULT\deploy.ps1 -Args $DEPLOY_TARGET,$deployLand\$SOLUTION-$BUILD,$warnondeployerror
 } catch { 

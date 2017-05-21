@@ -1,9 +1,3 @@
-# Secondary tier powershell, override primary function which returns exitcode to DOS
-function exitWithCode ($message, $exitCode) {
-    write-host "[$scriptName] $message" -ForegroundColor Red
-    write-host "[$scriptName]   Exit with `$LASTEXITCODE $exitCode" -ForegroundColor Magenta
-    exit $exitCode
-}
 
 $scriptName = $MyInvocation.MyCommand.Name
 Write-Host "`n[$scriptName] +----------------------------+"
@@ -11,23 +5,23 @@ Write-Host "[$scriptName] | Process BUILD all projects |"
 Write-Host "[$scriptName] +----------------------------+"
 
 $SOLUTION = $args[0]
-if (-not($SOLUTION)) { exitWithCode "SOLUTION_NOT_PASSED" 100 }
+if (-not($SOLUTION)) { passExitCode "SOLUTION_NOT_PASSED" 100 }
 Write-Host "[$scriptName]   SOLUTION       : $SOLUTION"
 
 $BUILDNUMBER = $args[1]
-if (-not($BUILDNUMBER)) { exitWithCode "BUILDNUMBER_NOT_PASSED" 101 }
+if (-not($BUILDNUMBER)) { passExitCode "BUILDNUMBER_NOT_PASSED" 101 }
 Write-Host "[$scriptName]   BUILDNUMBER    : $BUILDNUMBER"
 
 $REVISION = $args[2]
-if (-not($REVISION)) { exitWithCode "REVISION_NOT_PASSED" 102 }
+if (-not($REVISION)) { passExitCode "REVISION_NOT_PASSED" 102 }
 Write-Host "[$scriptName]   REVISION       : $REVISION"
 
 $AUTOMATIONROOT = $args[3]
-if (-not($AUTOMATIONROOT)) { exitWithCode "AUTOMATIONROOT_NOT_PASSED" 103 }
+if (-not($AUTOMATIONROOT)) { passExitCode "AUTOMATIONROOT_NOT_PASSED" 103 }
 Write-Host "[$scriptName]   AUTOMATIONROOT : $AUTOMATIONROOT"
 
 $SOLUTIONROOT = $args[4]
-if (-not($SOLUTIONROOT)) { exitWithCode "SOLUTIONROOT_NOT_PASSED" 104 }
+if (-not($SOLUTIONROOT)) { passExitCode "SOLUTIONROOT_NOT_PASSED" 104 }
 Write-Host "[$scriptName]   SOLUTIONROOT   : $SOLUTIONROOT"
 
 $ACTION = $args[5]
@@ -78,9 +72,7 @@ if (Test-Path build.tsk) {
     # Because PowerShell variables are global, set the $WORKSPACE before invoking execution
     $WORKSPACE=$(pwd)
     & .\$automationHelper\execute.ps1 $SOLUTION $BUILDNUMBER $ENVIRONMENT "build.tsk" $ACTION
-	if($LASTEXITCODE -ne 0){
-	    exitWithCode "ROOT_EXECUTE_NON_ZERO_EXIT .\$automationHelper\execute.ps1 $SOLUTION $BUILDNUMBER $ENVIRONMENT build.tsk $ACTION" $LASTEXITCODE
-	}
+	if($LASTEXITCODE -ne 0){ passExitCode "ROOT_EXECUTE_NON_ZERO_EXIT .\$automationHelper\execute.ps1 $SOLUTION $BUILDNUMBER $ENVIRONMENT build.tsk $ACTION" $LASTEXITCODE }
     if(!$?){ taskFailure "SOLUTION_EXECUTE_${SOLUTION}_${BUILDNUMBER}_${ENVIRONMENT}_build.tsk_${ACTION}" }
 } 
 
@@ -92,9 +84,7 @@ if (Test-Path build.ps1) {
     # Legacy build method, note: a .BAT file may exist in the project folder for Dev testing, by is not used by the builder
     try {
 	    & .\build.ps1 $SOLUTION $BUILDNUMBER $REVISION $PROJECT $ENVIRONMENT $ACTION
-		if($LASTEXITCODE -ne 0){
-		    exitWithCode "ROOT_LEGACY_NON_ZERO_EXIT .\$automationHelper\execute.ps1 $SOLUTION $BUILDNUMBER $ENVIRONMENT build.tsk $ACTION" $LASTEXITCODE
-		}
+		if($LASTEXITCODE -ne 0){ passExitCode "ROOT_LEGACY_NON_ZERO_EXIT .\$automationHelper\execute.ps1 $SOLUTION $BUILDNUMBER $ENVIRONMENT build.tsk $ACTION" $LASTEXITCODE }
 	    if(!$?){ taskFailure "SOLUTION_BUILD_${SOLUTION}_${BUILDNUMBER}_${REVISION}_${PROJECT}_${ENVIRONMENT}_${ACTION}" }
     } catch {
 	    write-host "[$scriptName] CUSTOM_BUILD_EXCEPTION & .\build.ps1 $SOLUTION $BUILDNUMBER $REVISION $PROJECT $ENVIRONMENT $ACTION" -ForegroundColor Magenta
@@ -142,17 +132,13 @@ if (-not(Test-Path projectsToBuild.txt)) {
             # Task driver support added in release 0.6.1
             $WORKSPACE=$(pwd)
 		    & ..\$automationHelper\execute.ps1 $SOLUTION $BUILDNUMBER $ENVIRONMENT "build.tsk" $ACTION
-			if($LASTEXITCODE -ne 0){
-			    exitWithCode "PROJECT_EXECUTE_NON_ZERO_EXIT & ..\$automationHelper\execute.ps1 $SOLUTION $BUILDNUMBER $ENVIRONMENT build.tsk $ACTION" $LASTEXITCODE
-			}
+			if($LASTEXITCODE -ne 0){ passExitCode "PROJECT_EXECUTE_NON_ZERO_EXIT & ..\$automationHelper\execute.ps1 $SOLUTION $BUILDNUMBER $ENVIRONMENT build.tsk $ACTION" $LASTEXITCODE }
 		    if(!$?){ taskFailure "PROJECT_EXECUTE_${SOLUTION}_${BUILDNUMBER}_${ENVIRONMENT}_build.tsk_${ACTION}" }
 
         } else {
             # Legacy build method, note: a .BAT file may exist in the project folder for Dev testing, by is not used by the builder
 		    & .\build.ps1 $SOLUTION $BUILDNUMBER $REVISION $PROJECT $ENVIRONMENT $ACTION
-			if($LASTEXITCODE -ne 0){
-			    exitWithCode "PROJECT_EXECUTE_NON_ZERO_EXIT .\$automationHelper\execute.ps1 $SOLUTION $BUILDNUMBER $ENVIRONMENT build.tsk $ACTION" $LASTEXITCODE
-			}
+			if($LASTEXITCODE -ne 0){ passExitCode "PROJECT_EXECUTE_NON_ZERO_EXIT .\$automationHelper\execute.ps1 $SOLUTION $BUILDNUMBER $ENVIRONMENT build.tsk $ACTION" $LASTEXITCODE }
 		    if(!$?){ taskFailure "PROJECT_BUILD_${SOLUTION}_${BUILDNUMBER}_${REVISION}_${PROJECT}_${ENVIRONMENT}_${ACTION}" }
         }
 

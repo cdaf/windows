@@ -37,9 +37,7 @@ if (-not(Test-Path $WORK_DIR_DEFAULT\$remoteProperties)) {
 
 } else {
 
-	Write-Host
-	Write-Host "[$scriptName] Preparing to process deploy targets :"
-	Write-Host
+	Write-Host "`n[$scriptName] Preparing to process deploy targets :`n"
 	foreach ($propFile in (Get-ChildItem -Path $WORK_DIR_DEFAULT\$remoteProperties)) {
 		$propFilename = getFilename($propFile.ToString())
 		Write-Host "[$scriptName]   $propFilename"
@@ -48,15 +46,9 @@ if (-not(Test-Path $WORK_DIR_DEFAULT\$remoteProperties)) {
 	foreach ($propFile in (Get-ChildItem -Path $WORK_DIR_DEFAULT\$remoteProperties)) {
 		$propFilename = getFilename($propFile.ToString())
 
-		Write-Host
-		write-host "[$scriptName]   --- Process Target $propFilename --- " -ForegroundColor Green
-		Write-Host
+		write-host "`n[$scriptName]   --- Process Target $propFilename ---`n" -ForegroundColor Green
 		& .\$WORK_DIR_DEFAULT\remoteTasksTarget.ps1 $ENVIRONMENT $SOLUTION $BUILDNUMBER $propFilename $WORK_DIR_DEFAULT
-		if($LASTEXITCODE -ne 0){
-		    write-host "[$scriptName] REMOTE_NON_ZERO_EXIT & .\$WORK_DIR_DEFAULT\localTasks.ps1 $ENVIRONMENT $BUILDNUMBER $SOLUTION $WORK_DIR_DEFAULT $OPT_ARG" -ForegroundColor Magenta
-			write-host "[$scriptName]   Exit with `$LASTEXITCODE $LASTEXITCODE" -ForegroundColor Red
-			exit $LASTEXITCODE
-		}
+		if($LASTEXITCODE -ne 0){ passExitCode "REMOTE_NON_ZERO_EXIT & .\$WORK_DIR_DEFAULT\localTasks.ps1 $ENVIRONMENT $BUILDNUMBER $SOLUTION $WORK_DIR_DEFAULT $OPT_ARG" $LASTEXITCODE }
 		if(!$?){ taskWarning }
 
 		write-host "`n[$scriptName]   --- Completed Target $propFilename ---`n" -ForegroundColor Green

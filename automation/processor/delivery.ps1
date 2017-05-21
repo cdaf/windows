@@ -1,4 +1,5 @@
 # Entry Point for Build Process, child scripts inherit the functions of parent scripts, so these definitions are global for the CD process
+# Primary powershell, returns exitcode to DOS
 function exceptionExit ($exception) {
     write-host "`n[$scriptName] Exception details follow ..." -ForegroundColor Magenta
     echo $exception.Exception|format-list -force
@@ -6,7 +7,12 @@ function exceptionExit ($exception) {
 	$host.SetShouldExit(50); exit
 }
 
-# Not used in this script, but defined here for all child scripts
+function passExitCode ($message, $exitCode) {
+    write-host "[$scriptName] $message" -ForegroundColor Red
+    write-host "[$scriptName]   Exiting with `$LASTEXITCODE $exitCode" -ForegroundColor Magenta
+    exit $exitCode
+}
+
 function taskFailure ($taskName) {
     write-host "`n[$scriptName] $taskName" -ForegroundColor Red
 	write-host "[$scriptName]   `$host.SetShouldExit(60)" -ForegroundColor Red

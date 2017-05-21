@@ -28,7 +28,7 @@ if ($scriptOverride ) {
     write-host $expression
 	try {
 		Invoke-Expression $expression
-	    if(!$?){ exceptionExit "LOCAL_OVERRIDESCRIPT_TRAP" $_ }
+	    if(!$?){ taskFailure "LOCAL_OVERRIDESCRIPT_TRAP" }
     } catch { exceptionExit "LOCAL_OVERRIDESCRIPT_EXCEPTION" $_ }
 
 
@@ -45,8 +45,7 @@ if ($scriptOverride ) {
 
     Write-Host
     # Execute the Tasks Driver File
-    try {
-	    & .\execute.ps1 $SOLUTION $BUILD $TARGET $taskList
-	    if(!$?){ exceptionExit "EXECUTE_TRAP" $_ }
-    } catch { exceptionExit "EXECUTE_EXCEPTION" $_ }
+    & .\execute.ps1 $SOLUTION $BUILD $TARGET $taskList
+	if($LASTEXITCODE -ne 0){ passExitCode "LOCAL_TASKS_TARGET_EXECUTE_NON_ZERO_EXIT .\execute.ps1 $SOLUTION $BUILD $TARGET $taskList" $LASTEXITCODE }
+    if(!$?){ taskFailure "LOCAL_TASKS_TARGET_EXECUTE_TRAP" }
 }

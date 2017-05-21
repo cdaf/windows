@@ -1,3 +1,4 @@
+# Entry Point for Build Process, child scripts inherit the functions of parent scripts, so these definitions are global for the CI process
 # Primary powershell, returns exitcode to DOS
 function exitWithCode ($message, $exitCode) {
     write-host "[$scriptName] $message" -ForegroundColor Red
@@ -6,7 +7,12 @@ function exitWithCode ($message, $exitCode) {
     exit $exitCode
 }
 
-# Entry Point for Build Process, child scripts inherit the functions of parent scripts, so these definitions are global for the CI process
+function passExitCode ($message, $exitCode) {
+    write-host "[$scriptName] $message" -ForegroundColor Red
+    write-host "[$scriptName]   Exiting with `$LASTEXITCODE $exitCode" -ForegroundColor Magenta
+    exit $exitCode
+}
+
 function exceptionExit ($exception) {
     write-host "[$scriptName]   Exception details follow ..." -ForegroundColor Red
     echo $exception.Exception|format-list -force

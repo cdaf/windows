@@ -1,4 +1,16 @@
-# Entry Point for Build Process, child scripts inherit the functions of parent scripts, so these definitions are global for the CI process
+# Entry Point for portable package deployment, child scripts inherit the functions of parent scripts, so these definitions are global
+function exitWithCode ($message, $exitCode) {
+    write-host "[$scriptName] $message" -ForegroundColor Red
+    write-host "[$scriptName]   Returning errorlevel $exitCode to DOS" -ForegroundColor Magenta
+    $host.SetShouldExit($exitCode)
+    exit $exitCode
+}
+
+function passExitCode ($message, $exitCode) {
+    write-host "[$scriptName] $message" -ForegroundColor Red
+    write-host "[$scriptName]   Exiting with `$LASTEXITCODE $exitCode" -ForegroundColor Magenta
+    exit $exitCode
+}
 
 function exceptionExit ($exception) {
     write-host "[$scriptName]   Exception details follow ..." -ForegroundColor Red
@@ -45,22 +57,18 @@ if ($WORKSPACE ) {
 write-host "[$scriptName]   hostname             : $(hostname)"
 write-host "[$scriptName]   whoami               : $(whoami)"
 
-write-host
-write-host "[$scriptName] Load SOLUTION and BUILDNUMBER from manifest.txt"
+write-host "`n[$scriptName] Load SOLUTION and BUILDNUMBER from manifest.txt"
 & .\Transform.ps1 ".\manifest.txt" | ForEach-Object { invoke-expression $_ }
 
 $scriptOverride = getProp ("deployScriptOverride")
 if ($scriptOverride ) {
-	write-host "[$scriptName]   deployScriptOverride : $scriptOverride"
-    Write-Host
+	write-host "[$scriptName]   deployScriptOverride : $scriptOverride`n"
     $expression=".\$scriptOverride $SOLUTION $BUILDNUMBER $TARGET"
     write-host $expression
 	try {
 		Invoke-Expression $expression
 		if($LASTEXITCODE -ne 0){
-		    write-host "[$scriptName] OVERRIDE_EXECUTE_NON_ZERO_EXIT Invoke-Expression $expression" -ForegroundColor Magenta
-		    write-host "[$scriptName]   `$host.SetShouldExit($LASTEXITCODE)" -ForegroundColor Red
-		    $host.SetShouldExit($LASTEXITCODE); exit
+		    exitWithCode "OVERRIDE_EXECUTE_NON_ZERO_EXIT Invoke-Expression $expression" $LASTEXITCODE 
 		}
 	    if(!$?){ taskFailure "REMOTE_OVERRIDESCRIPT_TRAP" }
     } catch { exceptionExit $_ }
@@ -76,14 +84,10 @@ if ($scriptOverride ) {
 	    write-host "[$scriptName]   taskList  : $taskList (default, deployTaskOverride not found in properties file)"
     }
 
-    Write-Host
-    write-host "[$scriptName] Execute the Tasks defined in $taskList"
-    Write-Host
+    write-host "`n[$scriptName] Execute the Tasks defined in $taskList`n"
     & .\execute.ps1 $SOLUTION $BUILDNUMBER $TARGET $taskList
 	if($LASTEXITCODE -ne 0){
-	    write-host "[$scriptName] DEPLOY_EXECUTE_NON_ZERO_EXIT & .\execute.ps1 $SOLUTION $BUILDNUMBER $TARGET $taskList" -ForegroundColor Magenta
-	    write-host "[$scriptName]   `$host.SetShouldExit($LASTEXITCODE)" -ForegroundColor Red
-	    $host.SetShouldExit($LASTEXITCODE); exit
+	    exitWithCode "OVERRIDE_EXECUTE_NON_ZERO_EXIT Invoke-Expression $expression" $LASTEXITCODE 
 	}
     if(!$?){ taskFailure "POWERSHELL_TRAP" }
 }
