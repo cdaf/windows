@@ -1,5 +1,5 @@
 # Override function used in entry points
-function exitWithCode ($taskName) {
+function exceptionExit ($taskName) {
     write-host
     write-host "[$scriptName] --- Emulation Error Handling ---" -ForegroundColor Red
     write-host
@@ -153,7 +153,7 @@ if($LASTEXITCODE -ne 0){
     $host.SetShouldExit($LASTEXITCODE) # Returning exit code to DOS
     exit
 }
-if(!$?){ exitWithCode "$ciProcess $buildNumber $revision $ACTION" }
+if(!$?){ exceptionExit "$ciProcess $buildNumber $revision $ACTION" }
 
 if ( $ACTION -ne "clean" ) {
 	write-host
@@ -234,7 +234,7 @@ if ( $ACTION -eq "clean" ) {
 	    $host.SetShouldExit($LASTEXITCODE) # Returning exit code to DOS
 	    exit
 	}
-	if(!$?){ exitWithCode "$cdProcess $environmentDelivery $release" }
+	if(!$?){ exceptionExit "$cdProcess $environmentDelivery $release" }
 }
 write-host
 write-host "[$scriptName] ------------------"

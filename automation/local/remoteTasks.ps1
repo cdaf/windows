@@ -23,7 +23,7 @@ $propName = "productVersion"
 try {
 	$cdafVersion=$(& .\$WORK_DIR_DEFAULT\getProperty.ps1 .\$WORK_DIR_DEFAULT\$propertiesFile $propName)
 	if(!$?){ taskWarning }
-} catch { exitWithCode 'GET_CDAF_VERSION' $_ }
+} catch { exceptionExit 'GET_CDAF_VERSION' $_ }
 Write-Host "[$scriptName]   CDAF Version     : $cdafVersion"
 Write-Host "[$scriptName]   pwd              : $(pwd)"
  

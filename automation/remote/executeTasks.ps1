@@ -1,6 +1,6 @@
 # Entry Point for Build Process, child scripts inherit the functions of parent scripts, so these definitions are global for the CI process
 
-function exitWithCode ($exception) {
+function exceptionExit ($exception) {
     write-host "[$scriptName]   Exception details follow ..." -ForegroundColor Red
     echo $exception.Exception|format-list -force
     write-host "[$scriptName] Returning errorlevel (500) to DOS" -ForegroundColor Magenta
@@ -24,7 +24,7 @@ function getProp ($propName) {
 	try {
 		$propValue=$(& .\getProperty.ps1 .\$TARGET $propName)
 		if(!$?){ taskWarning }
-	} catch { exitWithCode $_ }
+	} catch { exceptionExit $_ }
 	
     return $propValue
 }
@@ -63,7 +63,7 @@ if ($scriptOverride ) {
 		    $host.SetShouldExit($LASTEXITCODE); exit
 		}
 	    if(!$?){ taskFailure "REMOTE_OVERRIDESCRIPT_TRAP" }
-    } catch { exitWithCode $_ }
+    } catch { exceptionExit $_ }
 
 } else {
 

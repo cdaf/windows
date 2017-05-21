@@ -1,6 +1,13 @@
-# Entry Point for Build Process, child scripts inherit the functions of parent scripts, so these definitions are global for the CI process
+# Primary powershell, returns exitcode to DOS
+function exitWithCode ($message, $exitCode) {
+    write-host "[$scriptName] $message" -ForegroundColor Red
+    write-host "[$scriptName]   Returning errorlevel $exitCode to DOS" -ForegroundColor Magenta
+    $host.SetShouldExit($exitCode)
+    exit $exitCode
+}
 
-function exitWithCode ($exception) {
+# Entry Point for Build Process, child scripts inherit the functions of parent scripts, so these definitions are global for the CI process
+function exceptionExit ($exception) {
     write-host "[$scriptName]   Exception details follow ..." -ForegroundColor Red
     echo $exception.Exception|format-list -force
     write-host "[$scriptName] Returning errorlevel (20) to DOS" -ForegroundColor Magenta
@@ -50,7 +57,7 @@ function getProp ($propName) {
 	try {
 		$propValue=$(& .\$AUTOMATIONROOT\remote\getProperty.ps1 $propertiesFile $propName)
 		if(!$?){ taskWarning }
-	} catch { exitWithCode $_ }
+	} catch { exceptionExit $_ }
 	
     return $propValue
 }
@@ -83,10 +90,7 @@ $BUILDNUMBER = $args[0]
 if ( $BUILDNUMBER ) {
 	Write-Host "[$scriptName]   BUILDNUMBER     : $BUILDNUMBER"
 } else { 
-	Write-Host "[$scriptName] Build Number not supplied!" -ForegroundColor Red
-    write-host "[$scriptName]   `$host.SetShouldExit(21)" -ForegroundColor Red
-    $host.SetShouldExit(21)
-    exit
+	exitWithCode "Build Number not supplied!" 21
 }
 
 $REVISION = $args[1]
@@ -109,10 +113,7 @@ if ($SOLUTION) {
 	if ($SOLUTION) {
 		Write-Host "[$scriptName]   SOLUTION        : $SOLUTION (from `$solutionRoot\CDAF.solution)"
 	} else {
-		Write-Host "[$scriptName] SOLUTION_NOT_FOUND Solution not supplied and unable to derive from $solutionRoot\CDAF.solution" -ForegroundColor Red
-	    write-host "[$scriptName]   `$host.SetShouldExit(22)" -ForegroundColor Red
-	    $host.SetShouldExit(22)
-	    exit
+		exitWithCode "SOLUTION_NOT_FOUND Solution not supplied and unable to derive from $solutionRoot\CDAF.solution" 22
 	}
 }
 
@@ -146,16 +147,12 @@ Write-Host "[$scriptName]   CDAF Version    : $cdafVersion"
 
 & .\$AUTOMATIONROOT\buildandpackage\buildProjects.ps1 $SOLUTION $BUILDNUMBER $REVISION $AUTOMATIONROOT $solutionRoot $ACTION
 if($LASTEXITCODE -ne 0){
-    write-host "[$scriptName] BUILD_NON_ZERO_EXIT .\$AUTOMATIONROOT\buildandpackage\buildProjects.ps1 $SOLUTION $BUILDNUMBER $REVISION $AUTOMATIONROOT $solutionRoot $ACTION" -ForegroundColor Magenta
-    write-host "[$scriptName]   `$host.SetShouldExit($LASTEXITCODE)" -ForegroundColor Red
-    $host.SetShouldExit($LASTEXITCODE); exit
+	exitWithCode "BUILD_NON_ZERO_EXIT .\$AUTOMATIONROOT\buildandpackage\buildProjects.ps1 $SOLUTION $BUILDNUMBER $REVISION $AUTOMATIONROOT $solutionRoot $ACTION" $LASTEXITCODE
 }
 if(!$?){ taskWarning "buildProjects.ps1" }
 
 & .\$AUTOMATIONROOT\buildandpackage\package.ps1 $SOLUTION $BUILDNUMBER $REVISION $AUTOMATIONROOT $solutionRoot $LOCAL_WORK_DIR $REMOTE_WORK_DIR $ACTION
 if($LASTEXITCODE -ne 0){
-    write-host "[$scriptName] PACKAGE_NON_ZERO_EXIT .\$AUTOMATIONROOT\buildandpackage\package.ps1 $SOLUTION $BUILDNUMBER $REVISION $AUTOMATIONROOT $solutionRoot $LOCAL_WORK_DIR $REMOTE_WORK_DIR $ACTION" -ForegroundColor Magenta
-    write-host "[$scriptName]   `$host.SetShouldExit($LASTEXITCODE)" -ForegroundColor Red
-    $host.SetShouldExit($LASTEXITCODE); exit
+	exitWithCode "PACKAGE_NON_ZERO_EXIT .\$AUTOMATIONROOT\buildandpackage\package.ps1 $SOLUTION $BUILDNUMBER $REVISION $AUTOMATIONROOT $solutionRoot $LOCAL_WORK_DIR $REMOTE_WORK_DIR $ACTION" $LASTEXITCODE
 }
 if(!$?){ taskWarning "package.ps1" }

@@ -36,7 +36,7 @@ if ($remoteUser) {
 			$password = get-content $remoteCred | convertto-securestring
 		}
 		$cred = New-Object System.Management.Automation.PSCredential ($remoteUser, $password )
-	} catch { exitWithCode "REMOTE_TASK_DECRYPT" $_ }
+	} catch { exceptionExit "REMOTE_TASK_DECRYPT" $_ }
 }
 
 # Initialise the session handle
@@ -53,7 +53,7 @@ if ($remoteUser) {
 		try {
 			$session = New-PSSession -credential $cred -connectionUri $deployHost -SessionOption (New-PSSessionOption -SkipRevocationCheck -SkipCACheck -SkipCNCheck)
 			if(!$?){ taskError "REMOTE_URI_SESSION_ERROR" }
-		} catch { exitWithCode "REMOTE_URI_SESSION_EXCEPTION" $_ }
+		} catch { exceptionExit "REMOTE_URI_SESSION_EXCEPTION" $_ }
 
 	} else {
 
@@ -63,7 +63,7 @@ if ($remoteUser) {
 		try {
 			$session = New-PSSession -credential $cred -ComputerName $deployHost -SessionOption (New-PSSessionOption -SkipRevocationCheck -SkipCACheck -SkipCNCheck)
 			if(!$?){ taskError "REMOTE_USER_SESSION_ERROR" }
-		} catch { exitWithCode "REMOTE_USER_SESSION_EXCEPTION" $_ }
+		} catch { exceptionExit "REMOTE_USER_SESSION_EXCEPTION" $_ }
 
 	}
 
@@ -77,7 +77,7 @@ if ($remoteUser) {
 		try {
 			$session = New-PSSession -connectionUri $deployHost -SessionOption (New-PSSessionOption -SkipRevocationCheck -SkipCACheck -SkipCNCheck)
 			if(!$?){ taskError "NTLM_URI_SESSION_ERROR" }
-		} catch { exitWithCode "NTLM_URI_SESSION_EXCEPTION" $_ }
+		} catch { exceptionExit "NTLM_URI_SESSION_EXCEPTION" $_ }
 
 	} else {
 
@@ -87,7 +87,7 @@ if ($remoteUser) {
 		try {
 			$session = New-PSSession -ComputerName $deployHost -SessionOption (New-PSSessionOption -SkipRevocationCheck -SkipCACheck -SkipCNCheck)
 			if(!$?){ taskError "NTLM_USER_SESSION_ERROR" }
-		} catch { exitWithCode "NTLM_USER_SESSION_EXCEPTION" $_ }
+		} catch { exceptionExit "NTLM_USER_SESSION_EXCEPTION" $_ }
 	}
 }
 
@@ -95,13 +95,13 @@ if ($remoteUser) {
 try {
 	Invoke-Command -session $session -File $WORK_DIR_DEFAULT\remotePackageManagement.ps1 -Args $deployLand,$SOLUTION-$BUILD
 	if(!$?){ taskError "PACKAGE_TEST_ERROR" }
-} catch { exitWithCode "PACKAGE_TEST_EXCEPTION"  $_ }
+} catch { exceptionExit "PACKAGE_TEST_EXCEPTION"  $_ }
 
 # Copy Package
 try {
 	& $WORK_DIR_DEFAULT\copy.ps1 $SOLUTION-$BUILD.zip $deployLand $WORK_DIR_DEFAULT
 	if(!$?){ taskError "COPY_PACKAGE_ERROR" }
-} catch { exitWithCode "COPY_PACKAGE_EXCEPTION"  $_ }
+} catch { exceptionExit "COPY_PACKAGE_EXCEPTION"  $_ }
 
 # Extract package artefacts and move to runtime location
 write-host 
@@ -109,13 +109,13 @@ write-host "[$scriptName] Extract package artefacts to $deployLand\$SOLUTION-$BU
 try {
 	Invoke-Command -session $session -File $WORK_DIR_DEFAULT\extract.ps1 -Args $deployLand,$SOLUTION-$BUILD
 	if(!$?){ taskError "EXTRACT_ERROR" }
-} catch { exitWithCode "EXTRACT_EXCEPTION"  $_ }
+} catch { exceptionExit "EXTRACT_EXCEPTION"  $_ }
 
 # Copy Target Properties file into the extracted directory on the remote host
 try {
 	& $WORK_DIR_DEFAULT\copy.ps1 $propertiesFile $deployLand\$SOLUTION-$BUILD $WORK_DIR_DEFAULT 
 	if(!$?){ taskError "COPY_PROPERTIES_ERROR" }
-} catch { exitWithCode "COPY_PROPERTIES_EXCEPTION"  $_ }
+} catch { exceptionExit "COPY_PROPERTIES_EXCEPTION"  $_ }
 
 # Trigger the Loosely coupled remote execution (principle is that this can be trigger manually for disconnected hosts)
 # Automated trigger passes workspace, this is not required for manual deploy as it is expected that the user has navigated to the workspace

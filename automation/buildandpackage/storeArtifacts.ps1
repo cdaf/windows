@@ -1,4 +1,4 @@
-function exitWithCode($taskName) {
+function exceptionExit($taskName) {
     write-host
     write-host "[$scriptName] Caught an exception excuting $taskName :" -ForegroundColor Red
     write-host "     Exception Type: $($_.Exception.GetType().FullName)" -ForegroundColor Red
@@ -50,11 +50,11 @@ function ZipFiles( $zipfilename, $sourcedir )
 	
 }
 
-if (-not($SOLUTION)) {exitWithCode SOLUTION_NOT_SET }
-if (-not($BUILDNUMBER)) {exitWithCode BUILDNUMBER_NOT_SET }
-if (-not($REVISION)) {exitWithCode REVISION_NOT_SET }
-if (-not($AUTOMATIONROOT)) {exitWithCode AUTOMATIONROOT_NOT_SET }
-if (-not($SOLUTIONROOT)) {exitWithCode SOLUTIONROOT_NOT_SET }
+if (-not($SOLUTION)) {exceptionExit SOLUTION_NOT_SET }
+if (-not($BUILDNUMBER)) {exceptionExit BUILDNUMBER_NOT_SET }
+if (-not($REVISION)) {exceptionExit REVISION_NOT_SET }
+if (-not($AUTOMATIONROOT)) {exceptionExit AUTOMATIONROOT_NOT_SET }
+if (-not($SOLUTIONROOT)) {exceptionExit SOLUTIONROOT_NOT_SET }
 if (-not($ENVIRONMENT)) {
     $ENVIRONMENT = "PACKAGE"
     Write-Host "[$scriptName]   Environment not passed, defaulted to $ENVIRONMENT"
@@ -86,7 +86,7 @@ if ($ACTION -eq 'Clean')
     if ( Test-Path $ARTIFACT_WORKBENCH -Verbose )
     {
         Remove-Item $ARTIFACT_WORKBENCH -Recurse
-        if(!$?) {exitWithCode "Remove-Item $ARTIFACT_WORKBENCH -Recurse" }
+        if(!$?) {exceptionExit "Remove-Item $ARTIFACT_WORKBENCH -Recurse" }
     }
 
     write-host
@@ -98,7 +98,7 @@ else
     if ( Test-Path $ARTIFACT_WORKBENCH )
     {
         Remove-Item $ARTIFACT_WORKBENCH -Recurse;
-        if(!$?) {exitWithCode "Remove-Item $ARTIFACT_WORKBENCH -Recurse" }
+        if(!$?) {exceptionExit "Remove-Item $ARTIFACT_WORKBENCH -Recurse" }
     }
 
     write-host –NoNewLine "[$scriptName] Artifact List: "
@@ -106,7 +106,7 @@ else
 
     # Create the workspace directory
     New-Item $ARTIFACT_WORKBENCH -type directory > $null
-    if(!$?){ exitWithCode ("New-Item $ARTIFACT_WORKBENCH -type directory > $null") }
+    if(!$?){ exceptionExit ("New-Item $ARTIFACT_WORKBENCH -type directory > $null") }
 
     # Copy artifacts if list file exists
     if ( Test-Path $artifactListFile )
@@ -219,11 +219,11 @@ else
 
                     # New-item to create any required directories.
                     New-Item $targetPath -Force -ItemType $targetType > $null;
-                    if(!$?){ exitWithCode ("New-Item $targetPath -Force -ItemType $targetType") }
+                    if(!$?){ exceptionExit ("New-Item $targetPath -Force -ItemType $targetType") }
 
                     # Now remove the zip file itself to make room for 7zip.
                     Remove-Item $targetPath -Force > $null
-                    if(!$?){ exitWithCode ("New-Item $targetPath -Force -ItemType $targetType") }
+                    if(!$?){ exceptionExit ("New-Item $targetPath -Force -ItemType $targetType") }
 
                     # Now we can actually build and invoke the Zip Command.
                     $artifactFullPath = Convert-Path $artifactFile;
@@ -232,10 +232,10 @@ else
                 else
                 {
                     New-Item $targetPath -Force -ItemType $targetType > $null;
-                    if(!$?){ exitWithCode ("New-Item $targetPath -Force -ItemType $targetType") }
+                    if(!$?){ exceptionExit ("New-Item $targetPath -Force -ItemType $targetType") }
 
                     Copy-Item $artifactFile -Destination $targetPath -Recurse -Force -Verbose;
-                    if(!$?){ exitWithCode ("Copy-Item $artifactFile -Destination $targetPath -Recurse -Force") }
+                    if(!$?){ exceptionExit ("Copy-Item $artifactFile -Destination $targetPath -Recurse -Force") }
                 }
             }
 

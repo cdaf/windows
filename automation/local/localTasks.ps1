@@ -28,13 +28,13 @@ if ( Test-Path $propertiesFile ) {
 	try {
 		$localEnvPreDeployTask=$(& .\getProperty.ps1 $propertiesFile "localEnvPreDeployTask")
 		if(!$?){ taskWarning }
-	} catch { exitWithCode 'GET_ENVIRONMENT_PRE_TASK_101' $_ }
+	} catch { exceptionExit 'GET_ENVIRONMENT_PRE_TASK_101' $_ }
 	Write-Host "[$scriptName]   localEnvPreDeployTask  : $localEnvPreDeployTask" 
 	
 	try {
 		$localEnvPostDeployTask=$(& .\getProperty.ps1 $propertiesFile "localEnvPostDeployTask")
 		if(!$?){ taskWarning }
-	} catch { exitWithCode 'GET_ENVIRONMENT_POST_TASK_102' $_ }
+	} catch { exceptionExit 'GET_ENVIRONMENT_POST_TASK_102' $_ }
 	Write-Host "[$scriptName]   localEnvPostDeployTask : $localEnvPostDeployTask" 
 
 } else {
@@ -48,7 +48,7 @@ $propName = "productVersion"
 try {
 	$cdafVersion=$(& .\getProperty.ps1 $propertiesFile $propName)
 	if(!$?){ taskWarning }
-} catch { exitWithCode 'GET_CDAF_VERSION_103' $_ }
+} catch { exceptionExit 'GET_CDAF_VERSION_103' $_ }
 
 Write-Host "[$scriptName]   CDAF Version           : $cdafVersion"
 
@@ -66,7 +66,7 @@ if ( $localEnvPreDeployTask) {
     try {
 	    & .\execute.ps1 $SOLUTION $BUILD $localEnvironmentPath\$ENVIRONMENT $localEnvPreDeployTask
 	    if(!$?){ taskFailure "EXECUTE_TRAP_200" }
-	} catch { exitWithCode 'EXECUTE_EXCEPTION_201' $_ }
+	} catch { exceptionExit 'EXECUTE_EXCEPTION_201' $_ }
 }
 
 # Perform Local Tasks for each target definition file for this environment
@@ -111,7 +111,7 @@ if ( $localEnvPostDeployTask) {
     try {
 	    & .\execute.ps1 $SOLUTION $BUILD $localEnvironmentPath\$ENVIRONMENT $localEnvPostDeployTask
 	    if(!$?){ taskFailure "EXECUTE_TRAP_210" }
-	} catch { exitWithCode 'EXECUTE_EXCEPTION_211' $_ }
+	} catch { exceptionExit 'EXECUTE_EXCEPTION_211' $_ }
 }
 
 # Return to root

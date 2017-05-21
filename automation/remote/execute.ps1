@@ -5,7 +5,6 @@ function taskException ($taskName, $exception) {
     write-host "[$scriptName (taskException)] Caught an exception excuting $taskName :" -ForegroundColor Red
     write-host "     Exception Type: $($exception.Exception.GetType().FullName)" -ForegroundColor Red
     write-host "     Exception Message: $($exception.Exception.Message)" -ForegroundColor Red
-	$host.SetShouldExit(-3)
 	exit -3
 }
 
@@ -16,13 +15,13 @@ function makeContainer ($itemPath) {
 			write-host "[$scriptName (makeContainer)] $itemPath exists"
 		} else {
 			Remove-Item $itemPath -Recurse -Force
-			if(!$?) {exitWithCode "[$scriptName (makeContainer)] Remove-Item $itemPath -Recurse -Force" }
+			if(!$?) { taskFailure "[$scriptName (makeContainer)] Remove-Item $itemPath -Recurse -Force" }
 			mkdir $itemPath > $null
-			if(!$?) {exitWithCode "[$scriptName (makeContainer)] (replace) $itemPath Creation failed" }
+			if(!$?) { taskFailure "[$scriptName (makeContainer)] (replace) $itemPath Creation failed" }
 		}	
 	} else {
 		mkdir $itemPath > $null
-		if(!$?) {exitWithCode "[$scriptName (makeContainer)] $itemPath Creation failed" }
+		if(!$?) {taskFailure "[$scriptName (makeContainer)] $itemPath Creation failed" }
 	}
 }
 
@@ -31,7 +30,7 @@ function itemRemove ($itemPath) {
 	if ( Test-Path $itemPath ) {
 		write-host "[itemRemove] Delete $itemPath"
 		Remove-Item $itemPath -Recurse -Force
-		if(!$?) {exitWithCode "[$scriptName (itemRemove)] Remove-Item $itemPath -Recurse -Force" }
+		if(!$?) {taskFailure "[$scriptName (itemRemove)] Remove-Item $itemPath -Recurse -Force" }
 	}
 }
 
@@ -56,10 +55,10 @@ function copyRecurse ($from, $to, $notFirstRun) {
 			
 				# The existing path is a file, not a directory, delete the file and replace with a directory
 				Remove-Item $to -Recurse -Force
-				if(!$?) {exitWithCode "[$scriptName (copyRecurse)] Remove-Item $to -Recurse -Force" }
+				if(!$?) {taskFailure "[$scriptName (copyRecurse)] Remove-Item $to -Recurse -Force" }
 				Write-Host "  $from --> $to (replace file with directory)" 
 				mkdir $to > $null
-				if(!$?) {exitWithCode "[$scriptName (copyRecurse)] (replace) $to Creation failed" }
+				if(!$?) {taskFailure "[$scriptName (copyRecurse)] (replace) $to Creation failed" }
 			}
 		}
 		
@@ -67,7 +66,7 @@ function copyRecurse ($from, $to, $notFirstRun) {
 		if ( ! (Test-Path $to)) {
 			Write-Host "  $from --> $to"
 			mkdir $to > $null
-			if(!$?) {exitWithCode "[$scriptName (copyRecurse)] $to Creation failed" }
+			if(!$?) {taskFailure "[$scriptName (copyRecurse)] $to Creation failed" }
 		}
 
 		foreach ($child in (Get-ChildItem -Path "$from" -Name )) {
@@ -78,7 +77,7 @@ function copyRecurse ($from, $to, $notFirstRun) {
 
 		Write-Host "  $from --> $to" 
 		Copy-Item $from $to -force -recurse
-		if(!$?){ exitWithCode ("[$scriptName (copyRecurse)] Copy remote script $from --> $to") }
+		if(!$?){ taskFailure ("[$scriptName (copyRecurse)] Copy remote script $from --> $to") }
 		
 	}
 }

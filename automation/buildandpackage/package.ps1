@@ -1,4 +1,4 @@
-function exitWithCode($taskName) {
+function exceptionExit($taskName) {
     write-host
     write-host "[$scriptName] Caught an exception excuting $taskName :" -ForegroundColor Red
     write-host "     Exception Type: $($_.Exception.GetType().FullName)" -ForegroundColor Red
@@ -31,7 +31,7 @@ function itemRemove ($itemPath) {
 		}	
 		write-host "[$scriptName] Delete $itemPath"
 		Remove-Item $itemPath -Recurse
-		if(!$?) {exitWithCode "Remove-Item $itemPath -Recurse" }
+		if(!$?) {exceptionExit "Remove-Item $itemPath -Recurse" }
 	}
 }
 
@@ -104,31 +104,31 @@ Write-Host "[$scriptName] | Package Process |"
 Write-Host "[$scriptName] +-----------------+"
 
 $SOLUTION = $args[0]
-if (-not($SOLUTION)) {exitWithCode SOLUTION_NOT_PASSED }
+if (-not($SOLUTION)) {exceptionExit SOLUTION_NOT_PASSED }
 Write-Host "[$scriptName]   SOLUTION                : $SOLUTION"
 
 $BUILDNUMBER = $args[1]
-if (-not($BUILDNUMBER)) {exitWithCode BUILDNUMBER_NOT_PASSED }
+if (-not($BUILDNUMBER)) {exceptionExit BUILDNUMBER_NOT_PASSED }
 Write-Host "[$scriptName]   BUILDNUMBER             : $BUILDNUMBER"
 
 $REVISION = $args[2]
-if (-not($REVISION)) {exitWithCode REVISION_NOT_PASSED }
+if (-not($REVISION)) {exceptionExit REVISION_NOT_PASSED }
 Write-Host "[$scriptName]   REVISION                : $REVISION"
 
 $AUTOMATIONROOT=$args[3]
-if (-not($LOCAL_WORK_DIR)) {exitWithCode AUTOMATIONROOT_NOT_PASSED }
+if (-not($LOCAL_WORK_DIR)) {exceptionExit AUTOMATIONROOT_NOT_PASSED }
 Write-Host "[$scriptName]   AUTOMATIONROOT          : $AUTOMATIONROOT"
 
 $SOLUTIONROOT=$args[4]
-if (-not($LOCAL_WORK_DIR)) {exitWithCode SOLUTIONROOT_NOT_PASSED }
+if (-not($LOCAL_WORK_DIR)) {exceptionExit SOLUTIONROOT_NOT_PASSED }
 Write-Host "[$scriptName]   SOLUTIONROOT            : $SOLUTIONROOT"
 
 $LOCAL_WORK_DIR = $args[5]
-if (-not($LOCAL_WORK_DIR)) {exitWithCode LOCAL_NOT_PASSED }
+if (-not($LOCAL_WORK_DIR)) {exceptionExit LOCAL_NOT_PASSED }
 Write-Host "[$scriptName]   LOCAL_WORK_DIR          : $LOCAL_WORK_DIR"
 
 $REMOTE_WORK_DIR = $args[6]
-if (-not($REMOTE_WORK_DIR)) {exitWithCode REMOTE_NOT_PASSED }
+if (-not($REMOTE_WORK_DIR)) {exceptionExit REMOTE_NOT_PASSED }
 Write-Host "[$scriptName]   REMOTE_WORK_DIR         : $REMOTE_WORK_DIR"
 
 $ACTION = $args[7]
@@ -170,7 +170,7 @@ $propName = "productVersion"
 try {
 	$cdafVersion=$(& .\$AUTOMATIONROOT\remote\getProperty.ps1 $propertiesFile $propName)
 	if(!$?){ taskWarning }
-} catch { exitWithCode "PACK_GET_CDAF_VERSION" }
+} catch { exceptionExit "PACK_GET_CDAF_VERSION" }
 Write-Host "[$scriptName]   CDAF Version            : $cdafVersion"
 
 # Cannot brute force clear the workspace as the Visual Studio solution file is here
@@ -206,7 +206,7 @@ if ( $ACTION -eq "clean" ) {
 		Write-Host "[$scriptName] Process Pre-Package Tasks ..."
 		Write-Host
 		& .\$AUTOMATIONROOT\remote\execute.ps1 $SOLUTION $BUILDNUMBER "package" "$prepackageTasks" $ACTION
-		if(!$?){ exitWithCode "..\$AUTOMATIONROOT\remote\execute.ps1 $SOLUTION $BUILDNUMBER `"package`" `"$prepackageTasks`" $ACTION" }
+		if(!$?){ exceptionExit "..\$AUTOMATIONROOT\remote\execute.ps1 $SOLUTION $BUILDNUMBER `"package`" `"$prepackageTasks`" $ACTION" }
 	}
 
 	# Load Manifest, these properties are used by remote deployment
@@ -226,14 +226,14 @@ if ( $ACTION -eq "clean" ) {
 	try {
 		& .\$AUTOMATIONROOT\buildandpackage\packageLocal.ps1 $SOLUTION $BUILDNUMBER $REVISION $LOCAL_WORK_DIR $SOLUTIONROOT $AUTOMATIONROOT
 		if(!$?){ taskWarning }
-	} catch { exitWithCode("packageLocal.ps1") }
+	} catch { exceptionExit("packageLocal.ps1") }
 
 	if (( Test-Path "$remotePropertiesDir" -pathtype container) -or ( Test-Path "$SOLUTIONROOT\storeForRemote" -pathtype leaf)) {
 
 		try {
 			& .\$AUTOMATIONROOT\buildandpackage\packageRemote.ps1 $SOLUTION $BUILDNUMBER $REVISION $LOCAL_WORK_DIR $REMOTE_WORK_DIR $SOLUTIONROOT $AUTOMATIONROOT
 			if(!$?){ taskWarning }
-		} catch { exitWithCode("packageRemote.ps1") }
+		} catch { exceptionExit("packageRemote.ps1") }
 
 	} else {
 		write-host "[$scriptName] Remote Properties directory ($remotePropertiesDir) or storeForRemote file do not exist, no action performed for remote task packaging" -ForegroundColor Yellow
@@ -245,7 +245,7 @@ if ( $ACTION -eq "clean" ) {
 		Write-Host "[$scriptName] Process Post-Package Tasks ..."
 		Write-Host
 		& .\$AUTOMATIONROOT\remote\execute.ps1 $SOLUTION $BUILDNUMBER "package" "$postpackageTasks" $ACTION
-		if(!$?){ exitWithCode "..\$AUTOMATIONROOT\remote\execute.ps1 $SOLUTION $BUILDNUMBER `"package`" `"$postpackageTasks`" $ACTION" }
+		if(!$?){ exceptionExit "..\$AUTOMATIONROOT\remote\execute.ps1 $SOLUTION $BUILDNUMBER `"package`" `"$postpackageTasks`" $ACTION" }
 	}
 
 }

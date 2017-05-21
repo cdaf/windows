@@ -1,4 +1,4 @@
-function ExitWithCode { 
+function exceptionExit { 
     param ($exitcode)
     write-host
     $host.SetShouldExit($exitCode)
@@ -55,8 +55,8 @@ $cred = New-Object System.Management.Automation.PSCredential ($userID, $password
 Write-Host
 try {
 	Invoke-Command -credential $cred -ComputerName $targetHost { Write-Host "Running as $(whoami) on $(hostname), test successful" }
-	if(!$?){ ExitWithCode 1 }
-} catch { ExitWithCode 2 }
+	if(!$?){ exceptionExit 1 }
+} catch { exceptionExit 2 }
 
 Write-Host
 Write-Host "[$scriptName] ---------- stop ----------"

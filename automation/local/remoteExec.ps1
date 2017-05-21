@@ -1,4 +1,4 @@
-function exitWithCode ($taskName) {
+function exceptionExit ($taskName) {
     write-host
     write-host "[$scriptName] $taskName failed!" -ForegroundColor Red
     write-host
@@ -20,12 +20,12 @@ $remoteCommand = $args[4]
 
 $scriptName = $myInvocation.MyCommand.Name
 
-if (-not($remHost)) {exitWithCode remHost_NOT_PASSED }
+if (-not($remHost)) {exceptionExit remHost_NOT_PASSED }
 write-host "[$scriptName]   remHost       : $remHost"
 write-host "[$scriptName]   remUser       : $remUser"
 write-host "[$scriptName]   remCred       : $remCred"
 write-host "[$scriptName]   remThum       : $remThum"
-if (-not($remoteCommand)) {exitWithCode remoteCommand_NOT_PASSED }
+if (-not($remoteCommand)) {exceptionExit remoteCommand_NOT_PASSED }
 write-host "[$scriptName]   remoteCommand : $remoteCommand"
 if ($args[5]) { $argList = @($args[5]) }
 if ($args[6]) { $argList += $args[6] }

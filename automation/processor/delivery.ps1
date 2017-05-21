@@ -1,6 +1,6 @@
 # Entry Point for Build Process, child scripts inherit the functions of parent scripts, so these definitions are global for the CD process
-function exitWithCode ($exception) {
-    write-host "`n[$scriptName]   Exception details follow ..." -ForegroundColor Magenta
+function exceptionExit ($exception) {
+    write-host "`n[$scriptName] Exception details follow ..." -ForegroundColor Magenta
     echo $exception.Exception|format-list -force
 	write-host "[$scriptName]   `$host.SetShouldExit(50)" -ForegroundColor Red
 	$host.SetShouldExit(50); exit
@@ -8,7 +8,7 @@ function exitWithCode ($exception) {
 
 # Not used in this script, but defined here for all child scripts
 function taskFailure ($taskName) {
-    write-host "`n[$scriptName] Failure occured! Code returned ... $taskName" -ForegroundColor Red
+    write-host "`n[$scriptName] $taskName" -ForegroundColor Red
 	write-host "[$scriptName]   `$host.SetShouldExit(60)" -ForegroundColor Red
 	$host.SetShouldExit(60); exit
 }
@@ -54,7 +54,7 @@ function getProp ($propName) {
 	try {
 		$propValue=$(& $WORK_DIR_DEFAULT\getProperty.ps1 $propertiesFile $propName)
 		if(!$?){ taskWarning }
-	} catch { exitWithCode $_ }
+	} catch { exceptionExit $_ }
 	
     return $propValue
 }
