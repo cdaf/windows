@@ -1,10 +1,7 @@
 $scriptName = 'Capabilities.ps1'
 
-Write-Host
-Write-Host "[$scriptName] ---------- start ----------"
-
-Write-Host
-Write-Host "[$scriptName] List networking"
+Write-Host "`n[$scriptName] ---------- start ----------"
+Write-Host "`n[$scriptName] List networking"
 Write-Host "[$scriptName]   Hostname  : $(hostname)"
 
 if ((gwmi win32_computersystem).partofdomain -eq $true) {
@@ -18,7 +15,7 @@ foreach ($item in Get-WmiObject -Class Win32_NetworkAdapterConfiguration -Filter
 }
 
 Write-Host
-Write-Host "[$scriptName] List the Computer architecture, Service Pack and 3rd party software"
+Write-Host "[$scriptName] List the Computer architecture"
 Write-Host
 $computer = "."
 $sOS =Get-WmiObject -class Win32_OperatingSystem -computername $computer
@@ -30,28 +27,24 @@ foreach($sProperty in $sOS) {
 }
 
 $EditionId = (Get-ItemProperty -Path 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion' -Name 'EditionID').EditionId
-if (($EditionId -like "*nano*") -or ($EditionId -like "*core*") ) {
-	$noGUI = '(no GUI)'
-}
-write-host "  EditionId               : $EditionId $noGUI"
+write-host "  EditionId               : $EditionId"
 write-host "  PSVersion.Major         : $($PSVersionTable.PSVersion.Major)"
 
-# Disabled until I can determine why this goes async
-#Write-Host
-#Write-Host "[$scriptName] List the enabled roles"
-#Write-Host
+#Write-Host "`n[$scriptName] List the enabled roles`n"
 #$tempFile = "$env:temp\tempName.log"
 #& dism.exe /online /get-features /format:table | out-file $tempFile -Force      
-#$WinFeatures = (Import-CSV -Delim '|' -Path $tempFile -Header Name,state | Where-Object {$_.State -eq "Enabled "}) | Select Name
-#Remove-Item -Path $tempFile 
+#$WinFeatures = $((Import-CSV -Delim '|' -Path $tempFile -Header Name,state | Where-Object {$_.State -eq "Enabled "}) | Select Name)
 #Write-Host "$WinFeatures"
+#Remove-Item -Path $tempFile 
 
-Write-Host
+Write-Host "`n[$scriptName] List 3rd party components`n"
 $versionTest = cmd /c dotnet --version 2`>`&1
 if ($versionTest -like '*not recognized*') {
 	Write-Host "  dotnet core             : not installed"
 } else {
-	Write-Host "  dotnet core             : $versionTest"
+	$versionLine = $(foreach ($line in dotnet) { Select-String  -InputObject $line -CaseSensitive "Version  " })
+	$arr = $versionLine -split ':'
+	Write-Host "  dotnet core             :$($arr[1])"
 }
 
 $versionTest = cmd /c choco --version 2`>`&1
@@ -118,10 +111,8 @@ if ($versionTest -like '*not recognized*') {
 	Write-Host "  Docker                  : $($array[2])"
 }
 
-Write-Host
-Write-Host "[$scriptName] List the build tools"
+Write-Host "`n[$scriptName] List the build tools`n"
 $regkey = 'HKLM:\Software\Microsoft\MSBuild\ToolsVersions'
-Write-Host
 if ( Test-Path $regkey ) { 
 	foreach($buildTool in Get-ChildItem $regkey) {
 		Write-Host "  $buildTool"
@@ -130,10 +121,8 @@ if ( Test-Path $regkey ) {
 	Write-Host "  Build tools not found ($regkey)"
 }
 
-Write-Host
-Write-Host "[$scriptName] List the WIF Installed Versions"
+Write-Host "`n[$scriptName] List the WIF Installed Versions`n"
 $regkey = 'HKLM:\SOFTWARE\Microsoft\Windows Identity Foundation\setup'
-Write-Host
 if ( Test-Path $regkey ) { 
 	foreach($wif in Get-ChildItem $regkey) {
 		Write-Host "  $wif"
@@ -142,9 +131,7 @@ if ( Test-Path $regkey ) {
 	Write-Host "  Windows Identity Foundation not installed ($regkey)"
 }
 
-Write-Host
-Write-Host "[$scriptName] List installed MVC products (not applicable after MVC4)"
-Write-Host
+Write-Host "`n[$scriptName] List installed MVC products (not applicable after MVC4)`n"
 if (Test-Path 'C:\Program Files (x86)\Microsoft ASP.NET' ) {
 	foreach($mvc in Get-ChildItem 'C:\Program Files (x86)\Microsoft ASP.NET') {
 		Write-Host "  $mvc"
@@ -153,9 +140,7 @@ if (Test-Path 'C:\Program Files (x86)\Microsoft ASP.NET' ) {
 	Write-Host "  MVC not explicitely installed (not required for MVC 5 and above)"
 }
 
-Write-Host
-Write-Host "[$scriptName] List Web Deploy versions installed"
-Write-Host
+Write-Host "`n[$scriptName] List Web Deploy versions installed`n"
 $regkey = 'HKLM:\Software\Microsoft\IIS Extensions\MSDeploy'
 if ( Test-Path $regkey ) { 
 	foreach($msDeploy in Get-ChildItem $regkey) {
@@ -165,26 +150,27 @@ if ( Test-Path $regkey ) {
 	Write-Host "  Web Deploy not installed ($regkey)"
 }
 
-Write-Host
-Write-Host "[$scriptName] List the .NET Versions"
-
-Get-ChildItem 'HKLM:\SOFTWARE\Microsoft\NET Framework Setup\NDP' -recurse |
-Get-ItemProperty -name Version,Release -EA 0 |
-Where { $_.PSChildName -match '^(?!S)\p{L}'} |
-Select PSChildName, Version, Release, @{
-  name="Product"
-  expression={
-    switch -regex ($_.Release) {
-      "378389" { [Version]"4.5" }
-      "378675|378758" { [Version]"4.5.1" }
-      "379893" { [Version]"4.5.2" }
-      "393295|393297" { [Version]"4.6" }
-      "394254|394271" { [Version]"4.6.1" }
-      "394802|394806" { [Version]"4.6.2" }
-      {$_ -gt 394806} { [Version]"Undocumented 4.6.2 or higher, please update script" }
-    }
-  }
-}
+Write-Host "`n[$scriptName] List the .NET Versions"
+$dotnet = $(
+	Get-ChildItem 'HKLM:\SOFTWARE\Microsoft\NET Framework Setup\NDP' -recurse |
+	Get-ItemProperty -name Version,Release -EA 0 |
+	Where { $_.PSChildName -match '^(?!S)\p{L}'} |
+	Select PSChildName, Version, Release, @{
+	  name="Product"
+	  expression={
+	    switch -regex ($_.Release) {
+	      "378389" { [Version]"4.5" }
+	      "378675|378758" { [Version]"4.5.1" }
+	      "379893" { [Version]"4.5.2" }
+	      "393295|393297" { [Version]"4.6" }
+	      "394254|394271" { [Version]"4.6.1" }
+	      "394802|394806" { [Version]"4.6.2" }
+	      {$_ -gt 394806} { [Version]"Undocumented 4.6.2 or higher, please update script" }
+	    }
+	  }
+	}
+)
+$dotnet
 
 $error.clear()
 exit 0
