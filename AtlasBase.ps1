@@ -77,11 +77,20 @@ executeExpression "Set-ExecutionPolicy -ExecutionPolicy Unrestricted -Force"
 Write-Host "`n[$scriptName] Allow `"hop`""
 executeExpression "Enable-WSManCredSSP -Role Server -Force"
 
-Write-Host "`n[$scriptName] settings to support Vagrant integration, Unencypted Remote PowerShell"
+Write-Host "`n[$scriptName] Settings to support Vagrant integration, Unencypted Remote PowerShell"
 executeExpression "winrm set winrm/config `'@{MaxTimeoutms=`"1800000`"}`'"
 executeExpression "winrm set winrm/config/service `'@{AllowUnencrypted=`"true`"}`'"
 executeExpression "winrm set winrm/config/service/auth `'@{Basic=`"true`"}`'"
 executeExpression "winrm set winrm/config/client/auth `'@{Basic=`"true`"}`'"
+
+Write-Host "`n[$scriptName] Set to maximum (only applies to Server 2012, already set in 2016)"
+executeExpression "winrm set winrm/config/winrs `'@{MaxConcurrentUsers=`"100`"}`'"
+executeExpression "winrm set winrm/config/winrs `'@{MaxProcessesPerShell=`"2147483647`"}`'"
+executeExpression "winrm set winrm/config/winrs `'@{MaxMemoryPerShellMB=`"2147483647`"}`'"
+executeExpression "winrm set winrm/config/winrs `'@{MaxShellsPerUser=`"2147483647`"}`'"
+
+Write-Host "`n[$scriptName] List settings for information"
+Get-childItem WSMan:\localhost\Shell
 
 Write-Host "`n[$scriptName] Disable password policy"
 executeExpression "secedit /export /cfg c:\secpol.cfg"
@@ -95,18 +104,22 @@ executeExpression "`$admin.SetPassword(`'vagrant`')"
 executeExpression "`$admin.UserFlags.value = `$admin.UserFlags.value -bor 0x10000" # Password never expires
 executeExpression "`$admin.CommitChanges()" 
 
-Write-Host "`n[$scriptName] Create the Vagrant user (with password vagrant) in the local administrators group"
-$ADSIComp = executeExpression "[ADSI]`"WinNT://$Env:COMPUTERNAME,Computer`""
-$ADSIComp.Delete('User', 'vagrant')
-$LocalUser = executeExpression "`$ADSIComp.Create(`'User`', `'vagrant`')"
-executeExpression "`$LocalUser.SetPassword(`'vagrant`')"
-executeExpression "`$LocalUser.SetInfo()"
-executeExpression "`$LocalUser.FullName = `'Vagrant Administrator`'"
-executeExpression "`$LocalUser.SetInfo()"
-executeExpression "`$LocalUser.UserFlags.value = `$LocalUser.UserFlags.value -bor 0x10000" # Password never expires
-executeExpression "`$LocalUser.CommitChanges()"
-$de = executeExpression "[ADSI]`"WinNT://$env:computername/Administrators,group`""
-executeExpression "`$de.psbase.Invoke(`'Add`',([ADSI]`"WinNT://$env:computername/vagrant`").path)"
+Write-Host "`n[$scriptName] Create the Vagrant user (with password vagrant) in the local administrators group, only if not existing"
+if (([adsi]"WinNT://./vagrant,user").path ) { 
+	Write-Host "`n[$scriptName] Vagrant user exists, no action required."
+} else {
+	$ADSIComp = executeExpression "[ADSI]`"WinNT://$Env:COMPUTERNAME,Computer`""
+	$ADSIComp.Delete('User', 'vagrant')
+	$LocalUser = executeExpression "`$ADSIComp.Create(`'User`', `'vagrant`')"
+	executeExpression "`$LocalUser.SetPassword(`'vagrant`')"
+	executeExpression "`$LocalUser.SetInfo()"
+	executeExpression "`$LocalUser.FullName = `'Vagrant Administrator`'"
+	executeExpression "`$LocalUser.SetInfo()"
+	executeExpression "`$LocalUser.UserFlags.value = `$LocalUser.UserFlags.value -bor 0x10000" # Password never expires
+	executeExpression "`$LocalUser.CommitChanges()"
+	$de = executeExpression "[ADSI]`"WinNT://$env:computername/Administrators,group`""
+	executeExpression "`$de.psbase.Invoke(`'Add`',([ADSI]`"WinNT://$env:computername/vagrant`").path)"
+}
 
 if ( $skipUpdates -eq 'yes' ) {
 	if ($smtpServer) {
@@ -124,4 +137,3 @@ if ( $skipUpdates -eq 'yes' ) {
 }
 
 Write-Host "`n[$scriptName] ---------- stop ----------"
-exit 0
