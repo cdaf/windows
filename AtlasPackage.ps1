@@ -48,7 +48,11 @@ if ($hypervisor) {
 if ($diskDir) {
     Write-Host "[$scriptName] diskDir    : $diskDir"
 } else {
-    Write-Host "[$scriptName] diskDir    : (not specified, required if VirtualBox)"
+	if ( $hypervisor -eq 'virtualbox' ) {
+	    Write-Host "[$scriptName] diskDir required for VirtualBox! Exit with LASTEXITCODE 103"; exit 103
+	} else {
+	    Write-Host "[$scriptName] diskDir    : (not specified, only required if VirtualBox)"
+    }
 }
 
 if ($emailTo) {
@@ -92,7 +96,7 @@ executeExpression "cd $buildDir"
 
 if ($hypervisor -eq 'virtualbox') {
 
-	$diskPath = "${diskDir}\${boxName}\WindowsServerCore.vdi"
+	$diskPath = "${diskDir}\${boxName}.vdi"
 	Write-Host "`n[$scriptName] Export VirtualBox VM"
 	if (Test-Path "$diskPath") {
 		executeExpression "& `"C:\Program Files\Oracle\VirtualBox\VBoxManage.exe`" modifyhd `"$diskPath`" --compact"
