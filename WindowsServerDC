@@ -34,6 +34,7 @@ Vagrant.configure(2) do |allhosts|
       hyperv.ip_address_timeout = 300 # 5 minutes, default is 2 minutes (120 seconds)
       override.vm.provision 'shell', path: './automation/remote/capabilities.ps1'
       override.vm.provision 'shell', path: './automation/provisioning/newUser.ps1', args: 'deployer swUwe5aG yes'
+      override.vm.provision 'shell', path: './automation/provisioning/removeUser.ps1', args: 'vagrant'
     end
   end
 

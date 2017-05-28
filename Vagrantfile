@@ -36,7 +36,7 @@ Vagrant.configure(2) do |allhosts|
     # Microsoft Hyper-V does not support NAT or setting hostname. vagrant up app --provider hyperv
     target.vm.provider 'hyperv' do |hyperv, override|
       hyperv.ip_address_timeout = 300 # 5 minutes, default is 2 minutes (120 seconds)
-      override.vm.provision 'shell', path: './automation/provisioning/deleteLocalUser.ps1', args: 'vagrant'
+      override.vm.provision 'shell', path: './automation/provisioning/removeUser.ps1', args: 'vagrant'
     end
   end
 
