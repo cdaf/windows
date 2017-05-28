@@ -109,7 +109,6 @@ if (([adsi]"WinNT://./vagrant,user").path ) {
 	Write-Host "`n[$scriptName] Vagrant user exists, no action required."
 } else {
 	$ADSIComp = executeExpression "[ADSI]`"WinNT://$Env:COMPUTERNAME,Computer`""
-	$ADSIComp.Delete('User', 'vagrant')
 	$LocalUser = executeExpression "`$ADSIComp.Create(`'User`', `'vagrant`')"
 	executeExpression "`$LocalUser.SetPassword(`'vagrant`')"
 	executeExpression "`$LocalUser.SetInfo()"
