@@ -2,6 +2,7 @@ Param (
   [string]$boxname,
   [string]$hypervisor,
   [string]$diskDir,
+  [string]$vagrantfile,
   [string]$emailTo,
   [string]$smtpServer,
   [string]$destroy
@@ -32,46 +33,52 @@ function executeExpression ($expression) {
 
 Write-Host "`n[$scriptName] ---------- start ----------"
 if ($boxname) {
-    Write-Host "[$scriptName] boxname    : $boxname"
+    Write-Host "[$scriptName] boxname     : $boxname"
 } else {
 	$boxname = 'WindowsServerStandard'
-    Write-Host "[$scriptName] boxname    : (not specified, defaulted to $boxname)"
+    Write-Host "[$scriptName] boxname     : (not specified, defaulted to $boxname)"
 }
 
 if ($hypervisor) {
-    Write-Host "[$scriptName] hypervisor : $hypervisor"
+    Write-Host "[$scriptName] hypervisor  : $hypervisor"
 } else {
 	$hypervisor = 'virtualbox'
-    Write-Host "[$scriptName] hypervisor : (not specified, defaulted to $hypervisor)"
+    Write-Host "[$scriptName] hypervisor  : (not specified, defaulted to $hypervisor)"
 }
 
 if ($diskDir) {
-    Write-Host "[$scriptName] diskDir    : $diskDir"
+    Write-Host "[$scriptName] diskDir     : $diskDir"
 } else {
 	if ( $hypervisor -eq 'virtualbox' ) {
 	    Write-Host "[$scriptName] diskDir required for VirtualBox! Exit with LASTEXITCODE 103"; exit 103
 	} else {
-	    Write-Host "[$scriptName] diskDir    : (not specified, only required if VirtualBox)"
+	    Write-Host "[$scriptName] diskDir     : (not specified, only required if VirtualBox)"
     }
 }
 
-if ($emailTo) {
-    Write-Host "[$scriptName] emailTo    : $emailTo"
+if ($vagrantfile) {
+    Write-Host "[$scriptName] vagrantfile : $vagrantfile"
 } else {
-    Write-Host "[$scriptName] emailTo    : (not specified, email will not be attempted)"
+    Write-Host "[$scriptName] vagrantfile : (not specified, email will not be attempted)"
+}
+
+if ($emailTo) {
+    Write-Host "[$scriptName] emailTo     : $emailTo"
+} else {
+    Write-Host "[$scriptName] emailTo     : (not specified, email will not be attempted)"
 }
 
 if ($smtpServer) {
-    Write-Host "[$scriptName] smtpServer : $smtpServer"
+    Write-Host "[$scriptName] smtpServer  : $smtpServer"
 } else {
-    Write-Host "[$scriptName] smtpServer : (not specified, email will not be attempted)"
+    Write-Host "[$scriptName] smtpServer  : (not specified, email will not be attempted)"
 }
 
 if ($destroy) {
-    Write-Host "[$scriptName] destroy : $destroy"
+    Write-Host "[$scriptName] destroy     : $destroy"
 } else {
 	$destroy = 'yes'
-    Write-Host "[$scriptName] destroy : $destroy (default)"
+    Write-Host "[$scriptName] destroy     : $destroy (default)"
 }
 
 $logFile = "atlasPackage_${hypervisor}.txt"
@@ -139,10 +146,10 @@ if (Test-Path "$testDir ") {
 executeExpression "vagrant box remove cdaf/$boxName --box-version 0" # Remove any local (non-Atlas) images
 executeExpression "vagrant box add cdaf/$boxName $packageFile --force"
 executeExpression "cd .."
-if (!($boxname -eq 'WindowsServerStandard')) {
-	Write-Host "`n[$scriptName] Override default Vagrantfile"
+if ( $vagrantfile ) {
+	Write-Host "`n[$scriptName] Override default Vagrantfile with $vagrantfile"
 	executeExpression "mv Vagrantfile Vagrantfiledefault"
-	executeExpression "mv VagrantfileDC Vagrantfile"
+	executeExpression "mv $vagrantfile Vagrantfile"
 }
 executeExpression "vagrant up"
 
@@ -151,9 +158,9 @@ if ($destroy -eq 'yes') {
 	executeExpression "vagrant destroy -f"
 }
 
-if (!($boxname -eq 'WindowsServerStandard')) {
+if ( $vagrantfile ) {
 	Write-Host "`n[$scriptName] Reinstate default Vagrantfile"
-	executeExpression "mv Vagrantfile VagrantfileDC"
+	executeExpression "mv Vagrantfile $vagrantfile"
 	executeExpression "mv Vagrantfiledefault Vagrantfile"
 }
 
