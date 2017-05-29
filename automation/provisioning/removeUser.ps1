@@ -2,12 +2,11 @@
 function executeExpression ($expression) {
 	$error.clear()
 	Write-Host "[$scriptName] $expression"
-	Add-Content "$imageLog" "[$scriptName] $expression"
 	try {
 		$output = Invoke-Expression $expression
-	    if(!$?) { Write-Host "[$scriptName] `$? = $?"; Add-Content "$imageLog" "[$scriptName] `$? = $?"; emailAndExit 1 }
-	} catch { echo $_.Exception|format-list -force; Add-Content "$imageLog" "$_.Exception|format-list"; emailAndExit 2 }
-    if ( $error[0] ) { Write-Host "[$scriptName] `$error[0] = $error"; Add-Content "$imageLog" "[$scriptName] `$error[0] = $error"; emailAndExit 3 }
+	    if(!$?) { Write-Host "[$scriptName] `$? = $?"; emailAndExit 1 }
+	} catch { echo $_.Exception|format-list -force; emailAndExit 2 }
+    if ( $error[0] ) { Write-Host "[$scriptName] `$error[0] = $error"; emailAndExit 3 }
     return $output
 }
 
@@ -28,15 +27,12 @@ if ( $env:PROV_SCRIPT_PATH ) {
 
 if ((gwmi win32_computersystem).partofdomain -eq $true) {
 
-	Write-Host
-	Write-Host "[$scriptName] Remove the new user"
-	Write-Host
+	Write-Host "`n[$scriptName] Remove the new user`n"
 	executeExpression  "Remove-ADUser -Name $userName"
 
 } else {
 
-	Write-Host
-	Write-Host "[$scriptName] Workgroup Host, delete local user ($userName)."
+	Write-Host "`n[$scriptName] Workgroup Host, delete local user ($userName).`n"
 	$ADSIComp = executeExpression "[ADSI]`"WinNT://$Env:COMPUTERNAME,Computer`""
 	executeExpression "`$ADSIComp.Delete('User', `"$userName`")"
 

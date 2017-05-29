@@ -8,6 +8,10 @@
 
 # Zip Package creation requires PowerShell v3 or above and .NET 4.5 or above.
 
+# SMB credentials are those for the user executing vagrant commands, if domain user, use @ format
+# [Environment]::SetEnvironmentVariable('SMB_USERNAME', 'username', 'User')
+# [Environment]::SetEnvironmentVariable('SMB_PASSWORD', 'p4ssWord!', 'User')
+
 Vagrant.configure(2) do |allhosts|
 
   allhosts.vm.define 'target' do |target|
@@ -36,6 +40,7 @@ Vagrant.configure(2) do |allhosts|
     # Microsoft Hyper-V does not support NAT or setting hostname. vagrant up app --provider hyperv
     target.vm.provider 'hyperv' do |hyperv, override|
       hyperv.ip_address_timeout = 300 # 5 minutes, default is 2 minutes (120 seconds)
+      override.vm.synced_folder ".", "/vagrant", type: "smb", smb_username: "#{ENV['SMB_USERNAME']}", smb_password: "#{ENV['SMB_PASSWORD']}"
       override.vm.provision 'shell', path: './automation/provisioning/removeUser.ps1', args: 'vagrant'
     end
   end
