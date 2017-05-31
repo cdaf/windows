@@ -100,8 +100,8 @@ function installFourAndAbove {
 }
 
 $scriptName = 'dotNET.ps1'
-$latest = '4.6.2'
-$versionChoices = "$latest, 4.6.1, 4.5.2, 4.5.1, 4.0, 3.5 or latest"
+$latest = '4.7'
+$versionChoices = "$latest, 4.6.2, 4.6.1, 4.5.2, 4.5.1, 4.0, 3.5 or latest"
 Write-Host
 Write-Host "[$scriptName] ---------- start ----------"
 if ($version) {
@@ -172,16 +172,25 @@ if ($env:interactive) {
 
 Write-Host
 switch ($version) {
+	'4.7' {
+		if ($sdk -eq 'yes') {
+			$file = 'NDP47-DevPack-KB3186612-ENU.exe'
+			$uri = 'https://download.microsoft.com/download/A/1/D/A1D07600-6915-4CB8-A931-9A980EF47BB7/' + $file
+		} else {
+			$file = 'NDP47-KB3186497-x86-x64-AllOS-ENU.exe'
+			$uri = 'http://download.microsoft.com/download/D/D/3/DD35CC25-6E9C-484B-A746-C5BE0C923290/' + $file
+		}
+		$release = '460798' # Lowest of 460798 (Win 10) and 460805 (all other OS)
+	}
 	'4.6.2' {
 		if ($sdk -eq 'yes') {
 			$file = 'NDP462-DevPack-KB3151934-ENU.exe'
 			$uri = 'https://download.microsoft.com/download/E/F/D/EFD52638-B804-4865-BB57-47F4B9C80269/' + $file
-			$release = '394802'
 		} else {
 			$file = 'NDP462-KB3151800-x86-x64-AllOS-ENU.exe'
 			$uri = 'https://download.microsoft.com/download/F/9/4/F942F07D-F26F-4F30-B4E3-EBD54FABA377/' + $file
-			$release = '394802'
 		}
+		$release = '394802' # Lowest of 394802 (Win 10) and 394806 (all other OS)
 	}
 	'4.6.1' {
 		$file = 'NDP461-KB3102436-x86-x64-AllOS-ENU.exe'
