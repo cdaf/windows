@@ -36,7 +36,7 @@ Vagrant.configure(2) do |allhosts|
     # Microsoft Hyper-V does not support NAT or setting hostname. vagrant up app --provider hyperv
     dc.vm.provider 'hyperv' do |hyperv, override|
       hyperv.ip_address_timeout = 300 # 5 minutes, default is 2 minutes (120 seconds)
-      override.vm.synced_folder ".", "/vagrant", type: "smb", VAGRANT_SMB_USER: "#{ENV['VAGRANT_SMB_USER']}", VAGRANT_SMB_PASS: "#{ENV['VAGRANT_SMB_PASS']}"
+      override.vm.synced_folder ".", "/vagrant", type: "smb", smb_username: "#{ENV['VAGRANT_SMB_USER']}", smb_password: "#{ENV['VAGRANT_SMB_PASS']}"
       override.vm.provision 'shell', path: './automation/remote/capabilities.ps1'
       override.vm.provision 'shell', path: './automation/provisioning/newUser.ps1', args: 'deployer swUwe5aG yes'
       override.vm.provision 'shell', path: './automation/provisioning/removeUser.ps1', args: 'vagrant'
