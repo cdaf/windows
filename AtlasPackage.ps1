@@ -131,11 +131,30 @@ if ($hypervisor -eq 'virtualbox') {
 	} 
 	Add-Content metadata.json "{`n  ""provider"": ""hyperv""`n}"
 	executeExpression "cat metadata.json"
-	executeExpression "tar cvzf ../$packageFile ./*"
-	  
+
+    $versionTest = cmd /c bsdtar --version 2`>`&1
+    if ($versionTest -like '*not recognized*') {
+    	Write-Host "`n[$scriptName] BSD Tar not installed, compress with tar"
+    	Write-Host "`n[$scriptName]   tar cvzf ../$packageFile ./*"
+        $proc = Start-Process -FilePath 'tar' -ArgumentList "cvzf ../$packageFile ./*" -PassThru -Wait -NoNewWindow
+        if ( $proc.ExitCode -ne 0 ) {
+	        Write-Host "`n[$scriptName] Exit with `$LASTEXITCODE = $($proc.ExitCode)`n"
+            exit $proc.ExitCode
+        }
+    } else {
+    	Write-Host "`n[$scriptName] Use BSD Tar ($versionTest) with maximum compression (lzma)"
+    	Write-Host "`n[$scriptName]   bsdtar --lzma -cvf ../$packageFile *"
+        $proc = Start-Process -FilePath 'bsdtar' -ArgumentList "--lzma -cvf ../$packageFile *" -PassThru -Wait -NoNewWindow
+        if ( $proc.ExitCode -ne 0 ) {
+	        Write-Host "`n[$scriptName] Exit with `$LASTEXITCODE = $($proc.ExitCode)`n"
+            exit $proc.ExitCode
+        }
+    }
+    
 	Write-Host "`n[$scriptName] Remove VM export files"
 	executeExpression "cd.."
 	executeExpression "Remove-Item $boxname -Force -Recurse"
+
 }
 
 Write-Host "`n[$scriptName] Initialise and start"
@@ -143,19 +162,40 @@ $testDir = 'packageTest'
 if (Test-Path "$testDir ") {
 	executeExpression "Remove-Item $testDir  -Recurse -Force"
 }
-executeExpression "vagrant box remove cdaf/$boxName --box-version 0" # Remove any local (non-Atlas) images
-executeExpression "vagrant box add cdaf/$boxName $packageFile --force"
+executeExpression "vagrant box remove cdaf/$boxName --box-version 0" # Remove any local (non-Atlas) images, ignore error if not exist
+
+Write-Host "`n[$scriptName] vagrant box add cdaf/$boxName $packageFile --force"
+$proc = Start-Process -FilePath 'vagrant' -ArgumentList "box add cdaf/$boxName $packageFile --force" -PassThru -Wait -NoNewWindow
+if ( $proc.ExitCode -ne 0 ) {
+	Write-Host "`n[$scriptName] Exit with `$LASTEXITCODE = $($proc.ExitCode)`n"
+    exit $proc.ExitCode
+}
+
 executeExpression "cd .."
 if ( $vagrantfile ) {
 	Write-Host "`n[$scriptName] Override default Vagrantfile with $vagrantfile"
 	executeExpression "mv Vagrantfile Vagrantfiledefault"
 	executeExpression "mv $vagrantfile Vagrantfile"
 }
-executeExpression "vagrant up"
+
+Write-Host "`n[$scriptName] vagrant up"
+$proc = Start-Process -FilePath 'vagrant' -ArgumentList 'up' -PassThru -Wait -NoNewWindow
+if ( $proc.ExitCode -ne 0 ) {
+	Write-Host "`n[$scriptName] Exit with `$LASTEXITCODE = $($proc.ExitCode)`n"
+    exit $proc.ExitCode
+}
 
 if ($destroy -eq 'yes') { 
 	Write-Host "`n[$scriptName] Cleanup after test"
-	executeExpression "vagrant destroy -f"
+    Write-Host "`n[$scriptName] vagrant destroy -f"
+    $proc = Start-Process -FilePath 'vagrant' -ArgumentList 'destroy -f' -PassThru -Wait -NoNewWindow
+    if ( $proc.ExitCode -ne 0 ) {
+	    Write-Host "`n[$scriptName] Exit with `$LASTEXITCODE = $($proc.ExitCode)`n"
+        exit $proc.ExitCode
+    }
+
+    Write-Host "`n[$scriptName] Clean-up Vagrant Temporary files"
+    executeExpression "Remove-Item -Recurse $env:USERPROFILE\.vagrant.d\tmp\*"
 }
 
 if ( $vagrantfile ) {
