@@ -220,7 +220,7 @@ switch ($version) {
 			$file = 'NDP451-KB2858728-x86-x64-AllOS-ENU.exe'
 			$uri = 'https://download.microsoft.com/download/1/6/7/167F0D79-9317-48AE-AEDB-17120579F8E2/' + $file
 		}
-		$release = '378675'
+		$release = '378675' # Lowest of 378675 (Windows 8.1 or Windows Server 2012 R2) and 378758 (Windows 8, Windows 7 SP1, or Windows Vista SP2)
 	}
 	'4.0' {
 		$file = 'dotNetFx40_Full_x86_x64.exe'
