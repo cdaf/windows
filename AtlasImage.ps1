@@ -6,14 +6,6 @@ Param (
 )
 $scriptName = 'AtlasImage.ps1'
 
-# Common expression logging and error handling function, copied, not referenced to ensure atomic process
-function emailAndExit ($exitCode) {
-	if ($smtpServer) {
-		executeExpression "Send-MailMessage -To `"$emailTo`" -From `'no-reply@cdaf.info`' -Subject `"$scriptName [$hypervisor] ERROR $exitCode`" -SmtpServer `"$smtpServer`""
-	}
-	exit $exitCode
-}
-
 function executeExpression ($expression) {
 	$error.clear()
 	$lastExitCode = 0
@@ -26,6 +18,21 @@ function executeExpression ($expression) {
     if ( $error[0] ) { Write-Host "[$scriptName] `$error[0] = $error"; Add-Content "$imageLog" "[$scriptName] `$error[0] = $error"; emailAndExit 3 }
     if ( $lastExitCode -ne 0 ) { Write-Host "[$scriptName] `$lastExitCode = $lastExitCode "; exit $lastExitCode }
     return $output
+}
+
+# Exception Handling email sending
+function emailAndExit ($exitCode) {
+	if ($smtpServer) {
+		Send-MailMessage -To "$emailTo" -From 'no-reply@cdaf.info' -Subject "[$scriptName][$hypervisor] ERROR $exitCode" -SmtpServer "$smtpServer"
+	}
+	exit $exitCode
+}
+
+# Informational email notification 
+function emailProgress ($subject) {
+	if ($smtpServer) {
+		Send-MailMessage -To "$emailTo" -From 'no-reply@cdaf.info' -Subject "[$scriptName][$hypervisor] $subject" -SmtpServer "$smtpServer"
+	}
 }
 
 Write-Host "`n[$scriptName] ---------- start ----------"
@@ -57,16 +64,13 @@ if ($sysprep) {
 
 $imageLog = 'c:\VagrantBox.txt'
 
-if ($smtpServer) {
-	executeExpression "Send-MailMessage -To `"$emailTo`" -From `'no-reply@cdaf.info`' -Subject `"$scriptName [$hypervisor] starting, logging to $imageLog`" -SmtpServer `"$smtpServer`""
-}
+emailProgress "starting, logging to $imageLog"
 	
 if ( $hypervisor -eq 'virtualbox' ) {
 	executeExpression ".\automation\provisioning\mountImage.ps1 $env:userprofile\VBoxGuestAdditions_5.1.18.iso http://download.virtualbox.org/virtualbox/5.1.18/VBoxGuestAdditions_5.1.18.iso"
 	$result = executeExpression "[Environment]::GetEnvironmentVariable(`'MOUNT_DRIVE_LETTER`', `'User`')"
-	if ($smtpServer) {
-		executeExpression "Send-MailMessage -To `"$emailTo`" -From `'no-reply@cdaf.info`' -Subject `"$scriptName [$hypervisor] Guest Additiions requires manual intervention ...`" -SmtpServer `"$smtpServer`""
-	}
+	emailProgress "Guest Additiions requires manual intervention ..."
+	
 	executeExpression "`$proc = Start-Process -FilePath `"$result\VBoxWindowsAdditions-amd64.exe`" -ArgumentList `'/S`' -PassThru -Wait"
 	executeExpression ".\automation\provisioning\mountImage.ps1 $env:userprofile\VBoxGuestAdditions_5.1.18.iso"
 	executeExpression "Remove-Item $env:userprofile\VBoxGuestAdditions_5.1.18.iso"
@@ -157,16 +161,12 @@ if ($sysprep -eq 'yes') {
 	    executeExpression "Copy-Item $PWD\unattend.xml $scriptDir"
 	}
 	executeExpression "cat $scriptDir\unattend.xml"
-	if ($smtpServer) {
-		executeExpression "Send-MailMessage -To `"$emailTo`" -From `'no-reply@cdaf.info`' -Subject `"$scriptName [$hypervisor] last comms, starting sysprep`" -SmtpServer `"$smtpServer`""
-	}
+	emailProgress "last comms, starting sysprep"
 	executeExpression "& C:\windows\system32\sysprep\sysprep.exe /generalize /oobe /shutdown /unattend:$scriptDir\unattend.xml"
 	
 } else {
 	Write-Host "[$scriptName] sysprep = $sysprep, skipping unattended install and sysrep."
-	if ($smtpServer) {
-		executeExpression "Send-MailMessage -To `"$emailTo`" -From `'no-reply@cdaf.info`' -Subject `"$scriptName [$hypervisor] last comms, sysprep = $sysprep, skipping unattended install and sysrep.`" -SmtpServer `"$smtpServer`""
-	}
+	emailProgress "last comms, sysprep = $sysprep, skipping unattended install and sysrep."
 	executeExpression "shutdown /s /t 2"
 }
 

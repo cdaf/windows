@@ -9,14 +9,6 @@ Param (
 )
 $scriptName = 'AtlasPackage.ps1'
 
-# Common expression logging and error handling function, copied, not referenced to ensure atomic process
-function emailAndExit ($exitCode) {
-	if ($smtpServer) {
-		executeExpression "Send-MailMessage -To `"$emailTo`" -From `'no-reply@cdaf.info`' -Subject `"[$scriptName][$hypervisor] ERROR $exitCode`" -SmtpServer `"$smtpServer`""
-	}
-	exit $exitCode
-}
-
 function executeExpression ($expression) {
 	$error.clear()
 	$lastExitCode = 0
@@ -29,6 +21,21 @@ function executeExpression ($expression) {
     if ( $error[0] ) { Write-Host "[$scriptName] `$error[0] = $error"; Add-Content "$logFile" "[$scriptName] `$error[0] = $error"; emailAndExit 3 }
     if ( $lastExitCode -ne 0 ) { Write-Host "[$scriptName] `$lastExitCode = $lastExitCode "; exit $lastExitCode }
     return $output
+}
+
+# Exception Handling email sending
+function emailAndExit ($exitCode) {
+	if ($smtpServer) {
+		Send-MailMessage -To "$emailTo" -From 'no-reply@cdaf.info' -Subject "[$scriptName][$hypervisor] ERROR $exitCode" -SmtpServer "$smtpServer"
+	}
+	exit $exitCode
+}
+
+# Informational email notification 
+function emailProgress ($subject) {
+	if ($smtpServer) {
+		Send-MailMessage -To "$emailTo" -From 'no-reply@cdaf.info' -Subject "[$scriptName][$hypervisor] $subject" -SmtpServer "$smtpServer"
+	}
 }
 
 Write-Host "`n[$scriptName] ---------- start ----------"
@@ -81,7 +88,7 @@ if ($destroy) {
     Write-Host "[$scriptName] destroy     : $destroy (default)"
 }
 
-$logFile = "atlasPackage_${hypervisor}.txt"
+$logFile = "$(pwd)\atlasPackage_${hypervisor}.txt"
 if (Test-Path "$logFile") {
     Write-Host "`n[$scriptName] Logfile exists ($logFile), delete for new run."
 	executeExpression "Remove-Item `"$logFile`""
@@ -94,9 +101,7 @@ if (Test-Path "$buildDir") {
 }
 
 $packageFile = "${buildDir}.box"
-if ($smtpServer) {
-	executeExpression "Send-MailMessage -To `"$emailTo`" -From `'no-reply@cdaf.info`' -Subject `"[$scriptName] packaging ${packageFile}, logging to ${logFile}.`" -SmtpServer `"$smtpServer`""
-}
+emailProgress "packaging ${packageFile}, logging to ${logFile}."
 
 executeExpression "mkdir $buildDir"
 executeExpression "cd $buildDir"
@@ -136,6 +141,7 @@ if ($hypervisor -eq 'virtualbox') {
     if ($versionTest -like '*not recognized*') {
     	Write-Host "`n[$scriptName] BSD Tar not installed, compress with tar"
     	Write-Host "`n[$scriptName]   tar cvzf ../$packageFile ./*"
+		Add-Content "$logFile" "[$scriptName] tar cvzf ../$packageFile ./*"
         $proc = Start-Process -FilePath 'tar' -ArgumentList "cvzf ../$packageFile ./*" -PassThru -Wait -NoNewWindow
         if ( $proc.ExitCode -ne 0 ) {
 	        Write-Host "`n[$scriptName] Exit with `$LASTEXITCODE = $($proc.ExitCode)`n"
@@ -144,6 +150,7 @@ if ($hypervisor -eq 'virtualbox') {
     } else {
     	Write-Host "`n[$scriptName] Use BSD Tar ($versionTest) with maximum compression (lzma)"
     	Write-Host "`n[$scriptName]   bsdtar --lzma -cvf ../$packageFile *"
+		Add-Content "$logFile" "[$scriptName] bsdtar --lzma -cvf ../$packageFile *"
         $proc = Start-Process -FilePath 'bsdtar' -ArgumentList "--lzma -cvf ../$packageFile *" -PassThru -Wait -NoNewWindow
         if ( $proc.ExitCode -ne 0 ) {
 	        Write-Host "`n[$scriptName] Exit with `$LASTEXITCODE = $($proc.ExitCode)`n"
@@ -165,6 +172,7 @@ if (Test-Path "$testDir ") {
 executeExpression "vagrant box remove cdaf/$boxName --box-version 0" # Remove any local (non-Atlas) images, ignore error if not exist
 
 Write-Host "`n[$scriptName] vagrant box add cdaf/$boxName $packageFile --force"
+Add-Content "$logFile" "[$scriptName] vagrant box add cdaf/$boxName $packageFile --force"
 $proc = Start-Process -FilePath 'vagrant' -ArgumentList "box add cdaf/$boxName $packageFile --force" -PassThru -Wait -NoNewWindow
 if ( $proc.ExitCode -ne 0 ) {
 	Write-Host "`n[$scriptName] Exit with `$LASTEXITCODE = $($proc.ExitCode)`n"
@@ -179,6 +187,7 @@ if ( $vagrantfile ) {
 }
 
 Write-Host "`n[$scriptName] vagrant up"
+Add-Content "$logFile" "[$scriptName] vagrant up"
 $proc = Start-Process -FilePath 'vagrant' -ArgumentList 'up' -PassThru -Wait -NoNewWindow
 if ( $proc.ExitCode -ne 0 ) {
 	Write-Host "`n[$scriptName] Exit with `$LASTEXITCODE = $($proc.ExitCode)`n"
@@ -188,6 +197,7 @@ if ( $proc.ExitCode -ne 0 ) {
 if ($destroy -eq 'yes') { 
 	Write-Host "`n[$scriptName] Cleanup after test"
     Write-Host "`n[$scriptName] vagrant destroy -f"
+	Add-Content "$logFile" "[$scriptName] vagrant destroy -f"
     $proc = Start-Process -FilePath 'vagrant' -ArgumentList 'destroy -f' -PassThru -Wait -NoNewWindow
     if ( $proc.ExitCode -ne 0 ) {
 	    Write-Host "`n[$scriptName] Exit with `$LASTEXITCODE = $($proc.ExitCode)`n"
@@ -204,9 +214,6 @@ if ( $vagrantfile ) {
 	executeExpression "mv Vagrantfiledefault Vagrantfile"
 }
 
-if ($smtpServer) {
-	executeExpression "Send-MailMessage -To `"$emailTo`" -From `'no-reply@cdaf.info`' -Subject `"[$scriptName] Final notifcation, package of ${packageFile} complete`" -SmtpServer `"$smtpServer`""
-}
+emailProgress "Final notifcation, package of ${packageFile} complete"
 
 Write-Host "`n[$scriptName] ---------- stop ----------"
-exit 0

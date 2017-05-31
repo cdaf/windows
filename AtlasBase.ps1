@@ -5,14 +5,6 @@ Param (
 )
 $scriptName = 'AtlasBase.ps1'
 
-# Common expression logging and error handling function, copied, not referenced to ensure atomic process
-function emailAndExit ($exitCode) {
-	if ($smtpServer) {
-		executeExpression "Send-MailMessage -To `"$emailTo`" -From `'no-reply@cdaf.info`' -Subject `"[$scriptName] ERROR $exitCode`" -SmtpServer `"$smtpServer`""
-	}
-	exit $exitCode
-}
-
 function executeExpression ($expression) {
 	$error.clear()
 	$lastExitCode = 0
@@ -25,6 +17,21 @@ function executeExpression ($expression) {
     if ( $error[0] ) { Write-Host "[$scriptName] `$error[0] = $error"; Add-Content "$imageLog" "[$scriptName] `$error[0] = $error"; emailAndExit 3 }
     if ( $lastExitCode -ne 0 ) { Write-Host "[$scriptName] `$lastExitCode = $lastExitCode "; exit $lastExitCode }
     return $output
+}
+
+# Exception Handling email sending
+function emailAndExit ($exitCode) {
+	if ($smtpServer) {
+		Send-MailMessage -To "$emailTo" -From 'no-reply@cdaf.info' -Subject "[$scriptName][$hypervisor] ERROR $exitCode" -SmtpServer "$smtpServer"
+	}
+	exit $exitCode
+}
+
+# Informational email notification 
+function emailProgress ($subject) {
+	if ($smtpServer) {
+		Send-MailMessage -To "$emailTo" -From 'no-reply@cdaf.info' -Subject "[$scriptName][$hypervisor] $subject" -SmtpServer "$smtpServer"
+	}
 }
 
 Write-Host "`n[$scriptName] ---------- start ----------"
@@ -50,9 +57,7 @@ if ($skipUpdates) {
 
 $imageLog = 'c:\VagrantBox.txt'
 
-if ($smtpServer) {
-	executeExpression "Send-MailMessage -To `"$emailTo`" -From `'no-reply@cdaf.info`' -Subject `"[$scriptName] starting, logging to $imageLog`" -SmtpServer `"$smtpServer`""
-}
+emailProgress "starting, logging to $imageLog"
 
 Write-Host "`n[$scriptName] Enable Remote Desktop and Open firewall"
 $obj = executeExpression "Get-WmiObject -Class `"Win32_TerminalServiceSetting`" -Namespace root\cimv2\terminalservices"
@@ -121,17 +126,13 @@ if (([adsi]"WinNT://./vagrant,user").path ) {
 }
 
 if ( $skipUpdates -eq 'yes' ) {
-	if ($smtpServer) {
-		executeExpression "Send-MailMessage -To `"$emailTo`" -From `'no-reply@cdaf.info`' -Subject `"[$scriptName] Base image complete (no updates applied), shutdown ...`" -SmtpServer `"$smtpServer`""
-	}
+	emailProgress "Base image complete (no updates applied), shutdown ..."
 	executeExpression "shutdown /s /t 60"
 	
 } else {
 	Write-Host "`n[$scriptName] Apply Windows Updates"
 	executeExpression "./automation/provisioning/applyWindowsUpdates.ps1 no"
-	if ($smtpServer) {
-		executeExpression "Send-MailMessage -To `"$emailTo`" -From `'no-reply@cdaf.info`' -Subject `"[$scriptName] Windows Updates applied, reboot ...`" -SmtpServer `"$smtpServer`""
-	}
+	emailProgress "Windows Updates applied, reboot ..."
 	executeExpression "shutdown /r /t 60"
 }
 
