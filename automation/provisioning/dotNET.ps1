@@ -193,18 +193,33 @@ switch ($version) {
 		$release = '394802' # Lowest of 394802 (Win 10) and 394806 (all other OS)
 	}
 	'4.6.1' {
-		$file = 'NDP461-KB3102436-x86-x64-AllOS-ENU.exe'
-		$uri = 'https://download.microsoft.com/download/E/4/1/E4173890-A24A-4936-9FC9-AF930FE3FA40/' + $file
+		if ($sdk -eq 'yes') {
+			$file = 'NDP461-DevPack-KB3105179-ENU.exe'
+			$uri = 'https://download.microsoft.com/download/F/1/D/F1DEB8DB-D277-4EF9-9F48-3A65D4D8F965/' + $file
+		} else {
+			$file = 'NDP461-KB3102436-x86-x64-AllOS-ENU.exe'
+			$uri = 'https://download.microsoft.com/download/E/4/1/E4173890-A24A-4936-9FC9-AF930FE3FA40/' + $file
+		}
 		$release = '394254'
 	}
 	'4.5.2' {
-		$file = 'NDP452-KB2901907-x86-x64-AllOS-ENU.exe'
-		$uri = 'https://download.microsoft.com/download/E/2/1/E21644B5-2DF2-47C2-91BD-63C560427900/' + $file
+		if ($sdk -eq 'yes') {
+			$file = 'NDP452-KB2901951-x86-x64-DevPack.exe'
+			$uri = 'https://download.microsoft.com/download/4/3/B/43B61315-B2CE-4F5B-9E32-34CCA07B2F0E/' + $file
+		} else {
+			$file = 'NDP452-KB2901907-x86-x64-AllOS-ENU.exe'
+			$uri = 'https://download.microsoft.com/download/E/2/1/E21644B5-2DF2-47C2-91BD-63C560427900/' + $file
+		}
 		$release = '379893'
 	}
 	'4.5.1' {
-		$file = 'NDP451-KB2858728-x86-x64-AllOS-ENU.exe'
-		$uri = 'https://download.microsoft.com/download/1/6/7/167F0D79-9317-48AE-AEDB-17120579F8E2/' + $file
+		if ($sdk -eq 'yes') {
+			$file = 'NDP451-KB2861696-x86-x64-DevPack.exe'
+			$uri = 'http://download.microsoft.com/download/9/6/0/96075294-6820-4F01-924A-474E0023E407/' + $file
+		} else {
+			$file = 'NDP451-KB2858728-x86-x64-AllOS-ENU.exe'
+			$uri = 'https://download.microsoft.com/download/1/6/7/167F0D79-9317-48AE-AEDB-17120579F8E2/' + $file
+		}
 		$release = '378675'
 	}
 	'4.0' {
