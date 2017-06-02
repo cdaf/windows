@@ -102,7 +102,9 @@ if ($env:interactive) {
 
 $defaultMount = 'C:\mountdir'
 $sourceOption = '/Quiet'
-copy "c:\windows\logs\dism\dism.log" $env:temp
+
+# Create a baseline copy of the DISM log file, to use for logging informatio if there is an exception, note: this log is normally locked, so can't simply delete it
+executeExpression "copy 'c:\windows\logs\dism\dism.log' $env:temp"
 
 Write-Host
 if ( $media ) {

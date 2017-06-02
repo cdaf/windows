@@ -27,7 +27,8 @@ function executeRetry ($expression) {
 	    if ( $lastExitCode -ne 0 ) { Write-Host "[$scriptName] `$lastExitCode = $lastExitCode "; $exitCode = $lastExitCode }
 	    if ($exitCode -ne 0) {
 			if ($retryCount -ge $retryMax ) {
-				Write-Host "[$scriptName] Retry maximum ($retryCount) reached, exiting with code $exitCode"; exit $exitCode
+				Write-Host "[$scriptName] Retry maximum ($retryCount) reached, exiting with `$LASTEXITCODE = $exitCode. Log file ($env:windir\logs\dism\dism.log) summary follows...`n"
+				Compare-Object (get-content "$env:windir\logs\dism\dism.log") (Get-Content "$env:temp\dism.log")
 			} else {
 				$retryCount += 1
 				Write-Host "[$scriptName] Wait $wait seconds, then retry $retryCount of $retryMax"
@@ -48,6 +49,7 @@ function mountWim ($media, $wimIndex, $mountDir) {
 
 $scriptName = 'IIS.ps1'
 $configChoices = 'management or server'
+
 Write-Host
 Write-Host "[$scriptName] Install Internet Information Services Role as ASP .NET server, with optional Management Service."
 Write-Host
@@ -79,12 +81,10 @@ if ( $env:PROV_SCRIPT_PATH ) {
 	Add-Content "$env:PROV_SCRIPT_PATH" "executeExpression `"./automation/provisioning/$scriptName $configuration $media $wimIndex `""
 }
 
-Write-Host
-if (Test-Path "$env:windir\Logs\DISM\dism.log") {
-	Remove-Item "$env:windir\Logs\DISM\dism.log"
-}
-
 $defaultMount = 'C:\mountdir'
+
+# Create a baseline copy of the DISM log file, to use for logging informatio if there is an exception, note: this log is normally locked, so can't simply delete it
+executeExpression "copy 'c:\windows\logs\dism\dism.log' $env:temp"
 
 Write-Host
 if ( $media ) {

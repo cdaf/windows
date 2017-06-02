@@ -173,5 +173,16 @@ $dotnet = $(
 )
 $dotnet
 
+Write-Host "`n[$scriptName] List C++ Versions"
+if ( Test-Path 'HKLM:\SOFTWARE\Classes\Installer\Dependencies' ) {
+	foreach ($installed in Get-childItem 'HKLM:\SOFTWARE\Classes\Installer\Dependencies\') {
+		if ($installed.ToString() -match 'VC_' ) {
+			(Get-ItemProperty $installed.PSPath -Name DisplayName ).DisplayName
+		}
+	}
+} else {
+	Write-Host "`n[$scriptName] HKLM:\SOFTWARE\Classes\Installer\Dependencies note found"
+}
+
 $error.clear()
 exit 0
