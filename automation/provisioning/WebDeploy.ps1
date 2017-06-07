@@ -90,8 +90,10 @@ switch ($version) {
 $key = "HKLM:\SOFTWARE\Microsoft\IIS Extensions\MSDeploy\$installPath"
 $name = 'InstallPath'
 
-# Retrieve the install path from the registry key, if missing, halt with error
-$InstallPath = (Get-ItemProperty -Path "$key" -Name $name).$name
+# Check for install path in registry key
+if ( Test-Path -Path "$key" ) {
+	$InstallPath = (Get-ItemProperty -Path "$key" -Name $name).$name
+}
 if ( $InstallPath ) {
 	Write-Host "[$scriptName] Web Deploy already installed, no action attempted."
 } else {
