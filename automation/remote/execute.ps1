@@ -118,6 +118,15 @@ function UnZipFiles( $packageFile, $packagePath )
 	}
 }
 
+# Replace in file, written as a function to allow argument passing with spaces
+function replaceInFile( $fileName, $token, $value )
+{
+	try {
+	(Get-Content $fileName | ForEach-Object { $_ -replace "$token", "$value" } ) | Set-Content $fileName
+	    if(!$?) { taskException "REPLAC_TRAP" }
+	} catch { taskException "REPLAC_TRAP" $_ }
+}
+
 $SOLUTION    = $args[0]
 $BUILDNUMBER = $args[1]
 $TARGET      = $args[2]
@@ -320,7 +329,6 @@ Foreach ($line in get-content $TASK_LIST) {
 					$tokenFile = $data[0]
 					$properties = $data[1]
 	            	$expression = ".\Transform.ps1 "
-
 		            if ($properties) {
 			            $expression += $properties + " " + $tokenFile
 		            } else {
@@ -335,11 +343,7 @@ Foreach ($line in get-content $TASK_LIST) {
 	            if ( $feature -eq 'REPLAC ' ) {
 		            Write-Host "$expression ==> " -NoNewline
 		            $arguments = $expression.Substring(7)
-					$data = $arguments.split(" ")
-					$fileName = $data[0]
-					$name = $data[1]
-					$value = $data[2]
-					$expression = "(Get-Content $fileName | ForEach-Object { `$_ -replace `"$name`", `"$value`" } ) | Set-Content $fileName"
+					$expression = "replaceInFile $arguments"
 				}		
 
 				# Compress to file
@@ -364,11 +368,11 @@ Foreach ($line in get-content $TASK_LIST) {
 		            $arguments = Invoke-Expression "Write-Output $arguments"
 					$data = $arguments.split(" ")
 					$filename = $data[0]
-					$target = $data[1]
-		            if (!( $target )) {
-						$target = $pwd
+					$extractTo = $data[1]
+		            if (!( $extractTo )) {
+						$extractTo = $pwd
 					}
-					$expression = "UnZipFiles $filename $target"
+					$expression = "UnZipFiles $filename $extractTo"
 				}		
 	        }
 
@@ -395,9 +399,8 @@ Foreach ($line in get-content $TASK_LIST) {
 	
 	            # Check for non-terminating errors, any error will terminate execution
 		        if ( $error[0] ) { 
-			        Write-Host
-			        Write-Host "[$scriptName] $expression failed with ERROR[0] = $error[0]" -ForegroundColor Red
-			        exit $error[0]
+			        Write-Host "`n[$scriptName] $expression failed with ERROR[0] = $error[0], exit with LASTEXITCODE 9999" -ForegroundColor Red
+			        exit 9999
 		        }
 		    }
         }
