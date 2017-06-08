@@ -151,38 +151,45 @@ if ( Test-Path $regkey ) {
 }
 
 Write-Host "`n[$scriptName] List the .NET Versions"
-$dotnet = $(
-	Get-ChildItem 'HKLM:\SOFTWARE\Microsoft\NET Framework Setup\NDP' -recurse |
-	Get-ItemProperty -name Version,Release -EA 0 |
-	Where { $_.PSChildName -match '^(?!S)\p{L}'} |
-	Select PSChildName, Version, Release, @{
-	  name="Product"
-	  expression={
-	    switch -regex ($_.Release) {
-	      "378389" { [Version]"4.5" }
-	      "378675|378758" { [Version]"4.5.1" }
-	      "379893" { [Version]"4.5.2" }
-	      "393295|393297" { [Version]"4.6" }
-	      "394254|394271" { [Version]"4.6.1" }
-	      "394802|394806" { [Version]"4.6.2" }
-	      "460798|460805" { [Version]"4.7" }
-	      {$_ -gt 394806} { [Version]"Undocumented 4.7 or higher, please update script" }
-	    }
-	  }
-	}
-)
-$dotnet
-
-Write-Host "`n[$scriptName] List C++ Versions"
-if ( Test-Path 'HKLM:\SOFTWARE\Classes\Installer\Dependencies' ) {
-	foreach ($installed in Get-childItem 'HKLM:\SOFTWARE\Classes\Installer\Dependencies\') {
-		if ($installed.ToString() -match 'VC_' ) {
-			(Get-ItemProperty $installed.PSPath -Name DisplayName ).DisplayName
+$job = Start-Job {
+	$dotnet = $(
+		Get-ChildItem 'HKLM:\SOFTWARE\Microsoft\NET Framework Setup\NDP' -recurse |
+		Get-ItemProperty -name Version,Release -EA 0 |
+		Where { $_.PSChildName -match '^(?!S)\p{L}'} |
+		Select PSChildName, Version, Release, @{
+		  name="Product"
+		  expression={
+		    switch -regex ($_.Release) {
+		      "378389" { [Version]"4.5" }
+		      "378675|378758" { [Version]"4.5.1" }
+		      "379893" { [Version]"4.5.2" }
+		      "393295|393297" { [Version]"4.6" }
+		      "394254|394271" { [Version]"4.6.1" }
+		      "394802|394806" { [Version]"4.6.2" }
+		      "460798|460805" { [Version]"4.7" }
+		      {$_ -gt 394806} { [Version]"Undocumented 4.7 or higher, please update script" }
+		    }
+		  }
 		}
-	}
-} else {
-	Write-Host "`n[$scriptName] HKLM:\SOFTWARE\Classes\Installer\Dependencies note found"
-}
+	)
+	$dotnet | Format-Table
+} | Wait-Job
+Receive-Job $job
 
+Write-Host "[$scriptName] List C++ Versions`n"
+$job = Start-Job {
+	if ( Test-Path 'HKLM:\SOFTWARE\Classes\Installer\Dependencies' ) {
+		foreach ($installed in Get-childItem 'HKLM:\SOFTWARE\Classes\Installer\Dependencies\') {
+			if ($installed.ToString() -match 'VC_' ) {
+				(Get-ItemProperty $installed.PSPath -Name DisplayName ).DisplayName
+			}
+		}
+	} else {
+		Write-Host "`n[$scriptName] HKLM:\SOFTWARE\Classes\Installer\Dependencies note found"
+	}
+} | Wait-Job
+Receive-Job $job
+
+Write-Host "`n[$scriptName] ---------- finish ----------`n"
 $error.clear()
 exit 0
