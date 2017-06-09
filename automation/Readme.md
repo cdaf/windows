@@ -34,7 +34,7 @@ Execution Engine
 ----------------
 To alleviate the burden of argument passing, exception handling and logging, the execution engine has been provided. The execution engine will essentially execute the native interpretive language (PowerShell or bash), line by line, but each execution will be tested for exceptions (trivial in bash, significantly more complex in PowerShell) and, with careful usage, the driver files (.tsk) can be used on Windows workstations, while target Linux servers for Continuous Delivery. To provide translated runtime, the following keywords are supported
 
-| Keyword | Description                       | Example                    |
+| Keyword | Description                       | Example                         |
 | --------|-----------------------------------|---------------------------------|
 | ASSIGN  | set a variable                    | ASSIGN $test="Hello World"      |
 | CMPRSS  | Compress directory to file        | CMPRSS packageName dirName      |
@@ -98,7 +98,7 @@ Optional sub-directories of /solution
 	/propertiesForLocalTasks
 	/propertiesForRemoteTasks	required properties are deployLand and deployHost (value containing : will be treated as URI)
 
-Encrypted files (for passwords)
+Encrypted files (for passwords), see automation/provisioning/crypt.ps1 to create encrypted password files
 
 	/cryptRemoteRemote
 	/cryptRemoteLocal
@@ -116,7 +116,7 @@ To support Continuous Delivery, the automation of Deployment is required, to aut
 Automated Build
 ---------------
 
-If it exists, each project in the Project.list file is processed, in order (to support cross project dependencies), if the file does not exist, all project directores are processed, alphabetically.
+If it exists, each project in the Project.list file is processed, in order (to support cross project dependencies), if the file does not exist, all project directories are processed, alphabetically.
 Each project directory is entered and the build.sh script is executed. Each build script is expected to support build and clean actions.
 
 Automated Packaging
@@ -140,7 +140,7 @@ Frequently Asked Questions
 Why use CDAF
 ------------
 
-To provide a consistent approach to Continuous Delivery and leverage the efforts of others to provide greater reusability and easier problem determination. CDAF will provide the building blocks for common tasks, with rich logging and exeception handling. The CDAf provides toolset configuration guidance, keeping the actions loosely coupled with the toolset, to allow visibilty and traceability through source control rather than direct changes.
+To provide a consistent approach to Continuous Delivery and leverage the efforts of others to provide greater reusability and easier problem determination. CDAF will provide the building blocks for common tasks, with rich logging and exception handling. The CDAf provides tool-set configuration guidance, keeping the actions loosely coupled with the tool-set, to allow visibility and traceability through source control rather than direct changes.
 
 Why not have a shared folder for CDAF on the system
 ---------------------------------------------------

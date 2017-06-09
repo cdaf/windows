@@ -1,22 +1,37 @@
-$outFile    = $args[0]
-$thumbprint = $args[1]
+Param (
+  [string]$outFile,
+  [string]$thumbprint,
+  [string]$value
+)
 
-# Output File (plain text or XML depending on method) must be supplioed
+$scriptName = 'crypt.ps1'
+Write-Host "`n[$scriptName] ---------- start ----------"
+
 if ($outFile) {
     Write-Host "[$scriptName] outFile    : $outFile"
 } else {
-    Write-Host "[$scriptName] Output File not passed! Exiting"
-    exit 100
+	write-host "Enter the output file    : " -NoNewline
+	$outFile = Read-host
 }
 
-# Echo the supplied thumbprint
 if ($thumbprint) {
     Write-Host "[$scriptName] thumbprint : $thumbprint"
+} else {
+    Write-Host "[$scriptName] thumbprint : (not supplied, will use DPAPI)"
 }
 
-# Capture (masked) value 
-write-host
-write-host "Enter value to encrypt : " -NoNewline
+if ($value) {
+    Write-Host "[$scriptName] value      : *************************"
+    $secureString = ConvertTo-SecureString $value -AsPlainText -Force
+} else {
+	# Capture (masked) value 
+	write-host
+	write-host "Enter value to encrypt   : " -NoNewline
+	$secureString = Read-host -AsSecureString
+}
+
+Write-Host "`n[$scriptName] Available certificates"
+Get-ChildItem -Path 'Cert:\CurrentUser\My' | format-table
 
 if ($thumbprint) {
 
@@ -25,9 +40,7 @@ if ($thumbprint) {
 	# add54aca2ec46ec697e4c55ece052807725a4834
 
 	try	{
-	
-		$secureString = Read-host -AsSecureString
-		
+			
 	    # Generate our new 32-byte AES key.  I don't recommend using Get-Random for this; the System.Security.Cryptography namespace
 	    # offers a much more secure random number generator.
 	
@@ -79,15 +92,18 @@ if ($thumbprint) {
 } else {
 
 	# If a thumbprint is not passed, encrypt using Data Protection API 
-	read-host -assecurestring | convertfrom-securestring | out-file $outFile
+	$secureString | convertfrom-securestring | out-file $outFile
 	
 	# Retrieve the value for verification purposes
 	$retrievedString = Get-Content $outFile | ConvertTo-SecureString
-
 	$plain = (New-Object System.Management.Automation.PSCredential 'N/A', $retrievedString).GetNetworkCredential().Password
 }
 
-write-host
-write-host "Encrypt/Decrypt test to `$plain"
-write-host
-# return $plain
+if ( $plain ) {
+	write-host "`nEncrypt/Decrypt test (to `$plain) successful.`n"
+} else {
+	write-host "`nEncrypt/Decrypt failure!.`n"
+	exit 56
+}
+
+Write-Host "`n[$scriptName] ---------- finish ----------"
