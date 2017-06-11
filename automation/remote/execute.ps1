@@ -176,6 +176,10 @@ if ( test-path -path "$TARGET" -pathtype leaf ) {
 	Write-Host
 }	
 
+if (!( Test-Path $TASK_LIST )) {
+    Write-Host "`n[$scriptName] Task Execution file ($TASK_LIST) not found! `$LASTEXITCODE 9998" -ForegroundColor Red
+    exit 9998
+}
 Foreach ($line in get-content $TASK_LIST) {
 
     # If the task line is empty, simply log an empty line

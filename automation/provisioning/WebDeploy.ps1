@@ -68,17 +68,17 @@ if ($env:interactive) {
 # Install path is used for reading from registry after install is complete
 switch ($version) {
 	'3.6' {
-		$installPath = '3'
+		$regKeyLeaf = '3'
 		$file = 'WebDeploy_amd64_en-US.msi'
 		$uri = 'http://download.microsoft.com/download/0/1/D/01DC28EA-638C-4A22-A57B-4CEF97755C6C/' + $file
 	}
 	'3.5' {
-		$installPath = '3'
+		$regKeyLeaf = '3'
 		$file = 'WebDeploy_amd64_en-US.msi'
 		$uri = 'http://download.microsoft.com/download/D/4/4/D446D154-2232-49A1-9D64-F5A9429913A4/' + $file
 	}
 	'2' {
-		$installPath = $version
+		$regKeyLeaf = $version
 		$file = 'WebDeploy_2_10_amd64_en-US.msi'
 		$uri = 'http://download.microsoft.com/download/8/9/B/89B754A5-56F7-45BD-B074-8974FD2039AF/' + $file
 	}
@@ -87,7 +87,7 @@ switch ($version) {
     }
 }
 
-$key = "HKLM:\SOFTWARE\Microsoft\IIS Extensions\MSDeploy\$installPath"
+$key = "HKLM:\SOFTWARE\Microsoft\IIS Extensions\MSDeploy\$regKeyLeaf"
 $name = 'InstallPath'
 
 # Check for install path in registry key
