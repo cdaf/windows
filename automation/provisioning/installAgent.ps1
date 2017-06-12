@@ -32,7 +32,7 @@ if ( $url ) {
 }
 if ( $pat ) {
 	Write-Host "[$scriptName] pat             : `$pat"
-	$optParms += "-pat **pat**"
+	$optParms += "-pat `$pat"
 } else {
 	Write-Host "[$scriptName] url not supplied, exit with `$LASTEXITCODE = 2"; exit 2
 }
@@ -42,14 +42,14 @@ if ( $pool ) {
 	$pool = 'default'
 	Write-Host "[$scriptName] pool            : $pool (not supplied, set to default, if Deployment Group is used, this will be ignored)"
 }
-$optParms += " -pool $pool"
+$optParms += " -pool `$pool"
 if ( $agentName ) {
 	Write-Host "[$scriptName] agentName       : $agentName"
 } else {
 	$agentName = "$env:COMPUTERNAME" 
 	Write-Host "[$scriptName] agentName       : $agentName (not supplied, set to default)"
 }
-$optParms += " -agentName $agentName" 
+$optParms += " -agentName `$agentName"
 if ( $serviceAccount ) {
 	Write-Host "[$scriptName] serviceAccount  : $serviceAccount"
 	$optParms += " -serviceAccount $serviceAccount"
@@ -58,19 +58,19 @@ if ( $serviceAccount ) {
 }
 if ( $servicePassword ) {
 	Write-Host "[$scriptName] servicePassword : `$servicePassword"
-	$optParms += " -servicePassword **servicePassword**"
+	$optParms += " -servicePassword `$password"
 } else {
 	Write-Host "[$scriptName] servicePassword : (not supplied)"
 }
 if ( $deploymentgroup ) {
 	Write-Host "[$scriptName] deploymentgroup : $deploymentgroup"
-	$optParms += " -deploymentgroup $deploymentgroup"
+	$optParms += " -deploymentgroup `$deploymentgroup"
 } else {
 	Write-Host "[$scriptName] deploymentgroup : (not supplied)"
 }
 if ( $projectname ) {
 	Write-Host "[$scriptName] projectname     : $projectname"
-	$optParms += " -projectname $projectname"
+	$optParms += " -projectname `$projectname"
 } else {
 	if ( $deploymentgroup ) {
 		Write-Host "[$scriptName] deploymentgroup ($deploymentgroup) supplied, therefore projectname required but not supplied, exit with `$LASTEXITCODE = 3"; exit 3
