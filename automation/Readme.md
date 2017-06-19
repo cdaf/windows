@@ -39,8 +39,8 @@ To alleviate the burden of argument passing, exception handling and logging, the
 | ASSIGN  | set a variable                    | ASSIGN $test="Hello World"      |
 | CMPRSS  | Compress directory to file        | CMPRSS packageName dirName      |
 | DCMPRS  | Decompress package file           | DCMPRS packageName              |
-| DECRYP  | decrypt matching target file      | DECRYP cryptLocal               |
-|         | decrypt specific file             | DECRYP cryptLocal encrypt.dat   |
+| DECRYP  | decrypt file using DSAPI          | DECRYP encrypt.dat              |
+|         | decrypt using PKI                 | DECRYP encrypt.dat $thumbPrint  |
 | DETOKN  | Detokenise file with target prop  | DETOKN tokenised.file           |
 |         | Detokenise with specific file     | DETOKN tokenised.file prop.file |
 | EXCREM  | Execute Remote Command            | EXCREM hostname                 |
