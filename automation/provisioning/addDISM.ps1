@@ -2,7 +2,8 @@ Param (
   [string]$featureList,
   [string]$media,
   [string]$wimIndex,
-  [string]$dismount
+  [string]$dismount,
+  [string]$halt
 )
 $scriptName = 'addDISM.ps1' # TelnetClient
                             # 'IIS-WebServerRole IIS-WebServer' install.wim 2
@@ -16,7 +17,7 @@ function executeExpression ($expression) {
 	    if(!$?) { Write-Host "[$scriptName] `$? = $?"; exit 1 }
 	} catch { echo $_.Exception|format-list -force; exit 2 }
     if ( $error[0] ) { Write-Host "[$scriptName] `$error[0] = $error"; exit 3 }
-	if ( $LASTEXITCODE -eq 3010 ) { $LASTEXITCODE = 0 } # 3010 is a normal exit
+	if ( $LASTEXITCODE -eq 3010 ) { if ( ! $halt ) { $LASTEXITCODE = 0 } } # 3010 is a normal exit, but force exit if halt is set
 }
 
 function executeRetry ($expression) {
@@ -62,34 +63,42 @@ function mountWim ($media, $wimIndex, $mountDir) {
 # $featureList = @('ActiveDirectory-PowerShell', 'DirectoryServices-DomainController', 'RSAT-ADDS-Tools-Feature', 'DirectoryServices-DomainController-Tools', 'DNS-Server-Full-Role', 'DNS-Server-Tools', 'DirectoryServices-AdministrativeCenter')
 Write-Host "`n[$scriptName] ---------- start ----------`n"
 if ($featureList) {
-    Write-Host "[$scriptName] featureList     : $featureList"
+    Write-Host "[$scriptName] featureList : $featureList"
 } else {
     Write-Host "[$scriptName] ERROR: List of Features not passed, halting with LASTEXITCODE=1"; exit 1
 }
 
 if ($media) {
-    Write-Host "[$scriptName] media           : $media"
-    $mediaRun = "-media $media"
+    Write-Host "[$scriptName] media       : $media"
+    $optParam += "-media $media "
 } else {
-    Write-Host "[$scriptName] media           : not supplied"
+    Write-Host "[$scriptName] media       : not supplied"
 }
 
 if ($wimIndex) {
-    Write-Host "[$scriptName] wimIndex        : $wimIndex"
-    $indexRun = "-wimIndex $wimIndex"
+    Write-Host "[$scriptName] wimIndex    : $wimIndex"
+    $optParam += "-wimIndex $wimIndex "
 } else {
-    Write-Host "[$scriptName] wimIndex        : (not supplied, use media directly)"
+    Write-Host "[$scriptName] wimIndex    : (not supplied, use media directly)"
 }
 
 if ($dismount) {
-    Write-Host "[$scriptName] dismount        : $dismount"
+    Write-Host "[$scriptName] dismount    : $dismount"
+    $optParam += "-dismount $dismount "
 } else {
-	$dismount = 'yes'
-    Write-Host "[$scriptName] dismount        : $dismount (not passed, set to default)"
+    Write-Host "[$scriptName] dismount    : $dismount (not passed, will dismount if mount successful)"
+}
+
+if ($halt) {
+    Write-Host "[$scriptName] halt        : $halt (will halt on all exceptions or non-zero exitcode)"
+    $optParam += "-halt $halt "
+} else {
+    Write-Host "[$scriptName] halt        : not passed, will continue if 3010 (restart requried) is encountered."
 }
 # Provisionig Script builder
-if ( $env:PROV_SCRIPT_PATH ) {
-	Add-Content "$env:PROV_SCRIPT_PATH" "executeExpression `"./automation/provisioning/$scriptName $featureList $mediaRun $indexRun -dismount $dismount`""
+$scriptPath = [Environment]::GetEnvironmentVariable('PROV_SCRIPT_PATH', 'Machine')
+if ( $scriptPath ) {
+	Add-Content "$env:PROV_SCRIPT_PATH" "executeExpression `"./automation/provisioning/$scriptName $featureList $optParam`""
 }
 
 # Cannot run interactive via remote PowerShell
@@ -104,7 +113,11 @@ $defaultMount = 'C:\mountdir'
 $sourceOption = '/Quiet'
 
 # Create a baseline copy of the DISM log file, to use for logging informatio if there is an exception, note: this log is normally locked, so can't simply delete it
-executeExpression "copy 'c:\windows\logs\dism\dism.log' $env:temp"
+if ( Test-Path c:\windows\logs\dism\dism.log ) {
+	executeExpression "copy 'c:\windows\logs\dism\dism.log' $env:temp"
+} else {
+	executeExpression 'Add-Content $env:temp\dism.log "Starting DISM from $scriptName"'
+}
 
 Write-Host
 if ( $media ) {
@@ -148,11 +161,11 @@ foreach ($feature in $featureArray) {
 }
 
 if ( Test-Path "$defaultMount\windows" ) {
-	if ($dismount -eq 'yes') {
+	if ($dismount -eq 'no') {
+	    Write-Host "`n[$scriptName] dismount set to `'$dismount`', leave $defaultMount\windows in place."
+	} else {
 		Write-Host "`n[$scriptName] Dismount default mount path ($defaultMount)"
 		executeExpression "Dism /Unmount-Image /MountDir:$defaultMount /Discard /Quiet"
-	} else {
-	    Write-Host "`n[$scriptName] dismount set to $dismount, leave $defaultMount\windows in place."
 	}
 }
 

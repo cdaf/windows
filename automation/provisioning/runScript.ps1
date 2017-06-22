@@ -28,6 +28,7 @@ if (Test-Path "$scriptPath") {
 }
 
 executeExpression "[Environment]::SetEnvironmentVariable('PROV_SCRIPT_PATH', '$scriptPath', 'Machine')"
+Add-Content "$env:PROV_SCRIPT_PATH" "executeExpression `"./automation/provisioning/$scriptName $featureList $optParam`""
 
 $literal = 'f' + 'unction executeExpression ($expression) {'
 

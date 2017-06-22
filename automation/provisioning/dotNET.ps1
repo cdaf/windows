@@ -6,10 +6,11 @@ Param (
   [string]$sdk,
   [string]$reboot
 )
-$scriptName = 'dotNET.ps1' # (no arguments)                    | install latest .NET runtime
-                           # 4.5.1 install.wim 2               | install 4.5.1 from Windows Image file, found on install media
-                           # 4.6.1 -reboot yes                 | install 4.6.1 and reboot when complete
+$scriptName = 'dotNET.ps1' # (no arguments)             | install latest .NET runtime
+                           # 4.5.1 install.wim 2        | install 4.5.1 from Windows Image file, found on install media
+                           # 4.6.1 -reboot yes          | install 4.6.1 and reboot when complete
                            # -sdk yes -reboot shutdown  | install latest, including devpack then shutdown
+                           # -sdk force                 | force install, i.e. to replace runtime only installation
                            
 # Common expression logging and error handling function, copied, not referenced to ensure atomic process
 function executeExpression ($expression) {
@@ -82,7 +83,11 @@ function installFourAndAbove {
 	}
 	
 	try {
-		$argList = @("/q", "/norestart", "/log `"$env:temp\$file`"")
+		if ($sdk -eq 'force') {
+			$argList = @("/repair", "/q", "/norestart", "/log `"$env:temp\$file`"")
+		} else {
+			$argList = @("/q", "/norestart", "/log `"$env:temp\$file`"")
+		}
 		Write-Host "[$scriptName] Start-Process -FilePath $fullpath -ArgumentList $argList -PassThru -Wait"
 		$proc = Start-Process -FilePath $fullpath -ArgumentList $argList -PassThru -Wait
         if ( $proc.ExitCode -ne 0 ) {
@@ -138,10 +143,10 @@ if ($mediaDir) {
 }
 
 if ($sdk) {
-    Write-Host "[$scriptName] sdk      : $sdk"
+    Write-Host "[$scriptName] sdk      : $sdk (yes, no or force)"
 } else {
 	$sdk = 'no'
-    Write-Host "[$scriptName] sdk      : $sdk (default)"
+    Write-Host "[$scriptName] sdk      : $sdk (default, options are yes, no or force)"
 }
 
 if ($reboot) {
@@ -173,7 +178,7 @@ if ($env:interactive) {
 Write-Host
 switch ($version) {
 	'4.7' {
-		if ($sdk -eq 'yes') {
+		if ($sdk -ne 'no') {
 			$file = 'NDP47-DevPack-KB3186612-ENU.exe'
 			$uri = 'https://download.microsoft.com/download/A/1/D/A1D07600-6915-4CB8-A931-9A980EF47BB7/' + $file
 		} else {
@@ -183,7 +188,7 @@ switch ($version) {
 		$release = '460798' # Lowest of 460798 (Win 10) and 460805 (all other OS)
 	}
 	'4.6.2' {
-		if ($sdk -eq 'yes') {
+		if ($sdk -ne 'no') {
 			$file = 'NDP462-DevPack-KB3151934-ENU.exe'
 			$uri = 'https://download.microsoft.com/download/E/F/D/EFD52638-B804-4865-BB57-47F4B9C80269/' + $file
 		} else {
@@ -193,7 +198,7 @@ switch ($version) {
 		$release = '394802' # Lowest of 394802 (Win 10) and 394806 (all other OS)
 	}
 	'4.6.1' {
-		if ($sdk -eq 'yes') {
+		if ($sdk -ne 'no') {
 			$file = 'NDP461-DevPack-KB3105179-ENU.exe'
 			$uri = 'https://download.microsoft.com/download/F/1/D/F1DEB8DB-D277-4EF9-9F48-3A65D4D8F965/' + $file
 		} else {
@@ -203,7 +208,7 @@ switch ($version) {
 		$release = '394254'
 	}
 	'4.5.2' {
-		if ($sdk -eq 'yes') {
+		if ($sdk -ne 'no') {
 			$file = 'NDP452-KB2901951-x86-x64-DevPack.exe'
 			$uri = 'https://download.microsoft.com/download/4/3/B/43B61315-B2CE-4F5B-9E32-34CCA07B2F0E/' + $file
 		} else {
@@ -213,7 +218,7 @@ switch ($version) {
 		$release = '379893'
 	}
 	'4.5.1' {
-		if ($sdk -eq 'yes') {
+		if ($sdk -ne 'no') {
 			$file = 'NDP451-KB2861696-x86-x64-DevPack.exe'
 			$uri = 'http://download.microsoft.com/download/9/6/0/96075294-6820-4F01-924A-474E0023E407/' + $file
 		} else {
@@ -283,7 +288,12 @@ if ($file) {
 
 	if ($release) {
 		if (IsInstalled $release) {
-		    Write-Host "[$scriptName] Microsoft .NET Framework $version or later is already installed"
+			if ($sdk -eq 'force') {
+			    Write-Host "[$scriptName] Microsoft .NET Framework $version or later is already installed, however, forcing install of sdk"
+				$rebootRequired = installFourAndAbove # .NET 4.5 and above
+		    } else {
+			    Write-Host "[$scriptName] Microsoft .NET Framework $version or later is already installed"
+		    }
 		} else {
 			$rebootRequired = installFourAndAbove # .NET 4.5 and above
 		}

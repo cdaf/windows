@@ -27,14 +27,15 @@ function executeExpression ($expression) {
 Write-Host "[$scriptName] ---------- start ----------"
 if ( $url ) {
 	Write-Host "[$scriptName] url             : $url"
+	$optParms += "-url `$url"
 } else {
-	Write-Host "[$scriptName] url not supplied, exit with `$LASTEXITCODE = 1"; exit 1
+	Write-Host "[$scriptName] url             : (not supplied, will just extract the agent software)"
 }
 if ( $pat ) {
 	Write-Host "[$scriptName] pat             : `$pat"
 	$optParms += "-pat `$pat"
 } else {
-	Write-Host "[$scriptName] url not supplied, exit with `$LASTEXITCODE = 2"; exit 2
+	Write-Host "[$scriptName] pat             : (not supplied)"
 }
 if ( $pool ) {
 	Write-Host "[$scriptName] pool            : $pool"
@@ -113,28 +114,32 @@ if (Test-Path "C:\agent") {
 executeExpression "mkdir C:\agent"
 executeExpression "[System.IO.Compression.ZipFile]::ExtractToDirectory(`"$mediaDirectory\$mediaFileName`", `"C:\agent`")"
 
-$argList = "--unattended --url $url --auth PAT"
-if ( $deploymentgroup ) {
-	$argList += " --deploymentgroup --deploymentgroupname `"$deploymentgroup`" --projectname `"$projectname`""
-}
-
-Write-Host "`nUnattend configuration for VSTS with PAT authentication"
-if ( $serviceAccount ) {
-	$printList = "$argList --token `$pat --pool $pool --agent $agentName --replace --runasservice --windowslogonaccount $serviceAccount --windowslogonpassword `$servicePassword"
-	$argList += " --token $pat --pool $pool --agent $agentName --replace --runasservice --windowslogonaccount $serviceAccount --windowslogonpassword $servicePassword"
+if ( $url ) {
+	$argList = "--unattended --url $url --auth PAT"
+	if ( $deploymentgroup ) {
+		$argList += " --deploymentgroup --deploymentgroupname `"$deploymentgroup`" --projectname `"$projectname`""
+	}
+	
+	Write-Host "`nUnattend configuration for VSTS with PAT authentication"
+	if ( $serviceAccount ) {
+		$printList = "$argList --token `$pat --pool $pool --agent $agentName --replace --runasservice --windowslogonaccount $serviceAccount --windowslogonpassword `$servicePassword"
+		$argList += " --token $pat --pool $pool --agent $agentName --replace --runasservice --windowslogonaccount $serviceAccount --windowslogonpassword $servicePassword"
+	} else {
+		$printList = "$argList --token `$pat --pool $pool --agent $agentName --replace"
+		$argList += " --token $pat --pool $pool --agent $agentName --replace"
+	}
+	
+	executeExpression "cd C:\agent"
+	Write-Host "[$scriptName] Start-Process $fullpath -ArgumentList $printList -PassThru -Wait"
+	$proc = Start-Process $fullpath -ArgumentList $argList -PassThru -Wait
+	if ( $proc.ExitCode -ne 0 ) {
+		Write-Host "`n[$scriptName] Error occured, listing last 40 lines of log $((Get-ChildItem C:\agent\_diag)[0].FullName)`n"
+		Get-Content (Get-ChildItem C:\agent\_diag)[0].FullName -tail 40
+		Write-Host "`n[$scriptName] Install Failed! Exit with `$LASTEXITCODE $($proc.ExitCode)`n"
+	    exit $proc.ExitCode
+	}
 } else {
-	$printList = "$argList --token `$pat --pool $pool --agent $agentName --replace"
-	$argList += " --token $pat --pool $pool --agent $agentName --replace"
-}
-
-executeExpression "cd C:\agent"
-Write-Host "[$scriptName] Start-Process $fullpath -ArgumentList $printList -PassThru -Wait"
-$proc = Start-Process $fullpath -ArgumentList $argList -PassThru -Wait
-if ( $proc.ExitCode -ne 0 ) {
-	Write-Host "`n[$scriptName] Error occured, listing last 40 lines of log $((Get-ChildItem C:\agent\_diag)[0].FullName)`n"
-	Get-Content (Get-ChildItem C:\agent\_diag)[0].FullName -tail 40
-	Write-Host "`n[$scriptName] Install Failed! Exit with `$LASTEXITCODE $($proc.ExitCode)`n"
-    exit $proc.ExitCode
+	Write-Host "`n[$scriptName] URL not supplied. Agent software extracted to C:\agent`n"
 }
 
 Write-Host "`n[$scriptName] ---------- stop -----------`n"
