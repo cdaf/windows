@@ -111,7 +111,7 @@ function UnZipFiles( $packageFile, $packagePath )
 {
 	$currentDir = $(pwd)
 	if ($packagePath -eq '.') { $packagePath = $(pwd) }
-	Write-Host "`n[$scriptName] Extract zip package $packageFile to $packagePath"
+	Write-Host "`n[$scriptName] Extract zip package $packageFile.zip to $packagePath"
 	[System.IO.Compression.ZipFile]::ExtractToDirectory("$currentDir/$packageFile.zip", "$packagePath/$packageFile")
 	foreach ($item in (Get-ChildItem -Path $packagePath/$packageFile)) {
 		Write-Host "[$scriptName (UnZipFiles)]    --> $item"
