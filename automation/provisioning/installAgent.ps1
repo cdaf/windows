@@ -91,6 +91,7 @@ if ( $env:PROV_SCRIPT_PATH ) {
 	Add-Content "$env:PROV_SCRIPT_PATH" "executeExpression `"./automation/provisioning/$scriptName $url $optParms `""
 }
 $fullpath = 'C:\agent\config.cmd'
+$workspace = $(pwd)
 
 executeExpression 'Add-Type -AssemblyName System.IO.Compression.FileSystem'
 
@@ -142,5 +143,6 @@ if ( $url ) {
 	Write-Host "`n[$scriptName] URL not supplied. Agent software extracted to C:\agent`n"
 }
 
+executeExpression "cd $workspace"
 Write-Host "`n[$scriptName] ---------- stop -----------`n"
 exit 0
