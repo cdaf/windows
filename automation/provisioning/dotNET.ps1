@@ -138,7 +138,7 @@ if ($wimIndex) {
 if ($mediaDir) {
     Write-Host "[$scriptName] mediaDir : $mediaDir"
 } else {
-	$mediaDir = '/.provision'
+	$mediaDir = 'C:\.provision'
     Write-Host "[$scriptName] mediaDir : $mediaDir (default)"
 }
 
