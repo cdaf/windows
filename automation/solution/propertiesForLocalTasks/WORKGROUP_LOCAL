@@ -1,0 +1,2 @@
+# Use the same process as loop-back connection (WINDOWS) but on the localhost
+deployTaskOverride=tasksRunRemote.tsk

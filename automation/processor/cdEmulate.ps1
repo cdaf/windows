@@ -83,7 +83,11 @@ $environmentDelivery = "$Env:environmentDelivery"
 if ($environmentDelivery ) {
 	Write-Host "[$scriptName]   environmentDelivery : $environmentDelivery"
 } else {
-	$environmentDelivery = 'WINDOWS'
+	if ((gwmi win32_computersystem).partofdomain -eq $true) {
+		$environmentDelivery = 'WINDOWS'
+	} else {
+		$environmentDelivery = 'WORKGROUP'
+	}
 	Write-Host "[$scriptName]   environmentDelivery : $environmentDelivery (default)"
 }
 
