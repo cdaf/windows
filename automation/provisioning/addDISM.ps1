@@ -86,14 +86,14 @@ if ($dismount) {
     Write-Host "[$scriptName] dismount    : $dismount"
     $optParam += "-dismount $dismount "
 } else {
-    Write-Host "[$scriptName] dismount    : $dismount (not passed, will dismount if mount successful)"
+    Write-Host "[$scriptName] dismount    : (not passed, will dismount if mount successful)"
 }
 
 if ($halt) {
     Write-Host "[$scriptName] halt        : $halt (will halt on all exceptions or non-zero exitcode)"
     $optParam += "-halt $halt "
 } else {
-    Write-Host "[$scriptName] halt        : not passed, will continue if 3010 (restart requried) is encountered."
+    Write-Host "[$scriptName] halt        : not passed, will continue if 3010 (restart required) is encountered."
 }
 # Provisionig Script builder
 $scriptPath = [Environment]::GetEnvironmentVariable('PROV_SCRIPT_PATH', 'Machine')
