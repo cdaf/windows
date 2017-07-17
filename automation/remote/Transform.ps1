@@ -59,19 +59,19 @@ Foreach ($line in get-content $PROPFILE) {
         if ($nameValue) {
 
 			$data = $nameValue.split("=")
-			$value = $data[1]
+			$name, $value = $line -split '=', 2
 
 			# If token file is supplied, detokenise file (in situ)
 			if ($TOKENFILE) { 
 
-				$name = "%" + $data[0] + "%"
+				$token = "%" + $name + "%"
 				Foreach ($record in get-content $TOKENFILE) {
 #					write-host "[$scriptName] record = $record"
 
-					if ($record -match "$name") {
-						write-host "Found $name, replacing with $value"
+					if ($record -match "$token") {
+						write-host "Found $token, replacing with $value"
 					}
-					$newLine = $record -replace "$name","$value"
+					$newLine = $record -replace "$token","$value"
 					Add-Content newFile.txt $newLine
 
 				}
@@ -80,7 +80,6 @@ Foreach ($line in get-content $PROPFILE) {
 			# If token file is not supplied, echo strings for instantiating as variables (cannot instantiate here as they will be out of scope)
 			} else {
 
-				$name = $data[0]
 				$loadVariable = "`$$name=`"$value`""
 				Write-Output "$loadVariable"
 				write-host "[$scriptName]   $name = $value"

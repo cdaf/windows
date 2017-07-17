@@ -83,9 +83,10 @@ function copyRecurse ($from, $to, $notFirstRun) {
 }
 
 # Requires PowerShell v3 or above
-function ZipFiles( $zipfilename, $sourcedir )
+function CMPRSS( $zipfilename, $sourcedir )
 {
 	$currentDir = $(pwd)
+	$zipfilename += '.zip'
 	if ($zipfilename -like '*:*') { # Only resolve full path if a full path has not been supplied
 		$targetFile = "$zipfilename"
 	} else {
@@ -98,7 +99,7 @@ function ZipFiles( $zipfilename, $sourcedir )
 		[System.IO.Compression.ZipFile]::CreateFromDirectory("$(pwd)", "$targetFile", $compressionLevel, $false)
 		cd $currentDir
 		foreach ($item in (Get-ChildItem -Path "$sourcedir")) {
-			Write-Host "[$scriptName (ZipFiles)]   --> $item"
+			Write-Host "[$scriptName (CMPRSS)]   --> $item"
 		}
 	} else {
         Write-Host "`n[$scriptName] ZIP_SOURCE_DIR_NOT_FOUND, exit with LASTEXITCODE = 700" -ForegroundColor Red
@@ -119,7 +120,7 @@ function UnZipFiles( $packageFile, $packagePath )
 }
 
 # Replace in file, written as a function to allow argument passing with spaces
-function replaceInFile( $fileName, $token, $value )
+function REPLAC( $fileName, $token, $value )
 {
 	try {
 	(Get-Content $fileName | ForEach-Object { $_ -replace "$token", "$value" } ) | Set-Content $fileName
@@ -347,7 +348,7 @@ Foreach ($line in get-content $TASK_LIST) {
 	            if ( $feature -eq 'REPLAC ' ) {
 		            Write-Host "$expression ==> " -NoNewline
 		            $arguments = $expression.Substring(7)
-					$expression = "replaceInFile $arguments"
+					$expression = "REPLAC $arguments"
 				}		
 
 				# Compress to file
@@ -356,12 +357,7 @@ Foreach ($line in get-content $TASK_LIST) {
 	            if ( $feature -eq 'CMPRSS ' ) {
 		            Write-Host "$expression ==> " -NoNewline
 		            $arguments = $expression.Substring(7)
-		            $arguments = Invoke-Expression "Write-Output $arguments"
-					$data = $arguments.split(" ")
-					$filename = $data[0]
-					$source = $data[1]
-					$filename += '.zip'
-					$expression = "ZipFiles $filename $source"
+					$expression = "CMPRSS $arguments"
 				}		
 
 				# Decompress from file
