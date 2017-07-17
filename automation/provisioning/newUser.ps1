@@ -10,6 +10,16 @@ function executeExpression ($expression) {
     return $output
 }
 
+function localUser ($userName, $password) {
+	Write-Host "`n[$scriptName] Workgroup Host, create as local user ($userName)."
+	$ADSIComp = executeExpression "[ADSI]`"WinNT://$Env:COMPUTERNAME,Computer`""
+	$LocalUser = executeExpression "`$ADSIComp.Create(`'User`', `"$userName`")"
+	executeExpression "`$LocalUser.SetPassword(`$password)"
+	executeExpression "`$LocalUser.SetInfo()"
+	executeExpression "`$LocalUser.FullName = `"$userName`""
+	executeExpression "`$LocalUser.SetInfo()"
+}
+
 function executeRetry ($expression) {
 	$wait = 10
 	$retryMax = 3
@@ -70,32 +80,29 @@ if ( $env:PROV_SCRIPT_PATH ) {
 	Add-Content "$env:PROV_SCRIPT_PATH" "executeExpression `"./automation/provisioning/$scriptName $userName `$password `""
 }
 
-if ((gwmi win32_computersystem).partofdomain -eq $true) {
-
-	executeRetry  "Import-Module ActiveDirectory"
-
-	Write-Host "`n[$scriptName] Add the new user, enabled with password`n"
-	executeRetry  "New-ADUser -Name $userName -AccountPassword (ConvertTo-SecureString -AsPlainText `$password -Force)"
-	executeRetry  "Enable-ADAccount -Identity $userName"
-
-	if ($TrustedForDelegation -eq 'yes') {
-		executeRetry  "Set-ADUser -Identity $userName -TrustedForDelegation `$True"
-	}
-
+if ( $userName.StartsWith('.\')) { 
+	localUser $userName.Substring(2) $password # Remove the .\ prefix
 } else {
 
-	if ($TrustedForDelegation -eq 'yes') {
-	    Write-Host "[$scriptName] TrustedForDelegation is not applicable to workgroup computer, no action will be attempted."
+	if ((gwmi win32_computersystem).partofdomain -eq $true) {
+	
+		executeRetry  "Import-Module ActiveDirectory"
+	
+		Write-Host "`n[$scriptName] Add the new user, enabled with password`n"
+		executeRetry  "New-ADUser -Name $userName -AccountPassword (ConvertTo-SecureString -AsPlainText `$password -Force)"
+		executeRetry  "Enable-ADAccount -Identity $userName"
+	
+		if ($TrustedForDelegation -eq 'yes') {
+			executeRetry  "Set-ADUser -Identity $userName -TrustedForDelegation `$True"
+		}
+	
+	} else {
+	
+		if ($TrustedForDelegation -eq 'yes') {
+		    Write-Host "[$scriptName] TrustedForDelegation is not applicable to workgroup computer, no action will be attempted."
+		}
+		localUser $userName $password
 	}
-
-	Write-Host "`n[$scriptName] Workgroup Host, create as local user ($userName)."
-	$ADSIComp = executeExpression "[ADSI]`"WinNT://$Env:COMPUTERNAME,Computer`""
-	$LocalUser = executeExpression "`$ADSIComp.Create(`'User`', `"$userName`")"
-	executeExpression "`$LocalUser.SetPassword(`$password)"
-	executeExpression "`$LocalUser.SetInfo()"
-	executeExpression "`$LocalUser.FullName = `"$userName`""
-	executeExpression "`$LocalUser.SetInfo()"
-
 }
 
 Write-Host
