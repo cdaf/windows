@@ -64,6 +64,7 @@ switch ($version) {
         # .\vs_Enterprise.exe --layout .\vs2017layout --add Microsoft.VisualStudio.Workload.NetWeb --add Microsoft.VisualStudio.Component.WebDeploy --lang en-US
   
         # Unattended Install
+        $currentDir = $(pwd)
         executeExpression "cd $media"
         executeExpression 'Get-ChildItem -Path .\certificates -Filter *.p12 | Import-PfxCertificate -CertStoreLocation cert:\localMachine\my'
 
@@ -76,6 +77,7 @@ switch ($version) {
         if ( $proc.ExitCode ) {
     	    Write-Host "`n[$scriptName] Install failed with LASTEXITCODE $proc.ExitCode`n"; exit $proc.ExitCode
         }
+		executeExpression "cd $currentDir "
     }
   
 
