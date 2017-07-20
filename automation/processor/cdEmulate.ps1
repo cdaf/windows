@@ -79,16 +79,26 @@ if (Test-Path "$solutionRoot\delivery.bat") {
 # Packaging will ensure either the override or default delivery process is in the workspace root
 $cdInstruction="delivery.bat"
 
-$environmentDelivery = "$Env:environmentDelivery"
-if ($environmentDelivery ) {
-	Write-Host "[$scriptName]   environmentDelivery : $environmentDelivery"
+# Check for customised Delivery environment process
+if (Test-Path "$solutionRoot\deliveryEnv.ps1") {
+
+	$environmentDelivery = $(& $solutionRoot\deliveryEnv.ps1 $AUTOMATIONROOT $solutionRoot)
+	Write-Host "[$scriptName]   environmentDelivery : $environmentDelivery (from $solutionRoot\deliveryEnv.ps1)"
+
 } else {
-	if ((gwmi win32_computersystem).partofdomain -eq $true) {
-		$environmentDelivery = 'WINDOWS'
+
+	# If environment variable not set, set default depending on domain membership
+	$environmentDelivery = "$Env:environmentDelivery"
+	if ($environmentDelivery ) {
+		Write-Host "[$scriptName]   environmentDelivery : $environmentDelivery (loaded from `$Env:environmentDelivery)"
 	} else {
-		$environmentDelivery = 'WORKGROUP'
+		if ((gwmi win32_computersystem).partofdomain -eq $true) {
+			$environmentDelivery = 'WINDOWS'
+		} else {
+			$environmentDelivery = 'WORKGROUP'
+		}
+		Write-Host "[$scriptName]   environmentDelivery : $environmentDelivery (default)"
 	}
-	Write-Host "[$scriptName]   environmentDelivery : $environmentDelivery (default)"
 }
 
 # Attempt solution name loading, error is not found
