@@ -18,7 +18,7 @@ $java_version = $args[0]
 if ( $java_version ) {
 	Write-Host "[$scriptName] java_version          : $java_version"
 } else {
-	$java_version = '8u101'
+	$java_version = '8u141'
 	Write-Host "[$scriptName] java_version          : $java_version (default)"
 }
 

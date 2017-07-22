@@ -59,7 +59,8 @@ if ($versionTest -like '*not recognized*') {
 	Write-Host "  Java                    : not installed"
 } else {
 	$array = $versionTest.split(" ")
-	Write-Host "  Java                    : $($array[2])"
+	$array = $array[2].split('"')
+	Write-Host "  Java                    : $($array[1])"
 }
 
 $versionTest = cmd /c javac -version 2`>`&1
@@ -67,7 +68,11 @@ if ($versionTest -like '*not recognized*') {
 	Write-Host "  Java Compiler           : not installed"
 } else {
 	$array = $versionTest.split(" ")
-	Write-Host "  Java Compiler           : $($array[2])"
+	if ($array[2]) {
+		Write-Host "  Java Compiler           : $($array[2])"
+	} else {
+		Write-Host "  Java Compiler           : $($array[1])"
+	}
 }
 
 $versionTest = cmd /c mvn --version 2`>`&1
