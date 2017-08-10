@@ -1,7 +1,8 @@
 Param (
   [string]$outFile,
   [string]$thumbprint,
-  [string]$value
+  [string]$value,
+  [string]$location
 )
 
 $scriptName = 'crypt.ps1'
@@ -30,8 +31,12 @@ if ($value) {
 	$secureString = Read-host -AsSecureString
 }
 
+if (! $location) {
+    $location = 'CurrentUser'
+}
+
 Write-Host "`n[$scriptName] Available certificates"
-Get-ChildItem -Path 'Cert:\CurrentUser\My' | format-table
+Get-ChildItem -Path "Cert:\$location\My" | format-table
 
 if ($thumbprint) {
 
@@ -50,7 +55,7 @@ if ($thumbprint) {
 	
 	    $encryptedString = ConvertFrom-SecureString -SecureString $secureString -Key $key
 	
-	    $cert = Get-Item -Path Cert:\CurrentUser\My\$thumbprint -ErrorAction Stop
+	    $cert = Get-Item -Path "Cert:\$location\My\$thumbprint" -ErrorAction Stop
 		if($Cert.HasPrivateKey -eq $False -or $Cert.PrivateKey -eq $null)
 		    {
 		        Write-Error "The supplied certificate does not contain a private key, or it could not be accessed."
@@ -76,7 +81,7 @@ if ($thumbprint) {
 	try {
 	    $object = Import-Clixml -Path $outFile
 	
-	    $cert = Get-Item -Path Cert:\CurrentUser\My\$thumbprint -ErrorAction Stop
+	    $cert = Get-Item -Path "Cert:\$location\My\$thumbprint" -ErrorAction Stop
 	
 	    $key = $cert.PrivateKey.Decrypt($object.Key, $true)
 	

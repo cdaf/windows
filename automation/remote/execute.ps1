@@ -25,61 +25,63 @@ function makeContainer ($itemPath) {
 	}
 }
 
-function itemRemove ($itemPath) { 
+function REMOVE ($itemPath) { 
 # If item exists, and is not a directory, remove read only and delete, if a directory then just delete
 	if ( Test-Path $itemPath ) {
-		write-host "[itemRemove] Delete $itemPath"
+		write-host "[REMOVE] Delete $itemPath"
 		Remove-Item $itemPath -Recurse -Force
-		if(!$?) {taskFailure "[$scriptName (itemRemove)] Remove-Item $itemPath -Recurse -Force" }
+		if(!$?) {taskFailure "[$scriptName (REMOVE)] Remove-Item $itemPath -Recurse -Force" }
 	}
 }
 
 # Recursive copy function to behave like cp -vR in linux
-function copyRecurse ($from, $to, $notFirstRun) {
-
-	if (Test-Path $from -PathType "Container") {
-
-		if ( Test-Path $to ) {
-		
-			# If this is the first call, i.e. at the root of the source and the target exists, and is a folder,
-			# recursive copy into a subfolder, else recursive call into root of the target 
-			if (Test-Path $to -PathType "Container") {
+function VECOPY ($from, $to, $notFirstRun) {
+	try {
+	
+		if (Test-Path $from -PathType "Container") {
+	
+			if ( Test-Path $to ) {
 			
-				# Only create a subdirectory if the root exists, otherwise copy into the root
-				if (! ($notFirstRun)) {
-					$fromLeaf = Split-Path "$from" -Leaf
-					$to = "$to\$fromLeaf"
-				}
+				# If this is the first call, i.e. at the root of the source and the target exists, and is a folder,
+				# recursive copy into a subfolder, else recursive call into root of the target 
+				if (Test-Path $to -PathType "Container") {
 				
-			} else {
-			
-				# The existing path is a file, not a directory, delete the file and replace with a directory
-				Remove-Item $to -Recurse -Force
-				if(!$?) {taskFailure "[$scriptName (copyRecurse)] Remove-Item $to -Recurse -Force" }
-				Write-Host "  $from --> $to (replace file with directory)" 
-				mkdir $to > $null
-				if(!$?) {taskFailure "[$scriptName (copyRecurse)] (replace) $to Creation failed" }
+					# Only create a subdirectory if the root exists, otherwise copy into the root
+					if (! ($notFirstRun)) {
+						$fromLeaf = Split-Path "$from" -Leaf
+						$to = "$to\$fromLeaf"
+					}
+					
+				} else {
+				
+					# The existing path is a file, not a directory, delete the file and replace with a directory
+					Remove-Item $to -Recurse -Force
+					if(!$?) {taskFailure "[$scriptName (VECOPY)] Remove-Item $to -Recurse -Force" }
+					Write-Host "  $from --> $to (replace file with directory)" 
+					mkdir $to > $null
+					if(!$?) {taskFailure "[$scriptName (VECOPY)] (replace) $to Creation failed" }
+				}
 			}
+			
+			# Previous process may have changed the target, so retest and if still not existing, create it	
+			if ( ! (Test-Path $to)) {
+				Write-Host "  $from --> $to"
+				mkdir $to > $null
+				if(!$?) {taskFailure "[$scriptName (VECOPY)] $to Creation failed" }
+			}
+	
+			foreach ($child in (Get-ChildItem -Path "$from" -Name )) {
+				VECOPY "$from\$child" "$to\$child" $true
+			}
+			
+		} else {
+	
+			Write-Host "  $from --> $to" 
+			Copy-Item $from $to -force -recurse
+			if(!$?){ taskFailure ("[$scriptName (VECOPY)] Copy remote script $from --> $to") }
+			
 		}
-		
-		# Previous process may have changed the target, so retest and if still not existing, create it	
-		if ( ! (Test-Path $to)) {
-			Write-Host "  $from --> $to"
-			mkdir $to > $null
-			if(!$?) {taskFailure "[$scriptName (copyRecurse)] $to Creation failed" }
-		}
-
-		foreach ($child in (Get-ChildItem -Path "$from" -Name )) {
-			copyRecurse "$from\$child" "$to\$child" $true
-		}
-		
-	} else {
-
-		Write-Host "  $from --> $to" 
-		Copy-Item $from $to -force -recurse
-		if(!$?){ taskFailure ("[$scriptName (copyRecurse)] Copy remote script $from --> $to") }
-		
-	}
+	} catch { taskException "VECOPY_TRAP" $_ }
 }
 
 # Requires PowerShell v3 or above
@@ -126,6 +128,12 @@ function REPLAC( $fileName, $token, $value )
 	(Get-Content $fileName | ForEach-Object { $_ -replace "$token", "$value" } ) | Set-Content $fileName
 	    if(!$?) { taskException "REPLAC_TRAP" }
 	} catch { taskException "REPLAC_TRAP" $_ }
+}
+
+# Use the Decryption helper script
+function DECRYP( $encryptedFile, $thumbprint, $location )
+{
+	./decryptKey.ps1 $encryptedFile $thumbprint $location
 }
 
 $SOLUTION    = $args[0]
@@ -250,13 +258,14 @@ Foreach ($line in get-content $TASK_LIST) {
 				# Delete (verbose)
 	            if ( $feature -eq 'REMOVE ' ) {
 		            Write-Host "$expression ==> " -NoNewline
-		            $expression = "itemRemove " + $expression.Substring(7)
+		            $expression = "REMOVE " + $expression.Substring(7)
 	            }
 
 				# Copy (verbose)
 	            if ( $feature -eq 'VECOPY ' ) {
 		            Write-Host "$expression ==> " -NoNewline
-		            $expression = "copyRecurse " + $expression.Substring(7)
+		            $arguments = $expression.Substring(7)
+					$expression = "VECOPY $arguments"
 	            }
 
 				# Decrypt a file
@@ -265,7 +274,7 @@ Foreach ($line in get-content $TASK_LIST) {
 	            if ( $feature -eq 'DECRYP ' ) {
 		            Write-Host "$expression ==> " -NoNewline
 		            $arguments = $expression.Substring(7)
-					$expression = "`$RESULT = ./decryptKey.ps1 $arguments"
+					$expression = "`$RESULT = DECRYP $arguments"
 				}
 
 				# Invoke a custom script

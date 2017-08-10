@@ -314,7 +314,7 @@ if ($file) {
 		        exit 3010
 	        }
 	        default {
-		        Write-Host "`n[$scriptName] Reboot is required, but reboot set to $reboot so no shutdown action not attempted and returning `$LASTEXITCODE = 0"
+		        Write-Host "`n[$scriptName] Reboot is required, but reboot set to ${reboot}, so shutdown action not attempted and returning `$LASTEXITCODE = 0"
 	        }
         }
     }

@@ -1,3 +1,10 @@
+Param (
+  [string]$userName,
+  [string]$password,
+  [string]$TrustedForDelegation,
+  [string]$passwordExpires
+)
+
 # Common expression logging and error handling function, copied, not referenced to ensure atomic process
 function executeExpression ($expression) {
 	$error.clear()
@@ -18,6 +25,11 @@ function localUser ($userName, $password) {
 	executeExpression "`$LocalUser.SetInfo()"
 	executeExpression "`$LocalUser.FullName = `"$userName`""
 	executeExpression "`$LocalUser.SetInfo()"
+	if ($passwordExpires -eq 'no') {
+		executeExpression "`$LocalUser.UserFlags.value = `$LocalUser.UserFlags.value -bor 0x10000" # Password never expires
+		executeExpression "`$LocalUser.SetInfo()"
+	} 
+	executeExpression "`$LocalUser.CommitChanges()"
 }
 
 function executeRetry ($expression) {
@@ -47,11 +59,8 @@ function executeRetry ($expression) {
 }
 
 $scriptName = 'newUser.ps1'
-Write-Host
-Write-Host "[$scriptName] New User on Domain or Workgroup, Windows Server 2012 and above"
-Write-Host
-Write-Host "[$scriptName] ---------- start ----------"
-$userName = $args[0]
+Write-Host "`n[$scriptName] New User on Domain or Workgroup, Windows Server 2012 and above"
+Write-Host "`n[$scriptName] ---------- start ----------"
 if ($userName) {
     Write-Host "[$scriptName] userName             : $userName"
 } else {
@@ -59,7 +68,6 @@ if ($userName) {
     Write-Host "[$scriptName] userName             : $userName (default)"
 }
 
-$password = $args[1]
 if ($password) {
     Write-Host "[$scriptName] password             : **********"
 } else {
@@ -67,12 +75,18 @@ if ($password) {
     Write-Host "[$scriptName] password             : ********** (default)"
 }
 
-$TrustedForDelegation = $args[2]
 if ($TrustedForDelegation) {
     Write-Host "[$scriptName] TrustedForDelegation : $TrustedForDelegation (choices yes or no)"
 } else {
 	$TrustedForDelegation = 'no'
     Write-Host "[$scriptName] TrustedForDelegation : $TrustedForDelegation (default, choices yes or no)"
+}
+
+if ($passwordExpires) {
+    Write-Host "[$scriptName] passwordExpires      : $passwordExpires (choices yes or no)"
+} else {
+	$passwordExpires = 'yes'
+    Write-Host "[$scriptName] passwordExpires      : $passwordExpires (default, choices yes or no)"
 }
 
 # Provisionig Script builder
@@ -85,6 +99,10 @@ if ( $userName.StartsWith('.\')) {
 } else {
 
 	if ((gwmi win32_computersystem).partofdomain -eq $true) {
+
+		if ($passwordExpires -eq 'no') {
+			Write-Host "`n[$scriptName] Password expiry setting only applicable to local accounts`n"
+		}
 	
 		executeRetry  "Import-Module ActiveDirectory"
 	
@@ -105,5 +123,4 @@ if ( $userName.StartsWith('.\')) {
 	}
 }
 
-Write-Host
-Write-Host "[$scriptName] ---------- stop ----------"
+Write-Host "`n[$scriptName] ---------- stop ----------"

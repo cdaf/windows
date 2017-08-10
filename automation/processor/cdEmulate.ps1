@@ -119,10 +119,8 @@ $workDirLocal = 'TasksLocal'
 Write-Host "[$scriptName]   workDirLocal        : $workDirLocal (default, see readme for changing this location)"
 
 # Do not list configuration instructions when performing clean
-if ( $ACTION -ne "clean" ) { # Case insensitive
-	write-host
-	write-host "[$scriptName] ---------- CI Toolset Configuration Guide -------------"
-	write-host
+if (( $ACTION -ne "clean" ) -or ($ACTION -ne "deliveryonly")) { # Case insensitive
+	write-host "`n[$scriptName] ---------- CI Toolset Configuration Guide -------------`n"
     write-host 'For TeamCity ...'
     write-host "  Command Executable  : $ciInstruction"
     write-host "  Command parameters  : %build.number% %build.vcs.number%"
@@ -156,8 +154,7 @@ if ( $ACTION -ne "clean" ) { # Case insensitive
     write-host 'For GitLab (requires shell runner) ...'
     write-host '  In .gitlab-ci.yml (in the root of the repository) add the following hook into the CI job'
     write-host "    script: `"automation/processor/ciProcess.sh `${CI_BUILD_ID} `{CI_BUILD_REF_NAME}`""
-    write-host
-	write-host "[$scriptName] -------------------------------------------------------"
+	write-host "`n[$scriptName] -------------------------------------------------------"
 }
 # Process Build and Package
 & $ciProcess $buildNumber $revision $ACTION
@@ -169,10 +166,10 @@ if($LASTEXITCODE -ne 0){
 }
 if(!$?){ exceptionExit "$ciProcess $buildNumber $revision $ACTION" }
 
-if ( $ACTION -ne "clean" ) {
-	write-host
-	write-host "[$scriptName] ---------- Artefact Configuration Guide -------------"
-	write-host
+if (( $ACTION -eq "clean" ) -or ( $ACTION -eq "buildonly" )){ # Case insensitive
+	write-host "`n[$scriptName] No Delivery attempted when action ($ACTION) passed"
+} else {
+	write-host "`n[$scriptName] ---------- Artefact Configuration Guide -------------`n"
 	write-host 'Configure artefact retention patterns to retain package and local tasks'
 	write-host
     write-host 'For Go ...'
@@ -191,16 +188,7 @@ if ( $ACTION -ne "clean" ) {
 	write-host '  Source Folder   : $(Agent.BuildDirectory)\s'
 	write-host '  Copy files task : TasksLocal/**'
 	write-host '                    *.zip'
-}
-
-# Do not process Remote and Local Tasks if the action is just clean
-if ( $ACTION -eq "clean" ) {
-	write-host
-	write-host "[$scriptName] No Delivery Action attempted when clean only action"
-} else {
-	write-host
-	write-host "[$scriptName] ---------- CD Toolset Configuration Guide -------------"
-	write-host
+	write-host "`n[$scriptName] ---------- CD Toolset Configuration Guide -------------`n"
 	write-host 'Note: artifact retention typically does include file attribute for executable, so'
 	write-host '  set the first step of deploy process to make all scripts executable'
 	write-host '  chmod +x ./*/*.sh'
