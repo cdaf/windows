@@ -1,11 +1,11 @@
 Param (
-  [string]$imageName,
-  [string]$dockerExpose,
-  [string]$publishedPort,
-  [string]$tag,
-  [string]$environment,
-  [string]$registry,
-  [string]$dockerOpt
+    [string]$imageName,
+    [string]$dockerExpose,
+    [string]$publishedPort,
+    [string]$tag,
+    [string]$environment,
+    [string]$registry,
+    [string]$dockerOpt
 )
 # Common expression logging and error handling function, copied, not referenced to ensure atomic process
 function executeExpression ($expression) {

@@ -1,7 +1,7 @@
 Param (
-  [string]$uri,
-  [string]$mediaDir,
-  [string]$md5
+	[string]$uri,
+	[string]$mediaDir,
+	[string]$md5
 )
 $scriptName = 'GetMedia.ps1'
 
@@ -45,7 +45,8 @@ if ( $env:PROV_SCRIPT_PATH ) {
 
 # Create media cache if missing
 if (!( Test-Path $mediaDir )) {
-	executeExpression "mkdir $mediaDir"
+	$result = executeExpression "mkdir $mediaDir"
+	Write-Host "[$scriptName] Created $result`n"
 }
 
 $filename = $uri.Substring($uri.LastIndexOf("/") + 1)
@@ -67,3 +68,4 @@ if ( $md5 ) {
 }
 
 Write-Host "`n[$scriptName] ---------- stop ----------`n"
+exit 0
