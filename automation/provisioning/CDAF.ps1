@@ -1,3 +1,11 @@
+Param (
+	[string]$userName,
+	[string]$userPass,
+	[string]$workspace,
+	[string]$OPT_ARG
+)
+$scriptName = 'CDAF.ps1'
+
 # Common expression logging and error handling function, copied, not referenced to ensure atomic process
 function executeExpression ($expression) {
 	$error.clear()
@@ -12,9 +20,7 @@ function executeExpression ($expression) {
     return $output
 }
 
-$scriptName = 'CDAF.ps1'
-Write-Host
-Write-Host "[$scriptName] Execute the Continous Delivery Automation Framework for the solution."
+Write-Host "`n[$scriptName] Execute the Continous Delivery Automation Framework for the solution."
 Write-Host "[$scriptName] This process is dependant on the solution being synchonised onto the"
 Write-Host "[$scriptName] `"build server`" using Vagrant and VirtualBox, which maps the local workspace"
 Write-Host "[$scriptName] at C:\vagrant. If this is not used, then the workspace must be passed."
@@ -23,23 +29,19 @@ Write-Host "[$scriptName] By default the emulation is performed using the local 
 Write-Host "[$scriptName] alternate credentials can be passed and a remote PowerShell connection will"
 Write-Host "[$scriptName] be attempted, connecting back to the `"build server`" via the localhost adapter."
 Write-Host
-Write-Host "[$scriptName] ---------- start ----------"
-Write-Host
-$userName = $args[0]
+Write-Host "[$scriptName] ---------- start ----------`n"
 if ($userName) {
     Write-Host "[$scriptName] userName  : $userName"
 } else {
     Write-Host "[$scriptName] userName  : not supplied, use local"
 }
 
-$userPass = $args[1]
 if ($userPass) {
     Write-Host "[$scriptName] userPass  : **********"
 } else {
     Write-Host "[$scriptName] userPass  : not supplied, use local"
 }
 
-$workspace = $args[2]
 if ($workspace) {
     Write-Host "[$scriptName] workspace : $workspace"
 } else {
@@ -47,7 +49,6 @@ if ($workspace) {
     Write-Host "[$scriptName] workspace : $workspace (default)"
 }
 
-$OPT_ARG = $args[3]
 if ($OPT_ARG) {
     Write-Host "[$scriptName] OPT_ARG   : $OPT_ARG"
 } else {

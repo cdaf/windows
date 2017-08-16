@@ -31,7 +31,9 @@ if ( Test-Path buildnumber.counter ) {
 	$buildNumber = 0
 }
 [int]$buildnumber = [convert]::ToInt32($buildNumber)
-$buildNumber += 1
+if ( $ACTION -ne "deliveryonly" ) { # Do not incriment when just deploying
+	$buildNumber += 1
+}
 Out-File buildnumber.counter -InputObject $buildNumber
 Write-Host "[$scriptName]   buildNumber         : $buildNumber"
 $revision = 'master' # Assuming source control is Git
@@ -119,7 +121,7 @@ $workDirLocal = 'TasksLocal'
 Write-Host "[$scriptName]   workDirLocal        : $workDirLocal (default, see readme for changing this location)"
 
 # Do not list configuration instructions when performing clean
-if (( $ACTION -ne "clean" ) -or ($ACTION -ne "deliveryonly")) { # Case insensitive
+if (( $ACTION -ne "clean" ) -and ($ACTION -ne "deliveryonly")) { # Case insensitive
 	write-host "`n[$scriptName] ---------- CI Toolset Configuration Guide -------------`n"
     write-host 'For TeamCity ...'
     write-host "  Command Executable  : $ciInstruction"
@@ -157,14 +159,16 @@ if (( $ACTION -ne "clean" ) -or ($ACTION -ne "deliveryonly")) { # Case insensiti
 	write-host "`n[$scriptName] -------------------------------------------------------"
 }
 # Process Build and Package
-& $ciProcess $buildNumber $revision $ACTION
-if($LASTEXITCODE -ne 0){
-    write-host "[$scriptName] CI_NON_ZERO_EXIT $ciProcess $buildNumber $revision $ACTION" -ForegroundColor Magenta
-    write-host "[$scriptName]   `$host.SetShouldExit($LASTEXITCODE)" -ForegroundColor Red
-    $host.SetShouldExit($LASTEXITCODE) # Returning exit code to DOS
-    exit
+if ( $ACTION -ne "deliveryonly" ) { # Case insensitive
+	& $ciProcess $buildNumber $revision $ACTION
+	if($LASTEXITCODE -ne 0){
+	    write-host "[$scriptName] CI_NON_ZERO_EXIT $ciProcess $buildNumber $revision $ACTION" -ForegroundColor Magenta
+	    write-host "[$scriptName]   `$host.SetShouldExit($LASTEXITCODE)" -ForegroundColor Red
+	    $host.SetShouldExit($LASTEXITCODE) # Returning exit code to DOS
+	    exit
+	}
+	if(!$?){ exceptionExit "$ciProcess $buildNumber $revision $ACTION" }
 }
-if(!$?){ exceptionExit "$ciProcess $buildNumber $revision $ACTION" }
 
 if (( $ACTION -eq "clean" ) -or ( $ACTION -eq "buildonly" )){ # Case insensitive
 	write-host "`n[$scriptName] No Delivery attempted when action ($ACTION) passed"
@@ -238,8 +242,7 @@ if (( $ACTION -eq "clean" ) -or ( $ACTION -eq "buildonly" )){ # Case insensitive
 	}
 	if(!$?){ exceptionExit "$cdProcess $environmentDelivery $release" }
 }
-write-host
-write-host "[$scriptName] ------------------"
+
+write-host "`n[$scriptName] ------------------"
 write-host "[$scriptName] Emulation Complete"
-write-host "[$scriptName] ------------------"
-write-host
+write-host "[$scriptName] ------------------`n"
