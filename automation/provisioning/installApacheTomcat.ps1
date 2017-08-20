@@ -10,10 +10,11 @@ function executeExpression ($expression) {
 	$error.clear()
 	Write-Host "[$scriptName] $expression"
 	try {
-		Invoke-Expression $expression
+		$output = Invoke-Expression $expression
 	    if(!$?) { Write-Host "[$scriptName] `$? = $?"; exit 1 }
 	} catch { echo $_.Exception|format-list -force; exit 2 }
     if ( $error[0] ) { Write-Host "[$scriptName] `$error[0] = $error"; exit 3 }
+    return $output
 }
 
 Write-Host "`n[$scriptName] Requires 32-bit/64-bit Windows Service Installer"
@@ -22,7 +23,8 @@ Write-Host "`n[$scriptName] ---------- start ----------"
 if ( $tomcat_version ) {
 	Write-Host "[$scriptName] tomcat_version        : $tomcat_version"
 } else {
-	$tomcat_version = '8.5.13'
+	$tomcat_version = '8.5.20'
+	$md5 = '43c640b3baf7b1e591f8a5c9d3b109e5'
 	Write-Host "[$scriptName] tomcat_version        : $tomcat_version (default)"
 }
 
@@ -70,6 +72,23 @@ if ( Test-Path $tomcatHomeDir ) {
 Write-Host
 # Install Tomcat as a Windows Service
 $apacheTomcatInstallFileName="apache-tomcat-" + $tomcat_version + ".exe";
+
+if (!( Test-Path $sourceInstallDir\$apacheTomcatInstallFileName )) {
+	# Create media cache if missing
+	if (!( Test-Path $sourceInstallDir )) {
+		$result = executeExpression "mkdir $sourceInstallDir"
+		Write-Host "[$scriptName] Created $result`n"
+	}
+	$uri = "http://www-us.apache.org/dist/tomcat/tomcat-8/v${tomcat_version}/bin/apache-tomcat-${tomcat_version}.exe"
+	executeExpression "(New-Object System.Net.WebClient).DownloadFile(`"`$uri`", `"`$sourceInstallDir\$apacheTomcatInstallFileName`")" 
+	$hashValue = executeExpression "Get-FileHash `"$fullpath`" -Algorithm MD5"
+	if ($hashValue = $md5) {
+		Write-Host "[$scriptName] MD5 ($md5) check successful"
+	} else {
+		Write-Host "[$scriptName] MD5 ($md5) check failed! Halting with `$lastexitcode 65"; exit 65
+	}
+}
+
 if ( Test-Path $sourceInstallDir\$apacheTomcatInstallFileName ) {
 	Write-Host "[$scriptName] Installing Tomcat as Windows Service ..."
 	try {

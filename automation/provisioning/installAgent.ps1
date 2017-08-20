@@ -14,26 +14,27 @@ $scriptName = 'installAgent.ps1'
 # Common expression logging and error handling function, copied, not referenced to ensure atomic process
 function executeExpression ($expression) {
 	$error.clear()
-	$lastExitCode = 0
+	$LASTEXITCODE = 0
 	Write-Host "[$scriptName] $expression"
 	try {
-		Invoke-Expression $expression
+		$output = Invoke-Expression $expression
 	    if(!$?) { Write-Host "[$scriptName] `$? = $?"; exit 1 }
 	} catch { echo $_.Exception|format-list -force; exit 2 }
+    if ( $LASTEXITCODE -ne 0 ) { Write-Host "[$scriptName] `$LASTEXITCODE = $LASTEXITCODE "; exit $LASTEXITCODE }
     if ( $error[0] ) { Write-Host "[$scriptName] `$error[0] = $error"; exit 3 }
-    if ( $lastExitCode -ne 0 ) { Write-Host "[$scriptName] `$lastExitCode = $lastExitCode "; exit $lastExitCode }
+    return $output
 }
 
 Write-Host "[$scriptName] ---------- start ----------"
 if ( $url ) {
 	Write-Host "[$scriptName] url             : $url"
-	$optParms += "-url `$url"
+	$optParms += " -url $url"
 } else {
 	Write-Host "[$scriptName] url             : (not supplied, will just extract the agent software)"
 }
 if ( $pat ) {
 	Write-Host "[$scriptName] pat             : `$pat"
-	$optParms += "-pat `$pat"
+	$optParms += " -pat `$pat"
 } else {
 	Write-Host "[$scriptName] pat             : (not supplied)"
 }
@@ -43,7 +44,7 @@ if ( $pool ) {
 	$pool = 'default'
 	Write-Host "[$scriptName] pool            : $pool (not supplied, set to default, if Deployment Group is used, this will be ignored)"
 }
-$optParms += " -pool `$pool"
+$optParms += " -pool $pool"
 if ( $agentName ) {
 	Write-Host "[$scriptName] agentName       : $agentName"
 } else {
@@ -112,7 +113,8 @@ Write-Host "`nExtract using default instructions from Microsoft"
 if (Test-Path "C:\agent") {
 	executeExpression "Remove-Item `"C:\agent`" -Recurse -Force"
 }
-executeExpression "mkdir C:\agent"
+$result = executeExpression "mkdir C:\agent"
+Write-Host "`nCreated directory $result"
 executeExpression "[System.IO.Compression.ZipFile]::ExtractToDirectory(`"$mediaDirectory\$mediaFileName`", `"C:\agent`")"
 
 if ( $url ) {

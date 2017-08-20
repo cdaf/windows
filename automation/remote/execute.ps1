@@ -8,20 +8,20 @@ function taskException ($taskName, $exception) {
 	exit -3
 }
 
-function makeContainer ($itemPath) { 
+function MAKDIR ($itemPath) { 
 # If directory already exists, just report, otherwise create the directory and report
 	if ( Test-Path $itemPath ) {
 		if (Test-Path $itemPath -PathType "Container") {
-			write-host "[$scriptName (makeContainer)] $itemPath exists"
+			write-host "[$scriptName (MAKDIR)] $itemPath exists"
 		} else {
 			Remove-Item $itemPath -Recurse -Force
-			if(!$?) { taskFailure "[$scriptName (makeContainer)] Remove-Item $itemPath -Recurse -Force" }
+			if(!$?) { taskFailure "[$scriptName (MAKDIR)] Remove-Item $itemPath -Recurse -Force" }
 			mkdir $itemPath > $null
-			if(!$?) { taskFailure "[$scriptName (makeContainer)] (replace) $itemPath Creation failed" }
+			if(!$?) { taskFailure "[$scriptName (MAKDIR)] (replace) $itemPath Creation failed" }
 		}	
 	} else {
 		mkdir $itemPath > $null
-		if(!$?) {taskFailure "[$scriptName (makeContainer)] $itemPath Creation failed" }
+		if(!$?) {taskFailure "[$scriptName (MAKDIR)] $itemPath Creation failed" }
 	}
 }
 
@@ -84,7 +84,9 @@ function VECOPY ($from, $to, $notFirstRun) {
 	} catch { taskException "VECOPY_TRAP" $_ }
 }
 
-# Requires PowerShell v3 or above
+# Compress to file (Requires PowerShell v3 or above)
+#  required : file, relative to current workspace
+#  required : source directory, relative to current workspace
 function CMPRSS( $zipfilename, $sourcedir )
 {
 	$currentDir = $(pwd)
@@ -109,19 +111,26 @@ function CMPRSS( $zipfilename, $sourcedir )
 	}
 }
 
-# Requires PowerShell v3 or above, pass zip file without .zip suffix
-function UnZipFiles( $packageFile, $packagePath )
+# Decompress from file (Requires PowerShell v3 or above, pass zip file without .zip suffix)
+#  required : file, relative to current workspace
+function DCMPRS( $packageFile, $packagePath )
 {
+    if (!( $packagePath )) {
+		$packagePath = $pwd
+	}
 	$currentDir = $(pwd)
 	if ($packagePath -eq '.') { $packagePath = $(pwd) }
 	Write-Host "`n[$scriptName] Extract zip package $packageFile.zip to $packagePath"
 	[System.IO.Compression.ZipFile]::ExtractToDirectory("$currentDir/$packageFile.zip", "$packagePath/$packageFile")
 	foreach ($item in (Get-ChildItem -Path $packagePath/$packageFile)) {
-		Write-Host "[$scriptName (UnZipFiles)]    --> $item"
+		Write-Host "[$scriptName (DCMPRS)]    --> $item"
 	}
 }
 
-# Replace in file, written as a function to allow argument passing with spaces
+# Replace in file
+#  required : file, relative to current workspace
+#  required : name, the token to be replaced
+#  required : value, the replacement value
 function REPLAC( $fileName, $token, $value )
 {
 	try {
@@ -249,25 +258,6 @@ Foreach ($line in get-content $TASK_LIST) {
 		            $expression = $expression.Substring(7)
 	            }
 
-				# Create Directory (verbose)
-	            if ( $feature -eq 'MAKDIR ' ) {
-		            Write-Host "$expression ==> " -NoNewline
-		            $expression = "makeContainer " + $expression.Substring(7)
-	            }
-	
-				# Delete (verbose)
-	            if ( $feature -eq 'REMOVE ' ) {
-		            Write-Host "$expression ==> " -NoNewline
-		            $expression = "REMOVE " + $expression.Substring(7)
-	            }
-
-				# Copy (verbose)
-	            if ( $feature -eq 'VECOPY ' ) {
-		            Write-Host "$expression ==> " -NoNewline
-		            $arguments = $expression.Substring(7)
-					$expression = "VECOPY $arguments"
-	            }
-
 				# Decrypt a file
 				#  required : file location
 				#  optional : thumbprint, if decrypting using certificate
@@ -349,40 +339,6 @@ Foreach ($line in get-content $TASK_LIST) {
 		            	$expression += $TARGET + " " + $tokenFile
 					}
 	            }
-
-				# Replace in file
-				#  required : file, relative to current workspace
-				#  required : name, the token to be replaced
-				#  required : value, the replacement value
-	            if ( $feature -eq 'REPLAC ' ) {
-		            Write-Host "$expression ==> " -NoNewline
-		            $arguments = $expression.Substring(7)
-					$expression = "REPLAC $arguments"
-				}		
-
-				# Compress to file
-				#  required : file, relative to current workspace
-				#  required : source directory, relative to current workspace
-	            if ( $feature -eq 'CMPRSS ' ) {
-		            Write-Host "$expression ==> " -NoNewline
-		            $arguments = $expression.Substring(7)
-					$expression = "CMPRSS $arguments"
-				}		
-
-				# Decompress from file
-				#  required : file, relative to current workspace
-	            if ( $feature -eq 'DCMPRS ' ) {
-		            Write-Host "$expression ==> " -NoNewline
-		            $arguments = $expression.Substring(7)
-		            $arguments = Invoke-Expression "Write-Output $arguments"
-					$data = $arguments.split(" ")
-					$filename = $data[0]
-					$extractTo = $data[1]
-		            if (!( $extractTo )) {
-						$extractTo = $pwd
-					}
-					$expression = "UnZipFiles $filename $extractTo"
-				}		
 	        }
 
 			# Perform no further processing if Feature is Property Loader
