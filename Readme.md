@@ -1,3 +1,5 @@
+[![cdaf version](automation/cdaf-badge.png)](https://github.com/cdaf/windows/tree/master/automation)
+
 # Continuous Delivery Automation Framework for Windows
 
 For usage details, see https://github.com/cdaf/windows/blob/master/automation/Readme.md
