@@ -145,6 +145,20 @@ function DECRYP( $encryptedFile, $thumbprint, $location )
 	./decryptKey.ps1 $encryptedFile $thumbprint $location
 }
 
+# Use the the transofrm helper script to perform detokenisation
+#  required : tokenised file, relative to current workspace
+#  option : properties file, if not passed, target will be used
+function DETOKN( $tokenFile, $properties )
+{
+
+	$expression = ".\Transform.ps1 "
+    if ($properties) {
+        $expression += $properties + " " + $tokenFile
+    } else {
+    	$expression += $TARGET + " " + $tokenFile
+	}
+}
+
 $SOLUTION    = $args[0]
 $BUILDNUMBER = $args[1]
 $TARGET      = $args[2]
@@ -258,15 +272,6 @@ Foreach ($line in get-content $TASK_LIST) {
 		            $expression = $expression.Substring(7)
 	            }
 
-				# Decrypt a file
-				#  required : file location
-				#  optional : thumbprint, if decrypting using certificate
-	            if ( $feature -eq 'DECRYP ' ) {
-		            Write-Host "$expression ==> " -NoNewline
-		            $arguments = $expression.Substring(7)
-					$expression = "`$RESULT = DECRYP $arguments"
-				}
-
 				# Invoke a custom script
 	            if ( $feature -eq 'INVOKE ' ) {
 		            Write-Host "$expression ==> " -NoNewline
@@ -321,23 +326,6 @@ Foreach ($line in get-content $TASK_LIST) {
 	            	}
 		            Write-Host "$expression ==> " -NoNewline
 	            	$expression = '.\remoteExec.ps1 ' + $deployHost + ' ' + $remUser  + ' ' + $remCred + ' ' + $remThumb  + ' ' + $expression.Substring(7)
-	            }
-
-				# Detokenise a file
-				#  required : tokenised file, relative to current workspace
-				#  option : properties file, if not passed, target will be used
-	            if ( $feature -eq 'DETOKN ' ) {
-		            Write-Host "$expression ==> " -NoNewline
-	            	$arguments = $expression.Substring(7)
-					$data = $arguments.split(" ")
-					$tokenFile = $data[0]
-					$properties = $data[1]
-	            	$expression = ".\Transform.ps1 "
-		            if ($properties) {
-			            $expression += $properties + " " + $tokenFile
-		            } else {
-		            	$expression += $TARGET + " " + $tokenFile
-					}
 	            }
 	        }
 
