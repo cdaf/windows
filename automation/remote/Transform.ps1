@@ -25,7 +25,7 @@ $TOKENFILE  = $args[1]
 
 $scriptName = $myInvocation.MyCommand.Name 
 write-host 
-write-host "[$scriptName] PROPFILE : $PROPFILE"
+write-host "[$scriptName] PROPFILE  : $PROPFILE"
 if (-Not (Test-Path $PROPFILE) ) {
 	$exitCode=61
 	write-host "[$scriptName] PROPFILE ($PROPFILE) not found, returning exit $exitCode"
@@ -34,7 +34,7 @@ if (-Not (Test-Path $PROPFILE) ) {
 
 if ($TOKENFILE) {
 	if (Test-Path $TOKENFILE) {
-		write-host "[$scriptName] TOKENFILE = $TOKENFILE"
+		write-host "[$scriptName] TOKENFILE : $TOKENFILE"
 	} else {
 		$exitCode=62
 		write-host "[$scriptName] TOKENFILE ($TOKENFILE) not found, returning exit $exitCode"

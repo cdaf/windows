@@ -8,6 +8,19 @@ function taskException ($taskName, $exception) {
 	exit -3
 }
 
+function executeExpression ($expression) {
+	$error.clear()
+	$LASTEXITCODE = 0
+	Write-Host "[$scriptName] $expression"
+	try {
+		$output = Invoke-Expression $expression
+	    if(!$?) { Write-Host "[$scriptName] `$? = $?"; exit 1 }
+	} catch { echo $_.Exception|format-list -force; exit 2 }
+    if ( $error[0] ) { Write-Host "[$scriptName] `$error[0] = $error"; exit 3 }
+    if ( $LASTEXITCODE -ne 0 ) { Write-Host "[$scriptName] `$LASTEXITCODE = $LASTEXITCODE "; exit $LASTEXITCODE }
+    return $output
+}
+
 function MAKDIR ($itemPath) { 
 # If directory already exists, just report, otherwise create the directory and report
 	if ( Test-Path $itemPath ) {
@@ -150,12 +163,20 @@ function DECRYP( $encryptedFile, $thumbprint, $location )
 #  option : properties file, if not passed, target will be used
 function DETOKN( $tokenFile, $properties )
 {
-
-	$expression = ".\Transform.ps1 "
     if ($properties) {
-        $expression += $properties + " " + $tokenFile
+        $expression = ".\Transform.ps1 `"$properties`" `"$tokenFile`""
     } else {
-    	$expression += $TARGET + " " + $tokenFile
+        $expression = ".\Transform.ps1 `"$TARGET`" `"$tokenFile`""
+	}
+	executeExpression $expression
+}
+
+# Log error array, if elements exist, then exit normally
+function IGNORE()
+{
+    if ( $error[0] ) {
+		Write-Host "[$scriptName (IGNORE)] `$error[0] = $error[0]"
+		$error.clear()
 	}
 }
 
