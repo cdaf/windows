@@ -1,8 +1,8 @@
 Param (
-  [string]$feature,
-  [string]$options,
-  [string]$media,
-  [string]$wimIndex
+	[string]$feature,
+	[string]$options,
+	[string]$media,
+	[string]$wimIndex
 )
 $scriptName = 'addFeature.ps1'
 
