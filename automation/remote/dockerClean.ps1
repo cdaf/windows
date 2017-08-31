@@ -27,8 +27,7 @@ function executeSuppress ($expression) {
 }
 
 $scriptName = 'dockerClean.ps1'
-Write-Host "`n[$scriptName] Clean image from registry based on Product label. If a tag is passed,"
-Write-Host "[$scriptName] only images with a tag value less that the one supplied and removed."
+Write-Host "`n[$scriptName] Clean image from registry based on Product label. If a tag is passed, only images with a tag value less that the one supplied are removed."
 Write-Host "`n[$scriptName] --- start ---"
 if ($imageName) {
     Write-Host "[$scriptName] imageName : $imageName"
