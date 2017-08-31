@@ -1,4 +1,4 @@
-[![cdaf version](automation/cdaf-badge.png)](http://cdaf.io)
+[![cdaf version](automation/badge.png)](http://cdaf.io)
 
 # Continuous Delivery Automation Framework for Windows
 
