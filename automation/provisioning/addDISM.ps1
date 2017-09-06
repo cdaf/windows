@@ -70,35 +70,26 @@ if ($featureList) {
 
 if ($media) {
     Write-Host "[$scriptName] media       : $media"
-    $optParam += "-media $media "
 } else {
     Write-Host "[$scriptName] media       : not supplied"
 }
 
 if ($wimIndex) {
     Write-Host "[$scriptName] wimIndex    : $wimIndex"
-    $optParam += "-wimIndex $wimIndex "
 } else {
     Write-Host "[$scriptName] wimIndex    : (not supplied, use media directly)"
 }
 
 if ($dismount) {
     Write-Host "[$scriptName] dismount    : $dismount"
-    $optParam += "-dismount $dismount "
 } else {
     Write-Host "[$scriptName] dismount    : (not passed, will dismount if mount successful)"
 }
 
 if ($halt) {
     Write-Host "[$scriptName] halt        : $halt (will halt on all exceptions or non-zero exitcode)"
-    $optParam += "-halt $halt "
 } else {
     Write-Host "[$scriptName] halt        : not passed, will continue if 3010 (restart required) is encountered."
-}
-# Provisionig Script builder
-$scriptPath = [Environment]::GetEnvironmentVariable('PROV_SCRIPT_PATH', 'Machine')
-if ( $scriptPath ) {
-	Add-Content "$env:PROV_SCRIPT_PATH" "executeExpression `"./automation/provisioning/$scriptName $featureList $optParam`""
 }
 
 # Cannot run interactive via remote PowerShell

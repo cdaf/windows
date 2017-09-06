@@ -42,10 +42,6 @@ if ($sourcePath) {
     Write-Host "[$scriptName] sourcePath : not supplied, dismounting $imagePath"
     Write-Host "[$scriptName] fallBack   : (not applicable when sourcePath not passed)"
 }
-# Provisionig Script builder
-if ( $env:PROV_SCRIPT_PATH ) {
-	Add-Content "$env:PROV_SCRIPT_PATH" "executeExpression `"./automation/provisioning/$scriptName $imagePath $sourcePath $fallBack`""
-}
 
 if ($sourcePath) {
 	if ($imagePath -eq $sourcePath ) {

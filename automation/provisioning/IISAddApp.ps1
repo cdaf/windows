@@ -59,17 +59,12 @@ if ($clrVersion) {
 } else {
     Write-Host "[$scriptName] clrVersion   : (not supplied, set to NoManagedCode for no CLR version)"
 }
-# Provisioning Script builder
-if ( $env:PROV_SCRIPT_PATH ) {
-	Add-Content "$env:PROV_SCRIPT_PATH" "executeExpression `"./automation/provisioning/$scriptName $argList`""
-}
-Write-Host
 
 if (Test-Path "$physicalPath") {
-    Write-Host "[$scriptName] Physical path $physicalPath exists, no action required."
+    Write-Host "`n[$scriptName] Physical path $physicalPath exists, no action required."
 } else {
 	$newDir = executeExpression "New-Item -ItemType Directory -Force -Path `'$physicalPath`'"
-	Write-Host "Created $($newDir.FullName)"
+	Write-Host "`n[$scriptName] Created $($newDir.FullName)"
 }
 
 Write-Host

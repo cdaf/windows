@@ -46,10 +46,6 @@ if ($subDirectory) {
     Write-Host "[$scriptName] subDirectory    : ( not supplied )"
 }
 
-# Provisioning Script builder
-if ( $env:PROV_SCRIPT_PATH ) {
-	Add-Content "$env:PROV_SCRIPT_PATH" "executeExpression `'./automation/provisioning/$scriptName $packageName `"$targetDirectory`"$optArg`'"
-}
 $nugetOutDir = "$env:temp\packages"
 if ( Test-Path $nugetOutDir ) {
 	Write-Host "[$scriptName] $nugetOutDir exists, this is the cache NuGet will use"

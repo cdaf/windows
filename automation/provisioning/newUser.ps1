@@ -89,11 +89,6 @@ if ($passwordExpires) {
     Write-Host "[$scriptName] passwordExpires      : $passwordExpires (default, choices yes or no)"
 }
 
-# Provisionig Script builder
-if ( $env:PROV_SCRIPT_PATH ) {
-	Add-Content "$env:PROV_SCRIPT_PATH" "executeExpression `"./automation/provisioning/$scriptName $userName `$password `""
-}
-
 if ( $userName.StartsWith('.\')) { 
 	localUser $userName.Substring(2) $password # Remove the .\ prefix
 } else {

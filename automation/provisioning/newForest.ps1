@@ -95,10 +95,6 @@ if ($controlReboot -eq 'no') {
 } else {
 	$rebootOption = '-NoRebootOnCompletion'
 }
-# Provisionig Script builder
-if ( $env:PROV_SCRIPT_PATH ) {
-	Add-Content "$env:PROV_SCRIPT_PATH" "executeExpression `"./automation/provisioning/$scriptName $forest ********** $media $wimIndex $controlReboot`""
-}
 
 # Cannot run interactive via remote PowerShell
 if ($env:interactive) {

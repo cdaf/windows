@@ -12,18 +12,12 @@ if ($exeFile) {
 if (!(Test-Path $exeFile)) {
     Write-Host "[$scriptName] $exeFile not found, exiting with code 2";exit 2
 }
-$arglist = "$exeFile"
 
 $opt_arg = $args[1]
 if ($opt_arg) {
     Write-Host "[$scriptName] opt_arg : $opt_arg"
-	$arglist += " $opt_arg"
 } else {
     Write-Host "[$scriptName] opt_arg : (not supplied)"
-}
-# Provisionig Script builder
-if ( $env:PROV_SCRIPT_PATH ) {
-	Add-Content "$env:PROV_SCRIPT_PATH" "executeExpression `"./automation/provisioning/$scriptName $arglist`""
 }
 
 if ($opt_arg) {

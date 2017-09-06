@@ -45,10 +45,6 @@ if ($wimIndex) {
 	$wimIndex = '2'
     Write-Host "[$scriptName] wimIndex  : $wimIndex (default, Standard Edition)"
 }
-# Provisioning Script builder
-if ( $env:PROV_SCRIPT_PATH ) {
-	Add-Content "$env:PROV_SCRIPT_PATH" "executeExpression `"./automation/provisioning/$scriptName $feature $options $media $wimIndex `""
-}
 
 # If media is not found, install will attempt to download from windows update
 if ( Test-Path $media ) {

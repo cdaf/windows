@@ -22,28 +22,24 @@ Write-Host "`n[$scriptName] Add VSTS Package Management credentials to allow non
 Write-Host "`n[$scriptName] ---------- start ----------"
 if ($feedName) {
     Write-Host "[$scriptName] feedName  : $feedName"
-	$requiredParam += "-feedName $feedName "
 } else {
     Write-Host "[$scriptName] feedName is required"; exit 100
 }
 
 if ($uri) {
     Write-Host "[$scriptName] uri       : $uri"
-	$requiredParam += "-uri $uri "
 } else {
     Write-Host "[$scriptName] uri is required"; exit 101
 }
 
 if ($feedPass) {
     Write-Host "[$scriptName] feedPass  : `$feedPass"
-	$requiredParam += "-feedPass `$feedPass "
 } else {
     Write-Host "[$scriptName] feedPass is required"; exit 102
 }
 
 if ($feedUser) {
     Write-Host "[$scriptName] feedUser  : $feedUser"
-    $optParam += "-feedUser $feedUser "
 } else {
 	$feedUser = 'usingPAT'
     Write-Host "[$scriptName] feedUser  : $feedUser (default)"
@@ -51,16 +47,9 @@ if ($feedUser) {
 
 if ($nugetPath) {
     Write-Host "[$scriptName] nugetPath : $nugetPath"
-    $optParam += "-nugetPath $nugetPath "
 } else {
 	$nugetPath = 'C:/agent/externals/nuget/nuget.exe'
     Write-Host "[$scriptName] nugetPath : $nugetPath (default)"
-}
-
-# Provisionig Script builder
-$scriptPath = [Environment]::GetEnvironmentVariable('PROV_SCRIPT_PATH', 'Machine')
-if ( $scriptPath ) {
-	Add-Content "$env:PROV_SCRIPT_PATH" "executeExpression `"./automation-solution/provisioning/$scriptName $requiredParam $optParam`""
 }
 
 executeExpression "$nugetPath sources add -name $feedName -Source $uri -username $feedUser -password `$feedPass"

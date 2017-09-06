@@ -42,20 +42,12 @@ if ($loginType) {
 
 if ($sqlPassword) {
     Write-Host "[$scriptName] sqlPassword : *********************** (only applicable if loginType is SQLLogin)"
-	# Provisionig Script builder
-	if ( $env:PROV_SCRIPT_PATH ) {
-		Add-Content "$env:PROV_SCRIPT_PATH" "executeExpression `"./automation/provisioning/$scriptName $dbUser $dbhost $loginType `'***********************`'`""
-	}
 } else {
 	if ( $loginType -eq 'SQLLogin' ) {
     	Write-Host "[$scriptName] sqlPassword : not supplied, required when loginType is SQLLogin, exiting with code 102."; exit 102
 	} else {
 	    Write-Host "[$scriptName] sqlPassword : not supplied (only applicable if loginType is SQLLogin)"
     }
-	# Provisionig Script builder
-	if ( $env:PROV_SCRIPT_PATH ) {
-		Add-Content "$env:PROV_SCRIPT_PATH" "executeExpression `"./automation/provisioning/$scriptName $dbUser $dbhost $loginType`""
-	}
 }
 
 Write-Host "`n[$scriptName] Load the assemblies ...`n"

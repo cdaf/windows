@@ -24,14 +24,12 @@ function executeExpression ($expression) {
 Write-Host "[$scriptName] ---------- start ----------"
 if ( $url ) {
 	Write-Host "[$scriptName] url            : $url"
-	$optParms += "-url `$url "
 } else {
 	Write-Host "[$scriptName] url            : (not supplied, will just extract the agent software)"
 }
 
 if ( $token ) {
 	Write-Host "[$scriptName] token          : `$token"
-	$optParms += "-token `$token "
 } else {
 	Write-Host "[$scriptName] token          : (not supplied)"
 }
@@ -42,7 +40,6 @@ if ( $description ) {
 	$description = "Gitlab Runner Installed by $scriptName"
 	Write-Host "[$scriptName] description    : $description (not supplied, set to default)"
 }
-$optParms += "-description `$description "
 
 if ( $tags ) {
 	Write-Host "[$scriptName] tags           : $tags"
@@ -50,11 +47,9 @@ if ( $tags ) {
 	$tags = "$env:COMPUTERNAME" 
 	Write-Host "[$scriptName] tags           : $tags (not supplied, set to default)"
 }
-$optParms += " -tags `$tags "
 
 if ( $executor ) {
 	Write-Host "[$scriptName] executor       : $executor"
-	$optParms += "-executor $executor "
 } else {
 	Write-Host "[$scriptName] executor       : (not supplied)"
 }
@@ -65,12 +60,7 @@ if ( $mediaDirectory ) {
 	$mediaDirectory = 'C:\.provision'
 	Write-Host "[$scriptName] mediaDirectory : $mediaDirectory (not supplied, set to default)"
 }
-$optParms += "-mediaDirectory $mediaDirectory "
 
-# Provisioning Script builder
-if ( $env:PROV_SCRIPT_PATH ) {
-	Add-Content "$env:PROV_SCRIPT_PATH" "executeExpression `"./automation/provisioning/$scriptName $url $optParms`""
-}
 $printList = "register --non-interactive --url $url --registration-token `$token --description $description --tag-list $tags --executor $executor"
 $argList = "register --non-interactive --url $url --registration-token $token --description $description --tag-list $tags --executor $executor"
 

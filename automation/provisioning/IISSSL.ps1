@@ -37,10 +37,6 @@ if ($port) {
 	$port = '443'
     Write-Host "[$scriptName] port       : $port (default)"
 }
-# Provisionig Script builder
-if ( $env:PROV_SCRIPT_PATH ) {
-	Add-Content "$env:PROV_SCRIPT_PATH" "executeExpression `"./automation/provisioning/$scriptName $webSite $options `""
-}
 
 Write-Host
 executeExpression 'import-module WebAdministration'

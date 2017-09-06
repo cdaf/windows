@@ -9,10 +9,6 @@ if ($trustedHosts) {
 } else {
     Write-Host "[$scriptName] trustedHosts not passed! Exiting"; exit 100
 }
-# Provisioning Script builder
-if ( $env:PROV_SCRIPT_PATH ) {
-	Add-Content "$env:PROV_SCRIPT_PATH" "executeExpression `"./automation/provisioning/$scriptName $trustedHosts `""
-}
 
 Write-Host "`n[$scriptName] Add the trustedHosts ($trustedHosts) as a trusted hosts for Remote Powershell"
 Set-WSManInstance -ResourceURI winrm/config/client -ValueSet @{TrustedHosts=$trustedHosts}

@@ -27,10 +27,6 @@ if ($displayName) {
 	$displayName = $portNumber
     Write-Host "[$scriptName] displayName : not supplied, default to Port Number ($displayName)"
 }
-# Provisionig Script builder
-if ( $env:PROV_SCRIPT_PATH ) {
-	Add-Content "$env:PROV_SCRIPT_PATH" "executeExpression `"./automation/provisioning/$scriptName `'$portNumber`' `'$displayName`'`""
-}
 
 executeExpression "New-NetFirewallRule -DisplayName `"$displayName`" -Direction Inbound –Protocol TCP –LocalPort $portNumber -Action allow"
 

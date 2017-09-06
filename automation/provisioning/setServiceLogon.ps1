@@ -28,11 +28,6 @@ if ($userAlias) {
     Write-Host "[$scriptName] userAlias not passed, exit with LASTEXITCODE 101"; exit 101
 }
 
-# Provisioning Script builder
-if ( $env:PROV_SCRIPT_PATH ) {
-	Add-Content "$env:PROV_SCRIPT_PATH" "executeExpression `"./automation/provisioning/$scriptName $userDomain $userAlias `""
-}
-
 #Desc: Grants log on as service rights on the computer. This script needs to run in elevated mode (admin)
 #created by: Sachin Patil
 

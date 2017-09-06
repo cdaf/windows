@@ -50,10 +50,7 @@ if ($mediaDir) {
 	$mediaDir = 'C:\.provision'
     Write-Host "[$scriptName] mediaDir        : $mediaDir (default)"
 }
-# Provisioning Script builder
-if ( $env:PROV_SCRIPT_PATH ) {
-	Add-Content "$env:PROV_SCRIPT_PATH" "executeExpression `"./automation/provisioning/$scriptName $Installtype $MsDepSvcPort $version $mediaDir `""
-}
+
 if (!( Test-Path $mediaDir )) {
 	Write-Host "[$scriptName] mkdir $mediaDir"
 	mkdir $mediaDir

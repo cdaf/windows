@@ -34,10 +34,6 @@ if ($poolName) {
 	$poolName = 'DefaultAppPool'
     Write-Host "[$scriptName] poolName     : $poolName (default)"
 }
-# Provisioning Script builder
-if ( $env:PROV_SCRIPT_PATH ) {
-	Add-Content "$env:PROV_SCRIPT_PATH" "executeExpression `"./automation/provisioning/$scriptName $poolid `'**********`' $poolName `""
-}
 
 executeExpression 'Import-Module ServerManager'
 executeExpression 'Import-Module WebAdministration'

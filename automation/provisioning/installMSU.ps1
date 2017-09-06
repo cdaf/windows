@@ -47,10 +47,6 @@ if ($reboot) {
     Write-Host "[$scriptName] reboot  : $reboot (default)"
 	$argList = @('/quiet', '/norestart')
 }
-# Provisionig Script builder
-if ( $env:PROV_SCRIPT_PATH ) {
-	Add-Content "$env:PROV_SCRIPT_PATH" "executeExpression `"./automation/provisioning/$scriptName $msuFile $opt_arg $optParm`""
-}
 
 if ($env:interactive) {
     Write-Host "[$scriptName] `$env:interactive : $env:interactive, run in current window"

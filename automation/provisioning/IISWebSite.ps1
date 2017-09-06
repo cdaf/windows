@@ -78,10 +78,6 @@ if ($physicalPath) {
 	    $options += "-physicalPath $physicalPath"
     }
 }
-# Provisionig Script builder
-if ( $env:PROV_SCRIPT_PATH ) {
-	Add-Content "$env:PROV_SCRIPT_PATH" "executeExpression `"./automation/provisioning/$scriptName $webSite $options `""
-}
 
 Write-Host "[$scriptName] Ensure IIS Service is running"
 executeExpression "iisreset /start"

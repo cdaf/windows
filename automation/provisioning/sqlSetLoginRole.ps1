@@ -34,11 +34,6 @@ if ($dbhost) {
     Write-Host "[$scriptName] dbhost    : $dbhost (default)"
 }
 
-# Provisionig Script builder
-if ( $env:PROV_SCRIPT_PATH ) {
-	Add-Content "$env:PROV_SCRIPT_PATH" "executeExpression `"./automation/provisioning/$scriptName $loginName $dbRole `'$dbhost`'`""
-}
-
 Write-Host "`n[$scriptName] Load the assemblies ...`n"
 executeExpression '[reflection.assembly]::LoadWithPartialName("Microsoft.SqlServer.Smo")'
 executeExpression '[reflection.assembly]::LoadWithPartialName("Microsoft.SqlServer.SqlWmiManagement")'

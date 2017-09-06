@@ -44,10 +44,6 @@ if ($domainController) {
 	$domainController = '172.16.17.102'
     Write-Host "[$scriptName] domainController : $domainController (default)"
 }
-# Provisioning Script builder
-if ( $env:PROV_SCRIPT_PATH ) {
-	Add-Content "$env:PROV_SCRIPT_PATH" "executeExpression `"./automation/provisioning/$scriptName $forest $domainAdminUser ********** $domainController `""
-}
 
 $securePassword = ConvertTo-SecureString $domainAdminPass -asplaintext -force
 $cred = New-Object System.Management.Automation.PSCredential ($domainAdminUser, $securePassword)

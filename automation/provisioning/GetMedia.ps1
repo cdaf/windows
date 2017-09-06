@@ -38,11 +38,6 @@ if ($md5) {
     Write-Host "[$scriptName] md5      : (not supplied)"
 }
 
-# Provisioning Script builder
-if ( $env:PROV_SCRIPT_PATH ) {
-	Add-Content "$env:PROV_SCRIPT_PATH" "executeExpression `"./automation/provisioning/$scriptName $uri $mediaDir`""
-}
-
 # Create media cache if missing
 if (!( Test-Path $mediaDir )) {
 	$result = executeExpression "mkdir $mediaDir"

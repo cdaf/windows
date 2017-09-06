@@ -40,11 +40,6 @@ if ($runTime) {
 
 $exename = Split-Path -Path  $url -Leaf
 
-# Provisionig Script builder
-if ( $env:PROV_SCRIPT_PATH ) {
-	Add-Content "$env:PROV_SCRIPT_PATH" "executeExpression `"./automation/provisioning/$scriptName -url $url -mediaDir $mediaDir -runTime $runTime `""
-}
-
 if (!( Test-Path $mediaDir )) {
 	Write-Host "[$scriptName] mkdir $mediaDir"
 	mkdir $mediaDir

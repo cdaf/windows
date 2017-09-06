@@ -155,10 +155,6 @@ if ($reboot) {
 	$reboot = 'no'
     Write-Host "[$scriptName] reboot   : $reboot (default, options yes, no or shutdown)"
 }
-# Provisionig Script builder
-if ( $env:PROV_SCRIPT_PATH ) {
-	Add-Content "$env:PROV_SCRIPT_PATH" "executeExpression `"./automation/provisioning/$scriptName $version $mediaRun $indexRun -mediaDir $mediaDir -sdk $sdk -reboot $reboot`""
-}
 
 if (!( Test-Path $mediaDir )) {
 	Write-Host "[$scriptName] mkdir $mediaDir"

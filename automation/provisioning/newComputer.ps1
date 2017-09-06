@@ -34,10 +34,6 @@ if ($domainAdminPass) {
 	$domainAdminPass = 'vagrant'
     Write-Host "[$scriptName] domainAdminPass : ********** (default)"
 }
-# Provisionig Script builder
-if ( $env:PROV_SCRIPT_PATH ) {
-	Add-Content "$env:PROV_SCRIPT_PATH" "executeExpression `"./automation/provisioning/$scriptName $forest $newComputerName $domainAdminUser `'**********`' `""
-}
 
 $securePassword = ConvertTo-SecureString $domainAdminPass -asplaintext -force
 $cred = New-Object System.Management.Automation.PSCredential ($domainAdminUser, $securePassword)

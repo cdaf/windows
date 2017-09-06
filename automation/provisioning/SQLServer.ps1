@@ -83,10 +83,6 @@ if ($features) { # https://docs.microsoft.com/en-us/sql/database-engine/install-
 	$features = 'SQLEngine,FullText,Conn'
     Write-Host "[$scriptName] features       : $features (default)"
 }
-# Provisioning Script builder
-if ( $env:PROV_SCRIPT_PATH ) {
-	Add-Content "$env:PROV_SCRIPT_PATH" "executeExpression `"./automation/provisioning/$scriptName $serviceAccount `'**********`' $adminAccount $instance $media $features `""
-}
 
 $EditionId = (Get-ItemProperty -Path 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion' -Name 'EditionID').EditionId
 write-host "[$scriptName] EditionId      : $EditionId"

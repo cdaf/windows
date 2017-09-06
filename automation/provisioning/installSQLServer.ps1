@@ -83,11 +83,6 @@ if ($password) {
     Write-Host "[$scriptName] password       : (not supplied, assuming managed service account)"
 }
 
-# Provisioning Script builder
-if ( $env:PROV_SCRIPT_PATH ) {
-	Add-Content "$env:PROV_SCRIPT_PATH" "executeExpression `"./automation/provisioning/$scriptName $serviceAccount `$password $adminAccount $instance $media $features `""
-}
-
 $EditionId = (Get-ItemProperty -Path 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion' -Name 'EditionID').EditionId
 write-host "[$scriptName] EditionId      : $EditionId"
 
