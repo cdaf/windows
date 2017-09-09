@@ -52,7 +52,13 @@ if ($nugetPath) {
     Write-Host "[$scriptName] nugetPath : $nugetPath (default)"
 }
 
+Write-Host "[$scriptName] whoami    : $(whoami)"
+
+Write-Host "`n[$scriptName] Add Source`n"
 executeExpression "$nugetPath sources add -name $feedName -Source $uri -username $feedUser -password `$feedPass"
+
+Write-Host "`n[$scriptName] List resulting sources`n"
+executeExpression "$nugetPath sources"
 
 Write-Host "`n[$scriptName] ---------- stop ----------"
 exit 0
