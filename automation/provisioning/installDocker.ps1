@@ -44,6 +44,8 @@ $scriptName = 'installDocker.ps1'
 Write-Host "`n[$scriptName] Requires KB3176936"
 Write-Host "`n[$scriptName] ---------- start ----------`n"
 
+executeExpression "Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.201 -Verbose -Force"
+
 executeExpression "Set-PSRepository -Name PSGallery -InstallationPolicy Trusted; `$error.clear()"
 
 executeExpression "Find-PackageProvider *docker* | Format-Table Name, Version, Source"
@@ -52,8 +54,8 @@ executeExpression "Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.201
 executeExpression "Install-Module NuGet -Confirm:`$False"
 
 Write-Host "`n[$scriptName] Found these repositories unreliable`n"
-executeRetry "Install-Module -Name DockerMsftProvider -Repository PSGallery -Confirm:`$False -Verbose -Force"
-executeRetry "Install-Package -Name docker -ProviderName DockerMsftProvider -Confirm:`$False -Verbose -Force"
+executeRetry "Install-Module -Name DockerMsftProviderInsider -Repository PSGallery -Confirm:`$False -Verbose -Force"
+executeRetry "Install-Package -Name docker -ProviderName DockerMsftProviderInsider -Confirm:`$False -Verbose -Force"
 
 executeExpression "shutdown /r /t 10"
 
