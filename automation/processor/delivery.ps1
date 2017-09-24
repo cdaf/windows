@@ -1,3 +1,12 @@
+Param (
+	[string]$ENVIRONMENT,
+	[string]$RELEASE,
+	[string]$OPT_ARG,
+	[string]$WORK_DIR_DEFAULT,
+	[string]$SOLUTION,
+	[string]$BUILDNUMBER
+)
+
 # Entry Point for Build Process, child scripts inherit the functions of parent scripts, so these definitions are global for the CD process
 # Primary powershell, returns exitcode to DOS
 function exceptionExit ($exception) {
@@ -78,7 +87,6 @@ function getFilename ($FullPathName) {
 $exitStatus = 0
 $scriptName = $MyInvocation.MyCommand.Name
 
-$ENVIRONMENT = $args[0]
 if ( $ENVIRONMENT ) {
 	Write-Host "[$scriptName]   ENVIRONMENT      : $ENVIRONMENT"
 } else { 
@@ -87,7 +95,6 @@ if ( $ENVIRONMENT ) {
     $host.SetShouldExit(51); exit
 }
 
-$RELEASE = $args[1]
 if ( $RELEASE ) {
 	Write-Host "[$scriptName]   RELEASE          : $RELEASE"
 } else {
@@ -95,10 +102,8 @@ if ( $RELEASE ) {
 	Write-Host "[$scriptName]   RELEASE          : $RELEASE (default)"
 }
 
-$OPT_ARG = $args[2]
 Write-Host "[$scriptName]   OPT_ARG          : $OPT_ARG"
 
-$WORK_DIR_DEFAULT = $args[3]
 if ( $WORK_DIR_DEFAULT ) {
 	Write-Host "[$scriptName]   WORK_DIR_DEFAULT : $WORK_DIR_DEFAULT"
 } else {
@@ -106,7 +111,6 @@ if ( $WORK_DIR_DEFAULT ) {
 	Write-Host "[$scriptName]   WORK_DIR_DEFAULT : $WORK_DIR_DEFAULT (default)"
 }
 
-$SOLUTION = $args[4]
 if ($SOLUTION) {
 	Write-Host "[$scriptName]   SOLUTION         : $SOLUTION"
 } else {
@@ -121,7 +125,6 @@ if ($SOLUTION) {
 	}
 }
 
-$BUILDNUMBER = $args[5]
 if ($BUILDNUMBER) {
 	Write-Host "[$scriptName]   BUILDNUMBER      : $BUILDNUMBER"
 } else {

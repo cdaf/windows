@@ -1,9 +1,9 @@
 Param (
-  [string]$featureList,
-  [string]$media,
-  [string]$wimIndex,
-  [string]$dismount,
-  [string]$halt
+	[string]$featureList,
+	[string]$media,
+	[string]$wimIndex,
+	[string]$dismount,
+	[string]$halt
 )
 $scriptName = 'addDISM.ps1' # TelnetClient
                             # 'IIS-WebServerRole IIS-WebServer' install.wim 2
