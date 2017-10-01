@@ -300,9 +300,9 @@ if ($file) {
 	if ( $rebootRequired ) {
 		switch ($reboot) {
 			'yes' {
-		        Write-Host "`n[$scriptName] Reboot in 1 second and return `$LASTEXITCODE = 3010"
+		        Write-Host "`n[$scriptName] Reboot is required and reboot set to $reboot, automatically reboot in 1 second and return `$LASTEXITCODE = 0"
 		        executeExpression "shutdown /r /t 1"
-		        exit 3010
+		        exit 0
 	        }
 			'shutdown' {
 		        Write-Host "`n[$scriptName] Shutdown in 1 second and return `$LASTEXITCODE = 3010"
