@@ -107,8 +107,9 @@ function installFourAndAbove {
 $scriptName = 'dotNET.ps1'
 $latest = '4.7'
 $versionChoices = "$latest, 4.6.2, 4.6.1, 4.5.2, 4.5.1, 4.0, 3.5 or latest"
-Write-Host
-Write-Host "[$scriptName] ---------- start ----------"
+$finalCode = 0
+
+Write-Host "`n[$scriptName] ---------- start ----------"
 if ($version) {
 	if ($version -eq 'latest') {
 		$version = $latest
@@ -302,19 +303,18 @@ if ($file) {
 			'yes' {
 		        Write-Host "`n[$scriptName] Reboot is required and reboot set to $reboot, automatically reboot in 1 second and return `$LASTEXITCODE = 0"
 		        executeExpression "shutdown /r /t 1"
-		        exit 0
 	        }
 			'shutdown' {
-		        Write-Host "`n[$scriptName] Shutdown in 1 second and return `$LASTEXITCODE = 3010"
+		        Write-Host "`n[$scriptName] Reboot is required and reboot set to $reboot, automatically shutdown in 1 second and return `$LASTEXITCODE = 0"
 		        executeExpression "shutdown /s /t 1"
-		        exit 3010
 	        }
 	        default {
-		        Write-Host "`n[$scriptName] Reboot is required, but reboot set to ${reboot}, so shutdown action not attempted and returning `$LASTEXITCODE = 0"
+		        Write-Host "`n[$scriptName] Reboot is required, but reboot set to ${reboot}, so shutdown action not attempted and returning `$LASTEXITCODE = 3010"
+		        $finalCode = 3010
 	        }
         }
     }
 }
 
 Write-Host "`n[$scriptName] ---------- stop -----------`n"
-exit 0
+exit $finalCode
