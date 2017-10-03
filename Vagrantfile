@@ -29,11 +29,11 @@ Vagrant.configure(2) do |allhosts|
     target.vm.provider 'virtualbox' do |virtualbox, override|
       virtualbox.gui = false
       override.vm.network 'private_network', ip: '172.16.17.103'
-      override.vm.network 'forwarded_port', guest: 3389, host: 33389 # Remote Desktop
-      override.vm.network 'forwarded_port', guest: 5985, host: 35985 # WinRM HTTP
-      override.vm.network 'forwarded_port', guest: 5986, host: 33986 # WinRM HTTPS
-      override.vm.network 'forwarded_port', guest:   80, host: 30080
-      override.vm.network 'forwarded_port', guest:  443, host: 30443
+      override.vm.network 'forwarded_port', guest: 3389, host: 33389, auto_correct: true # Remote Desktop
+      override.vm.network 'forwarded_port', guest: 5985, host: 35985, auto_correct: true # WinRM HTTP
+      override.vm.network 'forwarded_port', guest: 5986, host: 33986, auto_correct: true # WinRM HTTPS
+      override.vm.network 'forwarded_port', guest:   80, host: 30080, auto_correct: true
+      override.vm.network 'forwarded_port', guest:  443, host: 30443, auto_correct: true
       override.vm.provision 'shell', path: './automation/provisioning/CredSSP.ps1', args: 'client'
       override.vm.provision 'shell', path: './automation/provisioning/CredSSP.ps1', args: 'server'
     end
@@ -59,9 +59,9 @@ Vagrant.configure(2) do |allhosts|
     buildserver.vm.provider 'virtualbox' do |virtualbox, override|
       virtualbox.gui = false
       override.vm.network 'private_network', ip: '172.16.17.101'
-      override.vm.network 'forwarded_port', guest: 3389, host: 13389 # Remote Desktop
-      override.vm.network 'forwarded_port', guest: 5985, host: 15985 # WinRM HTTP
-      override.vm.network 'forwarded_port', guest: 5986, host: 15986 # WinRM HTTPS
+      override.vm.network 'forwarded_port', guest: 3389, host: 13389, auto_correct: true # Remote Desktop
+      override.vm.network 'forwarded_port', guest: 5985, host: 15985, auto_correct: true # WinRM HTTP
+      override.vm.network 'forwarded_port', guest: 5986, host: 15986, auto_correct: true # WinRM HTTPS
       override.vm.provision 'shell', path: './automation/provisioning/addHOSTS.ps1', args: '172.16.17.103 target.sky.net'
       override.vm.provision 'shell', path: './automation/provisioning/trustedHosts.ps1', args: '*'
       override.vm.provision 'shell', path: './automation/provisioning/CredSSP.ps1', args: 'client'
