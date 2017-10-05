@@ -57,7 +57,7 @@ Write-Host "`n[$scriptName] Found these repositories unreliable`n"
 executeRetry "Install-Module -Name DockerMsftProviderInsider -Repository PSGallery -Confirm:`$False -Verbose -Force"
 executeRetry "Install-Package -Name docker -ProviderName DockerMsftProviderInsider -Confirm:`$False -Verbose -Force"
 
-executeExpression "sc config docker start= delayed-auto"
+executeExpression "sc.exe config docker start= delayed-auto"
 
 executeExpression "shutdown /r /t 10"
 
