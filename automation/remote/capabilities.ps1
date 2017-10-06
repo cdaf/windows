@@ -107,13 +107,28 @@ if ($versionTest -like '*not recognized*') {
 	Write-Host "  curl.exe                : $($array[1])"
 }
 
-
 $versionTest = cmd /c docker --version 2`>`&1
 if ($versionTest -like '*not recognized*') {
 	Write-Host "  Docker                  : not installed"
 } else {
 	$array = $versionTest.split(" ")
 	Write-Host "  Docker                  : $($array[2])"
+}
+
+$versionTest = cmd /c python --version 2`>`&1
+if ($versionTest -like '*not recognized*') {
+	Write-Host "  Python                  : not installed"
+} else {
+	$array = $versionTest.split(" ")
+	Write-Host "  Python                  : $($array[1])"
+}
+
+$versionTest = cmd /c pip.exe --version 2`>`&1
+if ($versionTest -like '*not recognized*') {
+	Write-Host "  PiP                     : not installed"
+} else {
+	$array = $versionTest.split(" ")
+	Write-Host "  PiP                     : $($array[1])"
 }
 
 Write-Host "`n[$scriptName] List the build tools`n"
