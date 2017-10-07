@@ -31,15 +31,13 @@ if ( $proc.ExitCode -ne 0 ) {
     exit $proc.ExitCode
 }
 
+# Determine if Python 3.6 has already been installed, if not, set path
 if ( ! (Test-Path ~/AppData/Roaming/Python/Python36/Scripts)) {
 	executeExpression "mkdir ~/AppData/Roaming/Python/Python36/Scripts" # default binary location for subsequent PiP installs
+	$pathWithPython = $env:Path + ';' + (Get-Item ~/AppData/Local/Programs/Python/Python36).fullname + ';' + (Get-Item ~/AppData/Local/Programs/Python/Python36/Scripts).fullname + ';' + (Get-Item ~/AppData/Roaming/Python/Python36/Scripts).fullname
+	executeExpression "[Environment]::SetEnvironmentVariable(`"Path`", `"$pathWithPython`", 'User')"
+	$env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")
 }
-
-$pathWithPython = $env:Path + ';' + (Get-Item ~/AppData/Local/Programs/Python/Python36).fullname + ';' + (Get-Item ~/AppData/Local/Programs/Python/Python36/Scripts).fullname + ';' + (Get-Item ~/AppData/Roaming/Python/Python36/Scripts).fullname
-
-executeExpression "[Environment]::SetEnvironmentVariable(`"Path`", `"$pathWithPython`", 'User')"
-
-$env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")
 
 executeExpression "python.exe --version"
 executeExpression "pip.exe --version"
