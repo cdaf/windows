@@ -1,6 +1,7 @@
 Param (
-  [string]${imageName},
+  [string]$imageName,
   [string]$buildNumber,
+  [string]$command,
   [string]$rebuildImage
 )
 
@@ -21,7 +22,7 @@ function executeExpression ($expression) {
 
 # Use the CDAF provisioning helpers
 Write-Host "`n[$scriptName] ---------- start ----------`n"
-if ( ${imageName} ) {
+if ( $imageName ) {
 	Write-Host "[$scriptName]   imageName    : ${imageName}"
 } else {
 	Write-Host "[$scriptName]   imageName not supplied, exit with code 99"; exit 99
@@ -42,6 +43,12 @@ if ( $buildNumber ) {
 	}
 	Out-File buildnumber.counter -InputObject $buildNumber
 	Write-Host "[$scriptName]   buildNumber  : $buildNumber (not passed so derived using buildnumber.counter file)"
+}
+
+if ( $command ) {
+	Write-Host "[$scriptName]   command      : $command"
+} else {
+	Write-Host "[$scriptName]   command      : (not supplied)"
 }
 
 if ( $rebuildImage ) {
@@ -77,7 +84,11 @@ if ( $rebuildImage -eq 'yes') {
 executeExpression "docker images --filter=label=cdaf.${imageName}.image.version"
 $imageID = (docker images --filter=label=cdaf.${imageName}.image.version -q)
 
-executeExpression "docker run --tty --volume $(pwd):C:/workspace $imageID"
+if ( $command ) {
+	executeExpression "docker run --tty --volume $(pwd):C:/workspace $imageID `"$command`""
+} else {
+	executeExpression "docker run --tty --volume $(pwd):C:/workspace $imageID"
+}
 executeExpression "docker rm (docker ps -aq)"
 
 Write-Host "`n[$scriptName] ---------- stop ----------"
