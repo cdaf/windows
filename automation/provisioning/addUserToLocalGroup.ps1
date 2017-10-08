@@ -45,7 +45,7 @@ if ($domain) {
 	executeExpression "`$de.psbase.Invoke(`"Add`",([ADSI]`"WinNT://$domain/$userName`").path)"
 } else {
 	if ( $userName.StartsWith('.\')) { 
-		localUser $userName.Substring(2) $password # Remove the .\ prefix
+		$userName = $userName.Substring(2) # Remove the .\ prefix
 	}
 	Write-Host "[$scriptName] Add $userName to local group $group."
 	$argList = "localgroup `"$group`" $userName /add"
