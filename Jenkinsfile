@@ -12,29 +12,14 @@ node {
 
   try {
 
-    stage ('Clean and get latest from GitHub') {
-      bat '''
-        IF EXIST windows-master git checkout -- .
-        IF EXIST windows-master git checkout master
-        IF EXIST windows-master git branch -D local_branch
-        IF EXIST windows-master RMDIR /S /Q windows-master
-      '''
-      bat "IF EXIST Vagrantfile RM Vagrantfile"
+    stage ('Test the CDAF sample Vagrantfile') {
 
       checkout scm
   
       bat "cat Jenkinsfile"
-      bat "git checkout -b local_branch"
-      bat "RMDIR /S /Q automation"
-      bat "curl -o windows-master.zip https://codeload.github.com/cdaf/windows/zip/master"
-      bat "unzip windows-master.zip"
-      bat "echo d | XCOPY %CD%\\windows-master\\automation %CD%\\automation /S /E"
-      bat "cat automation/CDAF.windows | grep productVersion"
-    }
-
-    stage ('Clean, Instantiate and Test') {
-      bat "CP windows-master/Vagrantfile Vagrantfile"
       bat "cat Vagrantfile"
+      bat "cat automation/CDAF.windows | grep productVersion"
+
       bat "IF EXIST .vagrant vagrant destroy -f"
       bat "IF EXIST .vagrant vagrant box list"
       bat "vagrant up"
@@ -43,17 +28,14 @@ node {
   } catch (e) {
     
     currentBuild.result = "FAILED"
+    println currentBuild.result
     notifyFailed()
     throw e
 
   } finally {
 
-    stage ('Discard GitHub branch') {
+    stage ('Destroy VMs and Discard sample vagrantfile') {
       bat "IF EXIST .vagrant vagrant destroy -f"
-      bat "RM Vagrantfile"
-      bat "git checkout -- ."
-      bat "git checkout master"
-      bat "git branch -D local_branch"
     }
   }
 }
