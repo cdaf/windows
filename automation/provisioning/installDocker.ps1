@@ -1,3 +1,6 @@
+Param (
+	[string]$enableTCP
+)
 # Common expression logging and error handling function, copied, not referenced to ensure atomic process
 function executeExpression ($expression) {
 	$error.clear()
@@ -43,6 +46,11 @@ function executeRetry ($expression) {
 $scriptName = 'installDocker.ps1'
 Write-Host "`n[$scriptName] Requires KB3176936"
 Write-Host "`n[$scriptName] ---------- start ----------`n"
+if ($enableTCP) {
+    Write-Host "[$scriptName] enableTCP   : $enableTCP"
+} else {
+    Write-Host "[$scriptName] enableTCP   : (not set)"
+}
 
 executeExpression "Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.201 -Verbose -Force"
 
@@ -58,6 +66,17 @@ executeRetry "Install-Module -Name DockerMsftProviderInsider -Repository PSGalle
 executeRetry "Install-Package -Name docker -ProviderName DockerMsftProviderInsider -Confirm:`$False -Verbose -Force"
 
 executeExpression "sc.exe config docker start= delayed-auto"
+
+if ($enableTCP) {
+	if (!( Test-Path C:\ProgramData\docker\config\ )) {
+		executeExpression "mkdir C:\ProgramData\docker\config\"
+	}
+	try {
+		Add-Content C:\ProgramData\docker\config\daemon.json '{ "hosts": ["tcp://0.0.0.0:2375","npipe://"] }'
+		Write-Host "`n[$scriptName] Enable TCP in config, will be applied after restart`n"
+		Get-Content C:\ProgramData\docker\config\daemon.json 
+	} catch { echo $_.Exception|format-list -force; $exitCode = 478 }
+}
 
 executeExpression "shutdown /r /t 10"
 
