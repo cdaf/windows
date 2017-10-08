@@ -113,6 +113,10 @@ if ( $url ) {
 	}
 	
 	Write-Host "`nUnattend configuration for VSTS with PAT authentication"
+	if ( $serviceAccount.StartsWith('.\')) { 
+		$serviceAccount = $serviceAccount.Substring(2) # Remove the .\ prefix
+	}
+	
 	if ( $serviceAccount ) {
 		$printList = "$argList --token `$pat --pool $pool --agent $agentName --replace --runasservice --windowslogonaccount $serviceAccount --windowslogonpassword `$servicePassword"
 		$argList += " --token $pat --pool $pool --agent $agentName --replace --runasservice --windowslogonaccount $serviceAccount --windowslogonpassword $servicePassword"
