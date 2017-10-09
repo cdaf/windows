@@ -67,26 +67,23 @@ if ( $rebuildImage -eq 'yes') {
 	executeExpression "cat Dockerfile"
 	
 	# Do not execute using function as interactive logging stops working
-	Write-Host "`n[$scriptName] automation/remote/dockerBuild.ps1 ${imageName} $buildNumber`n"
-	$LASTEXITCODE = 0
-	automation/remote/dockerBuild.ps1 ${imageName} $buildNumber
-	if ( $LASTEXITCODE -ne 0 ) { Write-Host "[$scriptName] `$LASTEXITCODE = $LASTEXITCODE "; exit $LASTEXITCODE }
+	executeExpression "automation/remote/dockerBuild.ps1 ${imageName} $buildNumber"
 
 	# Remove any older images	
-	Write-Host "`n[$scriptName] automation/remote/dockerClean.ps1 ${imageName} $buildNumber"
-	$LASTEXITCODE = 0
-	automation/remote/dockerClean.ps1 ${imageName} $buildNumber
-	if ( $LASTEXITCODE -ne 0 ) { Write-Host "[$scriptName] `$LASTEXITCODE = $LASTEXITCODE "; exit $LASTEXITCODE }
+	executeExpression "automation/remote/dockerClean.ps1 ${imageName} $buildNumber"
 }
 
 # There should always be only 1 image
 executeExpression "docker images --filter=label=cdaf.${imageName}.image.version"
 $imageID = (docker images --filter=label=cdaf.${imageName}.image.version -q)
+$workspace = (Get-Location).Path
+Write-Host "[$scriptName] `$imageID   : $imageID"
+Write-Host "[$scriptName] `$workspace : $workspace"
 
 if ( $command ) {
-	executeExpression "docker run --tty --volume $(pwd):C:/workspace $imageID `"$command`""
+	executeExpression "docker run --tty --volume ${workspace}:C:/workspace $imageID `"$command`""
 } else {
-	executeExpression "docker run --tty --volume $(pwd):C:/workspace $imageID"
+	executeExpression "docker run --tty --volume ${workspace}:C:/workspace $imageID"
 }
 executeExpression "docker rm (docker ps -aq)"
 

@@ -11,7 +11,6 @@ $scriptName = 'installRunner.ps1'
 # Common expression logging and error handling function, copied, not referenced to ensure atomic process
 function executeExpression ($expression) {
 	$error.clear()
-	$lastExitCode = 0
 	Write-Host "[$scriptName] $expression"
 	try {
 		Invoke-Expression $expression

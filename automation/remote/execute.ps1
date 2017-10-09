@@ -10,7 +10,6 @@ function taskException ($taskName, $exception) {
 
 function executeExpression ($expression) {
 	$error.clear()
-	$LASTEXITCODE = 0
 	Write-Host "[$scriptName] $expression"
 	try {
 		$output = Invoke-Expression $expression

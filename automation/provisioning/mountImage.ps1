@@ -18,7 +18,6 @@ function executeExpression ($expression) {
 
 # This script is designed for media that is on a file share or web server, it will download the media to the
 # local file system tehn mount it.
-$lastExitCode = 0
 Write-Host "`n[$scriptName] Usage example"
 Write-Host "[$scriptName]   mountImage.ps1 $env:userprofile\image.iso http:\\the.internet\image.iso"
 Write-Host "`n[$scriptName] ---------- start ----------"

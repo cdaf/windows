@@ -14,7 +14,6 @@ function executeExpression ($expression) {
 
 function executeRetry ($expression) {
 	$exitCode = 1
-	$lastExitCode = 0
 	$wait = 10
 	$retryMax = 3
 	$retryCount = 0

@@ -44,6 +44,9 @@ if ($tag) {
 Write-Host "`n[$scriptName] List images (before)"
 executeExpression "docker images"
 
+Write-Host "`n[$scriptName] Remove stopped containers"
+executeExpression "docker rm (docker ps -aq)"
+
 Write-Host "`n[$scriptName] Remove untagged orphaned (dangling) images"
 foreach ($imageID in docker images -aq -f dangling=true) {
 	executeSuppress "docker rmi $imageID"
@@ -52,17 +55,22 @@ foreach ($imageID in docker images -aq -f dangling=true) {
 Write-Host "`n[$scriptName] Remove unused images (ignore failures). This process relies on the dockerBuild process where docker image label holds the product version."
 Write-Host "[$scriptName]   docker images --filter label=cdaf.${imageName}.image.version -a"
 Write-Host "[$scriptName]   Note: the version value itself is ignored and is for information purposes only."
-foreach ( $imageDetails in docker images --filter label=cdaf.${imageName}.image.version --format "{{.ID}}:{{.Tag}}" ) {
+foreach ( $imageDetails in docker images --filter label=cdaf.${imageName}.image.version --format "{{.ID}}:{{.Tag}}:{{.Repository}}" ) {
 	$arr = $imageDetails.split(':')
 	$imageID = $arr[0]
 	$imageTag = $arr[1]
+	$Repository = $arr[2]
 	if ( $tag ) {
 		if ( $imageTag -lt $tag ) {
-			Write-Host "[$scriptName] Remove Image $imageDetails"
+			Write-Host "[$scriptName]   Remove Image $imageDetails for repository $Repository"
 			executeSuppress "docker rmi $imageID"
+		} else {
+			# image clean logic is based on promotion pipeline, i.e. Test --> Staging --> Prod, and this would be run only after prod,
+			# with the expectation that the last stage (Prod) will have the oldest supported version (tag) at any time.
+			Write-Host "[$scriptName]   Image $imageTag is equal to or greater than $tag, perform no action (for repository $Repository)"
 		}
 	} else {
-		Write-Host "[$scriptName] Remove All, Image $imageDetails"
+		Write-Host "[$scriptName]   Remove All, Image $imageDetails"
 		executeSuppress "docker rmi $imageID"
 	}
 }	

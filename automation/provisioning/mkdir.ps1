@@ -1,7 +1,6 @@
 # Common expression logging and error handling function, copied, not referenced to ensure atomic process
 function executeExpression ($expression) {
 	$error.clear()
-	$LASTEXITCODE = 0
 	Write-Host "[$scriptName] $expression"
 	try {
 		$output = Invoke-Expression $expression
