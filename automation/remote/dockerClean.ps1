@@ -16,14 +16,13 @@ function executeExpression ($expression) {
 
 # Common expression logging and error handling function, copied, not referenced to ensure atomic process
 function executeSuppress ($expression) {
-	$error.clear()
 	Write-Host "[$scriptName] $expression"
 	try {
 		Invoke-Expression $expression
-	    if(!$?) { Write-Host "[$scriptName] `$? = $?" }
-	} catch { Write-Host $_.Exception|format-list -force }
-    if ( $error[0] ) { Write-Host "[$scriptName] `$error[0] = $error" }
-    if ( $lastExitCode -ne 0 ) { Write-Host "[$scriptName] `$lastExitCode = $lastExitCode " }
+	    if(!$?) { Write-Host "[$scriptName] `$? = $?"; exit 1 }
+	} catch { Write-Host $_.Exception|format-list -force; exit 2 }
+	$error.clear()
+    if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -eq 0 )) { Write-Host "[$scriptName] Suppress `$LASTEXITCODE ($LASTEXITCODE)"; date } #arbitray command to clear exit code
 }
 
 $scriptName = 'dockerClean.ps1'
@@ -45,7 +44,10 @@ Write-Host "`n[$scriptName] List images (before)"
 executeExpression "docker images"
 
 Write-Host "`n[$scriptName] Remove stopped containers"
-executeSuppress "docker rm (docker ps -aq)"
+$stoppedIDs = docker ps -aq
+if ($stoppedIDs) {
+	executeSuppress "docker rm $stoppedIDs"
+}
 
 Write-Host "`n[$scriptName] Remove untagged orphaned (dangling) images"
 foreach ($imageID in docker images -aq -f dangling=true) {
