@@ -45,7 +45,7 @@ Write-Host "`n[$scriptName] List images (before)"
 executeExpression "docker images"
 
 Write-Host "`n[$scriptName] Remove stopped containers"
-executeExpression "docker rm (docker ps -aq)"
+executeSuppress "docker rm (docker ps -aq)"
 
 Write-Host "`n[$scriptName] Remove untagged orphaned (dangling) images"
 foreach ($imageID in docker images -aq -f dangling=true) {
@@ -58,7 +58,7 @@ Write-Host "[$scriptName]   Note: the version value itself is ignored and is for
 foreach ( $imageDetails in docker images --filter label=cdaf.${imageName}.image.version --format "{{.ID}}:{{.Tag}}:{{.Repository}}" ) {
 	$arr = $imageDetails.split(':')
 	$imageID = $arr[0]
-	$imageTag = $arr[1]
+	$imageTag = [INT]$arr[1]
 	$Repository = $arr[2]
 	if ( $tag ) {
 		if ( $imageTag -lt $tag ) {
