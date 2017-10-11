@@ -13,10 +13,11 @@ function executeExpression ($expression) {
     if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) { Write-Host "[$scriptName] `$LASTEXITCODE = $LASTEXITCODE "; exit $LASTEXITCODE }
 }
 
+# Retry logic for connection issues, i.e. "Cannot retrieve the dynamic parameters for the cmdlet. PowerShell Gallery is currently unavailable.  Please try again later."
 function executeRetry ($expression) {
 	$exitCode = 1
 	$wait = 10
-	$retryMax = 3
+	$retryMax = 5
 	$retryCount = 0
 	while (( $retryCount -le $retryMax ) -and ($exitCode -ne 0)) {
 		$exitCode = 0
@@ -25,18 +26,18 @@ function executeRetry ($expression) {
 		try {
 			Invoke-Expression $expression
 		    if(!$?) { Write-Host "[$scriptName] `$? = $?"; $exitCode = 1 }
-		} catch { echo $_.Exception|format-list -force; $exitCode = 2 }
+		} catch { Write-Host "[$scriptName] $_"; $exitCode = 2 }
 	    if ( $error[0] ) { Write-Host "[$scriptName] `$error[0] = $error"; $exitCode = 3 }
 	    if ( $lastExitCode -ne 0 ) { Write-Host "[$scriptName] `$lastExitCode = $lastExitCode "; $exitCode = $lastExitCode }
 	    if ($exitCode -ne 0) {
 			if ($retryCount -ge $retryMax ) {
-				Write-Host "[$scriptName] Retry maximum ($retryCount) reached, exiting with `$LASTEXITCODE = $exitCode. Log file ($env:windir\logs\dism\dism.log) summary follows...`n"
-				Compare-Object (get-content "$env:windir\logs\dism\dism.log") (Get-Content "$env:temp\dism.log")
+				Write-Host "[$scriptName] Retry maximum ($retryCount) reached, exiting with `$LASTEXITCODE = $exitCode.`n"
 				exit $exitCode
 			} else {
 				$retryCount += 1
 				Write-Host "[$scriptName] Wait $wait seconds, then retry $retryCount of $retryMax"
 				sleep $wait
+				$wait = $wait + $wait
 			}
 		}
     }
@@ -52,14 +53,15 @@ if ($enableTCP) {
     Write-Host "[$scriptName] enableTCP   : (not set)"
 }
 
-executeExpression "Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.201 -Verbose -Force"
+executeRetry "Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.201 -Verbose -Force"
 
-executeExpression "Set-PSRepository -Name PSGallery -InstallationPolicy Trusted; `$error.clear()"
+executeRetry "Set-PSRepository -Name PSGallery -InstallationPolicy Trusted"
+# Even when successfull, messages are written to the error array 
+$error.clear()
 
-executeExpression "Find-PackageProvider *docker* | Format-Table Name, Version, Source"
+executeRetry "Find-PackageProvider *docker* | Format-Table Name, Version, Source"
 
-executeExpression "Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.201 -Force"
-executeExpression "Install-Module NuGet -Confirm:`$False"
+executeRetry "Install-Module NuGet -Confirm:`$False"
 
 Write-Host "`n[$scriptName] Found these repositories unreliable`n"
 executeRetry "Install-Module -Name DockerMsftProviderInsider -Repository PSGallery -Confirm:`$False -Verbose -Force"
@@ -75,7 +77,7 @@ if ($enableTCP) {
 		Add-Content C:\ProgramData\docker\config\daemon.json '{ "hosts": ["tcp://0.0.0.0:2375","npipe://"] }'
 		Write-Host "`n[$scriptName] Enable TCP in config, will be applied after restart`n"
 		executeExpression "Get-Content C:\ProgramData\docker\config\daemon.json" 
-	} catch { echo $_.Exception|format-list -force; $exitCode = 478 }
+	} catch { echo $_.Exception|format-list -force; exit 478 }
 }
 
 executeExpression "shutdown /r /t 10"
