@@ -16,7 +16,7 @@ function executeExpression ($expression) {
 	    if(!$?) { Write-Host "[$scriptName] `$? = $?"; exit 1 }
 	} catch { echo $_.Exception|format-list -force; exit 2 }
     if ( $error[0] ) { Write-Host "[$scriptName] `$error[0] = $error"; exit 3 }
-    if ( $LASTEXITCODE -ne 0 ) { Write-Host "[$scriptName] `$LASTEXITCODE = $LASTEXITCODE "; exit $LASTEXITCODE }
+    if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) { Write-Host "[$scriptName] `$LASTEXITCODE = $LASTEXITCODE "; exit $LASTEXITCODE }
 }
 
 # Use the CDAF provisioning helpers
@@ -30,18 +30,7 @@ if ( $imageName ) {
 if ( $buildNumber ) { 
 	Write-Host "[$scriptName]   buildNumber  : $buildNumber"
 } else {
-	# Use a simple text file (buildnumber.counter) for incrimental build number
-	if ( Test-Path buildnumber.counter ) {
-		$buildNumber = Get-Content buildnumber.counter
-	} else {
-		$buildNumber = 0
-	}
-	[int]$buildnumber = [convert]::ToInt32($buildNumber)
-	if ( $ACTION -ne "deliveryonly" ) { # Do not incriment when just deploying
-		$buildNumber += 1
-	}
-	Out-File buildnumber.counter -InputObject $buildNumber
-	Write-Host "[$scriptName]   buildNumber  : $buildNumber (not passed so derived using buildnumber.counter file)"
+	Write-Host "[$scriptName]   buildNumber  : (not supplied)"
 }
 
 if ( $command ) {
@@ -57,6 +46,10 @@ if ( $rebuildImage ) {
 	Write-Host "[$scriptName]   rebuildImage : $rebuildImage (not supplied, so set to default)"
 }
 
+# Test Docker is running
+Write-Host "[$scriptName] List all current images"
+executeExpression "docker images"
+
 $imageExists = (docker images --filter=label=cdaf.${imageName}.image.version -q)
 if (!( $imageExists )) {
 	Write-Host "[$scriptName] No build image exists, initialise (ignore `$rebuildImage)"
@@ -64,26 +57,43 @@ if (!( $imageExists )) {
 }
 
 if ( $rebuildImage -eq 'yes') {
+	foreach ( $imageDetails in docker images --filter label=cdaf.${imageName}.image.version --format "{{.ID}}:{{.Tag}}:{{.Repository}}" ) {
+		$arr = $imageDetails.split(':')
+		$imageTag = [INT]$arr[1]
+	}
+	if ( $imageTag ) {
+		Write-Host "[$scriptName] Last image tag is $imageTag, new image will be $($imageTag + 1)"
+	} else {
+		$imageTag = 0
+		Write-Host "[$scriptName] No existing images, new image will be $($imageTag + 1)"
+	}
 	executeExpression "cat Dockerfile"
 	
 	# Do not execute using function as interactive logging stops working
-	executeExpression "automation/remote/dockerBuild.ps1 ${imageName} $buildNumber"
+	executeExpression "automation/remote/dockerBuild.ps1 ${imageName} $($imageTag + 1)"
 
 	# Remove any older images	
-	executeExpression "automation/remote/dockerClean.ps1 ${imageName} $buildNumber"
+	executeExpression "automation/remote/dockerClean.ps1 ${imageName} $($imageTag + 1)"
 }
 
-# There should always be only 1 image
-executeExpression "docker images --filter=label=cdaf.${imageName}.image.version"
-$imageID = (docker images --filter=label=cdaf.${imageName}.image.version -q)
+# Retrieve the latest image number
+foreach ( $imageDetails in docker images --filter label=cdaf.${imageName}.image.version --format "{{.ID}}:{{.Tag}}:{{.Repository}}" ) {
+	$arr = $imageDetails.split(':')
+	$imageTag = [INT]$arr[1]
+}
+
 $workspace = (Get-Location).Path
-Write-Host "[$scriptName] `$imageID   : $imageID"
+Write-Host "[$scriptName] `$imageTag  : $imageTag"
 Write-Host "[$scriptName] `$workspace : $workspace"
 
+if (( $buildNumber ) -and (-not $command)) {
+	$command = "automation\provisioning\runner.bat automation-solution\entrypoint.ps1 $buildNumber"
+}
+
 if ( $command ) {
-	executeExpression "docker run --tty --volume ${workspace}:C:/workspace $imageID `"$command`""
+	executeExpression "docker run --tty --volume ${workspace}:C:/workspace ${imageName}:${imageTag} $command"
 } else {
-	executeExpression "docker run --tty --volume ${workspace}:C:/workspace $imageID"
+	executeExpression "docker run --tty --volume ${workspace}:C:/workspace ${imageName}:${imageTag}"
 }
 executeExpression "docker rm (docker ps -aq)"
 

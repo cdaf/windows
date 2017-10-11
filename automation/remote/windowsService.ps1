@@ -3,7 +3,7 @@ Param (
   [string]$binpath,
   [string]$start
 )
-$lastExitCode = 1060
+
 function executeRetry ($expression) {
 	$wait = 10
 	$retryMax = 10
@@ -18,8 +18,8 @@ function executeRetry ($expression) {
 		    if(!$?) { Write-Host "[$scriptName] `$? = $?"; $exitCode = 1 }
 		} catch { echo $_.Exception|format-list -force; $exitCode = 2 }
 	    if ( $error[0] ) { Write-Host "[$scriptName] `$error[0] = $error"; $exitCode = 3 }
-		if ( $LASTEXITCODE -eq 1060 ) { $LASTEXITCODE = 0 } # 3010 is a normal exit
-	    if ( $LASTEXITCODE -ne 0 ) { Write-Host "[$scriptName] `$LASTEXITCODE = $LASTEXITCODE "; $exitCode = $LASTEXITCODE }
+		if ( $LASTEXITCODE -eq 1060 ) { date } # 10600 is a normal exit, use date to clear LASTEXITCODE
+	    if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) { Write-Host "[$scriptName] `$LASTEXITCODE = $LASTEXITCODE "; $exitCode = $LASTEXITCODE }
 	    if ($exitCode -ne 0) {
 			if ($retryCount -ge $retryMax ) {
 				Write-Host "[$scriptName] Retry maximum ($retryCount) reached, exiting with code $exitCode"; exit $exitCode

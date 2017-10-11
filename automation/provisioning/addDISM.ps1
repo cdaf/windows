@@ -3,7 +3,7 @@ Param (
 	[string]$media,
 	[string]$wimIndex,
 	[string]$dismount,
-	[string]$halt
+	[string]$halt # halt on reboot
 )
 $scriptName = 'addDISM.ps1' # TelnetClient
                             # 'IIS-WebServerRole IIS-WebServer' install.wim 2
@@ -17,7 +17,7 @@ function executeExpression ($expression) {
 	    if(!$?) { Write-Host "[$scriptName] `$? = $?"; exit 1 }
 	} catch { echo $_.Exception|format-list -force; exit 2 }
     if ( $error[0] ) { Write-Host "[$scriptName] `$error[0] = $error"; exit 3 }
-	if ( $LASTEXITCODE -eq 3010 ) { if ( ! $halt ) { $LASTEXITCODE = 0 } } # 3010 is a normal exit, but force exit if halt is set
+	if ( $LASTEXITCODE -eq 3010 ) { if ( ! $halt ) { date } } # 3010 is a normal exit, use date function to clear LASTEXITCODE, halt on reboot required as been pass
 }
 
 function executeRetry ($expression) {

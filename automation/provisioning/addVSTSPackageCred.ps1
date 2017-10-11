@@ -16,6 +16,7 @@ function executeExpression ($expression) {
 	    if(!$?) { Write-Host "[$scriptName] `$? = $?"; exit 1 }
 	    if ( $error[0] ) { Write-Host "[$scriptName] `$error[0] = $error"; exit 3 }
 	} catch { echo $_.Exception|format-list -force; exit 2 }
+	if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) { Write-Host "[$scriptName] `$LASTEXITCODE = $LASTEXITCODE "; exit $LASTEXITCODE }
 }
 
 Write-Host "`n[$scriptName] Add VSTS Package Management credentials to allow non interactive authentication for NuGet."
