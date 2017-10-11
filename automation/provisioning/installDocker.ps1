@@ -27,7 +27,7 @@ function executeRetry ($expression) {
 			Invoke-Expression $expression
 		    if(!$?) { Write-Host "[$scriptName] `$? = $?"; $exitCode = 1 }
 		} catch { Write-Host "[$scriptName] $_"; $exitCode = 2 }
-	    if ( $error[0] ) { Write-Host "[$scriptName] `$error[0] = $error"; $exitCode = 3 }
+	    if ( $error[0] ) { Write-Host "[$scriptName] Warning, message in `$error[0] = $error"; $error.clear() } # do not treat messages in error array as failure
 	    if ( $lastExitCode -ne 0 ) { Write-Host "[$scriptName] `$lastExitCode = $lastExitCode "; $exitCode = $lastExitCode }
 	    if ($exitCode -ne 0) {
 			if ($retryCount -ge $retryMax ) {
@@ -56,8 +56,6 @@ if ($enableTCP) {
 executeRetry "Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.201 -Verbose -Force"
 
 executeRetry "Set-PSRepository -Name PSGallery -InstallationPolicy Trusted"
-# Even when successfull, messages are written to the error array 
-$error.clear()
 
 executeRetry "Find-PackageProvider *docker* | Format-Table Name, Version, Source"
 
