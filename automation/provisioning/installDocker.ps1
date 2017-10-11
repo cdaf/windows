@@ -74,7 +74,7 @@ if ($enableTCP) {
 	try {
 		Add-Content C:\ProgramData\docker\config\daemon.json '{ "hosts": ["tcp://0.0.0.0:2375","npipe://"] }'
 		Write-Host "`n[$scriptName] Enable TCP in config, will be applied after restart`n"
-		Get-Content C:\ProgramData\docker\config\daemon.json 
+		executeExpression "Get-Content C:\ProgramData\docker\config\daemon.json" 
 	} catch { echo $_.Exception|format-list -force; $exitCode = 478 }
 }
 
