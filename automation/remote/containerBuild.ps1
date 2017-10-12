@@ -46,6 +46,8 @@ if ( $rebuildImage ) {
 	Write-Host "[$scriptName]   rebuildImage : $rebuildImage (not supplied, so set to default)"
 }
 
+Write-Host "[$scriptName]   DOCKER_HOST  : $env:DOCKER_HOST"
+
 # Test Docker is running
 Write-Host "[$scriptName] List all current images"
 executeExpression "docker images"
