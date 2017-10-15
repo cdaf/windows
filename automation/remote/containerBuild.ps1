@@ -93,9 +93,9 @@ if (( $buildNumber ) -and (-not $command)) {
 }
 
 if ( $command ) {
-	executeExpression "docker run --tty --volume ${workspace}:C:/workspace ${imageName}:${imageTag} $command"
+	executeExpression "docker run --tty --volume ${workspace}\:C:/workspace ${imageName}:${imageTag} $command"
 } else {
-	executeExpression "docker run --tty --volume ${workspace}:C:/workspace ${imageName}:${imageTag}"
+	executeExpression "docker run --tty --volume ${workspace}\:C:/workspace ${imageName}:${imageTag}"
 }
 
 Write-Host "`n[$scriptName] List and remove all stopped containers"
