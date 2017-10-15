@@ -1,8 +1,8 @@
 Param (
-  [string]$imageName,
-  [string]$buildNumber,
-  [string]$command,
-  [string]$rebuildImage
+	[string]$imageName,
+	[string]$buildNumber,
+	[string]$command,
+	[string]$rebuildImage
 )
 
 $scriptName = 'containerBuild.ps1'
@@ -97,6 +97,10 @@ if ( $command ) {
 } else {
 	executeExpression "docker run --tty --volume ${workspace}:C:/workspace ${imageName}:${imageTag}"
 }
-executeExpression "docker rm (docker ps -aq)"
+
+Write-Host "`n[$scriptName] List and remove all stopped containers"
+executeExpression "docker ps --filter `"status=exited`" -a"
+executeExpression "docker rm (docker ps --filter `"status=exited`" -aq)"
 
 Write-Host "`n[$scriptName] ---------- stop ----------"
+exit 0

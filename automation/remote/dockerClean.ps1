@@ -43,9 +43,12 @@ if ($tag) {
 Write-Host "`n[$scriptName] List images (before)"
 executeExpression "docker images"
 
-Write-Host "`n[$scriptName] Remove stopped containers"
-$stoppedIDs = docker ps -aq
+Write-Host "`n[$scriptName] List stopped containers"
+executeExpression "docker ps --filter `"status=exited`" -a"
+
+$stoppedIDs = docker ps --filter "status=exited" -aq
 if ($stoppedIDs) {
+	Write-Host "`n[$scriptName] Remove stopped containers"
 	executeSuppress "docker rm $stoppedIDs"
 }
 
