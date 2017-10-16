@@ -142,6 +142,10 @@ $featureArray = $featureList.split(" ")
 foreach ($feature in $featureArray) {
 	if ( $sourceOption -eq '/Quiet' ) {
 		executeRetry "dism /online /NoRestart /enable-feature /featurename:$feature $sourceOption"
+		if ( $lastExitCode -ne 0 ) {
+			Write-Host "[$scriptName] DISM failed with `$lastExitCode = $lastExitCode, retry from WSUS/Internet"
+			executeRetry "dism /online /NoRestart /enable-feature /All /featurename:$feature /Quiet"
+		}
 	} else {
 		executeExpression "dism /online /NoRestart /enable-feature /featurename:$feature $sourceOption"
 		if ( $lastExitCode -ne 0 ) {

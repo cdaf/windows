@@ -24,7 +24,7 @@ function executeRetry ($expression) {
 		    if(!$?) { Write-Host "[$scriptName] `$? = $?"; $exitCode = 1 }
 		} catch { echo $_.Exception|format-list -force; $exitCode = 2 }
 	    if ( $error[0] ) { Write-Host "[$scriptName] `$error[0] = $error"; $exitCode = 3 }
-		if ( $LASTEXITCODE -eq 3010 ) { $LASTEXITCODE = 0 } # 3010 is a normal exit
+		if ( $LASTEXITCODE -eq 3010 ) { cmd /c "exit 0" } # 3010 is a normal exit
 	    if ( $lastExitCode -ne 0 ) { Write-Host "[$scriptName] `$lastExitCode = $lastExitCode "; $exitCode = $lastExitCode }
 	    if ($exitCode -ne 0) {
 			if ($retryCount -ge $retryMax ) {
@@ -148,11 +148,8 @@ if ( Test-Path $media ) {
 }
 
 # Not using powershell commandlets for provisioning as they do not support /LimitAccess
-Write-Host
-Write-Host "[$scriptName] Install Active Directory Domain Roles and Services using Deployment Image Servicing and Management (DISM)"
-Write-Host
-Write-Host "[$scriptName]   Remote Server Administration Tools (RSAT)"
-Write-Host
+Write-Host "`n[$scriptName] Install Active Directory Domain Roles and Services using Deployment Image Servicing and Management (DISM)"
+Write-Host "`n[$scriptName]   Remote Server Administration Tools (RSAT)`n"
 $featureList = @('ServerManager-Core-RSAT', 'ServerManager-Core-RSAT-Role-Tools', 'RSAT-AD-Tools-Feature')
 foreach ($feature in $featureList) {
 	executeExpression "dism /online /NoRestart /enable-feature /featurename:$feature $sourceOption"
@@ -162,9 +159,7 @@ foreach ($feature in $featureList) {
 	}
 }
 
-Write-Host
-Write-Host "[$scriptName]   Source required for Directory Services"
-Write-Host
+Write-Host "`n[$scriptName]   Source required for Directory Services`n"
 $featureList = @('ActiveDirectory-PowerShell', 'DirectoryServices-DomainController', 'RSAT-ADDS-Tools-Feature', 'DirectoryServices-DomainController-Tools', 'DNS-Server-Full-Role', 'DNS-Server-Tools', 'DirectoryServices-AdministrativeCenter')
 foreach ($feature in $featureList) {
 	executeExpression "dism /online /NoRestart /enable-feature /featurename:$feature $sourceOption"
