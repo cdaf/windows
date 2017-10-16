@@ -139,7 +139,7 @@ try {
 
 if ( "$zipLocal" -eq 'yes' ) {
 
-	ZipFiles "${SOLUTION}-local-${BUILDNUMBER}.zip" "$WORK_DIR_DEFAULT"
+	ZipFiles "$(pwd)\${SOLUTION}-local-${BUILDNUMBER}.zip" "$(pwd)\$WORK_DIR_DEFAULT"
 
 } else {
 	Write-Host

@@ -1,24 +1,18 @@
 function exceptionExit($taskName) {
-    write-host
-    write-host "[$scriptName] Caught an exception excuting $taskName :" -ForegroundColor Red
+    write-host "`n[$scriptName] Caught an exception excuting $taskName :" -ForegroundColor Red
     write-host "     Exception Type: $($_.Exception.GetType().FullName)" -ForegroundColor Red
-    write-host "     Exception Message: $($_.Exception.Message)" -ForegroundColor Red
-    write-host
-    write-host "     Returning errorlevel (-1) to DOS" -ForegroundColor Magenta
-    write-host
+    write-host "     Exception Message: $($_.Exception.Message)n" -ForegroundColor Red
+    write-host "     Returning errorlevel (-1) to DOS`n" -ForegroundColor Magenta
     $host.SetShouldExit(-1)
     exit
 }
 
 function taskComplete { 
-    write-host
-    write-host "[$scriptName] Remote Task ($taskName) Successfull " -ForegroundColor Green
-    write-host
+    write-host "`n[$scriptName] Remote Task ($taskName) Successfull`n" -ForegroundColor Green
 }
 
 function taskWarning($taskName) { 
-    write-host
-    write-host "[$scriptName] Warning, $taskName encountered an error that was allowed to proceed." -ForegroundColor Yellow
+    write-host "`n[$scriptName] Warning, $taskName encountered an error that was allowed to proceed." -ForegroundColor Yellow
 }
 
 function itemRemove ($itemPath) { 
@@ -88,16 +82,15 @@ function ZipFiles( $zipfilename, $sourcedir )
 		taskFailure "Failed to load Compression assembly, is .NET 4.5 or above installed?"
 	}
 	$compressionLevel = [System.IO.Compression.CompressionLevel]::Optimal
-	Write-Host
-	Write-Host "[$scriptName] Create zip package $zipfilename from $sourcedir"
+	Write-Host "[package.ps1] Create zip package $zipfilename from $sourcedir"
 	[System.IO.Compression.ZipFile]::CreateFromDirectory($sourcedir, $zipfilename, $compressionLevel, $false)
 	foreach ($item in (Get-ChildItem -Path $sourcedir)) {
-		Write-Host "[$scriptName]   --> $item"
+		Write-Host "[package.ps1]   --> $item"
 	}
 	
 }
 
-$scriptName = $MyInvocation.MyCommand.Name
+$scriptName = 'package.ps1'
 Write-Host
 Write-Host "[$scriptName] +-----------------+"
 Write-Host "[$scriptName] | Package Process |"

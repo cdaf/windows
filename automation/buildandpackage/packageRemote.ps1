@@ -1,7 +1,6 @@
 function taskFailure ($taskName) {
     write-host "[$scriptName] Failure excuting $taskName :" -ForegroundColor Red
-    write-host "     Throwing exception : $scriptName HALT" -ForegroundColor Red
-	write-host
+    write-host "     Throwing exception : $scriptName HALT`n" -ForegroundColor Red
     throw "$scriptName HALT"
 }
 
@@ -18,8 +17,7 @@ $remoteCustomDir = "$SOLUTIONROOT\customRemote"
 $remoteCryptDir = "$SOLUTIONROOT\cryptRemote"
 $remoteArtifactListFile = "$SOLUTIONROOT\storeForRemote"
 
-Write-Host
-Write-Host "[$scriptName] ---------------------------------------------------------------" 
+Write-Host "`n[$scriptName] ---------------------------------------------------------------" 
 Write-Host "[$scriptName]   WORK_DIR_DEFAULT             : $WORK_DIR_DEFAULT" 
 
 Write-Host –NoNewLine "[$scriptName]   Remote Artifact List         : " 
@@ -34,14 +32,12 @@ pathTest $remoteCryptDir
 # CDM-101 If Artefacts definition file is not found, do not perform any action, i.e. this solution is local tasks only
 if ( -not (Test-Path $remoteArtifactListFile) ) {
 
-	Write-Host
-	Write-Host "[$scriptName] Artefacts definition file not found $remoteArtifactListFile, therefore no action, assuming local tasks only."
+	Write-Host "`n[$scriptName] Artefacts definition file not found $remoteArtifactListFile, therefore no action, assuming local tasks only."
 	
 } else {
 
 	# Create the working directory and a subdiretory for the remote execution helper scripts
-	Write-Host
-	Write-Host "[$scriptName] mkdir $WORK_DIR_DEFAULT" 
+	Write-Host "`n[$scriptName] mkdir $WORK_DIR_DEFAULT" 
 	New-Item $WORK_DIR_DEFAULT -type directory > $null
 	if(!$?){ taskFailure "mkdir $WORK_DIR_DEFAULT"  }
 	
@@ -49,8 +45,7 @@ if ( -not (Test-Path $remoteArtifactListFile) ) {
 	copySet "manifest.txt" "." $WORK_DIR_DEFAULT
 	copySet "CDAF.windows" "$AUTOMATIONROOT" $WORK_DIR_DEFAULT
 	Move-Item $WORK_DIR_DEFAULT\CDAF.windows $WORK_DIR_DEFAULT\CDAF.properties
-	Write-Host
-	Write-Host "[$scriptName]   rename $WORK_DIR_DEFAULT\CDAF.windows --> $WORK_DIR_DEFAULT\CDAF.properties"
+	Write-Host "`n[$scriptName]   rename $WORK_DIR_DEFAULT\CDAF.windows --> $WORK_DIR_DEFAULT\CDAF.properties"
 	
 	# Copy helper scripts to deploy folder
 	copyDir "$AUTOMATIONROOT\remote" $WORK_DIR_DEFAULT $true
@@ -79,11 +74,10 @@ if ( -not (Test-Path $remoteArtifactListFile) ) {
 	
 	} else {
 	
-		Write-Host
-		Write-Host "[$scriptName] Remote Artifact file ($remoteArtifactListFile) does not exist, packaging framework scripts only" -ForegroundColor Yellow
+		Write-Host "`n[$scriptName] Remote Artifact file ($remoteArtifactListFile) does not exist, packaging framework scripts only" -ForegroundColor Yellow
 	
 	}
 	
 	# Zip the working directory to create the artefact Package
-	ZipFiles "${SOLUTION}-${BUILDNUMBER}.zip" $WORK_DIR_DEFAULT
+	ZipFiles "$(pwd)\${SOLUTION}-${BUILDNUMBER}.zip" "$(pwd)\$WORK_DIR_DEFAULT"
 }
