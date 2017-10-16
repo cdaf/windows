@@ -1,26 +1,24 @@
 Param (
-  [string]$boxname,
-  [string]$hypervisor,
-  [string]$diskDir,
-  [string]$vagrantfile,
-  [string]$emailTo,
-  [string]$smtpServer,
-  [string]$destroy
+	[string]$boxname,
+	[string]$hypervisor,
+	[string]$diskDir,
+	[string]$vagrantfile,
+	[string]$emailTo,
+	[string]$smtpServer,
+	[string]$destroy
 )
 $scriptName = 'AtlasPackage.ps1'
 
+# Common expression logging and error handling function, copied, not referenced to ensure atomic process
 function executeExpression ($expression) {
 	$error.clear()
-	$lastExitCode = 0
 	Write-Host "[$scriptName] $expression"
-	Add-Content "$logFile" "[$scriptName] $expression"
 	try {
-		$output = Invoke-Expression $expression
-	    if(!$?) { Write-Host "[$scriptName] `$? = $?"; Add-Content "$logFile" "[$scriptName] `$? = $?"; emailAndExit 1 }
-	} catch { echo $_.Exception|format-list -force; Add-Content "$logFile" "$_.Exception|format-list"; emailAndExit 2 }
-    if ( $error[0] ) { Write-Host "[$scriptName] `$error[0] = $error"; Add-Content "$logFile" "[$scriptName] `$error[0] = $error"; emailAndExit 3 }
-    if ( $lastExitCode -ne 0 ) { Write-Host "[$scriptName] `$lastExitCode = $lastExitCode "; exit $lastExitCode }
-    return $output
+		Invoke-Expression $expression
+	    if(!$?) { Write-Host "[$scriptName] `$? = $?"; exit 1 }
+	} catch { echo $_.Exception|format-list -force; exit 2 }
+    if ( $error[0] ) { Write-Host "[$scriptName] `$error[0] = $error"; exit 3 }
+    if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) { Write-Host "[$scriptName] `$LASTEXITCODE = $LASTEXITCODE "; exit $LASTEXITCODE }
 }
 
 # Exception Handling email sending
@@ -137,10 +135,14 @@ if ($hypervisor -eq 'virtualbox') {
 	Add-Content metadata.json "{`n  ""provider"": ""hyperv""`n}"
 	executeExpression "cat metadata.json"
 
-    $versionTest = cmd /c bsdtar --version 2`>`&1
+    $versionTest = cmd /c bsdtar --version 2`>`&1 ; cmd /c "exit 0" # Reset LASTEXITCODE
     if ($versionTest -like '*not recognized*') {
     	Write-Host "`n[$scriptName] BSD Tar not installed, compress with tar"
     	Write-Host "`n[$scriptName]   tar cvzf ../$packageFile ./*"
+	    $versionTest = cmd /c tar --version 2`>`&1
+	    if ($versionTest -like '*not recognized*') {
+	    	Write-Host "`n[$scriptName]   TAR not installed, (this is included in bash tools, see Git for Windows) exit with LASTEXITCODE $LASTEXITCODE"; exit $LASTEXITCODE
+	    }
 		Add-Content "$logFile" "[$scriptName] tar cvzf ../$packageFile ./*"
         $proc = Start-Process -FilePath 'tar' -ArgumentList "cvzf ../$packageFile ./*" -PassThru -Wait -NoNewWindow
         if ( $proc.ExitCode -ne 0 ) {
