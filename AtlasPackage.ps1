@@ -64,7 +64,7 @@ if ($diskDir) {
 if ($vagrantfile) {
     Write-Host "[$scriptName] vagrantfile : $vagrantfile"
 } else {
-    Write-Host "[$scriptName] vagrantfile : (not specified, email will not be attempted)"
+    Write-Host "[$scriptName] vagrantfile : (not specified, will use default for testing)"
 }
 
 if ($emailTo) {
@@ -191,6 +191,13 @@ if ( $vagrantfile ) {
 Write-Host "`n[$scriptName] vagrant up"
 Add-Content "$logFile" "[$scriptName] vagrant up"
 $proc = Start-Process -FilePath 'vagrant' -ArgumentList 'up' -PassThru -Wait -NoNewWindow
+if ( $proc.ExitCode -ne 0 ) {
+	Write-Host "`n[$scriptName] Exit with `$LASTEXITCODE = $($proc.ExitCode)`n"
+    exit $proc.ExitCode
+}
+
+Add-Content "$logFile" "[$scriptName] vagrant box list"
+$proc = Start-Process -FilePath 'vagrant' -ArgumentList 'box list' -PassThru -Wait -NoNewWindow
 if ( $proc.ExitCode -ne 0 ) {
 	Write-Host "`n[$scriptName] Exit with `$LASTEXITCODE = $($proc.ExitCode)`n"
     exit $proc.ExitCode
