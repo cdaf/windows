@@ -8,8 +8,8 @@ Param (
 $scriptName = 'addDISM.ps1' # TelnetClient
                             # 'IIS-WebServerRole IIS-WebServer' install.wim 2
 
-# Common expression logging and error handling function, copied, not referenced to ensure atomic process
-function executeExpression ($expression) {
+# Custom expression execution for DISM exit codes and not failing on LASTEXITCODE (to allow subsequent fall-back/retry processing
+function executeSuppress ($expression) {
 	$error.clear()
 	Write-Host "[$scriptName] $expression"
 	try {
@@ -53,10 +53,10 @@ function executeRetry ($expression) {
 # Create or reuse mount directory
 function mountWim ($media, $wimIndex, $mountDir) {
 	Write-Host "[$scriptName] Validate WIM source ${media}:${wimIndex} using Deployment Image Servicing and Management (DISM)"
-	executeExpression "dism /get-wiminfo /wimfile:$media"
+	executeSuppress "dism /get-wiminfo /wimfile:$media"
 	Write-Host
 	Write-Host "[$scriptName] Mount to $mountDir using Deployment Image Servicing and Management (DISM)"
-	executeExpression "Dism /Mount-Image /ImageFile:$media /index:$wimIndex /MountDir:$mountDir /ReadOnly /Optimize /Quiet"
+	executeSuppress "Dism /Mount-Image /ImageFile:$media /index:$wimIndex /MountDir:$mountDir /ReadOnly /Optimize /Quiet"
 }
 
 # Not using powershell commandlets for provisioning as they do not support /LimitAccess
@@ -105,9 +105,9 @@ $sourceOption = '/Quiet'
 
 # Create a baseline copy of the DISM log file, to use for logging informatio if there is an exception, note: this log is normally locked, so can't simply delete it
 if ( Test-Path c:\windows\logs\dism\dism.log ) {
-	executeExpression "copy 'c:\windows\logs\dism\dism.log' $env:temp"
+	executeSuppress "copy 'c:\windows\logs\dism\dism.log' $env:temp"
 } else {
-	executeExpression 'Add-Content $env:temp\dism.log "Starting DISM from $scriptName"'
+	executeSuppress 'Add-Content $env:temp\dism.log "Starting DISM from $scriptName"'
 }
 
 Write-Host
@@ -147,7 +147,7 @@ foreach ($feature in $featureArray) {
 			executeRetry "dism /online /NoRestart /enable-feature /All /featurename:$feature /Quiet"
 		}
 	} else {
-		executeExpression "dism /online /NoRestart /enable-feature /featurename:$feature $sourceOption"
+		executeSuppress "dism /online /NoRestart /enable-feature /featurename:$feature $sourceOption"
 		if ( $lastExitCode -ne 0 ) {
 			Write-Host "[$scriptName] DISM failed with `$lastExitCode = $lastExitCode, retry from WSUS/Internet"
 			executeRetry "dism /online /NoRestart /enable-feature /All /featurename:$feature /Quiet"
@@ -160,7 +160,7 @@ if ( Test-Path "$defaultMount\windows" ) {
 	    Write-Host "`n[$scriptName] dismount set to `'$dismount`', leave $defaultMount\windows in place."
 	} else {
 		Write-Host "`n[$scriptName] Dismount default mount path ($defaultMount)"
-		executeExpression "Dism /Unmount-Image /MountDir:$defaultMount /Discard /Quiet"
+		executeSuppress "Dism /Unmount-Image /MountDir:$defaultMount /Discard /Quiet"
 	}
 }
 
