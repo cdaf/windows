@@ -188,12 +188,27 @@ if ( $vagrantfile ) {
 	executeExpression "mv $vagrantfile Vagrantfile"
 }
 
-Write-Host "`n[$scriptName] vagrant up"
-Add-Content "$logFile" "[$scriptName] vagrant up"
-$proc = Start-Process -FilePath 'vagrant' -ArgumentList 'up' -PassThru -Wait -NoNewWindow
-if ( $proc.ExitCode -ne 0 ) {
-	Write-Host "`n[$scriptName] Exit with `$LASTEXITCODE = $($proc.ExitCode)`n"
-    exit $proc.ExitCode
+if ( $hypervisor -eq 'virtualbox' ) {
+
+	Write-Host "`n[$scriptName][virtualbox] vagrant up"
+	Add-Content "$logFile" "[$scriptName][virtualbox] vagrant up"
+	$proc = Start-Process -FilePath 'vagrant' -ArgumentList 'up' -PassThru -Wait -NoNewWindow
+	if ( $proc.ExitCode -ne 0 ) {
+		Write-Host "`n[$scriptName] Exit with `$LASTEXITCODE = $($proc.ExitCode)`n"
+	    exit $proc.ExitCode
+	}
+
+} else {
+
+	# Complete scenario not supported in Vagrantfile for Hyper-V, so only test Target 
+	Write-Host "`n[$scriptName][hyperv] vagrant up target --no-provision"
+	Add-Content "$logFile" "[$scriptName][hyperv] vagrant up target --no-provision"
+	$proc = Start-Process -FilePath 'vagrant' -ArgumentList 'up target --no-provision' -PassThru -Wait -NoNewWindow
+	if ( $proc.ExitCode -ne 0 ) {
+		Write-Host "`n[$scriptName] Exit with `$LASTEXITCODE = $($proc.ExitCode)`n"
+	    exit $proc.ExitCode
+	}
+
 }
 
 Add-Content "$logFile" "[$scriptName] vagrant box list"
