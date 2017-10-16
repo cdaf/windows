@@ -72,7 +72,7 @@ if ( $rebuildImage -eq 'yes') {
 	executeExpression "cat Dockerfile"
 	
 	# Do not execute using function as interactive logging stops working
-	executeExpression "automation/remote/dockerBuild.ps1 ${imageName} $($imageTag + 1)"
+	executeExpression "automation/remote/dockerBuild.ps1 ${imageName} $($imageTag + 1) -rebuild yes"
 
 	# Remove any older images	
 	executeExpression "automation/remote/dockerClean.ps1 ${imageName} $($imageTag + 1)"
