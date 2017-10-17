@@ -4,6 +4,7 @@ Param (
 	[string]$skipUpdates
 )
 $scriptName = 'AtlasBase.ps1'
+cmd /c "exit 0"
 
 # Common expression logging and error handling function, copied, not referenced to ensure atomic process
 function executeExpression ($expression) {

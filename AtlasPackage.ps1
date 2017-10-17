@@ -8,7 +8,7 @@ Param (
 	[string]$destroy
 )
 $scriptName = 'AtlasPackage.ps1'
-
+cmd /c "exit 0"
 
 # Use executeIgnoreExit to only trap exceptions, use executeExpression to trap all errors ($LASTEXITCODE is global)
 function executeExpression ($expression) {
