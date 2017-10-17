@@ -8,11 +8,16 @@ $scriptName = 'AtlasImage.ps1'
 
 # Use executeIgnoreExit to only trap exceptions, use executeExpression to trap all errors ($LASTEXITCODE is global)
 function executeExpression ($expression) {
-	executeIgnoreExit $expression
-    if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) { Write-Host "[$scriptName] `$LASTEXITCODE = $LASTEXITCODE "; exit $LASTEXITCODE }
+	execute $expression
+    if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) { Write-Host "[$scriptName] ERROR! Exiting with `$LASTEXITCODE = $LASTEXITCODE" -foregroundcolor "red"; exit $LASTEXITCODE }
 }
 
 function executeIgnoreExit ($expression) {
+	execute $expression
+    if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) { Write-Host "[$scriptName] Warning `$LASTEXITCODE = $LASTEXITCODE" -foregroundcolor "yellow"; cmd /c "exit 0" }
+}
+
+function execute ($expression) {
 	$error.clear()
 	Write-Host "[$scriptName] $expression"
 	try {
