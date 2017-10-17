@@ -9,8 +9,19 @@ Param (
 )
 $scriptName = 'AtlasPackage.ps1'
 
-# Common expression logging and error handling function, copied, not referenced to ensure atomic process
+
+# Use executeIgnoreExit to only trap exceptions, use executeExpression to trap all errors ($LASTEXITCODE is global)
 function executeExpression ($expression) {
+	execute $expression
+    if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) { Write-Host "[$scriptName] ERROR! Exiting with `$LASTEXITCODE = $LASTEXITCODE" -foregroundcolor "red"; exit $LASTEXITCODE }
+}
+
+function executeIgnoreExit ($expression) {
+	execute $expression
+    if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) { Write-Host "[$scriptName] Warning `$LASTEXITCODE = $LASTEXITCODE" -foregroundcolor "yellow"; cmd /c "exit 0" }
+}
+
+function execute ($expression) {
 	$error.clear()
 	Write-Host "[$scriptName] $expression"
 	try {
@@ -18,7 +29,6 @@ function executeExpression ($expression) {
 	    if(!$?) { Write-Host "[$scriptName] `$? = $?"; exit 1 }
 	} catch { echo $_.Exception|format-list -force; exit 2 }
     if ( $error[0] ) { Write-Host "[$scriptName] `$error[0] = $error"; exit 3 }
-    if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) { Write-Host "[$scriptName] `$LASTEXITCODE = $LASTEXITCODE "; exit $LASTEXITCODE }
 }
 
 # Exception Handling email sending
@@ -171,7 +181,7 @@ $testDir = 'packageTest'
 if (Test-Path "$testDir ") {
 	executeExpression "Remove-Item $testDir  -Recurse -Force"
 }
-executeExpression "vagrant box remove cdaf/$boxName --box-version 0" # Remove any local (non-Atlas) images, ignore error if not exist
+executeIgnoreExit "vagrant box remove cdaf/$boxName --box-version 0" # Remove any local (non-Atlas) images, ignore error if not exist
 
 Write-Host "`n[$scriptName] vagrant box add cdaf/$boxName $packageFile --force"
 Add-Content "$logFile" "[$scriptName] vagrant box add cdaf/$boxName $packageFile --force"
