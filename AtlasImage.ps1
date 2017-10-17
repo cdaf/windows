@@ -6,8 +6,13 @@ Param (
 )
 $scriptName = 'AtlasImage.ps1'
 
-# Common expression logging and error handling function, copied, not referenced to ensure atomic process
+# Use executeIgnoreExit to only trap exceptions, use executeExpression to trap all errors ($LASTEXITCODE is global)
 function executeExpression ($expression) {
+	executeIgnoreExit $expression
+    if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) { Write-Host "[$scriptName] `$LASTEXITCODE = $LASTEXITCODE "; exit $LASTEXITCODE }
+}
+
+function executeIgnoreExit ($expression) {
 	$error.clear()
 	Write-Host "[$scriptName] $expression"
 	try {
@@ -15,7 +20,6 @@ function executeExpression ($expression) {
 	    if(!$?) { Write-Host "[$scriptName] `$? = $?"; exit 1 }
 	} catch { echo $_.Exception|format-list -force; exit 2 }
     if ( $error[0] ) { Write-Host "[$scriptName] `$error[0] = $error"; exit 3 }
-    if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) { Write-Host "[$scriptName] `$LASTEXITCODE = $LASTEXITCODE "; exit $LASTEXITCODE }
 }
 
 # Exception Handling email sending
@@ -81,7 +85,7 @@ executeExpression "@(`'Server-Media-Foundation`') | Remove-WindowsFeature"
 executeExpression "Get-WindowsFeature | ? { `$_.InstallState -eq `'Available`' } | Uninstall-WindowsFeature -Remove"
 
 Write-Host "`n[$scriptName] Deployment Image Servicing and Management (DISM.exe) clean-up"
-executeExpression "Dism.exe /online /Cleanup-Image /StartComponentCleanup /ResetBase /Quiet"
+executeIgnoreExit "Dism.exe /online /Cleanup-Image /StartComponentCleanup /ResetBase /Quiet"
 
 Write-Host "`n[$scriptName] Windows Server Update service (WSUS) Clean-up"
 executeExpression "Stop-Service wuauserv"
