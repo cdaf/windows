@@ -71,6 +71,11 @@ Vagrant.configure(2) do |allhosts|
       override.vm.provision 'shell', path: './automation/provisioning/CDAF_Desktop_Certificate.ps1'
       override.vm.provision 'shell', path: './automation/provisioning/CDAF.ps1'
     end
+    buildserver.vm.provider 'hyperv' do |hyperv, override|
+      hyperv.ip_address_timeout = 300 # 5 minutes, default is 2 minutes (120 seconds)
+      override.vm.synced_folder ".", "/vagrant", type: "smb", smb_username: "#{ENV['VAGRANT_SMB_USER']}", smb_password: "#{ENV['VAGRANT_SMB_PASS']}"
+      override.vm.provision 'shell', path: './automation/provisioning/removeUser.ps1', args: 'vagrant'
+    end
   end
 
 end
