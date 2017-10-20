@@ -1,7 +1,7 @@
 Param (
-  [string]$tomcat_version,
-  [string]$sourceInstallDir,
-  [string]$destinationInstallDir
+	[string]$tomcat_version,
+	[string]$sourceInstallDir,
+	[string]$destinationInstallDir
 )
 $scriptName = 'installApacheTomcat.ps1'
 
@@ -24,8 +24,8 @@ Write-Host "`n[$scriptName] ---------- start ----------"
 if ( $tomcat_version ) {
 	Write-Host "[$scriptName] tomcat_version        : $tomcat_version"
 } else {
-	$tomcat_version = '8.5.20'
-	$md5 = '43c640b3baf7b1e591f8a5c9d3b109e5'
+	$tomcat_version = '8.5.23'
+	$md5 = '910794759d9216cf81dec25da952e649'
 	Write-Host "[$scriptName] tomcat_version        : $tomcat_version (default)"
 }
 
@@ -76,7 +76,7 @@ if (!( Test-Path $sourceInstallDir\$apacheTomcatInstallFileName )) {
 		$result = executeExpression "mkdir $sourceInstallDir"
 		Write-Host "[$scriptName] Created $result`n"
 	}
-	$uri = "http://www-us.apache.org/dist/tomcat/tomcat-8/v${tomcat_version}/bin/apache-tomcat-${tomcat_version}.exe"
+	$uri = "https://archive.apache.org/dist/tomcat/tomcat-8/v${tomcat_version}/bin/apache-tomcat-${tomcat_version}.exe"
 	executeExpression "(New-Object System.Net.WebClient).DownloadFile(`"`$uri`", `"`$sourceInstallDir\$apacheTomcatInstallFileName`")" 
 	$hashValue = executeExpression "Get-FileHash `"$fullpath`" -Algorithm MD5"
 	if ($hashValue = $md5) {

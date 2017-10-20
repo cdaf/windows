@@ -52,31 +52,27 @@ Write-Host "[$scriptName]   DOCKER_HOST  : $env:DOCKER_HOST"
 Write-Host "[$scriptName] List all current images"
 executeExpression "docker images"
 
-$imageExists = (docker images --filter=label=cdaf.${imageName}.image.version -q)
-if (!( $imageExists )) {
-	Write-Host "[$scriptName] No build image exists, initialise (ignore `$rebuildImage)"
-	$rebuildImage = 'yes'
+foreach ( $imageDetails in docker images --filter label=cdaf.${imageName}.image.version --format "{{.ID}}:{{.Tag}}:{{.Repository}}" ) {
+	$arr = $imageDetails.split(':')
+	$imageTag = [INT]$arr[1]
 }
-
-if ( $rebuildImage -eq 'yes') {
-	foreach ( $imageDetails in docker images --filter label=cdaf.${imageName}.image.version --format "{{.ID}}:{{.Tag}}:{{.Repository}}" ) {
-		$arr = $imageDetails.split(':')
-		$imageTag = [INT]$arr[1]
-	}
-	if ( $imageTag ) {
-		Write-Host "[$scriptName] Last image tag is $imageTag, new image will be $($imageTag + 1)"
-	} else {
-		$imageTag = 0
-		Write-Host "[$scriptName] No existing images, new image will be $($imageTag + 1)"
-	}
-	executeExpression "cat Dockerfile"
+if ( $imageTag ) {
+	Write-Host "[$scriptName] Last image tag is $imageTag, new image will be $($imageTag + 1)"
+} else {
+	$imageTag = 0
+	Write-Host "[$scriptName] No existing images, new image will be $($imageTag + 1)"
+}
+executeExpression "cat Dockerfile"
 	
-	# Do not execute using function as interactive logging stops working
+if ( $rebuildImage -eq 'yes') {
+	# Force rebuild, i.e. no-cache
 	executeExpression "automation/remote/dockerBuild.ps1 ${imageName} $($imageTag + 1) -rebuild yes"
-
-	# Remove any older images	
-	executeExpression "automation/remote/dockerClean.ps1 ${imageName} $($imageTag + 1)"
+} else {
+	executeExpression "automation/remote/dockerBuild.ps1 ${imageName} $($imageTag + 1)"
 }
+
+# Remove any older images	
+executeExpression "automation/remote/dockerClean.ps1 ${imageName} $($imageTag + 1)"
 
 # Retrieve the latest image number
 foreach ( $imageDetails in docker images --filter label=cdaf.${imageName}.image.version --format "{{.ID}}:{{.Tag}}:{{.Repository}}" ) {
@@ -89,7 +85,7 @@ Write-Host "[$scriptName] `$imageTag  : $imageTag"
 Write-Host "[$scriptName] `$workspace : $workspace"
 
 if (( $buildNumber ) -and (-not $command)) {
-	$command = "automation\provisioning\runner.bat automation-solution\entrypoint.ps1 $buildNumber"
+	$command = "automation\provisioning\runner.bat automation\remote\entrypoint.ps1 $buildNumber"
 }
 
 if ( $command ) {

@@ -1,18 +1,31 @@
+Param (
+	[string]$mediaDir
+)
+
+# Common expression logging and error handling function, copied, not referenced to ensure atomic process
+function executeExpression ($expression) {
+	$error.clear()
+	Write-Host "[$scriptName] $expression"
+	try {
+		Invoke-Expression $expression
+	    if(!$?) { Write-Host "[$scriptName] `$? = $?"; exit 1 }
+	} catch { echo $_.Exception|format-list -force; exit 2 }
+    if ( $error[0] ) { Write-Host "[$scriptName] `$error[0] = $error"; exit 3 }
+    if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) { Write-Host "[$scriptName] `$LASTEXITCODE = $LASTEXITCODE "; exit $LASTEXITCODE }
+}
+
 $scriptName = 'chocolatey.ps1'
-Write-Host
-Write-Host "[$scriptName] ---------- start ----------"
-Write-Host
-$mediaDir = $args[1]
+Write-Host "`n[$scriptName] ---------- start ----------"
 if ($mediaDir) {
-    Write-Host "[$scriptName] mediaDir    : $mediaDir"
+    Write-Host "[$scriptName] mediaDir : $mediaDir"
 } else {
 	$mediaDir = '/.provision'
-    Write-Host "[$scriptName] mediaDir    : $mediaDir (default)"
+    Write-Host "[$scriptName] mediaDir : $mediaDir (default)"
 }
 
 if (!( Test-Path $mediaDir )) {
 	Write-Host "[$scriptName] mkdir $mediaDir"
-	mkdir $mediaDir
+	Write-Host "[$scriptName]   $(mkdir $mediaDir) created"
 }
 
 Write-Host
@@ -22,10 +35,8 @@ if ( Test-Path $fullpath ) {
 	Write-Host "[$scriptName] $fullpath exists, download not required"
 } else {
 
-	$webclient = new-object system.net.webclient
 	$uri = 'https://chocolatey.org/' + $file
-	Write-Host "[$scriptName] $webclient.DownloadFile($uri, $fullpath)"
-	$webclient.DownloadFile($uri, $fullpath)
+	executeExpression "(New-Object System.Net.WebClient).DownloadFile(`"$uri`", `"$fullpath`")"
 }
 
 try {
@@ -40,6 +51,5 @@ try {
 # Reload the path (without logging off and back on)
 $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")
 
-Write-Host
-Write-Host "[$scriptName] ---------- stop -----------"
-Write-Host
+Write-Host "`n[$scriptName] ---------- stop -----------`n"
+exit 0
