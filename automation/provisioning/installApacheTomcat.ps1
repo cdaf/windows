@@ -77,8 +77,8 @@ if (!( Test-Path $sourceInstallDir\$apacheTomcatInstallFileName )) {
 		Write-Host "[$scriptName] Created $result`n"
 	}
 	$uri = "https://archive.apache.org/dist/tomcat/tomcat-8/v${tomcat_version}/bin/apache-tomcat-${tomcat_version}.exe"
-	executeExpression "(New-Object System.Net.WebClient).DownloadFile(`"`$uri`", `"`$sourceInstallDir\$apacheTomcatInstallFileName`")" 
-	$hashValue = executeExpression "Get-FileHash `"$fullpath`" -Algorithm MD5"
+	executeExpression "(New-Object System.Net.WebClient).DownloadFile(`"$uri`", `"$sourceInstallDir\$apacheTomcatInstallFileName`")" 
+	$hashValue = executeExpression "Get-FileHash `"$sourceInstallDir\$apacheTomcatInstallFileName`" -Algorithm MD5"
 	if ($hashValue = $md5) {
 		Write-Host "[$scriptName] MD5 ($md5) check successful"
 	} else {
