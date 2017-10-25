@@ -26,3 +26,5 @@ Write-Host "`n[CDAF_Desktop_Certificate.ps1] Import complete"
 Get-ChildItem -path cert:\$location\My
 
 Write-Host "`n[CDAF_Desktop_Certificate.ps1] ---------- stop -----------"
+$error.clear()
+exit 0

@@ -1,3 +1,15 @@
+Param (
+	[string]$mule_ee_version,
+	[string]$InstallLicense,
+	[string]$destinationInstallDir,
+	[string]$sourceInstallDir,
+	[string]$MMC_GROUP,
+	[string]$mmcPassword,
+	[string]$agentVersion,
+	[string]$tomcatHomeDir,
+	[string]$mmcVersion
+)
+
 # Common expression logging and error handling function, copied, not referenced to ensure atomic process
 function executeExpression ($expression) {
 	$error.clear()
@@ -12,11 +24,8 @@ function executeExpression ($expression) {
 
 $scriptName = 'installMuleESB.ps1'
 
-Write-Host
-Write-Host "[$scriptName] ---------- start ----------"
-Write-Host
+Write-Host "`n[$scriptName] ---------- start ----------`n"
 
-$mule_ee_version = $args[0]
 if ( $mule_ee_version ) {
 	Write-Host "[$scriptName] mule_ee_version       : $mule_ee_version"
 } else {
@@ -24,7 +33,6 @@ if ( $mule_ee_version ) {
 	Write-Host "[$scriptName] mule_ee_version       : $mule_ee_version (default)"
 }
 
-$InstallLicense = $args[1]
 if ( $InstallLicense ) {
 	Write-Host "[$scriptName] InstallLicense        : $InstallLicense"
 } else {
@@ -32,7 +40,6 @@ if ( $InstallLicense ) {
 	Write-Host "[$scriptName] InstallLicense        : $InstallLicense (default)"
 }
 
-$destinationInstallDir = $args[2]
 if ( $destinationInstallDir ) {
 	Write-Host "[$scriptName] destinationInstallDir : $destinationInstallDir"
 } else {
@@ -40,7 +47,6 @@ if ( $destinationInstallDir ) {
 	Write-Host "[$scriptName] destinationInstallDir : $destinationInstallDir (default)"
 }
 
-$sourceInstallDir = $args[3]
 if ( $sourceInstallDir) {
 	Write-Host "[$scriptName] sourceInstallDir      : $sourceInstallDir"
 } else {
@@ -48,21 +54,18 @@ if ( $sourceInstallDir) {
 	Write-Host "[$scriptName] sourceInstallDir      : $sourceInstallDir (default)"
 }
 
-$MMC_GROUP = $args[4]
 if ( $MMC_GROUP ) {
 	Write-Host "[$scriptName] MMC_GROUP             : $MMC_GROUP"
 } else {
 	Write-Host "[$scriptName] MMC_GROUP not passed, MMC install will not be attempted, all subsequent arguments will be ignored."
 }
 
-$mmcPassword = $args[5]
 if ( $mmcPassword ) {
 	Write-Host "[$scriptName] mmcPassword           : ******************** "
 } else {
 	Write-Host "[$scriptName] mmcPassword           : not supplied"
 }
 
-$agentVersion = $args[6]
 if ( $agentVersion ) {
 	Write-Host "[$scriptName] agentVersion          : $agentVersion"
 } else {
@@ -70,7 +73,6 @@ if ( $agentVersion ) {
 	Write-Host "[$scriptName] agentVersion          : $agentVersion (default)"
 }
 
-$tomcatHomeDir = $args[7]
 if ( $tomcatHomeDir ) {
 	Write-Host "[$scriptName] tomcatHomeDir         : $tomcatHomeDir"
 } else {
@@ -78,7 +80,6 @@ if ( $tomcatHomeDir ) {
 	Write-Host "[$scriptName] tomcatHomeDir         : $tomcatHomeDir (default)"
 }
 
-$mmcVersion = $args[8]
 if ( $mmcVersion ) {
 	Write-Host "[$scriptName] mmcVersion            : $mmcVersion"
 } else {
@@ -106,8 +107,7 @@ foreach ($verifyFile in $mediaVerify) {
 	}
 }
 
-Write-Host
-Write-Host "[$scriptName] Extract Mule ESB"
+Write-Host "`n[$scriptName] Extract Mule ESB"
 
 try {
 	New-Item -path $muleInstallDir -type directory -force | Out-Null
@@ -123,20 +123,17 @@ if ( Test-Path "$muleInstallDir" ) {
 	executeExpression "Remove-Item `"$muleInstallDir`" -Recurse"
 }
 
-Write-Host
-Write-Host "[$scriptName] Unzip file contents to source install directory"
+Write-Host "`n[$scriptName] Unzip file contents to source install directory"
 Add-Type -AssemblyName System.IO.Compression.FileSystem
 executeExpression "[System.IO.Compression.ZipFile]::ExtractToDirectory(`'$sourceInstallDir\$muleESBEnterpriseInstallFileName`', `'$destinationInstallDir`')"
 
-Write-Host
-Write-Host "[$scriptName] Configure mule environment variable and add to the path"
+Write-Host "`n[$scriptName] Configure mule environment variable and add to the path"
 executeExpression "[System.Environment]::SetEnvironmentVariable(`'MULE_HOME`', `'$muleInstallDir`', `'Machine`')"
 
 $pathEnvVar=[System.Environment]::GetEnvironmentVariable("PATH","Machine")
 executeExpression "[System.Environment]::SetEnvironmentVariable(`'PATH`', `'${pathEnvVar};$muleInstallDir\bin`', `'Machine`')"
 
-Write-Host
-Write-Host "[$scriptName] Configure the env var for the location of the properties files for all Mule applications"
+Write-Host "`n[$scriptName] Configure the env var for the location of the properties files for all Mule applications"
 executeExpression "[System.Environment]::SetEnvironmentVariable(`'CONFIG_FOLDER`', `'$muleInstallDir\conf`', `'Machine`')"
 
 # Install the agent plugin, note: the subsequent copy of mule-agent.yml
@@ -153,8 +150,7 @@ executeExpression ".\amc_setup.bat -I"
 executeExpression ".\amc_setup.bat -U"
 cd "$workingDir"
 
-Write-Host
-Write-Host "[$scriptName] Perform Configuration ..."
+Write-Host "`n[$scriptName] Perform Configuration ..."
 Write-Host "[$scriptName]   Send configuration files to $muleInstallDir"
 $workingDirectory = $(pwd)
 
@@ -167,8 +163,7 @@ $EncodedText = 'LS0tDQp0cmFuc3BvcnRzOg0KICB3ZWJzb2NrZXQudHJhbnNwb3J0Og0KICAgIGVu
 $ByteArray = [System.Convert]::FromBase64String($EncodedText)
 [System.IO.File]::WriteAllBytes("$muleInstallDir\conf\mule-agent.yml", $ByteArray)
 
-Write-Host
-Write-Host "[$scriptName] List the Agent configuration file"
+Write-Host "`n[$scriptName] List the Agent configuration file"
 cat $muleInstallDir\conf\mule-agent.yml
 
 $EncodedText = 'PAA/AHgAbQBsACAAdgBlAHIAcwBpAG8AbgA9ACIAMQAuADAAIgAgAGUAbgBjAG8AZABpAG4AZwA9ACIAVQBUAEYALQAxADYAIgA/AD4ADQAKADwAVABhAHMAawAgAHYAZQByAHMAaQBvAG4APQAiADEALgA0ACIAIAB4AG0AbABuAHMAPQAiAGgAdAB0AHAAOgAvAC8AcwBjAGgAZQBtAGEAcwAuAG0AaQBjAHIAbwBzAG8AZgB0AC4AYwBvAG0ALwB3AGkAbgBkAG8AdwBzAC8AMgAwADAANAAvADAAMgAvAG0AaQB0AC8AdABhAHMAawAiAD4ADQAKACAAIAA8AFIAZQBnAGkAcwB0AHIAYQB0AGkAbwBuAEkAbgBmAG8APgANAAoAIAAgACAAIAA8AEQAYQB0AGUAPgAyADAAMQA2AC0AMAAxAC0AMQA5AFQAMQA1ADoANQAyADoAMgA3AC4ANwA1ADUAOAA0ADgANwA8AC8ARABhAHQAZQA+AA0ACgAgACAAIAAgADwAQQB1AHQAaABvAHIAPgBEAGEAdABhAGMAbwBtACAATgBaACAATAB0AGQALgA8AC8AQQB1AHQAaABvAHIAPgANAAoAIAAgACAAIAA8AEQAZQBzAGMAcgBpAHAAdABpAG8AbgA+AFMAZQB0ACAAdABoAGUAIABhAGYAZgBpAG4AaQB0AHkAIAB0AG8AIAAxAEMAUABVACAAdABvACAAdABoAGUAIABNAHUAbABlACAARQBFACAAcAByAG8AYwBlAHMAcwAuADwALwBEAGUAcwBjAHIAaQBwAHQAaQBvAG4APgANAAoAIAAgADwALwBSAGUAZwBpAHMAdAByAGEAdABpAG8AbgBJAG4AZgBvAD4ADQAKACAAIAA8AFQAcgBpAGcAZwBlAHIAcwA+AA0ACgAgACAAIAAgADwARQB2AGUAbgB0AFQAcgBpAGcAZwBlAHIAPgANAAoAIAAgACAAIAAgACAAPABFAG4AYQBiAGwAZQBkAD4AdAByAHUAZQA8AC8ARQBuAGEAYgBsAGUAZAA+AA0ACgAgACAAIAAgACAAIAA8AFMAdQBiAHMAYwByAGkAcAB0AGkAbwBuAD4AJgBsAHQAOwBRAHUAZQByAHkATABpAHMAdAAmAGcAdAA7ACYAbAB0ADsAUQB1AGUAcgB5ACAASQBkAD0AIgAwACIAIABQAGEAdABoAD0AIgBTAHkAcwB0AGUAbQAiACYAZwB0ADsAJgBsAHQAOwBTAGUAbABlAGMAdAAgAFAAYQB0AGgAPQAiAFMAeQBzAHQAZQBtACIAJgBnAHQAOwANAAoAIAAgACAAIAAgACAAIAAqAFsAUwB5AHMAdABlAG0AWwBQAHIAbwB2AGkAZABlAHIAWwBAAE4AYQBtAGUAPQAnAFMAZQByAHYAaQBjAGUAIABDAG8AbgB0AHIAbwBsACAATQBhAG4AYQBnAGUAcgAnAF0AIABhAG4AZAAgACgARQB2AGUAbgB0AEkARAA9ADcAMAAzADYAKQBdAF0ADQAKACAAIAAgACAAIAAgACAAYQBuAGQAIAANAAoAIAAgACAAIAAgACAAIAAgACoAWwBFAHYAZQBuAHQARABhAHQAYQBbAEQAYQB0AGEAWwBAAE4AYQBtAGUAPQAnAHAAYQByAGEAbQAxACcAXQAgAGEAbgBkACAAKABEAGEAdABhAD0AJwBNAHUAbABlACAARQBuAHQAZQByAHAAcgBpAHMAZQAgAEUAZABpAHQAaQBvAG4AJwApAF0AXQAgAA0ACgAgACAAIAAgACAAIAAgAGEAbgBkACAADQAKACAAIAAgACAAIAAgACAAIAAqAFsARQB2AGUAbgB0AEQAYQB0AGEAWwBEAGEAdABhAFsAQABOAGEAbQBlAD0AJwBwAGEAcgBhAG0AMgAnAF0AIABhAG4AZAAgACgARABhAHQAYQA9ACcAcgB1AG4AbgBpAG4AZwAnACkAXQBdACAADQAKACAAIAAgACAAJgBsAHQAOwAvAFMAZQBsAGUAYwB0ACYAZwB0ADsAJgBsAHQAOwAvAFEAdQBlAHIAeQAmAGcAdAA7ACYAbAB0ADsALwBRAHUAZQByAHkATABpAHMAdAAmAGcAdAA7ADwALwBTAHUAYgBzAGMAcgBpAHAAdABpAG8AbgA+AA0ACgAgACAAIAAgADwALwBFAHYAZQBuAHQAVAByAGkAZwBnAGUAcgA+AA0ACgAgACAAPAAvAFQAcgBpAGcAZwBlAHIAcwA+AA0ACgAgACAAPABQAHIAaQBuAGMAaQBwAGEAbABzAD4ADQAKACAAIAAgACAAPABQAHIAaQBuAGMAaQBwAGEAbAAgAGkAZAA9ACIAQQB1AHQAaABvAHIAIgA+AA0ACgAgACAAIAAgACAAIAA8AFIAdQBuAEwAZQB2AGUAbAA+AEgAaQBnAGgAZQBzAHQAQQB2AGEAaQBsAGEAYgBsAGUAPAAvAFIAdQBuAEwAZQB2AGUAbAA+AA0ACgAgACAAIAAgACAAIAA8AEwAbwBnAG8AbgBUAHkAcABlAD4AUwA0AFUAPAAvAEwAbwBnAG8AbgBUAHkAcABlAD4ADQAKACAAIAAgACAAPAAvAFAAcgBpAG4AYwBpAHAAYQBsAD4ADQAKACAAIAA8AC8AUAByAGkAbgBjAGkAcABhAGwAcwA+AA0ACgAgACAAPABTAGUAdAB0AGkAbgBnAHMAPgANAAoAIAAgACAAIAA8AE0AdQBsAHQAaQBwAGwAZQBJAG4AcwB0AGEAbgBjAGUAcwBQAG8AbABpAGMAeQA+AEkAZwBuAG8AcgBlAE4AZQB3ADwALwBNAHUAbAB0AGkAcABsAGUASQBuAHMAdABhAG4AYwBlAHMAUABvAGwAaQBjAHkAPgANAAoAIAAgACAAIAA8AEQAaQBzAGEAbABsAG8AdwBTAHQAYQByAHQASQBmAE8AbgBCAGEAdAB0AGUAcgBpAGUAcwA+AGYAYQBsAHMAZQA8AC8ARABpAHMAYQBsAGwAbwB3AFMAdABhAHIAdABJAGYATwBuAEIAYQB0AHQAZQByAGkAZQBzAD4ADQAKACAAIAAgACAAPABTAHQAbwBwAEkAZgBHAG8AaQBuAGcATwBuAEIAYQB0AHQAZQByAGkAZQBzAD4AZgBhAGwAcwBlADwALwBTAHQAbwBwAEkAZgBHAG8AaQBuAGcATwBuAEIAYQB0AHQAZQByAGkAZQBzAD4ADQAKACAAIAAgACAAPABBAGwAbABvAHcASABhAHIAZABUAGUAcgBtAGkAbgBhAHQAZQA+AHQAcgB1AGUAPAAvAEEAbABsAG8AdwBIAGEAcgBkAFQAZQByAG0AaQBuAGEAdABlAD4ADQAKACAAIAAgACAAPABTAHQAYQByAHQAVwBoAGUAbgBBAHYAYQBpAGwAYQBiAGwAZQA+AGYAYQBsAHMAZQA8AC8AUwB0AGEAcgB0AFcAaABlAG4AQQB2AGEAaQBsAGEAYgBsAGUAPgANAAoAIAAgACAAIAA8AFIAdQBuAE8AbgBsAHkASQBmAE4AZQB0AHcAbwByAGsAQQB2AGEAaQBsAGEAYgBsAGUAPgBmAGEAbABzAGUAPAAvAFIAdQBuAE8AbgBsAHkASQBmAE4AZQB0AHcAbwByAGsAQQB2AGEAaQBsAGEAYgBsAGUAPgANAAoAIAAgACAAIAA8AEkAZABsAGUAUwBlAHQAdABpAG4AZwBzAD4ADQAKACAAIAAgACAAIAAgADwAUwB0AG8AcABPAG4ASQBkAGwAZQBFAG4AZAA+AHQAcgB1AGUAPAAvAFMAdABvAHAATwBuAEkAZABsAGUARQBuAGQAPgANAAoAIAAgACAAIAAgACAAPABSAGUAcwB0AGEAcgB0AE8AbgBJAGQAbABlAD4AZgBhAGwAcwBlADwALwBSAGUAcwB0AGEAcgB0AE8AbgBJAGQAbABlAD4ADQAKACAAIAAgACAAPAAvAEkAZABsAGUAUwBlAHQAdABpAG4AZwBzAD4ADQAKACAAIAAgACAAPABBAGwAbABvAHcAUwB0AGEAcgB0AE8AbgBEAGUAbQBhAG4AZAA+AHQAcgB1AGUAPAAvAEEAbABsAG8AdwBTAHQAYQByAHQATwBuAEQAZQBtAGEAbgBkAD4ADQAKACAAIAAgACAAPABFAG4AYQBiAGwAZQBkAD4AdAByAHUAZQA8AC8ARQBuAGEAYgBsAGUAZAA+AA0ACgAgACAAIAAgADwASABpAGQAZABlAG4APgB0AHIAdQBlADwALwBIAGkAZABkAGUAbgA+AA0ACgAgACAAIAAgADwAUgB1AG4ATwBuAGwAeQBJAGYASQBkAGwAZQA+AGYAYQBsAHMAZQA8AC8AUgB1AG4ATwBuAGwAeQBJAGYASQBkAGwAZQA+AA0ACgAgACAAIAAgADwARABpAHMAYQBsAGwAbwB3AFMAdABhAHIAdABPAG4AUgBlAG0AbwB0AGUAQQBwAHAAUwBlAHMAcwBpAG8AbgA+AGYAYQBsAHMAZQA8AC8ARABpAHMAYQBsAGwAbwB3AFMAdABhAHIAdABPAG4AUgBlAG0AbwB0AGUAQQBwAHAAUwBlAHMAcwBpAG8AbgA+AA0ACgAgACAAIAAgADwAVQBzAGUAVQBuAGkAZgBpAGUAZABTAGMAaABlAGQAdQBsAGkAbgBnAEUAbgBnAGkAbgBlAD4AZgBhAGwAcwBlADwALwBVAHMAZQBVAG4AaQBmAGkAZQBkAFMAYwBoAGUAZAB1AGwAaQBuAGcARQBuAGcAaQBuAGUAPgANAAoAIAAgACAAIAA8AFcAYQBrAGUAVABvAFIAdQBuAD4AZgBhAGwAcwBlADwALwBXAGEAawBlAFQAbwBSAHUAbgA+AA0ACgAgACAAIAAgADwARQB4AGUAYwB1AHQAaQBvAG4AVABpAG0AZQBMAGkAbQBpAHQAPgBQADMARAA8AC8ARQB4AGUAYwB1AHQAaQBvAG4AVABpAG0AZQBMAGkAbQBpAHQAPgANAAoAIAAgACAAIAA8AFAAcgBpAG8AcgBpAHQAeQA+ADcAPAAvAFAAcgBpAG8AcgBpAHQAeQA+AA0ACgAgACAAPAAvAFMAZQB0AHQAaQBuAGcAcwA+AA0ACgAgACAAPABBAGMAdABpAG8AbgBzACAAQwBvAG4AdABlAHgAdAA9ACIAQQB1AHQAaABvAHIAIgA+AA0ACgAgACAAIAAgADwARQB4AGUAYwA+AA0ACgAgACAAIAAgACAAIAA8AEMAbwBtAG0AYQBuAGQAPgBwAG8AdwBlAHIAcwBoAGUAbABsAC4AZQB4AGUAPAAvAEMAbwBtAG0AYQBuAGQAPgANAAoAIAAgACAAIAAgACAAPABBAHIAZwB1AG0AZQBuAHQAcwA+AEAATQBVAEwARQBfAFQAQQBTAEsAXwBTAEMAUgBJAFAAVABfAEgATwBNAEUAQABcAFMAZQB0AC0AQQBmAGYAaQBuAGkAdAB5AC0ATQB1AGwAZQBFAEUALQBUAGEAcwBrAC4AcABzADEAPAAvAEEAcgBnAHUAbQBlAG4AdABzAD4ADQAKACAAIAAgACAAPAAvAEUAeABlAGMAPgANAAoAIAAgADwALwBBAGMAdABpAG8AbgBzAD4ADQAKADwALwBUAGEAcwBrAD4ADQAKAA=='
@@ -189,17 +184,14 @@ if ($InstallLicense -eq "yes") {
 	executeExpression "Copy-Item `'$sourceInstallDir\configs\Verify-License-MuleEE-Task.ps1`' `'$muleInstallDir\conf\Verify-License-MuleEE-Task.ps1`'"
 }
 
-Write-Host
 $value='replacewithkey'
 $file ="$muleInstallDir\conf\wrapper.conf"
-Write-Host "[$scriptName] Replace @MULE_KEY@ with `$value in $file"
+Write-Host "`n[$scriptName] Replace @MULE_KEY@ with `$value in $file"
 (Get-Content $file | ForEach-Object { $_ -replace "@MULE_KEY@", "$value" } ) | Set-Content $file
 (Get-Content $file | ForEach-Object { $_ -replace "%MULE_ENV%", 'Dev' } ) | Set-Content $file
 
-Write-Host
-Write-Host "[$scriptName] Mule EE Standalone installation ..."
-Write-Host "[$scriptName] Setting affinity to single process ..."
-Write-Host
+Write-Host "`n[$scriptName] Mule EE Standalone installation ..."
+Write-Host "[$scriptName] Setting affinity to single process ...`n"
 try {
 	$winDir=$(Get-ChildItem -Path Env:\WinDir).Value;
 	Copy-Item "$muleInstallDir\conf\Set-Affinity-MuleEE-Task.ps1" $winDir -Recurse -Force | Out-Null
@@ -214,20 +206,16 @@ try {
 	throw $_
 }	
 Write-Host "[$scriptName] Setting affinity complete."
-Write-Host
 
-Write-Host
-Write-Host "[$scriptName] Start and verify >"
-Write-Host
-Write-Host "[$scriptName] InstallMule EE as a windows service >>"
+Write-Host "`n[$scriptName] Start and verify >"
+Write-Host "`n[$scriptName] InstallMule EE as a windows service >>"
 try {
 	Start-Process "$muleInstallDir\bin\mule" -ArgumentList "install" -Wait
 } catch {
 	Write-Host "Unexpected Error. Error details: $_.Exception.Message" -ForegroundColor Red
 	throw $_
 }	
-Write-Host "[$scriptName] Start Mule windows service"
-Write-Host
+Write-Host "[$scriptName] Start Mule windows service`n"
 try {
 	$service = Start-Service "$muleServiceName" -WarningAction SilentlyContinue -PassThru
 	if ($service.status -ine 'Running') {
@@ -241,9 +229,7 @@ try {
 # Install the task scheduller that verifies the EE license 
 Write-Host "[$scriptName] Install license ($InstallLicense)"
 if ($InstallLicense -eq "yes") {
-	Write-Host
-	Write-Host "[$scriptName] Install Mule License Verifier scheduller ..."
-	Write-Host
+	Write-Host "`n[$scriptName] Install Mule License Verifier scheduller ...`n"
 	try {
 		$winDir = $(Get-ChildItem -Path Env:\WinDir).Value
 		Copy-Item "$muleInstallDir\conf\Verify-License-MuleEE-Task.ps1" $winDir -Recurse -Force | Out-Null
@@ -260,14 +246,12 @@ if ($InstallLicense -eq "yes") {
 		Write-Host "[$scriptName] Installing Mule License Verifier scheduller failed !" -ForegroundColor Red
 		throw $_
 	}	
-	Write-Host "[$scriptName] Install Mule License Verifier scheduller complete."
-	Write-Host			
+	Write-Host "[$scriptName] Install Mule License Verifier scheduller complete.`n"
 }        
        
 if ( $MMC_GROUP ) {
 
-	Write-Host
-	Write-Host "[$scriptName] Load the MMC software"
+	Write-Host "`n[$scriptName] Load the MMC software"
 	executeExpression "Copy-Item `'$sourceInstallDir\$mmcWar`' `'$tomcatHomeDir\webapps\mmc.war`'"
 	
 	Write-Host
@@ -352,8 +336,7 @@ if ( $MMC_GROUP ) {
 		return $result	
 	}
 	
-	Write-Host
-	Write-Host -NoNewline "Verify MMC is ready for requests : "
+	Write-Host -NoNewline "`nVerify MMC is ready for requests : "
 	$wait = 10
 	$retryMax = 30 # very slow when provisioned on Azure
 	$retryCount = 0
@@ -381,9 +364,7 @@ if ( $MMC_GROUP ) {
 	$basicAuthValue = "Basic $encodedCreds"
 	$Headers = @{Authorization = $basicAuthValue}
 	$serverName=($env:computername).ToUpper();
-	Write-Host
-	Write-Host "[$scriptName] Register server name $serverName in MMC for environment $MMC_GROUP >>"
-	Write-Host
+	Write-Host "`n[$scriptName] Register server name $serverName in MMC for environment $MMC_GROUP >>`n"
 	$foundGroup = $false;
 	(List-ServerGroups).data | ForEach-Object {
 		## Write-Host "[DEBUG] `$_ = $_" -ForegroundColor Blue
@@ -405,8 +386,7 @@ if ( $MMC_GROUP ) {
 	Write-Host "MMC Install and Configuration Complete"
 }
 
-Write-Host
-Write-Host -NoNewline "Verify Agent has installed : "
+Write-Host -NoNewline "`nVerify Agent has installed : "
 $wait = 10
 $retryMax = 3
 $retryCount = 0
@@ -433,6 +413,6 @@ while ( $retryCount -lt $retryMax ) {
 	$retryCount += 1
 }
 
-Write-Host
-Write-Host "[$scriptName] ---------- stop -----------"
-Write-Host
+Write-Host "n`[$scriptName] ---------- stop -----------`n"
+$error.clear()
+exit 0

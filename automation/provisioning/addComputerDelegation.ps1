@@ -1,3 +1,10 @@
+Param (
+	[string]$forest,
+	[string]$domainAdminUser,
+	[string]$domainAdminPass,
+	[string]$domainController
+)
+
 # Common expression logging and error handling function, copied, not referenced to ensure atomic process
 function executeExpression ($expression) {
 	$error.clear()
@@ -14,7 +21,6 @@ $scriptName = 'addComputerDelegation.ps1'
 Write-Host "`n[$scriptName] Allow a computer to delegate user credentials, combines with setSPN.ps1"
 Write-Host "[$scriptName] If on the domain controller, use setSPN.ps1 computer <computerName>"
 Write-Host "`n[$scriptName] ---------- start ----------"
-$forest = $args[0]
 if ($forest) {
     Write-Host "[$scriptName] forest           : $forest"
 } else {
@@ -22,7 +28,6 @@ if ($forest) {
     Write-Host "[$scriptName] forest           : $forest (default)"
 }
 
-$domainAdminUser = $args[1]
 if ($domainAdminUser) {
     Write-Host "[$scriptName] domainAdminUser  : $domainAdminUser"
 } else {
@@ -30,7 +35,6 @@ if ($domainAdminUser) {
     Write-Host "[$scriptName] domainAdminUser  : $domainAdminUser (default)"
 }
 
-$domainAdminPass = $args[2]
 if ($domainAdminPass) {
     Write-Host "[$scriptName] domainAdminPass  : **********"
 } else {
@@ -38,7 +42,6 @@ if ($domainAdminPass) {
     Write-Host "[$scriptName] domainAdminPass  : ********** (default)"
 }
 
-$domainController = $args[3]
 if ($domainController) {
     Write-Host "[$scriptName] domainController : $domainController"
 } else {
