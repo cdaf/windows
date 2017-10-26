@@ -33,6 +33,7 @@ Vagrant.configure(2) do |allhosts|
     target.vm.graceful_halt_timeout = 180 # 3 minutes
     # Oracle VirtualBox, relaxed configuration for Desktop environment
     target.vm.provision 'shell', path: './automation/provisioning/mkdir.ps1', args: 'C:\deploy'
+    target.vm.provision 'shell', inline: 'cat C:\windows-master\automation\CDAF.windows'
     target.vm.provision 'shell', path: './automation/remote/capabilities.ps1'
     target.vm.provider 'virtualbox' do |virtualbox, override|
       virtualbox.gui = false
