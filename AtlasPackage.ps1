@@ -65,7 +65,8 @@ if ($diskDir) {
     Write-Host "[$scriptName] diskDir     : $diskDir"
 } else {
 	if ( $hypervisor -eq 'virtualbox' ) {
-	    Write-Host "[$scriptName] diskDir required for VirtualBox! Exit with LASTEXITCODE 103"; exit 103
+		$diskDir = 'D:\VMs\'
+	    Write-Host "[$scriptName] diskDir     : $diskDir (default)"
 	} else {
 	    Write-Host "[$scriptName] diskDir     : (not specified, only required if VirtualBox)"
     }
