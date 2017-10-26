@@ -65,7 +65,7 @@ if ($diskDir) {
     Write-Host "[$scriptName] diskDir     : $diskDir"
 } else {
 	if ( $hypervisor -eq 'virtualbox' ) {
-		$diskDir = 'D:\VMs\'
+		$diskDir = "D:\VMs\$boxName"
 	    Write-Host "[$scriptName] diskDir     : $diskDir (default)"
 	} else {
 	    Write-Host "[$scriptName] diskDir     : (not specified, only required if VirtualBox)"
