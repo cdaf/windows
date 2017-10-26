@@ -2,7 +2,7 @@ Param (
 	[string]$boxname,
 	[string]$hypervisor,
 	[string]$diskDir,
-	[string]$vagrantfile,
+	[string]$vagrantBox,
 	[string]$emailTo,
 	[string]$smtpServer,
 	[string]$destroy
@@ -72,10 +72,10 @@ if ($diskDir) {
     }
 }
 
-if ($vagrantfile) {
-    Write-Host "[$scriptName] vagrantfile : $vagrantfile"
+if ($vagrantBox) {
+    Write-Host "[$scriptName] vagrantBox : $vagrantBox"
 } else {
-    Write-Host "[$scriptName] vagrantfile : (not specified, will use default for testing)"
+    Write-Host "[$scriptName] vagrantBox : (not specified, will use default for testing)"
 }
 
 if ($emailTo) {
@@ -193,33 +193,19 @@ if ( $proc.ExitCode -ne 0 ) {
 }
 
 executeExpression "cd .."
-if ( $vagrantfile ) {
-	Write-Host "`n[$scriptName] Override default Vagrantfile with $vagrantfile"
-	executeExpression "mv Vagrantfile Vagrantfiledefault"
-	executeExpression "mv $vagrantfile Vagrantfile"
+
+# If an override box has been passed, set environment variable for Vagrant to use, otherwise set to default to clear any settings from previous runs
+if ( $vagrantBox ) {
+	execute "$env:OVERRIDE_IMAGE = `"$vagrantBox`""
+} else {
+	execute "$env:OVERRIDE_IMAGE = 'cdaf/WindowsServerStandard'"
 }
 
-if ( $hypervisor -eq 'virtualbox' ) {
-
-	Write-Host "`n[$scriptName][virtualbox] vagrant up"
-	Add-Content "$logFile" "[$scriptName][virtualbox] vagrant up"
-	$proc = Start-Process -FilePath 'vagrant' -ArgumentList 'up' -PassThru -Wait -NoNewWindow
-	if ( $proc.ExitCode -ne 0 ) {
-		Write-Host "`n[$scriptName] Exit with `$LASTEXITCODE = $($proc.ExitCode)`n"
-	    exit $proc.ExitCode
-	}
-
-} else {
-
-	# Complete scenario not supported in Vagrantfile for Hyper-V, so only test Target 
-	Write-Host "`n[$scriptName][hyperv] vagrant up target --no-provision"
-	Add-Content "$logFile" "[$scriptName][hyperv] vagrant up target --no-provision"
-	$proc = Start-Process -FilePath 'vagrant' -ArgumentList 'up target --no-provision' -PassThru -Wait -NoNewWindow
-	if ( $proc.ExitCode -ne 0 ) {
-		Write-Host "`n[$scriptName] Exit with `$LASTEXITCODE = $($proc.ExitCode)`n"
-	    exit $proc.ExitCode
-	}
-
+Add-Content "$logFile" "[$scriptName] vagrant up target"
+$proc = Start-Process -FilePath 'vagrant' -ArgumentList 'up target' -PassThru -Wait -NoNewWindow
+if ( $proc.ExitCode -ne 0 ) {
+	Write-Host "`n[$scriptName] Exit with `$LASTEXITCODE = $($proc.ExitCode)`n"
+    exit $proc.ExitCode
 }
 
 Add-Content "$logFile" "[$scriptName] vagrant box list"
@@ -241,12 +227,6 @@ if ($destroy -eq 'yes') {
 
     Write-Host "`n[$scriptName] Clean-up Vagrant Temporary files"
     executeExpression "Remove-Item -Recurse $env:USERPROFILE\.vagrant.d\tmp\*"
-}
-
-if ( $vagrantfile ) {
-	Write-Host "`n[$scriptName] Reinstate default Vagrantfile"
-	executeExpression "mv Vagrantfile $vagrantfile"
-	executeExpression "mv Vagrantfiledefault Vagrantfile"
 }
 
 emailProgress "Final notifcation, package of ${packageFile} complete"

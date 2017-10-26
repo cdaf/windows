@@ -12,10 +12,18 @@
 # [Environment]::SetEnvironmentVariable('VAGRANT_SMB_USER', 'username', 'User')
 # [Environment]::SetEnvironmentVariable('VAGRANT_SMB_PASS', 'p4ssWord!', 'User')
 
+# Different VM images can be used by changing this variable
+# $env:OVERRIDE_IMAGE = 'cdaf/WindowsServerCore'
+if ENV['OVERRIDE_IMAGE']
+  vagrantBox = ENV['OVERRIDE_IMAGE']
+else
+  vagrantBox = 'cdaf/WindowsServerStandard'
+end
+
 Vagrant.configure(2) do |allhosts|
 
   allhosts.vm.define 'target' do |target|
-    target.vm.box = 'cdaf/WindowsServerStandard'
+    target.vm.box = "#{vagrantBox}"
     target.vm.communicator = 'winrm'
     target.vm.boot_timeout = 600
     target.winrm.timeout =   1800 # 30 minutes
@@ -41,12 +49,11 @@ Vagrant.configure(2) do |allhosts|
     target.vm.provider 'hyperv' do |hyperv, override|
       hyperv.ip_address_timeout = 300 # 5 minutes, default is 2 minutes (120 seconds)
       override.vm.synced_folder ".", "/vagrant", type: "smb", smb_username: "#{ENV['VAGRANT_SMB_USER']}", smb_password: "#{ENV['VAGRANT_SMB_PASS']}"
-      override.vm.provision 'shell', path: './automation/provisioning/removeUser.ps1', args: 'vagrant'
     end
   end
 
   allhosts.vm.define 'buildserver' do |buildserver|
-    buildserver.vm.box = 'cdaf/WindowsServerStandard'
+    buildserver.vm.box = "#{vagrantBox}"
     buildserver.vm.communicator = 'winrm'
     buildserver.vm.boot_timeout = 600
     buildserver.winrm.timeout =   1800 # 30 minutes
@@ -74,7 +81,6 @@ Vagrant.configure(2) do |allhosts|
     buildserver.vm.provider 'hyperv' do |hyperv, override|
       hyperv.ip_address_timeout = 300 # 5 minutes, default is 2 minutes (120 seconds)
       override.vm.synced_folder ".", "/vagrant", type: "smb", smb_username: "#{ENV['VAGRANT_SMB_USER']}", smb_password: "#{ENV['VAGRANT_SMB_PASS']}"
-      override.vm.provision 'shell', path: './automation/provisioning/removeUser.ps1', args: 'vagrant'
     end
   end
 
