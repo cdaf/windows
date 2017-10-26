@@ -21,7 +21,7 @@ function executeExpression ($expression) {
 # Exception Handling email sending
 function emailAndExit ($exitCode) {
 	if ($smtpServer) {
-		Send-MailMessage -To "$emailTo" -From 'no-reply@cdaf.info' -Subject "[$scriptName][$hypervisor] ERROR $exitCode" -SmtpServer "$smtpServer"
+		Send-MailMessage -To "$emailTo" -From 'no-reply@cdaf.info' -Subject "[$scriptName] ERROR $exitCode" -SmtpServer "$smtpServer"
 	}
 	exit $exitCode
 }
@@ -29,22 +29,22 @@ function emailAndExit ($exitCode) {
 # Informational email notification 
 function emailProgress ($subject) {
 	if ($smtpServer) {
-		Send-MailMessage -To "$emailTo" -From 'no-reply@cdaf.info' -Subject "[$scriptName][$hypervisor] $subject" -SmtpServer "$smtpServer"
+		Send-MailMessage -To "$emailTo" -From 'no-reply@cdaf.info' -Subject "[$scriptName] $subject" -SmtpServer "$smtpServer"
 	}
 }
 
 Write-Host "`n[$scriptName] ---------- start ----------"
 
 if ($emailTo) {
-    Write-Host "[$scriptName] emailTo    : $emailTo"
+    Write-Host "[$scriptName] emailTo     : $emailTo"
 } else {
-    Write-Host "[$scriptName] emailTo    : (not specified, email will not be attempted)"
+    Write-Host "[$scriptName] emailTo     : (not specified, email will not be attempted)"
 }
 
 if ($smtpServer) {
-    Write-Host "[$scriptName] smtpServer : $smtpServer"
+    Write-Host "[$scriptName] smtpServer  : $smtpServer"
 } else {
-    Write-Host "[$scriptName] smtpServer : (not specified, email will not be attempted)"
+    Write-Host "[$scriptName] smtpServer  : (not specified, email will not be attempted)"
 }
 
 if ($skipUpdates) {
