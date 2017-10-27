@@ -4,12 +4,14 @@ Param (
 	[string]$skipUpdates
 )
 $scriptName = 'AtlasBase.ps1'
+$imageLog = 'c:\VagrantBox.txt'
 cmd /c "exit 0"
 
 # Common expression logging and error handling function, copied, not referenced to ensure atomic process
 function executeExpression ($expression) {
 	$error.clear()
 	Write-Host "[$scriptName] $expression"
+	Add-Content $imageLog "[$scriptName] $expression"
 	try {
 		Invoke-Expression $expression
 	    if(!$?) { Write-Host "[$scriptName] `$? = $?"; exit 1 }
@@ -53,8 +55,6 @@ if ($skipUpdates) {
 	$skipUpdates = 'yes'
     Write-Host "[$scriptName] skipUpdates : $skipUpdates (default)"
 }
-
-$imageLog = 'c:\VagrantBox.txt'
 
 emailProgress "starting, logging to $imageLog"
 
@@ -136,3 +136,4 @@ if ( $skipUpdates -eq 'yes' ) {
 }
 
 Write-Host "`n[$scriptName] ---------- stop ----------"
+exit 0

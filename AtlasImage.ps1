@@ -5,6 +5,7 @@ Param (
 	[string]$sysprep
 )
 $scriptName = 'AtlasImage.ps1'
+$imageLog = 'c:\VagrantBox.txt'
 cmd /c "exit 0"
 
 # Use executeIgnoreExit to only trap exceptions, use executeExpression to trap all errors ($LASTEXITCODE is global)
@@ -21,6 +22,7 @@ function executeIgnoreExit ($expression) {
 function execute ($expression) {
 	$error.clear()
 	Write-Host "[$scriptName] $expression"
+	Add-Content $imageLog "[$scriptName] $expression"
 	try {
 		Invoke-Expression $expression
 	    if(!$?) { Write-Host "[$scriptName] `$? = $?"; exit 1 }
@@ -70,8 +72,6 @@ if ($sysprep) {
     Write-Host "[$scriptName] sysprep    : $sysprep (default)"
 }
 
-$imageLog = 'c:\VagrantBox.txt'
-
 emailProgress "starting, logging to $imageLog"
 	
 if ( $hypervisor -eq 'virtualbox' ) {
@@ -99,15 +99,18 @@ if ( Test-Path $env:systemroot\SoftwareDistribution ) {
     executeExpression "Remove-Item  $env:systemroot\SoftwareDistribution -Recurse -Force"
 }
 
-# Disabled, does not work in PowerShell 5.1, $System.Put() Exception calling "Put" with "0" argument(s): "Generic failure
-#Write-Host "`n[$scriptName] Discard page file (is rebuilt at start-up)"
-#$System = executeExpression "GWMI Win32_ComputerSystem -EnableAllPrivileges"
-#executeExpression "`$System.AutomaticManagedPagefile = `$False"
-#executeExpression "`$System.Put()"
-#$CurrentPageFile = executeExpression "gwmi -query `"select * from Win32_PageFileSetting where name=`'c:\\pagefile.sys`'`""
-#executeExpression "`$CurrentPageFile.InitialSize = 512"
-#executeExpression "`$CurrentPageFile.MaximumSize = 512"
-#executeExpression "`$CurrentPageFile.Put()"
+Write-Host "`n[$scriptName] Enable permissions to discard page file"
+Write-Host "`n[$scriptName] `$System = GWMI Win32_ComputerSystem -EnableAllPrivileges"
+$System = GWMI Win32_ComputerSystem -EnableAllPrivileges
+executeExpression "`$System.AutomaticManagedPagefile = `$False"
+executeExpression "`$System.Put()"
+
+Write-Host "`n[$scriptName] Discard page file (is rebuilt at start-up)"
+Write-Host "`n[$scriptName] `$CurrentPageFile = gwmi -query `"select * from Win32_PageFileSetting where name=`'c:\\pagefile.sys`'`""
+$CurrentPageFile = gwmi -query "select * from Win32_PageFileSetting where name='c:\\pagefile.sys'"
+executeExpression "`$CurrentPageFile.InitialSize = 512"
+executeExpression "`$CurrentPageFile.MaximumSize = 512"
+executeExpression "`$CurrentPageFile.Put()"
 
 Write-Host "`n[$scriptName] Prepare for Zeroing"
 executeExpression "Optimize-Volume -DriveLetter C"
@@ -143,13 +146,17 @@ if ($sysprep -eq 'yes') {
 	    executeExpression "mkdir -Path $scriptDir"
 	}
 	
+	# This script will be run once for sysprep'd machine 
 	$setupCommand = "$scriptDir/SetupComplete.cmd"
 	if (Test-Path "$setupCommand") {
 	    Write-Host "`n[$scriptName] $setupCommand exists, skip create."
 	} else {
 	    executeExpression "Add-Content $scriptDir/SetupComplete.cmd `'netsh advfirewall firewall set rule name=`"Windows Remote Management (HTTP-in)`" new action=allow`'"
+	    executeExpression "Add-Content $scriptDir/SetupComplete.cmd `'reg add HKEY_LOCAL_MACHINE\Software\Microsoft\Windows\CurrentVersion\Policies\System /v EnableLUA /d 0 /t REG_DWORD /f /reg:64`'"
 	}
 	executeExpression "cat $scriptDir/SetupComplete.cmd"
+	
+	# Close the WinRM port now, so Vagrant does not manage to connect during the system prep phase
 	executeExpression "netsh advfirewall firewall set rule name=`'Windows Remote Management (HTTP-in)`' new action=block"
 	
 	Write-Host "`n[$scriptName] As per this URL there are implicit places windows looks for unattended files, I'm using C:\Windows\Panther\Unattend"
