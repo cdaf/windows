@@ -7,17 +7,22 @@ $scriptName = 'AtlasBase.ps1'
 $imageLog = 'c:\VagrantBox.txt'
 cmd /c "exit 0"
 
+# Write to standard out and file
+function writeLog ($message) {
+	Write-Host "[$scriptName] $message"
+	Add-Content $imageLog "[$scriptName] $message"
+}
+
 # Common expression logging and error handling function, copied, not referenced to ensure atomic process
 function executeExpression ($expression) {
 	$error.clear()
-	Write-Host "[$scriptName] $expression"
-	Add-Content $imageLog "[$scriptName] $expression"
+	Write-Host writeLog "$expression"
 	try {
 		Invoke-Expression $expression
-	    if(!$?) { Write-Host "[$scriptName] `$? = $?"; exit 1 }
+	    if(!$?) { writeLog "`$? = $?"; exit 1 }
 	} catch { echo $_.Exception|format-list -force; exit 2 }
-    if ( $error[0] ) { Write-Host "[$scriptName] `$error[0] = $error"; exit 3 }
-    if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) { Write-Host "[$scriptName] `$LASTEXITCODE = $LASTEXITCODE "; exit $LASTEXITCODE }
+    if ( $error[0] ) { writeLog "`$error[0] = $error"; exit 3 }
+    if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) { writeLog "`$LASTEXITCODE = $LASTEXITCODE "; exit $LASTEXITCODE }
 }
 
 # Exception Handling email sending
@@ -35,82 +40,82 @@ function emailProgress ($subject) {
 	}
 }
 
-Write-Host "`n[$scriptName] ---------- start ----------"
+emailProgress "starting, logging to $imageLog"
+
+writeLog "---------- start ----------"
 
 if ($emailTo) {
-    Write-Host "[$scriptName] emailTo     : $emailTo"
+    writeLog "emailTo     : $emailTo"
 } else {
-    Write-Host "[$scriptName] emailTo     : (not specified, email will not be attempted)"
+    writeLog "emailTo     : (not specified, email will not be attempted)"
 }
 
 if ($smtpServer) {
-    Write-Host "[$scriptName] smtpServer  : $smtpServer"
+    writeLog "smtpServer  : $smtpServer"
 } else {
-    Write-Host "[$scriptName] smtpServer  : (not specified, email will not be attempted)"
+    writeLog "smtpServer  : (not specified, email will not be attempted)"
 }
 
 if ($skipUpdates) {
-    Write-Host "[$scriptName] skipUpdates : $skipUpdates"
+    writeLog "skipUpdates : $skipUpdates"
 } else {
 	$skipUpdates = 'yes'
-    Write-Host "[$scriptName] skipUpdates : $skipUpdates (default)"
+    writeLog "skipUpdates : $skipUpdates (default)"
 }
 
-emailProgress "starting, logging to $imageLog"
-
-Write-Host "`n[$scriptName] Enable Remote Desktop and Open firewall"
+writeLog "Enable Remote Desktop and Open firewall"
 $obj = executeExpression "Get-WmiObject -Class `"Win32_TerminalServiceSetting`" -Namespace root\cimv2\terminalservices"
 executeExpression "`$obj.SetAllowTsConnections(1,1)"
 executeExpression "Set-NetFirewallRule -Name RemoteDesktop-UserMode-In-TCP -Enabled True"
 
-Write-Host "`n[$scriptName] Disable User Account Controls (UAC)"
+writeLog "Disable User Account Controls (UAC)"
 executeExpression "reg add HKEY_LOCAL_MACHINE\Software\Microsoft\Windows\CurrentVersion\Policies\System /v EnableLUA /d 0 /t REG_DWORD /f /reg:64"
 
-Write-Host "`n[$scriptName] Ensure all adapters set to private (ignore failure if on DC)"
+writeLog "Ensure all adapters set to private (ignore failure if on DC)"
 executeExpression "Get-NetConnectionProfile | Set-NetConnectionProfile -NetworkCategory Private"
 
-Write-Host "`n[$scriptName] configure the computer to receive remote commands"
+writeLog "configure the computer to receive remote commands"
 executeExpression "Enable-PSRemoting -Force"
 
-Write-Host "`n[$scriptName] Open Firewall for WinRM"
+writeLog "Open Firewall for WinRM"
 executeExpression "Set-NetFirewallRule -Name WINRM-HTTP-In-TCP-PUBLIC -RemoteAddress Any"
 
-Write-Host "`n[$scriptName] Allow arbitrary script execution"
+writeLog "Allow arbitrary script execution"
 executeExpression "Set-ExecutionPolicy -ExecutionPolicy Unrestricted -Force"
 
-Write-Host "`n[$scriptName] Allow `"hop`""
+writeLog "Allow `"hop`""
 executeExpression "Enable-WSManCredSSP -Role Server -Force"
 
-Write-Host "`n[$scriptName] Settings to support Vagrant integration, Unencypted Remote PowerShell"
+writeLog "Settings to support Vagrant integration, Unencypted Remote PowerShell"
 executeExpression "winrm set winrm/config `'@{MaxTimeoutms=`"1800000`"}`'"
 executeExpression "winrm set winrm/config/service `'@{AllowUnencrypted=`"true`"}`'"
 executeExpression "winrm set winrm/config/service/auth `'@{Basic=`"true`"}`'"
 executeExpression "winrm set winrm/config/client/auth `'@{Basic=`"true`"}`'"
 
-Write-Host "`n[$scriptName] Set to maximum (only applies to Server 2012, already set in 2016)"
+writeLog "Set to maximum (only applies to Server 2012, already set in 2016)"
 executeExpression "winrm set winrm/config/winrs `'@{MaxConcurrentUsers=`"100`"}`'"
 executeExpression "winrm set winrm/config/winrs `'@{MaxProcessesPerShell=`"2147483647`"}`'"
 executeExpression "winrm set winrm/config/winrs `'@{MaxMemoryPerShellMB=`"2147483647`"}`'"
 executeExpression "winrm set winrm/config/winrs `'@{MaxShellsPerUser=`"2147483647`"}`'"
 
-Write-Host "`n[$scriptName] List settings for information"
+writeLog "List settings for information"
 Get-childItem WSMan:\localhost\Shell
 
-Write-Host "`n[$scriptName] Disable password policy"
+writeLog "Disable password policy"
 executeExpression "secedit /export /cfg c:\secpol.cfg"
 executeExpression "(gc C:\secpol.cfg).replace(`"PasswordComplexity = 1`", `"PasswordComplexity = 0`") | Out-File C:\secpol.cfg"
 executeExpression "secedit /configure /db c:\windows\security\local.sdb /cfg c:\secpol.cfg /areas SECURITYPOLICY"
 executeExpression "rm -force c:\secpol.cfg -confirm:`$false"
 
-Write-Host "`n[$scriptName] Set default Administrator password to `'vagrant`'"
+writeLog "Set default Administrator password to `'vagrant`'"
 $admin = executeExpression "[adsi]`'WinNT://./Administrator,user`'"
 executeExpression "`$admin.SetPassword(`'vagrant`')"
 executeExpression "`$admin.UserFlags.value = `$admin.UserFlags.value -bor 0x10000" # Password never expires
 executeExpression "`$admin.CommitChanges()" 
 
-Write-Host "`n[$scriptName] Create the Vagrant user (with password vagrant) in the local administrators group, only if not existing"
+writeLog "Create the Vagrant user (with password vagrant) in the local administrators group, only if not existing"
 if (([adsi]"WinNT://./vagrant,user").path ) { 
-	Write-Host "`n[$scriptName] Vagrant user exists, no action required."
+	writeLog "Vagrant user exists, no action required."
 } else {
 	$ADSIComp = executeExpression "[ADSI]`"WinNT://$Env:COMPUTERNAME,Computer`""
 	$LocalUser = executeExpression "`$ADSIComp.Create(`'User`', `'vagrant`')"
@@ -129,11 +134,11 @@ if ( $skipUpdates -eq 'yes' ) {
 	executeExpression "shutdown /s /t 60"
 	
 } else {
-	Write-Host "`n[$scriptName] Apply Windows Updates"
+	writeLog "Apply Windows Updates"
 	executeExpression "./automation/provisioning/applyWindowsUpdates.ps1 no"
 	emailProgress "Windows Updates applied, reboot ..."
 	executeExpression "shutdown /r /t 60"
 }
 
-Write-Host "`n[$scriptName] ---------- stop ----------"
+writeLog "---------- stop ----------"
 exit 0
