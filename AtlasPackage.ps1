@@ -73,9 +73,10 @@ if ($diskDir) {
 }
 
 if ($vagrantBox) {
-    Write-Host "[$scriptName] vagrantBox : $vagrantBox"
+    Write-Host "[$scriptName] vagrantBox  : $vagrantBox"
 } else {
-    Write-Host "[$scriptName] vagrantBox : (not specified, will use default for testing)"
+	$vagrantBox = 'cdaf/WindowsServerStandard'
+    Write-Host "[$scriptName] vagrantBox  : $vagrantBox (not specified, using default for testing)"
 }
 
 if ($emailTo) {
@@ -194,12 +195,8 @@ if ( $proc.ExitCode -ne 0 ) {
 
 executeExpression "cd .."
 
-# If an override box has been passed, set environment variable for Vagrant to use, otherwise set to default to clear any settings from previous runs
-if ( $vagrantBox ) {
-	execute "$env:OVERRIDE_IMAGE = `"$vagrantBox`""
-} else {
-	execute "$env:OVERRIDE_IMAGE = 'cdaf/WindowsServerStandard'"
-}
+# Set the box to use for testing
+execute "$env:OVERRIDE_IMAGE = `"$vagrantBox`""
 
 Add-Content "$logFile" "[$scriptName] vagrant up target"
 $proc = Start-Process -FilePath 'vagrant' -ArgumentList 'up target' -PassThru -Wait -NoNewWindow
