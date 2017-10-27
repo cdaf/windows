@@ -32,9 +32,9 @@ Vagrant.configure(2) do |allhosts|
     target.winrm.password = "vagrant" # Making defaults explicit
     target.vm.graceful_halt_timeout = 180 # 3 minutes
     # Oracle VirtualBox, relaxed configuration for Desktop environment
-    target.vm.provision 'shell', path: './automation/provisioning/mkdir.ps1', args: 'C:\deploy'
     target.vm.provision 'shell', inline: 'cat C:\windows-master\automation\CDAF.windows | findstr "productVersion="'
     target.vm.provision 'shell', path: './automation/remote/capabilities.ps1'
+    target.vm.provision 'shell', path: './automation/provisioning/mkdir.ps1', args: 'C:\deploy'
     target.vm.provider 'virtualbox' do |virtualbox, override|
       virtualbox.gui = false
       override.vm.network 'private_network', ip: '172.16.17.103'
