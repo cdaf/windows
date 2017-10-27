@@ -188,7 +188,7 @@ if ( $proc.ExitCode -ne 0 ) {
 executeExpression "cd .."
 
 # Set the box to use for testing
-execute "$env:OVERRIDE_IMAGE = `"$boxname`""
+execute "`$env:OVERRIDE_IMAGE = `"$boxname`""
 
 Add-Content "$logFile" "[$scriptName] vagrant up target"
 $proc = Start-Process -FilePath 'vagrant' -ArgumentList 'up target' -PassThru -Wait -NoNewWindow
