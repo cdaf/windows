@@ -15,16 +15,6 @@ function writeLog ($message) {
 }
 
 # Use executeIgnoreExit to only trap exceptions, use executeExpression to trap all errors ($LASTEXITCODE is global)
-function executeExpression ($expression) {
-	execute $expression
-    if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) { writeLog "ERROR! Exiting with `$LASTEXITCODE = $LASTEXITCODE" -foregroundcolor "red"; exit $LASTEXITCODE }
-}
-
-function executeIgnoreExit ($expression) {
-	execute $expression
-    if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) { writeLog "Warning `$LASTEXITCODE = $LASTEXITCODE" -foregroundcolor "yellow"; cmd /c "exit 0" }
-}
-
 function execute ($expression) {
 	$error.clear()
 	writeLog "$expression"
@@ -33,6 +23,16 @@ function execute ($expression) {
 	    if(!$?) { writeLog "`$? = $?"; exit 1 }
 	} catch { echo $_.Exception|format-list -force; exit 2 }
     if ( $error[0] ) { writeLog "`$error[0] = $error"; exit 3 }
+}
+
+function executeExpression ($expression) {
+	execute $expression
+    if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) { writeLog "ERROR! Exiting with `$LASTEXITCODE = $LASTEXITCODE"; exit $LASTEXITCODE }
+}
+
+function executeIgnoreExit ($expression) {
+	execute $expression
+    if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) { writeLog "Warning `$LASTEXITCODE = $LASTEXITCODE"; cmd /c "exit 0" }
 }
 
 # Exception Handling email sending
@@ -108,15 +108,19 @@ writeLog "Enable permissions to discard page file"
 writeLog "`$System = GWMI Win32_ComputerSystem -EnableAllPrivileges"
 $System = GWMI Win32_ComputerSystem -EnableAllPrivileges
 executeExpression "`$System.AutomaticManagedPagefile = `$False"
-executeExpression "`$System.Put()"
+writeLog "`$System.Put()"
+$output = $System.Put()
+writeLog "$output"
 
 writeLog "Discard page file (is rebuilt at start-up)"
 writeLog "`$CurrentPageFile = gwmi -query `"select * from Win32_PageFileSetting where name=`'c:\\pagefile.sys`'`""
 $CurrentPageFile = gwmi -query "select * from Win32_PageFileSetting where name='c:\\pagefile.sys'"
 executeExpression "`$CurrentPageFile.InitialSize = 512"
 executeExpression "`$CurrentPageFile.MaximumSize = 512"
-executeExpression "`$CurrentPageFile.Put()"
-
+writeLog "`$CurrentPageFile.Put()"
+$output = $CurrentPageFile.Put()
+writeLog "$output"
+ 
 writeLog "Prepare for Zeroing"
 executeExpression "Optimize-Volume -DriveLetter C"
 
