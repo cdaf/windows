@@ -2,7 +2,6 @@ Param (
 	[string]$boxname,
 	[string]$hypervisor,
 	[string]$diskDir,
-	[string]$vagrantBox,
 	[string]$emailTo,
 	[string]$smtpServer,
 	[string]$destroy
@@ -70,13 +69,6 @@ if ($diskDir) {
 	} else {
 	    Write-Host "[$scriptName] diskDir     : (not specified, only required if VirtualBox)"
     }
-}
-
-if ($vagrantBox) {
-    Write-Host "[$scriptName] vagrantBox  : $vagrantBox"
-} else {
-	$vagrantBox = 'cdaf/WindowsServerStandard'
-    Write-Host "[$scriptName] vagrantBox  : $vagrantBox (not specified, using default for testing)"
 }
 
 if ($emailTo) {
@@ -196,7 +188,7 @@ if ( $proc.ExitCode -ne 0 ) {
 executeExpression "cd .."
 
 # Set the box to use for testing
-execute "$env:OVERRIDE_IMAGE = `"$vagrantBox`""
+execute "$env:OVERRIDE_IMAGE = `"$boxname`""
 
 Add-Content "$logFile" "[$scriptName] vagrant up target"
 $proc = Start-Process -FilePath 'vagrant' -ArgumentList 'up target' -PassThru -Wait -NoNewWindow
