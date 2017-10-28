@@ -2,7 +2,8 @@ Param (
 	[string]$hypervisor,
 	[string]$emailTo,
 	[string]$smtpServer,
-	[string]$sysprep
+	[string]$sysprep,
+	[string]$stripDISM
 )
 $scriptName = 'AtlasImage.ps1'
 $imageLog = 'c:\VagrantBox.txt'
@@ -79,6 +80,13 @@ if ($sysprep) {
     writeLog "sysprep    : $sysprep (default)"
 }
 	
+if ($stripDISM) {
+    writeLog "stripDISM  : $stripDISM"
+} else {
+	$stripDISM = 'no'
+    writeLog "stripDISM  : $stripDISM (default)"
+}
+	
 if ( $hypervisor -eq 'virtualbox' ) {
 	executeExpression ".\automation\provisioning\mountImage.ps1 $env:userprofile\VBoxGuestAdditions_5.1.30.iso http://download.virtualbox.org/virtualbox/5.1.30/VBoxGuestAdditions_5.1.30.iso"
 	$result = executeExpression "[Environment]::GetEnvironmentVariable(`'MOUNT_DRIVE_LETTER`', `'User`')"
@@ -91,9 +99,13 @@ if ( $hypervisor -eq 'virtualbox' ) {
 	writeLog "Hypervisor ($hypervisor) not virtualbox, skip Guest Additions install"
 }
 
-#writeLog "Remove the features that are not required, then remove media for available features that are not installed"
-#executeExpression "@(`'Server-Media-Foundation`') | Remove-WindowsFeature"
-#executeExpression "Get-WindowsFeature | ? { `$_.InstallState -eq `'Available`' } | Uninstall-WindowsFeature -Remove"
+if ( $stripDISM -eq 'yes' ) {
+	writeLog "Remove the features that are not required, then remove media for available features that are not installed"
+	executeExpression "@(`'Server-Media-Foundation`') | Remove-WindowsFeature"
+	executeExpression "Get-WindowsFeature | ? { `$_.InstallState -eq `'Available`' } | Uninstall-WindowsFeature -Remove"
+} else {
+	writeLog "Strip DISM skipped (there is a bug in Windows Server 2016 where some disabled roles cannot be restored, e.g. ServerManager-Core-RSAT-Role-Tools"
+}
 
 writeLog "Deployment Image Servicing and Management (DISM.exe) clean-up"
 executeIgnoreExit "Dism.exe /online /Cleanup-Image /StartComponentCleanup /ResetBase /Quiet"

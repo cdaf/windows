@@ -26,7 +26,9 @@ Note: on Windows Server 2012 R2 need to manually install x86 (not 64 bit) C++ Re
 
 Install from the Windows features
 
-# Create Desktop Build Server
+    Dism /online /enable-feature /all /featurename:Microsoft-Hyper-V
+
+# Create Desktop Environment
 
 To create a desktop environment, navigate to the solution root and run:
 
@@ -39,7 +41,7 @@ Once the environment is running access the build server an execute the CD emulat
     vagrant powershell buildserver
     cd C:\vagrant
     .\automation\cdEmulate.bat
-    
+   
 
 ## Direct PowerShell Access
 
@@ -56,7 +58,7 @@ Once delegation configured, the build emulation can be executed.
     cd C:\vagrant
 	.\automation\cdEmulate.bat
 
-# Cleanup and Destroy
+## Cleanup and Destroy
 
 If change made that need to be checked in, clean the workspace:
 
@@ -65,3 +67,7 @@ If change made that need to be checked in, clean the workspace:
 Once finished with the environment, destroy using:
 
     vagrant destroy -f
+    
+# Vagrant Boxes
+
+Vagrant box images available here https://app.vagrantup.com/cdaf are build initially for Hyper-V using AtlasBase.ps1. This is cloned in VirtualBox and then both images are prepared using AtlasImage.ps1. Finally the images are packaged on the Hyper-V and VirtualBox hosts using AtlasPackage.ps1. The resulting .box files are uploaded to Vagrantup.
