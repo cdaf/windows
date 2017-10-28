@@ -1,7 +1,6 @@
 Param (
 	[string]$imageName,
 	[string]$buildNumber,
-	[string]$command,
 	[string]$rebuildImage
 )
 
@@ -31,12 +30,6 @@ if ( $buildNumber ) {
 	Write-Host "[$scriptName]   buildNumber  : $buildNumber"
 } else {
 	Write-Host "[$scriptName]   buildNumber  : (not supplied)"
-}
-
-if ( $command ) {
-	Write-Host "[$scriptName]   command      : $command"
-} else {
-	Write-Host "[$scriptName]   command      : (not supplied)"
 }
 
 if ( $rebuildImage ) {
@@ -84,14 +77,10 @@ $workspace = (Get-Location).Path
 Write-Host "[$scriptName] `$imageTag  : $imageTag"
 Write-Host "[$scriptName] `$workspace : $workspace"
 
-if (( $buildNumber ) -and (-not $command)) {
-	$command = "automation\provisioning\runner.bat automation\remote\entrypoint.ps1 $buildNumber"
-}
-
-if ( $command ) {
-	executeExpression "docker run --tty --volume ${workspace}\:C:/workspace ${imageName}:${imageTag} $command"
+if ( $buildNumber ) {
+	executeExpression "docker run --tty --volume ${workspace}\:C:/workspace ${imageName}:${imageTag} automation\provisioning\runner.bat automation\remote\entrypoint.ps1 $buildNumber"
 } else {
-	executeExpression "docker run --tty --volume ${workspace}\:C:/workspace ${imageName}:${imageTag}"
+	executeExpression "docker run --tty --volume ${workspace}\:C:/workspace ${imageName}:${imageTag} automation\provisioning\runner.bat automation\remote\entrypoint.ps1"
 }
 
 Write-Host "`n[$scriptName] List and remove all stopped containers"
