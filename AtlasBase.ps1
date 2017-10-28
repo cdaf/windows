@@ -16,7 +16,7 @@ function writeLog ($message) {
 # Common expression logging and error handling function, copied, not referenced to ensure atomic process
 function executeExpression ($expression) {
 	$error.clear()
-	writeLog "$expression"
+	writeLog " > $expression"
 	try {
 		Invoke-Expression $expression
 	    if(!$?) { writeLog "`$? = $?"; exit 1 }
