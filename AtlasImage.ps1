@@ -91,9 +91,9 @@ if ( $hypervisor -eq 'virtualbox' ) {
 	writeLog "Hypervisor ($hypervisor) not virtualbox, skip Guest Additions install"
 }
 
-writeLog "Remove the features that are not required, then remove media for available features that are not installed"
-executeExpression "@(`'Server-Media-Foundation`') | Remove-WindowsFeature"
-executeExpression "Get-WindowsFeature | ? { `$_.InstallState -eq `'Available`' } | Uninstall-WindowsFeature -Remove"
+#writeLog "Remove the features that are not required, then remove media for available features that are not installed"
+#executeExpression "@(`'Server-Media-Foundation`') | Remove-WindowsFeature"
+#executeExpression "Get-WindowsFeature | ? { `$_.InstallState -eq `'Available`' } | Uninstall-WindowsFeature -Remove"
 
 writeLog "Deployment Image Servicing and Management (DISM.exe) clean-up"
 executeIgnoreExit "Dism.exe /online /Cleanup-Image /StartComponentCleanup /ResetBase /Quiet"
