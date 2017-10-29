@@ -45,15 +45,15 @@ emailProgress "starting, logging to $imageLog"
 writeLog "---------- start ----------"
 
 if ($emailTo) {
-    writeLog "emailTo     : $emailTo"
+    Write-Host "emailTo     : $emailTo"
 } else {
-    writeLog "emailTo     : (not specified, email will not be attempted)"
+    Write-Host "emailTo     : (not specified, email will not be attempted)"
 }
 
 if ($smtpServer) {
-    writeLog "smtpServer  : $smtpServer"
+    Write-Host "smtpServer  : $smtpServer"
 } else {
-    writeLog "smtpServer  : (not specified, email will not be attempted)"
+    Write-Host "smtpServer  : (not specified, email will not be attempted)"
 }
 
 if ($skipUpdates) {
