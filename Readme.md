@@ -76,5 +76,7 @@ Vagrant box images available here https://app.vagrantup.com/cdaf are build initi
 
 The following links have contributed to the construction of the Atlas scripts
 
- * http://www.hurryupandwait.io/blog/in-search-of-a-light-weight-windows-vagrant-box?rq=vagrant
+ * https://www.vagrantup.com/docs/virtualbox/boxes.html
+ * http://www.hurryupandwait.io/blog/in-search-of-a-light-weight-windows-vagrant-box
+ * http://huestones.co.uk/node/305
  * https://stackoverflow.com/questions/39469452/installing-removed-windows-features/46985832#46985832
