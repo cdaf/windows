@@ -20,6 +20,16 @@ else
   vagrantBox = 'cdaf/WindowsServerStandard'
 end
 
+# If this environment variable is set, RAM and CPU allocations for virtual machines are increase by this factor, so must be an integer
+# [Environment]::SetEnvironmentVariable('SCALE_FACTOR', '2', 'Machine')
+if ENV['SCALE_FACTOR']
+  scale = ENV['SCALE_FACTOR'].to_i
+else
+  scale = 1
+end
+vRAM = 1024 * scale
+vCPU = scale
+
 Vagrant.configure(2) do |allhosts|
 
   allhosts.vm.define 'target' do |target|
@@ -37,6 +47,8 @@ Vagrant.configure(2) do |allhosts|
     target.vm.provision 'shell', path: './automation/provisioning/mkdir.ps1', args: 'C:\deploy'
     target.vm.provider 'virtualbox' do |virtualbox, override|
       virtualbox.gui = false
+      virtualbox.memory = "#{vRAM}"
+      virtualbox.cpus = "#{vCPU}"
       override.vm.network 'private_network', ip: '172.16.17.103'
       override.vm.network 'forwarded_port', guest: 3389, host: 33389, auto_correct: true # Remote Desktop
       override.vm.network 'forwarded_port', guest: 5985, host: 35985, auto_correct: true # WinRM HTTP
@@ -66,6 +78,8 @@ Vagrant.configure(2) do |allhosts|
     # Oracle VirtualBox, relaxed configuration for Desktop environment
     buildserver.vm.provider 'virtualbox' do |virtualbox, override|
       virtualbox.gui = false
+      virtualbox.memory = "#{vRAM}"
+      virtualbox.cpus = "#{vCPU}"
       override.vm.network 'private_network', ip: '172.16.17.101'
       override.vm.network 'forwarded_port', guest: 3389, host: 13389, auto_correct: true # Remote Desktop
       override.vm.network 'forwarded_port', guest: 5985, host: 15985, auto_correct: true # WinRM HTTP
