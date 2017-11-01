@@ -9,7 +9,23 @@ Param (
 $scriptName = 'AtlasPackage.ps1'
 cmd /c "exit 0"
 
+# Write to standard out and file
+function writeLog ($message) {
+	Write-Host "[$scriptName] $message"
+	Add-Content $imageLog "[$scriptName] $message"
+}
+
 # Use executeIgnoreExit to only trap exceptions, use executeExpression to trap all errors ($LASTEXITCODE is global)
+function execute ($expression) {
+	$error.clear()
+	writeLog " > $expression"
+	try {
+		Invoke-Expression $expression
+	    if(!$?) { writeLog "`$? = $?"; exit 1 }
+	} catch { echo $_.Exception|format-list -force; exit 2 }
+    if ( $error[0] ) { writeLog "`$error[0] = $error"; exit 3 }
+}
+
 function executeExpression ($expression) {
 	execute $expression
     if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) { Write-Host "[$scriptName] ERROR! Exiting with `$LASTEXITCODE = $LASTEXITCODE" -foregroundcolor "red"; exit $LASTEXITCODE }
@@ -18,16 +34,6 @@ function executeExpression ($expression) {
 function executeIgnoreExit ($expression) {
 	execute $expression
     if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) { Write-Host "[$scriptName] Warning `$LASTEXITCODE = $LASTEXITCODE" -foregroundcolor "yellow"; cmd /c "exit 0" }
-}
-
-function execute ($expression) {
-	$error.clear()
-	Write-Host "[$scriptName] $expression"
-	try {
-		Invoke-Expression $expression
-	    if(!$?) { Write-Host "[$scriptName] `$? = $?"; exit 1 }
-	} catch { echo $_.Exception|format-list -force; exit 2 }
-    if ( $error[0] ) { Write-Host "[$scriptName] `$error[0] = $error"; exit 3 }
 }
 
 # Exception Handling email sending
@@ -90,20 +96,21 @@ if ($destroy) {
     Write-Host "[$scriptName] destroy     : $destroy (default)"
 }
 
-$logFile = "$(pwd)\atlasPackage_${hypervisor}.txt"
-if (Test-Path "$logFile") {
-    Write-Host "`n[$scriptName] Logfile exists ($logFile), delete for new run."
-	executeExpression "Remove-Item `"$logFile`""
+$imageLog = "$(pwd)\atlasPackage_${hypervisor}.txt"
+if (Test-Path "$imageLog") {
+    Write-Host "`n[$scriptName] Logfile exists ($imageLog), delete for new run."
+	Remove-Item "$imageLog"
 }
 
-Write-Host "`n[$scriptName] Prepare Temporary build directory"
+writeLog "`n[$scriptName] Prepare Temporary build directory"
 $buildDir = "${boxName}_${hypervisor}"
 if (Test-Path "$buildDir") {
 	executeExpression "Remove-Item $buildDir -Recurse -Force"
 }
 
 $packageFile = "${buildDir}.box"
-emailProgress "packaging ${packageFile}, logging to ${logFile}."
+emailProgress "packaging ${packageFile}, logging to ${imageLog}."
+writeLog "packaging ${packageFile}, logging to ${imageLog}."
 
 executeExpression "mkdir $buildDir"
 executeExpression "cd $buildDir"
@@ -111,11 +118,11 @@ executeExpression "cd $buildDir"
 if ($hypervisor -eq 'virtualbox') {
 
 	$diskPath = "${diskDir}\${boxName}.vdi"
-	Write-Host "`n[$scriptName] Export VirtualBox VM"
+	writeLog "`n[$scriptName] Export VirtualBox VM"
 	if (Test-Path "$diskPath") {
 		executeExpression "& `"C:\Program Files\Oracle\VirtualBox\VBoxManage.exe`" modifyhd `"$diskPath`" --compact"
 	} else {
-		Write-Host "`n[$scriptName] Disk ($diskPath) not found! Exiting with lastExitCode 200"
+		writeLog "`n[$scriptName] Disk ($diskPath) not found! Exiting with lastExitCode 200"
 		emailAndExit 200
 	}
 
@@ -124,13 +131,13 @@ if ($hypervisor -eq 'virtualbox') {
 
 } else {
 
-	Write-Host "`n[$scriptName] Export Hyper-V VM"
+	writeLog "`n[$scriptName] Export Hyper-V VM"
 	executeExpression "Export-VM -Name $boxName -Path ."
 	
 	if (Test-Path $packageFile) {
 		executeExpression "Remove-Item $packageFile"
 	}
-	Write-Host "`n[$scriptName] Compress VM into .box format"
+	writeLog "`n[$scriptName] Compress VM into .box format"
 	executeExpression "cd $boxName"
 	executeExpression "Remove-Item Snapshots -Force -Recurse"
 	if (Test-Path metadata.json ) {
@@ -141,83 +148,86 @@ if ($hypervisor -eq 'virtualbox') {
 
     $versionTest = cmd /c bsdtar --version 2`>`&1 ; cmd /c "exit 0" # Reset LASTEXITCODE
     if ($versionTest -like '*not recognized*') {
-    	Write-Host "`n[$scriptName] BSD Tar not installed, compress with tar"
-    	Write-Host "`n[$scriptName]   tar cvzf ../$packageFile ./*"
+    	writeLog "`n[$scriptName] BSD Tar not installed, compress with tar"
+    	writeLog "`n[$scriptName]   tar cvzf ../$packageFile ./*"
 	    $versionTest = cmd /c tar --version 2`>`&1
 	    if ($versionTest -like '*not recognized*') {
-	    	Write-Host "`n[$scriptName]   TAR not installed, (this is included in bash tools, see Git for Windows) exit with LASTEXITCODE $LASTEXITCODE"; exit $LASTEXITCODE
+	    	writeLog "`n[$scriptName]   TAR not installed, (this is included in bash tools, see Git for Windows) exit with LASTEXITCODE $LASTEXITCODE"; exit $LASTEXITCODE
 	    }
-		Add-Content "$logFile" "[$scriptName] tar cvzf ../$packageFile ./*"
+		writeLog "$logFile" "[$scriptName] tar cvzf ../$packageFile ./*"
         $proc = Start-Process -FilePath 'tar' -ArgumentList "cvzf ../$packageFile ./*" -PassThru -Wait -NoNewWindow
         if ( $proc.ExitCode -ne 0 ) {
-	        Write-Host "`n[$scriptName] Exit with `$LASTEXITCODE = $($proc.ExitCode)`n"
+	        writeLog "`n[$scriptName] Exit with `$LASTEXITCODE = $($proc.ExitCode)`n"
             exit $proc.ExitCode
         }
     } else {
-    	Write-Host "`n[$scriptName] Use BSD Tar ($versionTest) with maximum compression (lzma)"
-    	Write-Host "`n[$scriptName]   bsdtar --lzma -cvf ../$packageFile *"
-		Add-Content "$logFile" "[$scriptName] bsdtar --lzma -cvf ../$packageFile *"
+    	writeLog "`n[$scriptName] Use BSD Tar ($versionTest) with maximum compression (lzma)"
+    	writeLog "`n[$scriptName]   bsdtar --lzma -cvf ../$packageFile *"
+		writeLog "$logFile" "[$scriptName] bsdtar --lzma -cvf ../$packageFile *"
         $proc = Start-Process -FilePath 'bsdtar' -ArgumentList "--lzma -cvf ../$packageFile *" -PassThru -Wait -NoNewWindow
         if ( $proc.ExitCode -ne 0 ) {
-	        Write-Host "`n[$scriptName] Exit with `$LASTEXITCODE = $($proc.ExitCode)`n"
+	        writeLog "`n[$scriptName] Exit with `$LASTEXITCODE = $($proc.ExitCode)`n"
             exit $proc.ExitCode
         }
     }
     
-	Write-Host "`n[$scriptName] Remove VM export files"
+	writeLog "`n[$scriptName] Remove VM export files"
 	executeExpression "cd.."
 	executeExpression "Remove-Item $boxname -Force -Recurse"
 
 }
 
-Write-Host "`n[$scriptName] Initialise and start"
+writeLog "`n[$scriptName] Initialise and start"
 $testDir = 'packageTest'
 if (Test-Path "$testDir ") {
 	executeExpression "Remove-Item $testDir  -Recurse -Force"
 }
-executeIgnoreExit "vagrant box remove cdaf/$boxName --box-version 0" # Remove any local (non-Atlas) images, ignore error if not exist
+executeIgnoreExit "vagrant box remove cdaf/$boxName --all" # ignore error if none exist
 
-Write-Host "`n[$scriptName] vagrant box add cdaf/$boxName $packageFile --force"
-Add-Content "$logFile" "[$scriptName] vagrant box add cdaf/$boxName $packageFile --force"
+writeLog "`n[$scriptName] vagrant box add cdaf/$boxName $packageFile --force"
+writeLog "$logFile" "[$scriptName] vagrant box add cdaf/$boxName $packageFile --force"
 $proc = Start-Process -FilePath 'vagrant' -ArgumentList "box add cdaf/$boxName $packageFile --force" -PassThru -Wait -NoNewWindow
 if ( $proc.ExitCode -ne 0 ) {
-	Write-Host "`n[$scriptName] Exit with `$LASTEXITCODE = $($proc.ExitCode)`n"
+	writeLog "`n[$scriptName] Exit with `$LASTEXITCODE = $($proc.ExitCode)`n"
     exit $proc.ExitCode
 }
 
+writeLog "$logFile" "[$scriptName] Return to workspace and list the Vagrantfile before testing"
 executeExpression "cd .."
+executeExpression "cat .\Vagrantfile"
 
-# Set the box to use for testing
-execute "`$env:OVERRIDE_IMAGE = `"$boxname`""
+writeLog "$logFile" "[$scriptName] Set the box to use for testing"
+execute "`$env:OVERRIDE_IMAGE = `"cdaf/$boxname`""
 
-Add-Content "$logFile" "[$scriptName] vagrant up target"
-$proc = Start-Process -FilePath 'vagrant' -ArgumentList 'up target' -PassThru -Wait -NoNewWindow
+writeLog "$logFile" "[$scriptName] vagrant up target"
+$proc = Start-Process -dir
+FilePath 'vagrant' -ArgumentList 'up target' -PassThru -Wait -NoNewWindow
 if ( $proc.ExitCode -ne 0 ) {
-	Write-Host "`n[$scriptName] Exit with `$LASTEXITCODE = $($proc.ExitCode)`n"
+	writeLog "`n[$scriptName] Exit with `$LASTEXITCODE = $($proc.ExitCode)`n"
     exit $proc.ExitCode
 }
 
-Add-Content "$logFile" "[$scriptName] vagrant box list"
+writeLog "$logFile" "[$scriptName] vagrant box list"
 $proc = Start-Process -FilePath 'vagrant' -ArgumentList 'box list' -PassThru -Wait -NoNewWindow
 if ( $proc.ExitCode -ne 0 ) {
-	Write-Host "`n[$scriptName] Exit with `$LASTEXITCODE = $($proc.ExitCode)`n"
+	writeLog "`n[$scriptName] Exit with `$LASTEXITCODE = $($proc.ExitCode)`n"
     exit $proc.ExitCode
 }
 
 if ($destroy -eq 'yes') { 
-	Write-Host "`n[$scriptName] Cleanup after test"
-    Write-Host "`n[$scriptName] vagrant destroy -f"
-	Add-Content "$logFile" "[$scriptName] vagrant destroy -f"
+	writeLog "`n[$scriptName] Cleanup after test"
+    writeLog "`n[$scriptName] vagrant destroy -f"
+	writeLog "$logFile" "[$scriptName] vagrant destroy -f"
     $proc = Start-Process -FilePath 'vagrant' -ArgumentList 'destroy -f' -PassThru -Wait -NoNewWindow
     if ( $proc.ExitCode -ne 0 ) {
-	    Write-Host "`n[$scriptName] Exit with `$LASTEXITCODE = $($proc.ExitCode)`n"
+	    writeLog "`n[$scriptName] Exit with `$LASTEXITCODE = $($proc.ExitCode)`n"
         exit $proc.ExitCode
     }
 
-    Write-Host "`n[$scriptName] Clean-up Vagrant Temporary files"
+    writeLog "`n[$scriptName] Clean-up Vagrant Temporary files"
     executeExpression "Remove-Item -Recurse $env:USERPROFILE\.vagrant.d\tmp\*"
 }
 
 emailProgress "Final notifcation, package of ${packageFile} complete"
 
-Write-Host "`n[$scriptName] ---------- stop ----------"
+writeLog "`n[$scriptName] ---------- stop ----------"
