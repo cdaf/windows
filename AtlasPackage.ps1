@@ -200,8 +200,7 @@ writeLog "$logFile" "[$scriptName] Set the box to use for testing"
 execute "`$env:OVERRIDE_IMAGE = `"cdaf/$boxname`""
 
 writeLog "$logFile" "[$scriptName] vagrant up target"
-$proc = Start-Process -dir
-FilePath 'vagrant' -ArgumentList 'up target' -PassThru -Wait -NoNewWindow
+$proc = Start-Process -FilePath 'vagrant' -ArgumentList 'up target' -PassThru -Wait -NoNewWindow
 if ( $proc.ExitCode -ne 0 ) {
 	writeLog "`n[$scriptName] Exit with `$LASTEXITCODE = $($proc.ExitCode)`n"
     exit $proc.ExitCode
