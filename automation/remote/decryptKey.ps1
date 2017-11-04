@@ -12,6 +12,10 @@ function throwError ($trapID, $message) {
 	Write-Host "[$scriptName] `$thumbprint    : $thumbprint"
 	Write-Host "[$scriptName] `$location      : $location"
 	if ($thumbprint) {
+		if (-not ($location)) {
+			$location = 'CurrentUser'
+			Write-Host "[$scriptName] location, set default `$location to $location"
+		}
 		Write-Host "[$scriptName] Get-ChildItem -path `"Cert:\$location\My`""
 		Get-ChildItem -path "Cert:\$location\My"
 	}
