@@ -44,3 +44,5 @@ Write-Host "`n[$scriptName] List running containers (after)"
 executeExpression "docker ps"
 
 Write-Host "`n[$scriptName] --- end ---"
+$error.clear()
+exit 0

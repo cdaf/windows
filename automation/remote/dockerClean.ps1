@@ -84,3 +84,5 @@ Write-Host "`n[$scriptName] List images (after)"
 executeExpression "docker images"
 
 Write-Host "`n[$scriptName] --- end ---"
+$error.clear()
+exit 0

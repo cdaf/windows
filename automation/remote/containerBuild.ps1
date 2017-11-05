@@ -88,4 +88,5 @@ executeExpression "docker ps --filter `"status=exited`" -a"
 executeExpression "docker rm (docker ps --filter `"status=exited`" -aq)"
 
 Write-Host "`n[$scriptName] ---------- stop ----------"
+$error.clear()
 exit 0

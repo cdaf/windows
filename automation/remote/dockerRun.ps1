@@ -108,3 +108,5 @@ Write-Host "`n[$scriptName] List the running containers (after)"
 docker ps
 
 Write-Host "`n[$scriptName] --- end ---"
+$error.clear()
+exit 0

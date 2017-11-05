@@ -67,3 +67,5 @@ Write-Host "`n[$scriptName] List Resulting images...`n"
 executeExpression "docker images -f label=cdaf.${imageName}.image.version"
 
 Write-Host "`n[$scriptName] --- end ---"
+$error.clear()
+exit 0
