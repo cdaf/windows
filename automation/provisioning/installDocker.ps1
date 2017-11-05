@@ -1,8 +1,9 @@
 Param (
 	[string]$enableTCP
 )
-# Common expression logging and error handling function, copied, not referenced to ensure atomic process
-function executeExpression ($expression) {
+
+# Use executeReinstall to support reinstalling, use executeExpression to trap all errors ($LASTEXITCODE is global)
+function execute ($expression) {
 	$error.clear()
 	Write-Host "[$scriptName] $expression"
 	try {
@@ -10,7 +11,24 @@ function executeExpression ($expression) {
 	    if(!$?) { Write-Host "[$scriptName] `$? = $?"; exit 1 }
 	} catch { echo $_.Exception|format-list -force; exit 2 }
     if ( $error[0] ) { Write-Host "[$scriptName] `$error[0] = $error"; exit 3 }
-    if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) { Write-Host "[$scriptName] `$LASTEXITCODE = $LASTEXITCODE "; exit $LASTEXITCODE }
+}
+
+function executeExpression ($expression) {
+	execute $expression
+    if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) { Write-Host "ERROR! Exiting with `$LASTEXITCODE = $LASTEXITCODE"; exit $LASTEXITCODE }
+}
+
+function executeReinstall ($expression) {
+	execute $expression
+    if ( $LASTEXITCODE ) {
+    	if ( $LASTEXITCODE -eq 1060 ) {
+	    	Write-Host "Product reinstalled, returning `$LASTEXITCODE = 0"; cmd /c "exit 0"
+    	} else {
+	    	if ( $LASTEXITCODE -ne 0 ) {
+		    	Write-Host "ERROR! Exiting with `$LASTEXITCODE = $LASTEXITCODE"; exit $LASTEXITCODE
+	    	}
+    	}
+    }
 }
 
 # Retry logic for connection issues, i.e. "Cannot retrieve the dynamic parameters for the cmdlet. PowerShell Gallery is currently unavailable.  Please try again later."
@@ -53,7 +71,7 @@ if ($enableTCP) {
     Write-Host "[$scriptName] enableTCP   : (not set)"
 }
 
-executeRetry "Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.201 -Verbose -Force"
+executeReinstall "Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.201 -Verbose -Force"
 
 executeRetry "Set-PSRepository -Name PSGallery -InstallationPolicy Trusted"
 
@@ -62,8 +80,8 @@ executeRetry "Find-PackageProvider *docker* | Format-Table Name, Version, Source
 executeRetry "Install-Module NuGet -Confirm:`$False"
 
 Write-Host "`n[$scriptName] Found these repositories unreliable`n"
-executeRetry "Install-Module -Name DockerMsftProviderInsider -Repository PSGallery -Confirm:`$False -Verbose -Force"
-executeRetry "Install-Package -Name docker -ProviderName DockerMsftProviderInsider -Confirm:`$False -Verbose -Force"
+executeRetry "Install-Module -Name DockerMsftProvider -Repository PSGallery -Confirm:`$False -Verbose -Force"
+executeRetry "Install-Package -Name docker -ProviderName DockerMsftProvider -Confirm:`$False -Verbose -Force"
 
 executeExpression "sc.exe config docker start= delayed-auto"
 
