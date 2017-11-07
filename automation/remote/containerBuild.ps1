@@ -33,7 +33,7 @@ if ( $buildNumber ) {
 }
 
 if ( $rebuildImage ) {
-	Write-Host "[$scriptName]   rebuildImage : $rebuildImage"
+	Write-Host "[$scriptName]   rebuildImage : $rebuildImage (choices are yes, no or imageonly)"
 } else {
 	$rebuildImage = 'no'
 	Write-Host "[$scriptName]   rebuildImage : $rebuildImage (not supplied, so set to default)"
@@ -73,19 +73,21 @@ foreach ( $imageDetails in docker images --filter label=cdaf.${imageName}.image.
 	$imageTag = [INT]$arr[1]
 }
 
-$workspace = (Get-Location).Path
-Write-Host "[$scriptName] `$imageTag  : $imageTag"
-Write-Host "[$scriptName] `$workspace : $workspace"
-
-if ( $buildNumber ) {
-	executeExpression "docker run --tty --volume ${workspace}\:C:/workspace ${imageName}:${imageTag} automation\provisioning\runner.bat automation\remote\entrypoint.ps1 $buildNumber"
-} else {
-	executeExpression "docker run --tty --volume ${workspace}\:C:/workspace ${imageName}:${imageTag} automation\provisioning\runner.bat automation\remote\entrypoint.ps1"
+if ( $rebuildImage -ne 'imageonly') {
+	$workspace = (Get-Location).Path
+	Write-Host "[$scriptName] `$imageTag  : $imageTag"
+	Write-Host "[$scriptName] `$workspace : $workspace"
+	
+	if ( $buildNumber ) {
+		executeExpression "docker run --tty --volume ${workspace}\:C:/workspace ${imageName}:${imageTag} automation\provisioning\runner.bat automation\remote\entrypoint.ps1 $buildNumber"
+	} else {
+		executeExpression "docker run --tty --volume ${workspace}\:C:/workspace ${imageName}:${imageTag} automation\provisioning\runner.bat automation\remote\entrypoint.ps1"
+	}
+	
+	Write-Host "`n[$scriptName] List and remove all stopped containers"
+	executeExpression "docker ps --filter `"status=exited`" -a"
+	executeExpression "docker rm (docker ps --filter `"status=exited`" -aq)"
 }
-
-Write-Host "`n[$scriptName] List and remove all stopped containers"
-executeExpression "docker ps --filter `"status=exited`" -a"
-executeExpression "docker rm (docker ps --filter `"status=exited`" -aq)"
 
 Write-Host "`n[$scriptName] ---------- stop ----------"
 $error.clear()

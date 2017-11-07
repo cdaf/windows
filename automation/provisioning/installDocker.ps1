@@ -96,6 +96,8 @@ if ($enableTCP) {
 	} catch { echo $_.Exception|format-list -force; exit 478 }
 }
 
+executeExpression "Invoke-WebRequest 'https://github.com/docker/compose/releases/download/1.17.0/docker-compose-Windows-x86_64.exe' -UseBasicParsing -OutFile `$Env:ProgramFiles\docker\docker-compose.exe"
+
 executeExpression "shutdown /r /t 10"
 
 Write-Host "`n[$scriptName] ---------- stop ----------`n"
