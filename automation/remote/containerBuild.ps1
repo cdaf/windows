@@ -67,13 +67,13 @@ if ( $rebuildImage -eq 'yes') {
 # Remove any older images	
 executeExpression "automation/remote/dockerClean.ps1 ${imageName} $($imageTag + 1)"
 
-# Retrieve the latest image number
-foreach ( $imageDetails in docker images --filter label=cdaf.${imageName}.image.version --format "{{.ID}}:{{.Tag}}:{{.Repository}}" ) {
-	$arr = $imageDetails.split(':')
-	$imageTag = [INT]$arr[1]
-}
-
 if ( $rebuildImage -ne 'imageonly') {
+	# Retrieve the latest image number
+	foreach ( $imageDetails in docker images --filter label=cdaf.${imageName}.image.version --format "{{.ID}}:{{.Tag}}:{{.Repository}}" ) {
+		$arr = $imageDetails.split(':')
+		$imageTag = [INT]$arr[1]
+	}
+
 	$workspace = (Get-Location).Path
 	Write-Host "[$scriptName] `$imageTag  : $imageTag"
 	Write-Host "[$scriptName] `$workspace : $workspace"
