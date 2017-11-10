@@ -1,5 +1,6 @@
 Param (
-	[string]$enableTCP
+	[string]$enableTCP,
+	[string]$restart
 )
 
 # Use executeReinstall to support reinstalling, use executeExpression to trap all errors ($LASTEXITCODE is global)
@@ -66,9 +67,15 @@ $scriptName = 'installDocker.ps1'
 Write-Host "`n[$scriptName] Requires KB3176936"
 Write-Host "`n[$scriptName] ---------- start ----------`n"
 if ($enableTCP) {
-    Write-Host "[$scriptName] enableTCP   : $enableTCP"
+    Write-Host "[$scriptName] enableTCP : $enableTCP"
 } else {
-    Write-Host "[$scriptName] enableTCP   : (not set)"
+    Write-Host "[$scriptName] enableTCP : (not set)"
+}
+if ($restart) {
+    Write-Host "[$scriptName] restart   : $restart"
+} else {
+	$restart = 'yes'
+    Write-Host "[$scriptName] restart   : $restart (set to default)"
 }
 
 executeReinstall "Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.201 -Verbose -Force"
@@ -80,8 +87,8 @@ executeRetry "Find-PackageProvider *docker* | Format-Table Name, Version, Source
 executeRetry "Install-Module NuGet -Confirm:`$False"
 
 Write-Host "`n[$scriptName] Found these repositories unreliable`n"
-executeRetry "Install-Module -Name DockerMsftProvider -Repository PSGallery -Confirm:`$False -Verbose -Force"
-executeRetry "Install-Package -Name docker -ProviderName DockerMsftProvider -Confirm:`$False -Verbose -Force"
+executeRetry "Install-Module -Name DockerMsftProviderInsider -Repository PSGallery -Confirm:`$False -Verbose -Force"
+executeRetry "Install-Package -Name docker -ProviderName DockerMsftProviderInsider -Confirm:`$False -Verbose -Force"
 
 executeExpression "sc.exe config docker start= delayed-auto"
 
@@ -98,6 +105,10 @@ if ($enableTCP) {
 
 executeExpression "Invoke-WebRequest 'https://github.com/docker/compose/releases/download/1.17.0/docker-compose-Windows-x86_64.exe' -UseBasicParsing -OutFile `$Env:ProgramFiles\docker\docker-compose.exe"
 
-executeExpression "shutdown /r /t 10"
+if ($restart -eq 'yes') {
+	executeExpression "shutdown /r /t 10"
+} else {
+	Write-Host "`n[$scriptName] Restart set to $restart, manual restart required"
+}
 
 Write-Host "`n[$scriptName] ---------- stop ----------`n"

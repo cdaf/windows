@@ -60,6 +60,9 @@ Foreach ($line in get-content $PROPFILE) {
 
 			$data = $nameValue.split("=")
 			$name, $value = $line -split '=', 2
+			if ( $value -like "`$*" ) {
+				$value = Invoke-Expression $value
+			}
 
 			# If token file is supplied, detokenise file (in situ)
 			if ($TOKENFILE) { 

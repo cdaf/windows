@@ -146,7 +146,7 @@ function DCMPRS( $packageFile, $packagePath )
 function REPLAC( $fileName, $token, $value )
 {
 	try {
-	(Get-Content $fileName | ForEach-Object { $_ -replace "$token", "$value" } ) | Set-Content $fileName
+	(Get-Content $fileName | ForEach-Object { $_ -replace [regex]::Escape($token), "$value" } ) | Set-Content $fileName
 	    if(!$?) { taskException "REPLAC_TRAP" }
 	} catch { taskException "REPLAC_TRAP" $_ }
 }

@@ -81,19 +81,17 @@ if (Test-Path "$solutionRoot\delivery.bat") {
 # Packaging will ensure either the override or default delivery process is in the workspace root
 $cdInstruction="delivery.bat"
 
-# Check for customised Delivery environment process
-if (Test-Path "$solutionRoot\deliveryEnv.ps1") {
-
-	$environmentDelivery = $(& $solutionRoot\deliveryEnv.ps1 $AUTOMATIONROOT $solutionRoot)
-	Write-Host "[$scriptName]   environmentDelivery : $environmentDelivery (from $solutionRoot\deliveryEnv.ps1)"
-
+# If environment variable over-rides all other determinations
+$environmentDelivery = "$Env:environmentDelivery"
+if ($environmentDelivery ) {
+	Write-Host "[$scriptName]   environmentDelivery : $environmentDelivery (loaded from `$Env:environmentDelivery)"
 } else {
-
-	# If environment variable not set, set default depending on domain membership
-	$environmentDelivery = "$Env:environmentDelivery"
-	if ($environmentDelivery ) {
-		Write-Host "[$scriptName]   environmentDelivery : $environmentDelivery (loaded from `$Env:environmentDelivery)"
+	# Check for customised Delivery environment process
+	if (Test-Path "$solutionRoot\deliveryEnv.ps1") {
+		$environmentDelivery = $(& $solutionRoot\deliveryEnv.ps1 $AUTOMATIONROOT $solutionRoot)
+		Write-Host "[$scriptName]   environmentDelivery : $environmentDelivery (from $solutionRoot\deliveryEnv.ps1)"
 	} else {
+		# Set default depending on domain membership
 		if ((gwmi win32_computersystem).partofdomain -eq $true) {
 			$environmentDelivery = 'WINDOWS'
 		} else {
