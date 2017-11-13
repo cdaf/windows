@@ -45,9 +45,9 @@ Write-Host "[$scriptName]   DOCKER_HOST  : $env:DOCKER_HOST"
 Write-Host "[$scriptName] List all current images"
 executeExpression "docker images"
 
-foreach ( $imageDetails in docker images --filter label=cdaf.${imageName}.image.version --format "{{.ID}}:{{.Tag}}:{{.Repository}}" ) {
-	$arr = $imageDetails.split(':')
-	$imageTag = [INT]$arr[1]
+$imageTag = 0
+foreach ( $imageDetails in docker images --filter label=cdaf.${imageName}.image.version --format "{{.Tag}}" ) {
+	if ($imageTag -lt [INT]$imageDetails ) { $imageTag = [INT]$imageDetails }
 }
 if ( $imageTag ) {
 	Write-Host "[$scriptName] Last image tag is $imageTag, new image will be $($imageTag + 1)"
@@ -69,9 +69,9 @@ executeExpression "automation/remote/dockerClean.ps1 ${imageName} $($imageTag + 
 
 if ( $rebuildImage -ne 'imageonly') {
 	# Retrieve the latest image number
-	foreach ( $imageDetails in docker images --filter label=cdaf.${imageName}.image.version --format "{{.ID}}:{{.Tag}}:{{.Repository}}" ) {
-		$arr = $imageDetails.split(':')
-		$imageTag = [INT]$arr[1]
+	$imageTag = 0
+	foreach ( $imageDetails in docker images --filter label=cdaf.${imageName}.image.version --format "{{.Tag}}" ) {
+		if ($imageTag -lt [INT]$imageDetails ) { $imageTag = [INT]$imageDetails }
 	}
 
 	$workspace = (Get-Location).Path
