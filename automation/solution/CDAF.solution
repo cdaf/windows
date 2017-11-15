@@ -1,5 +1,6 @@
 # Template Solution Properties file
-# Is using symantic versioning, substitute build number at the end of version
+# If using symantic versioning, append build number at the end of version
 productVersion=0.1.0
 productName=My Product Name
 solutionName=myProduct
+# containerBuild=automation/remote/containerBuild $SOLUTIONNAME $BUILDNUMBER
