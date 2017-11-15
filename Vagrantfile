@@ -12,8 +12,8 @@
 # [Environment]::SetEnvironmentVariable('VAGRANT_SMB_USER', 'username', 'User')
 # [Environment]::SetEnvironmentVariable('VAGRANT_SMB_PASS', 'p4ssWord!', 'User')
 
-# Different VM images can be used by changing this variable
-# $env:OVERRIDE_IMAGE = 'cdaf/WindowsServerCore'
+# Different VM images can be used by changing this variable, for example to use Windows Server 2016 with GUI
+# $env:OVERRIDE_IMAGE = 'cdaf/WindowsServer'
 if ENV['OVERRIDE_IMAGE']
   vagrantBox = ENV['OVERRIDE_IMAGE']
 else
