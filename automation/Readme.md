@@ -45,7 +45,7 @@ To alleviate the burden of argument passing, exception handling and logging, the
 |         | Detokenise with specific file     | DETOKN tokenised.file prop.file |
 | EXCREM  | Execute Remote Command            | EXCREM hostname                 |
 |         | Execute Remote script             | EXCREM ./capabilities.sh        |
-| EXITIF  | Exit normally is argument set     | EXITIF $ACTION                  |
+| EXITIF  | Exit normally is argument set     | EXITIF $ACTION -eq clean        |
 | INVOKE  | call a custom script              | INVOKE ./script "Hello"         |
 | MAKDIR  | Create a directory and path (opt) | MAKDIR directory/and/path       |
 | PROPLD  | Load properties as variables      | PROPLD prop.file                |
