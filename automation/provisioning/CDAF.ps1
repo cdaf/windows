@@ -62,10 +62,16 @@ if ($userName) {
 	$cred = executeExpression "New-Object System.Management.Automation.PSCredential (`"$userName`", `$securePassword)"
 	$script = [scriptblock]::Create("cd $workspace; .\automation\cdEmulate.bat $OPT_ARG; [Environment]::SetEnvironmentVariable(`'PREVIOUS_EXIT_CODE`', `"`$LASTEXITCODE`", `'User`')")
 	Write-Host "[$scriptName] Invoke-Command -ComputerName localhost -Credential `$cred -ScriptBlock $script"
-	Invoke-Command -ComputerName localhost -Credential $cred -ScriptBlock $script
+	try {
+		Invoke-Command -ComputerName localhost -Credential $cred -ScriptBlock $script
+	    if(!$?) { Write-Host "[$scriptName] `$? = $?"; exit 1090 }
+	} catch { echo $_.Exception|format-list -force; exit 1190 }
 	
 	Write-Host "[$scriptName] `$LASTEXITCODE = Invoke-Command -ComputerName localhost -Credential `$cred -ScriptBlock { [Environment]::GetEnvironmentVariable('PREVIOUS_EXIT_CODE', 'User')} "
+	try {
 	$LASTEXITCODE = Invoke-Command -ComputerName localhost -Credential $cred -ScriptBlock { [Environment]::GetEnvironmentVariable('PREVIOUS_EXIT_CODE', 'User')}
+	    if(!$?) { Write-Host "[$scriptName] `$? = $?"; exit 1091 }
+	} catch { echo $_.Exception|format-list -force; exit 1191 }
     if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) { Write-Host "[$scriptName] `$LASTEXITCODE = $LASTEXITCODE "; exit $LASTEXITCODE }
 
 } else {
