@@ -27,7 +27,13 @@ if ENV['SCALE_FACTOR']
 else
   scale = 1
 end
-vRAM = 1024 * scale
+if ENV['BASE_MEMORY']
+  baseRAM = ENV['BASE_MEMORY'].to_i
+else
+  baseRAM = 1024
+end
+
+vRAM = baseRAM * scale
 vCPU = scale
 
 Vagrant.configure(2) do |allhosts|
