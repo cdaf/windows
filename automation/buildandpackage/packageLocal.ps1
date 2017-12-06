@@ -54,10 +54,7 @@ if(!$?){ taskFailure ("mkdir $WORK_DIR_DEFAULT") }
 
 # Copy Manifest and CDAF Product Definition
 copySet "manifest.txt" "." $WORK_DIR_DEFAULT
-copySet "CDAF.windows" "$AUTOMATIONROOT" $WORK_DIR_DEFAULT
-Move-Item $WORK_DIR_DEFAULT\CDAF.windows $WORK_DIR_DEFAULT\CDAF.properties
-Write-Host
-Write-Host "[$scriptName]   rename $WORK_DIR_DEFAULT\CDAF.windows --> $WORK_DIR_DEFAULT\CDAF.properties"
+copySet "CDAF.windows" "$AUTOMATIONROOT" $WORK_DIR_DEFAULT\CDAF.properties
 
 # Copy the override or default delivery process
 if (Test-Path "$solutionRoot\delivery.bat") {

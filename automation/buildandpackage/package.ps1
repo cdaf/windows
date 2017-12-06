@@ -31,7 +31,7 @@ function itemRemove ($itemPath) {
 
 function getFilename ($FullPathName) {
 
-	$PIECES=$FullPathName.split(“\”) 
+	$PIECES=$FullPathName.split('\') 
 	$NUMBEROFPIECES=$PIECES.Count 
 	$FILENAME=$PIECES[$NumberOfPieces-1] 
 	$DIRECTORYPATH=$FullPathName.Trim($FILENAME) 
@@ -69,9 +69,13 @@ function copySet ($item, $from, $to) {
 	Write-Host "[$scriptName]   $from\$item --> $to" 
 	Copy-Item $from\$item $to -Force
 	if(!$?){ taskFailure ("Copy remote script $from\$item --> $to") }
-	Set-ItemProperty $to\$item -name IsReadOnly -value $false
-	if(!$?){ taskFailure ("remove read only from $to\$item") }
-	
+	if ( Test-Path $to -pathType container ) {
+		Set-ItemProperty $to\$item -name IsReadOnly -value $false
+		if(!$?){ taskFailure ("remove read only from $to\$item") }
+	} else {
+		Set-ItemProperty $to -name IsReadOnly -value $false
+		if(!$?){ taskFailure ("remove read only from $to") }
+	}
 }
 
 function ZipFiles( $zipfilename, $sourcedir )
