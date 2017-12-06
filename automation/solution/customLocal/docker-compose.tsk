@@ -1,0 +1,18 @@
+[Console]::OutputEncoding = [System.Text.Encoding]::Default
+${EXPOSED_PORT} = '9876'
+
+Write-Host "`nCleanup any previously failed smoke test`n"
+$env:IMAGE_TAG = "${SOLUTION}-target"
+docker-compose down
+docker-compose rm
+
+Write-Host "Create Test Containers`n"
+$env:IMAGE_TAG = "${SOLUTION}-target:${BUILDNUMBER}"
+docker-compose up -d
+
+Write-Host "Windows Docker connot connect on localhost, connect using hostname instead`n"
+curl http://${env:COMPUTERNAME}:${EXPOSED_PORT}
+
+Write-Host "`nTear down`n"
+docker-compose down
+docker-compose rm
