@@ -3,4 +3,4 @@
 productVersion=0.1.0
 productName=My Product Name
 solutionName=myProduct
-# containerBuild=automation/remote/containerBuild.ps1 $SOLUTIONNAME $BUILDNUMBER
+# containerBuild=automation/remote/containerBuild.ps1 ${SOLUTIONNAME}_container_build $BUILDNUMBER
