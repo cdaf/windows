@@ -1,17 +1,23 @@
 [Console]::OutputEncoding = [System.Text.Encoding]::Default
-${EXPOSED_PORT} = '9876'
+$env:EXPOSED_PORT = '9876'
 
-Write-Host "`nCleanup any previously failed smoke test`n"
-$env:IMAGE_TAG = "${SOLUTION}-target"
+Write-Host "List the available images`n"
+docker images
+
+Write-Host "Cleanup any previously failed smoke test`n"
+$env:IMAGE_TAG = "${SOLUTION}"
 docker-compose down
 docker-compose rm
 
 Write-Host "Create Test Containers`n"
-$env:IMAGE_TAG = "${SOLUTION}-target:${BUILDNUMBER}"
+$env:IMAGE_TAG = "${SOLUTION}:${BUILDNUMBER}"
 docker-compose up -d
 
-Write-Host "Windows Docker connot connect on localhost, connect using hostname instead`n"
-curl http://${env:COMPUTERNAME}:${EXPOSED_PORT}
+Write-Host "Windows Docker connot connect on localhost, connect using container IP`n"
+$containerIP = docker inspect --format '{{ .NetworkSettings.Networks.nat.IPAddress }}' taskslocal_web_1
+
+Write-Host "Testing http://${containerIP}:${EXPOSED_PORT}`n"
+curl -usebasicparsing http://${containerIP}:${EXPOSED_PORT}
 
 Write-Host "`nTear down`n"
 docker-compose down

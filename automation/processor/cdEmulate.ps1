@@ -129,7 +129,7 @@ if ( $solutionName ) {
 
 $containerBuild=$(& .\$AUTOMATIONROOT\remote\getProperty.ps1 $solutionRoot\CDAF.solution 'containerBuild')
 if ( $containerBuild ) {
-	$versionTest = cmd /c docker --version 2`>`&1
+	$versionTest = cmd /c docker --version 2`>`&1; cmd /c "exit 0"
 	if ($versionTest -like '*not recognized*') {
 		Write-Host "[$scriptName]   Docker              : containerBuild defined in $solutionRoot\CDAF.solution, but Docker not installed, will attempt to execute natively"
 	} else {
