@@ -18,7 +18,8 @@ function executeRetry ($expression) {
 		    if(!$?) { Write-Host "[$scriptName] `$? = $?"; $exitCode = 1 }
 		} catch { echo $_.Exception|format-list -force; $exitCode = 2 }
 	    if ( $error[0] ) { Write-Host "[$scriptName] `$error[0] = $error"; $exitCode = 3 }
-		if ( $LASTEXITCODE -eq 1060 ) { date } # 10600 is a normal exit, use date to clear LASTEXITCODE
+		if ( $LASTEXITCODE -eq 1060 ) { cmd /c "exit 0" } # 10600 is a normal exit, use date to clear LASTEXITCODE
+		if ( $LASTEXITCODE -eq 1073 )  { cmd /c "exit 0" } # 1073 is normal error  The specified service already exists
 	    if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) { Write-Host "[$scriptName] `$LASTEXITCODE = $LASTEXITCODE "; $exitCode = $LASTEXITCODE }
 	    if ($exitCode -ne 0) {
 			if ($retryCount -ge $retryMax ) {
