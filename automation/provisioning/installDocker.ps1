@@ -65,17 +65,17 @@ function executeRetry ($expression) {
 # Only from Windows Server 2016 and above
 $scriptName = 'installDocker.ps1'
 Write-Host "`n[$scriptName] Requires KB3176936"
-Write-Host "`n[$scriptName] ---------- start ----------`n"
+Write-Host "`n[$scriptName] ---------- start ----------"
 if ($enableTCP) {
-    Write-Host "[$scriptName] enableTCP : $enableTCP"
+    Write-Host "[$scriptName]  enableTCP : $enableTCP"
 } else {
-    Write-Host "[$scriptName] enableTCP : (not set)"
+    Write-Host "[$scriptName]  enableTCP : (not set)"
 }
 if ($restart) {
-    Write-Host "[$scriptName] restart   : $restart"
+    Write-Host "[$scriptName]  restart   : $restart"
 } else {
 	$restart = 'yes'
-    Write-Host "[$scriptName] restart   : $restart (set to default)"
+    Write-Host "[$scriptName]  restart   : $restart (set to default)"
 }
 
 executeReinstall "Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.201 -Verbose -Force"
@@ -112,3 +112,5 @@ if ($restart -eq 'yes') {
 }
 
 Write-Host "`n[$scriptName] ---------- stop ----------`n"
+$error.clear()
+exit 0
