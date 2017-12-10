@@ -15,7 +15,7 @@ function taskWarning($taskName) {
     write-host "`n[$scriptName] Warning, $taskName encountered an error that was allowed to proceed." -ForegroundColor Yellow
 }
 
-function itemRemove ($itemPath) { 
+function itemRemove ($itemPath, $ignoreLock) { 
 # If item exists, and is a directory, recursively remove hidden and read-only attributes or to explicit file name if just a file 
 	if ( Test-Path $itemPath ) {
 		if ( (Get-Item $itemPath) -is [System.IO.DirectoryInfo] ) {
@@ -24,8 +24,19 @@ function itemRemove ($itemPath) {
 			attrib -r -h $itemPath /s
 		}	
 		write-host "[$scriptName] Delete $itemPath"
-		Remove-Item $itemPath -Recurse
-		if(!$?) {exceptionExit "Remove-Item $itemPath -Recurse" }
+		try {
+			Remove-Item $itemPath -Recurse
+			if(!$?) {
+				if ( $ignoreLock ) {
+					write-host "[$scriptName] Warning : $error[0], but `$ignoreLock set to $ignoreLock, continuing..."
+					cmd /c "exit 0"
+				} else {
+					taskFailure ("Remove-Item $itemPath -Recurse")
+				}
+			}
+		} catch {
+			exceptionExit "Remove-Item $itemPath -Recurse"
+		}
 	}
 }
 
@@ -95,8 +106,7 @@ function ZipFiles( $zipfilename, $sourcedir )
 }
 
 $scriptName = 'package.ps1'
-Write-Host
-Write-Host "[$scriptName] +-----------------+"
+Write-Host "`n[$scriptName] +-----------------+"
 Write-Host "[$scriptName] | Package Process |"
 Write-Host "[$scriptName] +-----------------+"
 
@@ -171,37 +181,31 @@ try {
 Write-Host "[$scriptName]   CDAF Version            : $cdafVersion"
 
 # Cannot brute force clear the workspace as the Visual Studio solution file is here
-write-host
-write-host "[$scriptName]   --- Start Package Process ---" -ForegroundColor Green
-Write-Host
-itemRemove .\manifest.txt
-itemRemove .\storeForRemote_manifest.txt
-itemRemove .\storeForLocal_manifest.txt
-itemRemove .\*.zip
-itemRemove .\*.nupkg
-itemRemove $LOCAL_WORK_DIR
-itemRemove $REMOTE_WORK_DIR
-itemRemove artifacts
+write-host "`n[$scriptName]   --- Start Package Process ---`n" -ForegroundColor Green
+itemRemove ".\manifest.txt"
+itemRemove ".\storeForRemote_manifest.txt"
+itemRemove ".\storeForLocal_manifest.txt"
+itemRemove ".\*.zip"
+itemRemove ".\*.nupkg"
+itemRemove "$LOCAL_WORK_DIR"
+itemRemove "$REMOTE_WORK_DIR"
+itemRemove "artifacts"
 
 if ( $ACTION -eq "clean" ) {
 
-	Write-Host
-	write-host "[$scriptName] Clean only." -ForegroundColor Blue
+	write-host "`n[$scriptName] Clean only." -ForegroundColor Blue
 
 } else {
 
 	# Process solution properties if defined
 	if (Test-Path "$SOLUTIONROOT\CDAF.solution") {
-		write-host 
-		write-host "[$scriptName] Load solution properties from $SOLUTIONROOT\CDAF.solution"
+		write-host "`n[$scriptName] Load solution properties from $SOLUTIONROOT\CDAF.solution"
 		& .\$AUTOMATIONROOT\remote\Transform.ps1 "$SOLUTIONROOT\CDAF.solution" | ForEach-Object { invoke-expression $_ }
 	}
 
 	# Process optional pre-packaging tasks (Task driver support added in release 0.7.2)
     if (Test-Path "$prepackageTasks") {
-		Write-Host
-		Write-Host "[$scriptName] Process Pre-Package Tasks ..."
-		Write-Host
+		Write-Host "`n[$scriptName] Process Pre-Package Tasks ...`n"
 		& .\$AUTOMATIONROOT\remote\execute.ps1 $SOLUTION $BUILDNUMBER "package" "$prepackageTasks" $ACTION
 		if(!$?){ exceptionExit "..\$AUTOMATIONROOT\remote\execute.ps1 $SOLUTION $BUILDNUMBER `"package`" `"$prepackageTasks`" $ACTION" }
 	}
@@ -214,12 +218,9 @@ if ( $ACTION -eq "clean" ) {
 	if ((Test-Path "$SOLUTIONROOT\CDAF.solution") -and ($item -ne $LOCAL_WORK_DIR) -and ($item -ne $REMOTE_WORK_DIR)) {
 		Get-Content $SOLUTIONROOT\CDAF.solution | Add-Content manifest.txt
 	}
-	Write-Host
-	Write-Host "Created manifest.txt file ..."
-	Write-Host
+	Write-Host "`nCreated manifest.txt file ...`n"
 	Get-Content manifest.txt
-	Write-Host
-	write-host "[$scriptName] Always create local working artefacts, even if all tasks are remote" -ForegroundColor Blue
+	write-host "`n[$scriptName] Always create local working artefacts, even if all tasks are remote" -ForegroundColor Blue
 	try {
 		& .\$AUTOMATIONROOT\buildandpackage\packageLocal.ps1 $SOLUTION $BUILDNUMBER $REVISION $LOCAL_WORK_DIR $SOLUTIONROOT $AUTOMATIONROOT
 		if(!$?){ taskWarning }
@@ -238,13 +239,10 @@ if ( $ACTION -eq "clean" ) {
 
 	# Process optional post-packaging tasks (wrap.tsk added in release 0.8.2)
     if (Test-Path "$postpackageTasks") {
-		Write-Host
-		Write-Host "[$scriptName] Process Post-Package Tasks ..."
-		Write-Host
+		Write-Host "`n[$scriptName] Process Post-Package Tasks ...`n"
 		& .\$AUTOMATIONROOT\remote\execute.ps1 $SOLUTION $BUILDNUMBER "package" "$postpackageTasks" $ACTION
 		if(!$?){ exceptionExit "..\$AUTOMATIONROOT\remote\execute.ps1 $SOLUTION $BUILDNUMBER `"package`" `"$postpackageTasks`" $ACTION" }
 	}
 
 }
-write-host
-write-host "[$scriptName]   --- Package Complete ---" -ForegroundColor Green
+write-host "`n[$scriptName]   --- Package Complete ---" -ForegroundColor Green
