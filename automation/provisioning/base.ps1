@@ -1,3 +1,7 @@
+Param (
+	[string]$install
+)
+
 # Common expression logging and error handling function, copied, not referenced to ensure atomic process
 function executeExpression ($expression) {
 	$error.clear()
@@ -11,19 +15,19 @@ function executeExpression ($expression) {
 }
 
 $scriptName = 'base.ps1'
+Write-Host "[$scriptName] Install components using Chocolatey.`n"
 Write-Host "[$scriptName] ---------- start ----------"
-Write-Host
-Write-Host "[$scriptName] Install components using Chocolatey."
-Write-Host
-$install = $args[0]
 if ($install) {
-    Write-Host "[$scriptName] install   : $install"
+    Write-Host "[$scriptName] install : $install"
 } else {
-    Write-Host "[$scriptName] Package to install not supplied, exiting"
+    Write-Host "[$scriptName] Package to install not supplied, exiting with LASTEXITCODE 4"; exit 4 
 }
 
 Write-Host
 executeExpression "choco install -y $install --fail-on-standard-error"
 
-Write-Host
-Write-Host "[$scriptName] ---------- stop ----------"
+Write-Host "`n[$scriptName] Reload the path`n"
+executeExpression '$env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")'
+
+Write-Host "`n[$scriptName] ---------- stop ----------"
+exit 0
