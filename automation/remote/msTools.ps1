@@ -1,14 +1,18 @@
-Write-Host "Retrieve MSBuild path`n"
-$env:MS_BUILD = ((Get-ItemProperty ((Get-Item 'HKLM:\SOFTWARE\Microsoft\MSBuild\ToolsVersions\14.0').pspath) -PSProperty MSBuildToolsPath).MSBuildToolsPath) + 'msbuild.exe'
-if (! ($env:MS_BUILD) ) { 
-	Write-Host "MSBuild tool folder not found in registry at HKLM:\SOFTWARE\Microsoft\MSBuild\ToolsVersions\14.0 `n"
-	exit 4700
+Param (
+	[string]$msTestOnly
+)
+if(! ($msTestOnly) ){
+	Write-Host "Retrieve MSBuild path`n"
+	$env:MS_BUILD = ((Get-ItemProperty ((Get-Item 'HKLM:\SOFTWARE\Microsoft\MSBuild\ToolsVersions\14.0').pspath) -PSProperty MSBuildToolsPath).MSBuildToolsPath) + 'msbuild.exe'
+	if (! ($env:MS_BUILD) ) { 
+		Write-Host "MSBuild tool folder not found in registry at HKLM:\SOFTWARE\Microsoft\MSBuild\ToolsVersions\14.0 `n"
+		exit 4700
+	}
+	if (! (test-path $env:MS_BUILD) ) {
+		Write-Host "MSBuild not found!`n"
+		exit 4701
+	}
 }
-if (! (test-path $env:MS_BUILD) ) {
-	Write-Host "MSBuild not found!`n"
-	exit 4701
-}
-
 Write-Host "Try to retrieve MSTest path from registry`n"
 try {
 	$env:MS_TEST = (Get-ItemProperty ((Get-Item 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Installer\UserData\S-1-5-18\Components\196D6C5077EC79D56863FE52B7080EF6').pspath)).'06F460ED2256013369565B3E7EB86383'
