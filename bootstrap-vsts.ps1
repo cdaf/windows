@@ -20,7 +20,7 @@ function executeExpression ($expression) {
     if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) { Write-Host "[$scriptName] `$LASTEXITCODE = $LASTEXITCODE "; exit $LASTEXITCODE }
 }
 
-$scriptName = 'vsts-bootstrap.ps1'
+$scriptName = 'bootstrap-vsts.ps1'
 cmd /c "exit 0" # ensure LASTEXITCODE is 0
 
 Write-Host "`n[$scriptName] ---------- start ----------"
