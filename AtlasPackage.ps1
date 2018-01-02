@@ -198,7 +198,7 @@ writeLog "$logFile" "[$scriptName] Return to workspace"
 executeExpression "cd .."
 
 if ($skipTest -eq 'yes') {
-	writeLog "`n[$scriptName] skipTest is $[skipTest}, tests not attempted."
+	writeLog "`n[$scriptName] skipTest is ${skipTest}, tests not attempted."
 } else {
 
 	writeLog "`n[$scriptName] Log vagrant file contents"
