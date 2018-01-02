@@ -4,6 +4,7 @@ Param (
 	[string]$diskDir,
 	[string]$emailTo,
 	[string]$smtpServer,
+	[string]$skipTest,
 	[string]$destroy
 )
 $scriptName = 'AtlasPackage.ps1'
@@ -87,6 +88,13 @@ if ($smtpServer) {
     Write-Host "[$scriptName] smtpServer  : $smtpServer"
 } else {
     Write-Host "[$scriptName] smtpServer  : (not specified, email will not be attempted)"
+}
+
+if ($skipTest) {
+    Write-Host "[$scriptName] skipTest    : $skipTest"
+} else {
+	$skipTest = 'no'
+    Write-Host "[$scriptName] skipTest    : $skipTest (default)"
 }
 
 if ($destroy) {
@@ -177,41 +185,45 @@ if ($hypervisor -eq 'virtualbox') {
 
 }
 
-writeLog "`n[$scriptName] Initialise and start"
-$testDir = 'packageTest'
-if (Test-Path "$testDir ") {
-	executeExpression "Remove-Item $testDir  -Recurse -Force"
-}
-executeIgnoreExit "vagrant box remove cdaf/$boxName --all" # ignore error if none exist
-
-writeLog "`n[$scriptName] vagrant box add cdaf/$boxName $packageFile --force"
-writeLog "$logFile" "[$scriptName] vagrant box add cdaf/$boxName $packageFile --force"
-$proc = Start-Process -FilePath 'vagrant' -ArgumentList "box add cdaf/$boxName $packageFile --force" -PassThru -Wait -NoNewWindow
-if ( $proc.ExitCode -ne 0 ) {
-	writeLog "`n[$scriptName] Exit with `$LASTEXITCODE = $($proc.ExitCode)`n"
-    exit $proc.ExitCode
-}
-
-writeLog "$logFile" "[$scriptName] Return to workspace and list the Vagrantfile before testing"
-executeExpression "cd .."
-executeExpression "cat .\Vagrantfile"
-
-writeLog "$logFile" "[$scriptName] Set the box to use for testing"
-execute "`$env:OVERRIDE_IMAGE = `"cdaf/$boxname`""
-
-writeLog "$logFile" "[$scriptName] vagrant up target"
-$proc = Start-Process -FilePath 'vagrant' -ArgumentList 'up target' -PassThru -Wait -NoNewWindow
-if ( $proc.ExitCode -ne 0 ) {
-	writeLog "`n[$scriptName] Exit with `$LASTEXITCODE = $($proc.ExitCode)`n"
-    exit $proc.ExitCode
-}
-
-writeLog "$logFile" "[$scriptName] vagrant box list"
-$proc = Start-Process -FilePath 'vagrant' -ArgumentList 'box list' -PassThru -Wait -NoNewWindow
-if ( $proc.ExitCode -ne 0 ) {
-	writeLog "`n[$scriptName] Exit with `$LASTEXITCODE = $($proc.ExitCode)`n"
-    exit $proc.ExitCode
-}
+if ($skipTest -eq 'yes') {
+	writeLog "`n[$scriptName] skipTest is $[skipTest}, tests not attempted."
+} else {
+	writeLog "`n[$scriptName] Initialise and start"
+	$testDir = 'packageTest'
+	if (Test-Path "$testDir ") {
+		executeExpression "Remove-Item $testDir  -Recurse -Force"
+	}
+	executeIgnoreExit "vagrant box remove cdaf/$boxName --all" # ignore error if none exist
+	
+	writeLog "`n[$scriptName] vagrant box add cdaf/$boxName $packageFile --force"
+	writeLog "$logFile" "[$scriptName] vagrant box add cdaf/$boxName $packageFile --force"
+	$proc = Start-Process -FilePath 'vagrant' -ArgumentList "box add cdaf/$boxName $packageFile --force" -PassThru -Wait -NoNewWindow
+	if ( $proc.ExitCode -ne 0 ) {
+		writeLog "`n[$scriptName] Exit with `$LASTEXITCODE = $($proc.ExitCode)`n"
+	    exit $proc.ExitCode
+	}
+	
+	writeLog "$logFile" "[$scriptName] Return to workspace and list the Vagrantfile before testing"
+	executeExpression "cd .."
+	executeExpression "cat .\Vagrantfile"
+	
+	writeLog "$logFile" "[$scriptName] Set the box to use for testing"
+	execute "`$env:OVERRIDE_IMAGE = `"cdaf/$boxname`""
+	
+	writeLog "$logFile" "[$scriptName] vagrant up target"
+	$proc = Start-Process -FilePath 'vagrant' -ArgumentList 'up target' -PassThru -Wait -NoNewWindow
+	if ( $proc.ExitCode -ne 0 ) {
+		writeLog "`n[$scriptName] Exit with `$LASTEXITCODE = $($proc.ExitCode)`n"
+	    exit $proc.ExitCode
+	}
+	
+	writeLog "$logFile" "[$scriptName] vagrant box list"
+	$proc = Start-Process -FilePath 'vagrant' -ArgumentList 'box list' -PassThru -Wait -NoNewWindow
+	if ( $proc.ExitCode -ne 0 ) {
+		writeLog "`n[$scriptName] Exit with `$LASTEXITCODE = $($proc.ExitCode)`n"
+	    exit $proc.ExitCode
+	}
+}  
 
 if ($destroy -eq 'yes') { 
 	writeLog "`n[$scriptName] Cleanup after test"
