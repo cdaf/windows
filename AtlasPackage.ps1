@@ -4,8 +4,7 @@ Param (
 	[string]$diskDir,
 	[string]$emailTo,
 	[string]$smtpServer,
-	[string]$skipTest,
-	[string]$destroy
+	[string]$skipTest
 )
 $scriptName = 'AtlasPackage.ps1'
 cmd /c "exit 0"
@@ -97,13 +96,6 @@ if ($skipTest) {
     Write-Host "[$scriptName] skipTest    : $skipTest (default)"
 }
 
-if ($destroy) {
-    Write-Host "[$scriptName] destroy     : $destroy"
-} else {
-	$destroy = 'yes'
-    Write-Host "[$scriptName] destroy     : $destroy (default)"
-}
-
 $imageLog = "$(pwd)\atlasPackage_${hypervisor}.txt"
 if (Test-Path "$imageLog") {
     Write-Host "`n[$scriptName] Logfile exists ($imageLog), delete for new run."
@@ -134,7 +126,9 @@ if ($hypervisor -eq 'virtualbox') {
 		emailAndExit 200
 	}
 
-	executeExpression "(New-Object System.Net.WebClient).DownloadFile(`'http://cdaf.io/static/app/downloads/Vagrantfile`', `"$PWD\Vagrantfile`")"
+	if ( $boxname -Match "Windows" ) { # This tells Vagrant to use WinRM instead of SSH
+		executeExpression "(New-Object System.Net.WebClient).DownloadFile(`'http://cdaf.io/static/app/downloads/Vagrantfile`', `"$PWD\Vagrantfile`")"
+	}
 	executeExpression "vagrant package --base $boxName --output $packageFile --vagrantfile Vagrantfile"
 
 } else {
@@ -226,10 +220,6 @@ if ($skipTest -eq 'yes') {
 		writeLog "`n[$scriptName] Exit with `$LASTEXITCODE = $($proc.ExitCode)`n"
 	    exit $proc.ExitCode
 	}
-}  
-
-if ($destroy -eq 'yes') { 
-	writeLog "`n[$scriptName] Cleanup after test"
     writeLog "`n[$scriptName] vagrant destroy -f"
 	writeLog "$logFile" "[$scriptName] vagrant destroy -f"
     $proc = Start-Process -FilePath 'vagrant' -ArgumentList 'destroy -f' -PassThru -Wait -NoNewWindow
@@ -240,7 +230,7 @@ if ($destroy -eq 'yes') {
 
     writeLog "`n[$scriptName] Clean-up Vagrant Temporary files"
     executeExpression "Remove-Item -Recurse $env:USERPROFILE\.vagrant.d\tmp\*"
-}
+}  
 
 emailProgress "Final notifcation, package of ${packageFile} complete"
 
