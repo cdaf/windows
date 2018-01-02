@@ -185,26 +185,29 @@ if ($hypervisor -eq 'virtualbox') {
 
 }
 
+writeLog "`n[$scriptName] Add the box to the local cache"
+$testDir = 'packageTest'
+if (Test-Path "$testDir ") {
+	executeExpression "Remove-Item $testDir  -Recurse -Force"
+}
+executeIgnoreExit "vagrant box remove cdaf/$boxName --all" # ignore error if none exist
+
+writeLog "`n[$scriptName] vagrant box add cdaf/$boxName $packageFile --force"
+writeLog "$logFile" "[$scriptName] vagrant box add cdaf/$boxName $packageFile --force"
+$proc = Start-Process -FilePath 'vagrant' -ArgumentList "box add cdaf/$boxName $packageFile --force" -PassThru -Wait -NoNewWindow
+if ( $proc.ExitCode -ne 0 ) {
+	writeLog "`n[$scriptName] Exit with `$LASTEXITCODE = $($proc.ExitCode)`n"
+    exit $proc.ExitCode
+}
+
+writeLog "$logFile" "[$scriptName] Return to workspace"
+executeExpression "cd .."
+
 if ($skipTest -eq 'yes') {
 	writeLog "`n[$scriptName] skipTest is $[skipTest}, tests not attempted."
 } else {
-	writeLog "`n[$scriptName] Initialise and start"
-	$testDir = 'packageTest'
-	if (Test-Path "$testDir ") {
-		executeExpression "Remove-Item $testDir  -Recurse -Force"
-	}
-	executeIgnoreExit "vagrant box remove cdaf/$boxName --all" # ignore error if none exist
-	
-	writeLog "`n[$scriptName] vagrant box add cdaf/$boxName $packageFile --force"
-	writeLog "$logFile" "[$scriptName] vagrant box add cdaf/$boxName $packageFile --force"
-	$proc = Start-Process -FilePath 'vagrant' -ArgumentList "box add cdaf/$boxName $packageFile --force" -PassThru -Wait -NoNewWindow
-	if ( $proc.ExitCode -ne 0 ) {
-		writeLog "`n[$scriptName] Exit with `$LASTEXITCODE = $($proc.ExitCode)`n"
-	    exit $proc.ExitCode
-	}
-	
-	writeLog "$logFile" "[$scriptName] Return to workspace and list the Vagrantfile before testing"
-	executeExpression "cd .."
+
+	writeLog "`n[$scriptName] Log vagrant file contents"
 	executeExpression "cat .\Vagrantfile"
 	
 	writeLog "$logFile" "[$scriptName] Set the box to use for testing"
