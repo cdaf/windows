@@ -128,8 +128,10 @@ if ($hypervisor -eq 'virtualbox') {
 
 	if ( $boxname -Match "Windows" ) { # This tells Vagrant to use WinRM instead of SSH
 		executeExpression "(New-Object System.Net.WebClient).DownloadFile(`'http://cdaf.io/static/app/downloads/Vagrantfile`', `"$PWD\Vagrantfile`")"
+		executeExpression "vagrant package --base $boxName --output $packageFile --vagrantfile Vagrantfile"
+	} else {
+		executeExpression "vagrant package --base $boxName --output $packageFile"
 	}
-	executeExpression "vagrant package --base $boxName --output $packageFile --vagrantfile Vagrantfile"
 
 } else {
 

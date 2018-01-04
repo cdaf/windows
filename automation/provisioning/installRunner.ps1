@@ -1,9 +1,12 @@
 Param (
   [string]$url,
   [string]$token,
-  [string]$description,
+  [string]$name,
   [string]$tags,
   [string]$executor,
+  [string]$serviceAccount,
+  [string]$saPassword,
+  [string]$tlsCAFile,
   [string]$mediaDirectory
 )
 $scriptName = 'installRunner.ps1'
@@ -33,24 +36,43 @@ if ( $token ) {
 	Write-Host "[$scriptName] token          : (not supplied)"
 }
 
-if ( $description ) {
-	Write-Host "[$scriptName] description    : $description"
+if ( $name ) {
+	Write-Host "[$scriptName] name           : $name"
 } else {
-	$description = "Gitlab Runner Installed by $scriptName"
-	Write-Host "[$scriptName] description    : $description (not supplied, set to default)"
+	$name = "$env:COMPUTERNAME"
+	Write-Host "[$scriptName] name           : $name (not supplied, set to default)"
 }
 
 if ( $tags ) {
 	Write-Host "[$scriptName] tags           : $tags"
 } else {
-	$tags = "$env:COMPUTERNAME" 
+	$tags = "$env:COMPUTERNAME"
 	Write-Host "[$scriptName] tags           : $tags (not supplied, set to default)"
 }
 
 if ( $executor ) {
 	Write-Host "[$scriptName] executor       : $executor"
 } else {
-	Write-Host "[$scriptName] executor       : (not supplied)"
+	$executor = 'shell'
+	Write-Host "[$scriptName] executor       : $executor (not supplied, set to default)"
+}
+
+if ( $serviceAccount ) {
+	Write-Host "[$scriptName] serviceAccount : $serviceAccount"
+} else {
+	Write-Host "[$scriptName] serviceAccount : (not supplied)"
+}
+
+if ( $saPassword ) {
+	Write-Host "[$scriptName] saPassword     : `$saPassword"
+} else {
+	Write-Host "[$scriptName] saPassword     : (not supplied)"
+}
+
+if ( $tlsCAFile ) {
+	Write-Host "[$scriptName] tlsCAFile      : $tlsCAFile"
+} else {
+	Write-Host "[$scriptName] tlsCAFile      : (not supplied)"
 }
 
 if ( $mediaDirectory ) {
@@ -60,28 +82,38 @@ if ( $mediaDirectory ) {
 	Write-Host "[$scriptName] mediaDirectory : $mediaDirectory (not supplied, set to default)"
 }
 
-$printList = "register --non-interactive --url $url --registration-token `$token --description $description --tag-list $tags --executor $executor"
-$argList = "register --non-interactive --url $url --registration-token $token --description $description --tag-list $tags --executor $executor"
+$printList = "register --non-interactive --url $url --registration-token `$token --name $name --tag-list '$tags' --executor $executor"
+$argList = "register --non-interactive --url $url --registration-token $token --name $name --tag-list '$tags' --executor $executor"
+
+if ( $tlsCAFile ) {
+	$printList = $printList + " --tls-ca-file $tlsCAFile"
+	$argList = $argList + " --tls-ca-file $tlsCAFile"
+}
 
 $fullpath = $mediaDirectory + '\gitlab-ci-multi-runner-windows-amd64.exe'
-Write-Host "[$scriptName] Start-Process $fullpath -ArgumentList $printList -PassThru -Wait"
-$proc = Start-Process $fullpath -ArgumentList $argList -PassThru -Wait -NoNewWindow
+Write-Host "[$scriptName] Start-Process $fullpath -PassThru -Wait -NoNewWindow -ArgumentList `"$printList`""
+$proc = Start-Process $fullpath -PassThru -Wait -NoNewWindow -ArgumentList $argList
+if ( $proc.ExitCode -ne 0 ) {
+	Write-Host "`n[$scriptName] Registration Failed! Exit with `$LASTEXITCODE $($proc.ExitCode)`n"
+    exit $proc.ExitCode
+}
+
+$arguments = 'install'
+if ( $serviceAccount ) {
+	$arguments = "--user $serviceAccount --password $saPassword"
+}
+
+Write-Host "[$scriptName] Start-Process $fullpath -PassThru -Wait -NoNewWindow -ArgumentList $arguments"
+$proc = Start-Process $fullpath -PassThru -Wait -NoNewWindow -ArgumentList $arguments
 if ( $proc.ExitCode -ne 0 ) {
 	Write-Host "`n[$scriptName] Install Failed! Exit with `$LASTEXITCODE $($proc.ExitCode)`n"
     exit $proc.ExitCode
 }
 
-Write-Host "[$scriptName] Start-Process $fullpath -ArgumentList install -PassThru -Wait"
-$proc = Start-Process $fullpath -ArgumentList install -PassThru -Wait -NoNewWindow
+Write-Host "[$scriptName] Start-Process $fullpath -PassThru -Wait -NoNewWindow -ArgumentList start"
+$proc = Start-Process $fullpath -PassThru -Wait -NoNewWindow -ArgumentList start
 if ( $proc.ExitCode -ne 0 ) {
-	Write-Host "`n[$scriptName] Install Failed! Exit with `$LASTEXITCODE $($proc.ExitCode)`n"
-    exit $proc.ExitCode
-}
-
-Write-Host "[$scriptName] Start-Process $fullpath -ArgumentList start -PassThru -Wait"
-$proc = Start-Process $fullpath -ArgumentList start -PassThru -Wait -NoNewWindow
-if ( $proc.ExitCode -ne 0 ) {
-	Write-Host "`n[$scriptName] Install Failed! Exit with `$LASTEXITCODE $($proc.ExitCode)`n"
+	Write-Host "`n[$scriptName] Start Failed! Exit with `$LASTEXITCODE $($proc.ExitCode)`n"
     exit $proc.ExitCode
 }
 
