@@ -112,7 +112,7 @@ $packageFile = "${buildDir}.box"
 emailProgress "packaging ${packageFile}, logging to ${imageLog}."
 writeLog "packaging ${packageFile}, logging to ${imageLog}."
 
-executeExpression "mkdir $buildDir"
+executeExpression "Write-Host 'Create working directory $(mkdir $buildDir)'"
 executeExpression "cd $buildDir"
 
 if ($hypervisor -eq 'virtualbox') {

@@ -23,7 +23,8 @@ function executeExpression ($expression) {
     if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) { Write-Host "[$scriptName] `$LASTEXITCODE = $LASTEXITCODE "; exit $LASTEXITCODE }
 }
 
-Write-Host "[$scriptName] ---------- start ----------"
+Write-Host "`n[$scriptName] Refer to https://docs.gitlab.com/runner/install/windows.html"
+Write-Host "`n[$scriptName] ---------- start ----------"
 if ( $url ) {
 	Write-Host "[$scriptName] url            : $url"
 } else {
@@ -82,17 +83,34 @@ if ( $mediaDirectory ) {
 	Write-Host "[$scriptName] mediaDirectory : $mediaDirectory (not supplied, set to default)"
 }
 
-$printList = "register --non-interactive --url $url --registration-token `$token --name $name --tag-list '$tags' --executor $executor"
-$argList = "register --non-interactive --url $url --registration-token $token --name $name --tag-list '$tags' --executor $executor"
+$versionTest = cmd /c gitlab-runner --version 2`>`&1
+if ($versionTest -like '*not recognized*') {
+	$fullpath = $mediaDirectory + '\gitlab-runner-windows-amd64.exe'
+	if (!( Test-Path $fullpath )) {
+		(New-Object System.Net.WebClient).DownloadFile("https://gitlab-runner-downloads.s3.amazonaws.com/latest/binaries/gitlab-runner-windows-amd64.exe", "$fullpath")
+	} 
+	Copy-Item $fullpath "$env:SystemRoot\gitlab-runner.exe"
+}
+
+$versionTest = cmd /c gitlab-runner --version 2`>`&1
+if ($versionTest -like '*not recognized*') {
+	Write-Host "GitLab Runner install failed!"; exit 8745
+} else {
+	$versionLine = $(foreach ($line in $versionTest) { Select-String  -InputObject $line -CaseSensitive "Version" })
+	$arr = $versionLine -split ':'
+	Write-Host "[$scriptName] gitlab-runner  : $($arr[1].replace(' ',''))"
+}
+
+$printList = "register --non-interactive --url $url --registration-token `$token --name $name --tag-list '$tags' --executor $executor --locked=false"
+$argList = "register --non-interactive --url $url --registration-token $token --name $name --tag-list '$tags' --executor $executor --locked=false"
 
 if ( $tlsCAFile ) {
 	$printList = $printList + " --tls-ca-file $tlsCAFile"
 	$argList = $argList + " --tls-ca-file $tlsCAFile"
 }
 
-$fullpath = $mediaDirectory + '\gitlab-ci-multi-runner-windows-amd64.exe'
-Write-Host "[$scriptName] Start-Process $fullpath -PassThru -Wait -NoNewWindow -ArgumentList `"$printList`""
-$proc = Start-Process $fullpath -PassThru -Wait -NoNewWindow -ArgumentList $argList
+Write-Host "[$scriptName] Start-Process gitlab-runner -PassThru -Wait -NoNewWindow -ArgumentList `"$printList`""
+$proc = Start-Process gitlab-runner -PassThru -Wait -NoNewWindow -ArgumentList $argList
 if ( $proc.ExitCode -ne 0 ) {
 	Write-Host "`n[$scriptName] Registration Failed! Exit with `$LASTEXITCODE $($proc.ExitCode)`n"
     exit $proc.ExitCode
@@ -100,18 +118,24 @@ if ( $proc.ExitCode -ne 0 ) {
 
 $arguments = 'install'
 if ( $serviceAccount ) {
-	$arguments = "--user $serviceAccount --password $saPassword"
+	$arguments = $arguments + " --user $serviceAccount --password"
+	Write-Host "[$scriptName] Start-Process gitlab-runner -PassThru -Wait -NoNewWindow -ArgumentList `"$arguments `$saPassword`""
+} else {
+	Write-Host "[$scriptName] Start-Process gitlab-runner -PassThru -Wait -NoNewWindow -ArgumentList `"$arguments`""
 }
 
-Write-Host "[$scriptName] Start-Process $fullpath -PassThru -Wait -NoNewWindow -ArgumentList $arguments"
-$proc = Start-Process $fullpath -PassThru -Wait -NoNewWindow -ArgumentList $arguments
+if ( $serviceAccount ) {
+	$arguments = $arguments + " $saPassword"
+}
+
+$proc = Start-Process gitlab-runner -PassThru -Wait -NoNewWindow -ArgumentList $arguments
 if ( $proc.ExitCode -ne 0 ) {
 	Write-Host "`n[$scriptName] Install Failed! Exit with `$LASTEXITCODE $($proc.ExitCode)`n"
     exit $proc.ExitCode
 }
 
-Write-Host "[$scriptName] Start-Process $fullpath -PassThru -Wait -NoNewWindow -ArgumentList start"
-$proc = Start-Process $fullpath -PassThru -Wait -NoNewWindow -ArgumentList start
+Write-Host "[$scriptName] Start-Process gitlab-runner -PassThru -Wait -NoNewWindow -ArgumentList start"
+$proc = Start-Process gitlab-runner -PassThru -Wait -NoNewWindow -ArgumentList start
 if ( $proc.ExitCode -ne 0 ) {
 	Write-Host "`n[$scriptName] Start Failed! Exit with `$LASTEXITCODE $($proc.ExitCode)`n"
     exit $proc.ExitCode

@@ -1,8 +1,7 @@
 Param (
-  [string]$userDomain,
-  [string]$userAlias
+  [string]$userName
 )
-$scriptName = 'addFeature.ps1'
+$scriptName = 'setServiceLogon.ps1'
 
 # Common expression logging and error handling function, copied, not referenced to ensure atomic process
 function executeExpression ($expression) {
@@ -17,17 +16,20 @@ function executeExpression ($expression) {
 }
 
 Write-Host "`n[$scriptName] ---------- start ----------"
-if ($userDomain) {
-    Write-Host "[$scriptName] userDomain   : $userDomain"
+if ($userName) {
+    Write-Host "[$scriptName] userName   : $userName"
 } else {
-    Write-Host "[$scriptName] userDomain not passed, exit with LASTEXITCODE 100"; exit 100
+	$userName = $(whoami)
+    Write-Host "[$scriptName] userName   : $userName (not passed, defaulted to current user)"
 }
 
-if ($userAlias) {
-    Write-Host "[$scriptName] userAlias   : $userAlias"
-} else {
-    Write-Host "[$scriptName] userAlias not passed, exit with LASTEXITCODE 101"; exit 101
+# Separate domain and uername
+$userDomain,$userAlias = $userName.split('\')
+if ( $userDomain -eq '.' ) {
+	$userDomain = $env:COMPUTERNAME
 }
+Write-Host "[$scriptName] userDomain : $userDomain"
+Write-Host "[$scriptName] userAlias  : $userAlias"
 
 #Desc: Grants log on as service rights on the computer. This script needs to run in elevated mode (admin)
 #created by: Sachin Patil
@@ -63,14 +65,15 @@ Add-Content $infFile "Description=This is security template to grant log on as s
 Add-Content $infFile "[Privilege Rights]"
 Add-Content $infFile "SeServiceLogonRight = *$sid,*$sid2" #add more users here if needed
 
-$seceditFile = "c:\Windows\security\database\secedit.sdb"
-#Make sure it exists
+$seceditFile = "$env:SystemRoot\security\database\secedit.sdb"
+write-host "Verify default database exists ($seceditFile)"
 if((Test-Path $seceditFile) -eq $false)
 {
     Write-Error "Security database does not exist $seceditFile"
 }
+
 write-host "Validating new security template .inf file"
-#validate if template is correct
+write-host "secedit /validate $infFile"
 secedit /validate $infFile
 $exitcode = $LASTEXITCODE
 if($exitcode -ne 0)
@@ -79,8 +82,8 @@ if($exitcode -ne 0)
     exit $exitcode
 }
 
-write-host "Appliying security template to default secedit.sdb"
-
+write-host "Applying security template to default database ($seceditFile)"
+write-host "secedit /configure /db secedit.sdb /cfg `"$infFile`" /log `"$logFile`""
 secedit /configure /db secedit.sdb /cfg "$infFile" /log "$logFile"
 $exitcode = $LASTEXITCODE
 if($exitcode -ne 0)
@@ -90,6 +93,9 @@ if($exitcode -ne 0)
 }
 get-content "$logFile"
 write-host "Successfully granted log on as service access to user $userAlias" -ForegroundColor Green
+
+write-host "Reload Group Policy"
+write-host "gpupdate /force"
 gpupdate /force
 
 Write-Host "`n[$scriptName] ---------- stop ----------"

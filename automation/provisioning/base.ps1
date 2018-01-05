@@ -24,7 +24,7 @@ if ($install) {
 }
 
 Write-Host
-executeExpression "choco install -y $install --fail-on-standard-error"
+executeExpression "choco install -y $install --no-progress --fail-on-standard-error"
 
 Write-Host "`n[$scriptName] Reload the path`n"
 executeExpression '$env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")'
