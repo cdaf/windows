@@ -134,12 +134,8 @@ if ( $proc.ExitCode -ne 0 ) {
     exit $proc.ExitCode
 }
 
-Write-Host "[$scriptName] Start-Process gitlab-runner -PassThru -Wait -NoNewWindow -ArgumentList start"
-$proc = Start-Process gitlab-runner -PassThru -Wait -NoNewWindow -ArgumentList start
-if ( $proc.ExitCode -ne 0 ) {
-	Write-Host "`n[$scriptName] Start Failed! Exit with `$LASTEXITCODE $($proc.ExitCode)`n"
-    exit $proc.ExitCode
-}
+Write-Host "[$scriptName] Start Service using commandlet as gitlab-runner start can fail silently"
+executeExpression "Start-Service gitlab-runner"
 
 Write-Host "`n[$scriptName] ---------- stop -----------`n"
 exit 0
