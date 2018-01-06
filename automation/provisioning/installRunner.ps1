@@ -19,7 +19,7 @@ function executeExpression ($expression) {
 		Invoke-Expression $expression
 	    if(!$?) { Write-Host "[$scriptName] `$? = $?"; exit 1 }
 	} catch { echo $_.Exception|format-list -force; exit 2 }
-    if ( $error[0] ) { Write-Host "[$scriptName] `$error[0] = $error"; exit 3 }
+    if ( $error[0] ) { Write-Host "[$scriptName] `$error[0] = $error"; Get-EventLog system -newest 5 | Format-List; exit 3 }
     if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) { Write-Host "[$scriptName] `$LASTEXITCODE = $LASTEXITCODE "; exit $LASTEXITCODE }
 }
 
@@ -83,23 +83,38 @@ if ( $mediaDirectory ) {
 	Write-Host "[$scriptName] mediaDirectory : $mediaDirectory (not supplied, set to default)"
 }
 
-$versionTest = cmd /c gitlab-runner --version 2`>`&1
-if ($versionTest -like '*not recognized*') {
-	$fullpath = $mediaDirectory + '\gitlab-runner-windows-amd64.exe'
-	if (!( Test-Path $fullpath )) {
-		(New-Object System.Net.WebClient).DownloadFile("https://gitlab-runner-downloads.s3.amazonaws.com/latest/binaries/gitlab-runner-windows-amd64.exe", "$fullpath")
-	} 
-	Copy-Item $fullpath "$env:SystemRoot\gitlab-runner.exe"
+if (!( Test-Path "C:\GitLab-Runner" )) {
+	Write-Host "[$scriptName] Create runtime directory $(mkdir C:\GitLab-Runner)"
+	Write-Host "[$scriptName] Add C:\GitLab-Runner to PATH and reload path"
+	[Environment]::SetEnvironmentVariable("Path", $env:Path + ";C:\GitLab-Runner", [EnvironmentVariableTarget]::Machine)
+	$env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")
 }
 
 $versionTest = cmd /c gitlab-runner --version 2`>`&1
-if ($versionTest -like '*not recognized*') {
-	Write-Host "GitLab Runner install failed!"; exit 8745
+if ( $LASTEXITCODE -ne 0 ) {
+## v9.5 of the runner
+#	$fullpath = $mediaDirectory + '\gitlab-ci-multi-runner-windows-amd64.exe'
+#	if (!( Test-Path $fullpath )) {
+#		(New-Object System.Net.WebClient).DownloadFile("https://gitlab-ci-multi-runner-downloads.s3.amazonaws.com/latest/binaries/gitlab-ci-multi-runner-windows-amd64.exe", "$fullpath")
+#	} 
+	cmd /c "exit 0" # reset $LASTEXITCODE
+	$fullpath = $mediaDirectory + '\gitlab-runner-windows-amd64.exe'
+	if (!( Test-Path $fullpath )) {
+		executeExpression "(New-Object System.Net.WebClient).DownloadFile('https://gitlab-runner-downloads.s3.amazonaws.com/latest/binaries/gitlab-runner-windows-amd64.exe', '$fullpath')"
+	} 
+	executeExpression "Copy-Item $fullpath 'C:\GitLab-Runner\gitlab-runner.exe'"
+}
+
+$versionTest = cmd /c gitlab-runner --version 2`>`&1
+if ( $LASTEXITCODE -ne 0 ) {
+	Write-Host "GitLab Runner install failed!"; exit $LASTEXITCODE
 } else {
 	$versionLine = $(foreach ($line in $versionTest) { Select-String  -InputObject $line -CaseSensitive "Version" })
 	$arr = $versionLine -split ':'
 	Write-Host "[$scriptName] gitlab-runner  : $($arr[1].replace(' ',''))"
 }
+
+executeExpression "cd C:\GitLab-Runner"
 
 $printList = "register --non-interactive --url $url --registration-token `$token --name $name --tag-list '$tags' --executor $executor --locked=false"
 $argList = "register --non-interactive --url $url --registration-token $token --name $name --tag-list '$tags' --executor $executor --locked=false"
@@ -124,7 +139,7 @@ if ( $serviceAccount ) {
 	Write-Host "[$scriptName] Start-Process gitlab-runner -PassThru -Wait -NoNewWindow -ArgumentList `"$arguments`""
 }
 
-if ( $serviceAccount ) {
+if ( $saPassword ) {
 	$arguments = $arguments + " $saPassword"
 }
 
