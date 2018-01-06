@@ -1,4 +1,5 @@
 @echo off
+cmd /c "exit 0"
 
 rem Too complicated to derive automation root from Batch runner, so hard coded for windows.
 set ACTION=%1

@@ -1,4 +1,5 @@
 @echo off
+cmd /c "exit 0"
 echo.
 echo [%~nx0] ============================================
 echo [%~nx0] Continuous Integration (CI) Process Starting

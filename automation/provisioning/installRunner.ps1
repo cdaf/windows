@@ -92,12 +92,13 @@ if (!( Test-Path "C:\GitLab-Runner" )) {
 
 $versionTest = cmd /c gitlab-runner --version 2`>`&1
 if ( $LASTEXITCODE -ne 0 ) {
+	cmd /c "exit 0" # reset $LASTEXITCODE
 ## v9.5 of the runner
 #	$fullpath = $mediaDirectory + '\gitlab-ci-multi-runner-windows-amd64.exe'
 #	if (!( Test-Path $fullpath )) {
 #		(New-Object System.Net.WebClient).DownloadFile("https://gitlab-ci-multi-runner-downloads.s3.amazonaws.com/latest/binaries/gitlab-ci-multi-runner-windows-amd64.exe", "$fullpath")
 #	} 
-	cmd /c "exit 0" # reset $LASTEXITCODE
+## v10.x of the runner
 	$fullpath = $mediaDirectory + '\gitlab-runner-windows-amd64.exe'
 	if (!( Test-Path $fullpath )) {
 		executeExpression "(New-Object System.Net.WebClient).DownloadFile('https://gitlab-runner-downloads.s3.amazonaws.com/latest/binaries/gitlab-runner-windows-amd64.exe', '$fullpath')"
