@@ -18,6 +18,8 @@ function executeExpression ($expression) {
     return $output
 }
 
+cmd /c "exit 0"
+
 Write-Host "`n[$scriptName] ---------- start ----------"
 if ($uri) {
     Write-Host "[$scriptName] uri      : $uri"
@@ -40,7 +42,10 @@ if ($md5) {
 }
 
 # Create media cache if missing
-if (!( Test-Path $mediaDir )) {
+if ( Test-Path $mediaDir ) {
+    Write-Host "`n[$scriptName] `$mediaDir ($mediaDir) exists"
+} else {
+    Write-Host "`n[$scriptName] `$mediaDir ($mediaDir) does not exist, attempt to create ..."
 	$result = executeExpression "mkdir $mediaDir"
 	Write-Host "[$scriptName] Created $result`n"
 }
@@ -50,12 +55,12 @@ $fullpath = $mediaDir + '\' + $filename
 if ( Test-Path $fullpath ) {
 	Write-Host "[$scriptName] $fullpath exists, download not required"
 } else {
-	executeExpression "(New-Object System.Net.WebClient).DownloadFile(`"`$uri`", `"`$fullpath`")" 
+	executeExpression "(New-Object System.Net.WebClient).DownloadFile('$uri', '$fullpath')" 
 }
 
 if ( $md5 ) {
 	Write-Host
-	$hashValue = executeExpression "Get-FileHash `"$fullpath`" -Algorithm MD5"
+	$hashValue = executeExpression "Get-FileHash '$fullpath' -Algorithm MD5"
 	if ($hashValue = $md5) {
 		Write-Host "[$scriptName] MD5 check successful"
 	} else {
