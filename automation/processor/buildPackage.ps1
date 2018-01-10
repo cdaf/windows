@@ -151,14 +151,22 @@ $propertiesFile = "$AUTOMATIONROOT\CDAF.windows"
 $cdafVersion = getProp 'productVersion'
 Write-Host "[$scriptName]   CDAF Version    : $cdafVersion"
 
-& .\$AUTOMATIONROOT\buildandpackage\buildProjects.ps1 $SOLUTION $BUILDNUMBER $REVISION $AUTOMATIONROOT $solutionRoot $ACTION
-if($LASTEXITCODE -ne 0){
-	exitWithCode "BUILD_NON_ZERO_EXIT .\$AUTOMATIONROOT\buildandpackage\buildProjects.ps1 $SOLUTION $BUILDNUMBER $REVISION $AUTOMATIONROOT $solutionRoot $ACTION" $LASTEXITCODE
+if ( $ACTION -eq 'packageonly' ) {
+	Write-Host "`n[$scriptName] Action is $ACTION so skipping build process" -ForegroundColor Yellow
+} else {
+	& .\$AUTOMATIONROOT\buildandpackage\buildProjects.ps1 $SOLUTION $BUILDNUMBER $REVISION $AUTOMATIONROOT $solutionRoot $ACTION
+	if($LASTEXITCODE -ne 0){
+		exitWithCode "BUILD_NON_ZERO_EXIT .\$AUTOMATIONROOT\buildandpackage\buildProjects.ps1 $SOLUTION $BUILDNUMBER $REVISION $AUTOMATIONROOT $solutionRoot $ACTION" $LASTEXITCODE
+	}
+	if(!$?){ taskWarning "buildProjects.ps1" }
 }
-if(!$?){ taskWarning "buildProjects.ps1" }
 
-& .\$AUTOMATIONROOT\buildandpackage\package.ps1 $SOLUTION $BUILDNUMBER $REVISION $AUTOMATIONROOT $solutionRoot $LOCAL_WORK_DIR $REMOTE_WORK_DIR $ACTION
-if($LASTEXITCODE -ne 0){
-	exitWithCode "PACKAGE_NON_ZERO_EXIT .\$AUTOMATIONROOT\buildandpackage\package.ps1 $SOLUTION $BUILDNUMBER $REVISION $AUTOMATIONROOT $solutionRoot $LOCAL_WORK_DIR $REMOTE_WORK_DIR $ACTION" $LASTEXITCODE
+if ( $ACTION -eq 'buildonly' ) {
+	Write-Host "`n[$scriptName] Action is $ACTION so skipping package process" -ForegroundColor Yellow
+} else {
+	& .\$AUTOMATIONROOT\buildandpackage\package.ps1 $SOLUTION $BUILDNUMBER $REVISION $AUTOMATIONROOT $solutionRoot $LOCAL_WORK_DIR $REMOTE_WORK_DIR $ACTION
+	if($LASTEXITCODE -ne 0){
+		exitWithCode "PACKAGE_NON_ZERO_EXIT .\$AUTOMATIONROOT\buildandpackage\package.ps1 $SOLUTION $BUILDNUMBER $REVISION $AUTOMATIONROOT $solutionRoot $LOCAL_WORK_DIR $REMOTE_WORK_DIR $ACTION" $LASTEXITCODE
+	}
+	if(!$?){ taskWarning "package.ps1" }
 }
-if(!$?){ taskWarning "package.ps1" }

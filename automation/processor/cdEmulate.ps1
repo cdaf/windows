@@ -43,7 +43,7 @@ if ( Test-Path buildnumber.counter ) {
 	$buildNumber = 0
 }
 [int]$buildnumber = [convert]::ToInt32($buildNumber)
-if ( $ACTION -ne "deliveryonly" ) { # Do not incriment when just deploying
+if ( $ACTION -ne "cdonly" ) { # Do not incriment when just deploying
 	$buildNumber += 1
 }
 Out-File buildnumber.counter -InputObject $buildNumber
@@ -153,8 +153,9 @@ if ( $dockerRun ) {
 	$workDirLocal = 'TasksLocal'
 	Write-Host "[$scriptName]   workDirLocal        : $workDirLocal (default, see readme for changing this location)"
 	
-	# Do not list configuration instructions when performing clean
-	if (( $ACTION -ne "clean" ) -and ($ACTION -ne "deliveryonly")) { # Case insensitive
+	if ( $ACTION ) { # Do not list configuration instructions when an action is passed
+		write-host "`n[$scriptName] Action is $ACTION"
+	} else {
 		write-host "`n[$scriptName] ---------- CI Toolset Configuration Guide -------------`n"
 	    write-host 'For TeamCity ...'
 	    write-host "  Command Executable  : $ciInstruction"
@@ -192,7 +193,9 @@ if ( $dockerRun ) {
 		write-host "`n[$scriptName] -------------------------------------------------------"
 	}
 	# Process Build and Package
-	if ( $ACTION -ne "deliveryonly" ) { # Case insensitive
+	if ( $ACTION -eq "cdonly" ) { # Case insensitive
+		Write-Host "[$scriptName] Action is $ACTION so skipping build and package (CI) process"
+	} else {
 		& $ciProcess $buildNumber $revision $ACTION
 		if($LASTEXITCODE -ne 0){
 		    write-host "[$scriptName] CI_NON_ZERO_EXIT $ciProcess $buildNumber $revision $ACTION" -ForegroundColor Magenta
@@ -204,9 +207,15 @@ if ( $dockerRun ) {
 	}
 }
 	
-if (( $ACTION -eq "clean" ) -or ( $ACTION -eq "buildonly" )){ # Case insensitive
-	write-host "`n[$scriptName] No Delivery attempted when action ($ACTION) passed"
+if ( $ACTION ) {
+	if ( $ACTION -eq "cdonly" ) {
+		write-host "`n[$scriptName] Instruction listing skipped when action ($ACTION) passed"
+		$execCD = 'yes'
+	} else {
+		write-host "`n[$scriptName] No Delivery attempted when action ($ACTION) passed"
+	}
 } else {
+	$execCD = 'yes'
 	write-host "`n[$scriptName] ---------- Artefact Configuration Guide -------------`n"
 	write-host 'Configure artefact retention patterns to retain package and local tasks'
 	write-host
@@ -266,7 +275,9 @@ if (( $ACTION -eq "clean" ) -or ( $ACTION -eq "buildonly" )){ # Case insensitive
 	write-host '    environment: <environment>'
    	write-host
 	write-host "[$scriptName] -------------------------------------------------------"
+}
 
+if ( $execCD -eq 'yes' ) {
 	& $cdProcess $environmentDelivery $release
 	if($LASTEXITCODE -ne 0){
 	    write-host "[$scriptName] CD_NON_ZERO_EXIT $cdProcess $environmentDelivery $release" -ForegroundColor Magenta
