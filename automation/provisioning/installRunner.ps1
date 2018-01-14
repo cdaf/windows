@@ -23,6 +23,8 @@ function executeExpression ($expression) {
     if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) { Write-Host "[$scriptName] `$LASTEXITCODE = $LASTEXITCODE "; exit $LASTEXITCODE }
 }
 
+cmd /c "exit 0"
+
 Write-Host "`n[$scriptName] Refer to https://docs.gitlab.com/runner/install/windows.html"
 Write-Host "`n[$scriptName] ---------- start ----------"
 if ( $url ) {
