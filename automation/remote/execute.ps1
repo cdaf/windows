@@ -188,6 +188,8 @@ $TARGET      = $args[2]
 $TASK_LIST   = $args[3]
 $ACTION      = $args[4]
 
+cmd /c "exit 0"
+
 # Set the temporary directory (system wide)
 $TMPDIR = [Environment]::GetEnvironmentVariable("TEMP","Machine")
 

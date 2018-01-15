@@ -25,7 +25,7 @@ function passExitCode ($message, $exitCode) {
 function taskFailure ($taskName) {
     write-host "`n[$scriptName] $taskName" -ForegroundColor Red
 	write-host "[$scriptName]   `$host.SetShouldExit(60)" -ForegroundColor Red
-	$host.SetShouldExit(60); exit
+	$host.SetShouldExit(60); exit 60
 }
 
 function taskWarning { 
@@ -59,9 +59,9 @@ function pathTest ($pathToTest) {
 }
 
 function taskError ($taskName) {
-    write-host "[$scriptName] Error occured when excuting $taskName :" -ForegroundColor Red
-    $host.SetShouldExit(70)
-    exit
+    write-host "[$scriptName] Error occured when excuting $taskName" -ForegroundColor Red
+    write-host "[$scriptName] Exit with `$LASTEXITCODE 70" -ForegroundColor Red
+    $host.SetShouldExit(70); exit 70
 }
 
 function getProp ($propName) {
