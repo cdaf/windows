@@ -1,7 +1,7 @@
 Param (
 	[string]$SOLUTION,
 	[string]$BUILDNUMBER,
-	[string]$ENVIRONMENT
+	[string]$TARGET
 )
 
 $scriptName = 'deliveryScript.ps1'
@@ -12,18 +12,21 @@ function executeExpression ($expression) {
 	$error.clear()
 	Write-Host "[$scriptName] $expression"
 	try {
-		Invoke-Expression $expression
+		$result = Invoke-Expression $expression
 	    if(!$?) { Write-Host "[$scriptName] `$? = $?"; exit 1 }
 	} catch { echo $_.Exception|format-list -force; exit 2 }
     if ( $error[0] ) { Write-Host "[$scriptName] `$error[0] = $error"; exit 3 }
     if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) { Write-Host "[$scriptName] `$LASTEXITCODE = $LASTEXITCODE "; exit $LASTEXITCODE }
+    return $result
 }
 
 
 Write-Host "`n[$scriptName] ---------- start ----------`n"
 Write-Host "[$scriptName]   SOLUTION    : $SOLUTION"
 Write-Host "[$scriptName]   BUILDNUMBER : $BUILDNUMBER"
-Write-Host "[$scriptName]   ENVIRONMENT : $ENVIRONMENT"
+Write-Host "[$scriptName]   TARGET      : $TARGET"
+
+& ./Transform.ps1 $TARGET | ForEach-Object { invoke-expression $_ }
 
 if ( Test-Path 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Server\ServerLevels' ) {
 
