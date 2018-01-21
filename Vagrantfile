@@ -100,6 +100,10 @@ Vagrant.configure(2) do |allhosts|
       override.vm.provision 'shell', path: './automation/provisioning/setenv.ps1', args: 'environmentDelivery VAGRANT Machine'
       override.vm.provision 'shell', path: './automation/provisioning/CDAF_Desktop_Certificate.ps1'
       override.vm.provision 'shell', path: './automation/provisioning/CDAF.ps1'
+      override.vm.provision 'shell', path: './automation/provisioning/CDAF.ps1', args: '-OPT_ARG buildonly'
+      override.vm.provision 'shell', path: './automation/provisioning/CDAF.ps1', args: '-OPT_ARG packageonly'
+      override.vm.provision 'shell', path: './automation/provisioning/CDAF.ps1', args: '-OPT_ARG cionly'
+      override.vm.provision 'shell', path: './automation/provisioning/CDAF.ps1', args: '-OPT_ARG cdonly'
     end
     buildserver.vm.provider 'hyperv' do |hyperv, override|
       hyperv.memory = "#{vRAM}"
