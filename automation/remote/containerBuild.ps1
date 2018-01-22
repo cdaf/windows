@@ -40,6 +40,9 @@ if ( $rebuildImage ) {
 }
 
 Write-Host "[$scriptName]   DOCKER_HOST  : $env:DOCKER_HOST"
+Write-Host "[$scriptName]   pwd          : $(pwd)"
+Write-Host "[$scriptName]   hostname     : $(hostname)"
+Write-Host "[$scriptName]   whoami       : $(whoami)"
 
 # Test Docker is running
 Write-Host "[$scriptName] List all current images"
