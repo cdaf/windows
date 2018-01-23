@@ -3,10 +3,12 @@ Param (
 	[string]$restart
 )
 
+cmd /c "exit 0"
+
 # Use executeReinstall to support reinstalling, use executeExpression to trap all errors ($LASTEXITCODE is global)
 function execute ($expression) {
 	$error.clear()
-	Write-Host "[$scriptName] $expression"
+	Write-Host "$expression"
 	try {
 		Invoke-Expression $expression
 	    if(!$?) { Write-Host "[$scriptName] `$? = $?"; exit 1 }
@@ -78,7 +80,8 @@ if ($restart) {
     Write-Host "[$scriptName]  restart   : $restart (set to default)"
 }
 
-executeReinstall "Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.201 -Verbose -Force"
+Write-Host "Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.201 -Verbose -Force"
+Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.201 -Verbose -Force
 
 executeRetry "Set-PSRepository -Name PSGallery -InstallationPolicy Trusted"
 
