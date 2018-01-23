@@ -72,7 +72,9 @@ try {
 				Write-Host "`n[$scriptName] Exit 3010 The requested operation is successful. Changes will not be effective until the system is rebooted.`n"
 			}
 		    default {
-				Write-Host "`n[$scriptName] Install Failed, see log file (c:\windows\logs\CBS\CBS.log) for details. Exit with `$LASTEXITCODE $($proc.ExitCode)`n"
+				Write-Host "`n[$scriptName] Install Failed, see log file (c:\windows\logs\CBS\CBS.log) for details, listing last 40 lines`n"
+				executeExpression "Get-Content 'c:\windows\logs\CBS\CBS.log' | select -Last 40"
+				Write-Host "`n[$scriptName] Exit with `$LASTEXITCODE $($proc.ExitCode)`n"
 		        exit $proc.ExitCode
 		    }
         }

@@ -61,7 +61,11 @@ $argList = @(
 # Perform Install
 $proc = executeExpression "Start-Process -FilePath `'msiexec`' -ArgumentList `'$argList`' $sessionControl"
 if ( $proc.ExitCode -ne 0 ) {
-	Write-Host "`n[$scriptName] Install Failed, see log file (c:\windows\logs\CBS\CBS.log) for details. Exit with `$LASTEXITCODE $($proc.ExitCode)`n"
+	Write-Host "`n[$scriptName] Install Failed, see log file (c:\windows\logs\CBS\CBS.log) for details, listing last 40 lines`n"
+	executeExpression "Get-Content 'c:\windows\logs\CBS\CBS.log' | select -Last 40"
+	Write-Host "`n[$scriptName] Listing MSI log file`n"
+	executeExpression "Get-Content $logFile"
+	Write-Host "`n[$scriptName] Exit with `$LASTEXITCODE $($proc.ExitCode)`n"
     exit $proc.ExitCode
 }
 
