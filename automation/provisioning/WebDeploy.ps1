@@ -53,11 +53,10 @@ if ($mediaDir) {
 }
 
 if (!( Test-Path $mediaDir )) {
-	Write-Host "[$scriptName] mkdir $mediaDir"
-	mkdir $mediaDir
+	Write-Host "[$scriptName] Created $(mkdir $mediaDir)"
 }
 if ($env:interactive) {
-    Write-Host "[$scriptName] env:interactive : $env:interactive, run in current window"
+    Write-Host "[$scriptName] `$env:interactive = `$env:interactive, run in current window"
     $sessionControl = '-PassThru -Wait -NoNewWindow'
 } else {
     $sessionControl = '-PassThru -Wait'
@@ -108,7 +107,9 @@ if ( $InstallPath ) {
 	if ( Test-Path $fullpath ) {
 		Write-Host "[$scriptName] $fullpath exists, download not required"
 	} else {
-		executeExpression "(New-Object System.Net.WebClient).DownloadFile('$uri', '$fullpath')"
+		$webclient = new-object system.net.webclient
+		Write-Host "[$scriptName] $webclient.DownloadFile(`"$uri`", `"$fullpath`")"
+		$webclient.DownloadFile($uri, $fullpath)
 	}
 	
 	# Output File (plain text or XML depending on method) must be supplioed

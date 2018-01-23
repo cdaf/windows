@@ -19,7 +19,7 @@ $java_version = $args[0]
 if ( $java_version ) {
 	Write-Host "[$scriptName] java_version          : $java_version"
 } else {
-	$java_version = '8u151'
+	$java_version = '8u161'
 	Write-Host "[$scriptName] java_version          : $java_version (default)"
 }
 
@@ -54,6 +54,21 @@ $javaInstallDir = "$destinationInstallDir\Java"
 $jdkInstallDir = "$javaInstallDir\jdk$java_version"
 $jreInstallDir = "$javaInstallDir\jre$java_version"
 $jdkInstallFileName = "jdk-" + $java_version + "-windows-" + $architecture + ".exe"
+
+$installer = "$sourceInstallDir\$jdkInstallFileName"
+if (!( Test-Path "$installer" )) {
+	Write-Host
+	Write-Host "[$scriptName] $installer not found, attempt to download ..."
+	$versionTest = cmd /c curl.exe --version 2`>`&1
+	cmd /c "exit 0"
+	if ($versionTest -like '*not recognized*') {
+		Write-Host "  curl.exe not installed, exiting with error code 6273"; exit 6273
+	} else {
+		$array = $versionTest.split(" ")
+		Write-Host "  curl.exe                : $($array[1])"
+	}
+	executeExpression "& curl.exe --silent -L -b 'oraclelicense=a' http://download.oracle.com/otn-pub/java/jdk/${java_version}-b12/2f38c3b165be4555a1fa6e98c45e0808/$jdkInstallFileName --output $sourceInstallDir\$jdkInstallFileName"
+}
 
 $installer = "$sourceInstallDir\$jdkInstallFileName"
 if ( Test-Path "$installer" ) {
