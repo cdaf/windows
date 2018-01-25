@@ -24,14 +24,31 @@ if ($certificateName) {
     Write-Host "[$scriptName] certificateName : $certificateName (not passed, set to default)"
 }
 
-$localThumbPrint = foreach ( $certificate in get-childitem "cert:\localmachine\my" ) { if ($certificate.DnsNameList -eq "$certificateName") { $certificate.Thumbprint}}
-if ($localThumbPrint ) {
-	Write-Host "`n[$scriptName] $certificateName certificate exists with thumbprint $localThumbPrint"
+foreach ( $certificate in get-childitem "cert:\localmachine\my" ) {
+	if ($certificate.DnsNameList -eq "$certificateName") {
+		if ( $certificate.NotAfter -lt (Get-Date) ) {
+		    Write-Host "[$scriptName] Thumbprint found ($returnValue) but expired $($certificate.NotAfter)"
+		} else {
+		    $count = $count + 1
+			$returnValue = $certificate.Thumbprint
+		    Write-Host "[$scriptName] Thumbprint found $returnValue"
+	    }
+	}
+}
+
+if ( $returnValue ) {
+	if ( $count -gt 1 ) {
+		Write-Host "`n[$scriptName] Multiple certificates found for $certificateName, returning last = $returnValue"
+	} else {
+		Write-Host "`n[$scriptName] $certificateName certificate exists with thumbprint = $returnValue"
+	}
 } else {
 	$certificate = executeExpression "New-SelfSignedCertificate -certstorelocation cert:\localmachine\my -dnsname $certificateName"
-	Write-Host "`n[$scriptName] Created self-signed certificate with thumbprint $($certificate.Thumbprint)"
+	$returnValue = $certificate.Thumbprint
+	Write-Host "`n[$scriptName] Created self-signed certificate for $certificateName with thumbprint = $returnValue"
 }
 
 Write-Host "`n[$scriptName] ---------- stop ----------"
 $error.clear()
+return $returnValue
 exit 0
