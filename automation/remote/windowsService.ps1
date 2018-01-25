@@ -1,7 +1,10 @@
 Param (
   [string]$serviceName,
   [string]$binpath,
-  [string]$start
+  [string]$start,
+  [string]$windowsServiceLocalAdmin,
+  [string]$windowsServiceLocalAdminPassword
+
 )
 
 function executeRetry ($expression) {
@@ -40,6 +43,17 @@ if ($serviceName) {
 } else {
     Write-Host "[$scriptName] serviceName not passed, exit with LASTEXITCODE 564"; exit 564
 }
+if ($windowsServiceLocalAdmin) {
+    Write-Host "[$scriptName] windowsServiceLocalAdmin : $windowsServiceLocalAdmin"
+} else {
+    Write-Host "[$scriptName] windowsServiceLocalAdminPassword not passed"
+}
+if ($windowsServiceLocalAdminPassword) {
+    Write-Host "[$scriptName] windowsServiceLocalAdminPassword : `$windowsServiceLocalAdminPassword"
+} else {
+    Write-Host "[$scriptName] windowsServiceLocalAdminPassword not passed"
+}
+
 if ($binpath) {
     Write-Host "[$scriptName] binpath     : $binpath"
 	if ($start) {
@@ -56,6 +70,10 @@ if ($binpath) {
 
     Write-Host "[$scriptName] sc.exe create $serviceName displayname= `"$binpath`" binpath= `"$binpath`" start= auto"
 	sc.exe create $serviceName displayname= "$binpath" binpath= "$binpath" start= auto
+	
+	if ( $windowsServiceLocalAdmin ){
+		sc.exe config $serviceName obj= $windowsServiceLocalAdmin password= $windowsServiceLocalAdminPassword
+	}
 	if ( $start -eq 'yes' ) {
 		executeRetry "Start-Service $serviceName"
 	} else {
