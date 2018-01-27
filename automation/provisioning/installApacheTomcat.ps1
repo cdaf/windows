@@ -68,13 +68,12 @@ if ( Test-Path $tomcatHomeDir ) {
 }		
 Write-Host
 # Install Tomcat as a Windows Service
-$apacheTomcatInstallFileName="apache-tomcat-" + $tomcat_version + ".exe";
+$apacheTomcatInstallFileName = "apache-tomcat-" + $tomcat_version + ".exe";
 
 if (!( Test-Path $sourceInstallDir\$apacheTomcatInstallFileName )) {
 	# Create media cache if missing
 	if (!( Test-Path $sourceInstallDir )) {
-		$result = executeExpression "mkdir $sourceInstallDir"
-		Write-Host "[$scriptName] Created $result`n"
+		Write-Host "[$scriptName] Created $(mkdir $sourceInstallDir)`n"
 	}
 	$uri = "https://archive.apache.org/dist/tomcat/tomcat-8/v${tomcat_version}/bin/apache-tomcat-${tomcat_version}.exe"
 	executeExpression "(New-Object System.Net.WebClient).DownloadFile(`"$uri`", `"$sourceInstallDir\$apacheTomcatInstallFileName`")" 

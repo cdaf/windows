@@ -120,8 +120,8 @@ if ( $LASTEXITCODE -ne 0 ) {
 
 if ( $url ) {
 	
-	$printList = "--debug register --non-interactive --url $url --registration-token `$token --name $name --tag-list '$tags' --executor $executor --locked=false"
-	$argList = "--debug register --non-interactive --url $url --registration-token $token --name $name --tag-list '$tags' --executor $executor --locked=false"
+	$printList = "--debug register --non-interactive --url $url --registration-token `$token --name $name --tag-list '$tags' --executor $executor --locked=false --shell powershell"
+	$argList = "--debug register --non-interactive --url $url --registration-token $token --name $name --tag-list '$tags' --executor $executor --locked=false --shell powershell"
 	
 	if ( $tlsCAFile ) {
 		$printList = $printList + " --tls-ca-file $tlsCAFile"

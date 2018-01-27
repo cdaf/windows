@@ -189,6 +189,7 @@ $TASK_LIST   = $args[3]
 $ACTION      = $args[4]
 
 cmd /c "exit 0"
+$error.clear()
 
 # Set the temporary directory (system wide)
 $TMPDIR = [Environment]::GetEnvironmentVariable("TEMP","Machine")
