@@ -16,11 +16,12 @@ function executeExpression ($expression) {
 	$error.clear()
 	Write-Host "[$scriptName] $expression"
 	try {
-		Invoke-Expression $expression
+		$output = Invoke-Expression $expression
 	    if(!$?) { Write-Host "[$scriptName] `$? = $?"; exit 1 }
 	} catch { echo $_.Exception|format-list -force; exit 2 }
-    if ( $error[0] ) { Write-Host "[$scriptName] `$error[0] = $error"; Get-EventLog system -newest 5 | Format-List; exit 3 }
+    if ( $error[0] ) { Write-Host "[$scriptName] `$error[0] = $error"; exit 3 }
     if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) { Write-Host "[$scriptName] `$LASTEXITCODE = $LASTEXITCODE "; exit $LASTEXITCODE }
+    return $output
 }
 
 cmd /c "exit 0"
@@ -117,43 +118,63 @@ if ( $LASTEXITCODE -ne 0 ) {
 	Write-Host "[$scriptName] gitlab-runner  : $($arr[1].replace(' ',''))"
 }
 
-executeExpression "cd C:\GitLab-Runner"
+if ( $url ) {
+	
+	$printList = "--debug register --non-interactive --url $url --registration-token `$token --name $name --tag-list '$tags' --executor $executor --locked=false"
+	$argList = "--debug register --non-interactive --url $url --registration-token $token --name $name --tag-list '$tags' --executor $executor --locked=false"
+	
+	if ( $tlsCAFile ) {
+		$printList = $printList + " --tls-ca-file $tlsCAFile"
+		$argList = $argList + " --tls-ca-file $tlsCAFile"
+	}
+	
+	$exitCode = 1
+	$wait = 10
+	$retryMax = 5
+	$retryCount = 0
+	while (( $retryCount -le $retryMax ) -and ($exitCode -ne 0)) {
+		Write-Host "[$scriptName] Start-Process gitlab-runner -PassThru -Wait -NoNewWindow -ArgumentList `"$printList`""
+		$proc = Start-Process gitlab-runner -PassThru -Wait -NoNewWindow -ArgumentList $argList
+	    $exitCode = $proc.ExitCode
+		if ( $exitCode -ne 0 ) {
+			Write-Host "`n[$scriptName] Registration Failed! Exit with `$LASTEXITCODE $($proc.ExitCode)`n"
+			if ($retryCount -ge $retryMax ) {
+				Write-Host "[$scriptName] Retry maximum ($retryCount) reached, exiting with `$LASTEXITCODE = $exitCode.`n"
+				exit $exitCode
+			} else {
+				$retryCount += 1
+				Write-Host "[$scriptName] Wait $wait seconds, then retry $retryCount of $retryMax"
+				sleep $wait
+				$wait = $wait + $wait
+			}
+		}
+    }
+	
+	$arguments = 'install'
+	if ( $serviceAccount ) {
+		$arguments = $arguments + " --user $serviceAccount --password"
+		Write-Host "[$scriptName] Start-Process gitlab-runner -PassThru -Wait -NoNewWindow -ArgumentList `"$arguments `$saPassword`""
+	} else {
+		Write-Host "[$scriptName] Start-Process gitlab-runner -PassThru -Wait -NoNewWindow -ArgumentList `"$arguments`""
+	}
+	
+	if ( $saPassword ) {
+		$arguments = $arguments + " $saPassword"
+	}
+	
+	$proc = Start-Process gitlab-runner -PassThru -Wait -NoNewWindow -ArgumentList $arguments
+	if ( $proc.ExitCode -ne 0 ) {
+		Write-Host "`n[$scriptName] Install Failed! Exit with `$LASTEXITCODE $($proc.ExitCode)`n"
+	    exit $proc.ExitCode
+	}
+	
+	Write-Host "[$scriptName] Start Service using commandlet as gitlab-runner start can fail silently"
+	executeExpression "Start-Service gitlab-runner"
 
-$printList = "register --non-interactive --url $url --registration-token `$token --name $name --tag-list '$tags' --executor $executor --locked=false"
-$argList = "register --non-interactive --url $url --registration-token $token --name $name --tag-list '$tags' --executor $executor --locked=false"
-
-if ( $tlsCAFile ) {
-	$printList = $printList + " --tls-ca-file $tlsCAFile"
-	$argList = $argList + " --tls-ca-file $tlsCAFile"
-}
-
-Write-Host "[$scriptName] Start-Process gitlab-runner -PassThru -Wait -NoNewWindow -ArgumentList `"$printList`""
-$proc = Start-Process gitlab-runner -PassThru -Wait -NoNewWindow -ArgumentList $argList
-if ( $proc.ExitCode -ne 0 ) {
-	Write-Host "`n[$scriptName] Registration Failed! Exit with `$LASTEXITCODE $($proc.ExitCode)`n"
-    exit $proc.ExitCode
-}
-
-$arguments = 'install'
-if ( $serviceAccount ) {
-	$arguments = $arguments + " --user $serviceAccount --password"
-	Write-Host "[$scriptName] Start-Process gitlab-runner -PassThru -Wait -NoNewWindow -ArgumentList `"$arguments `$saPassword`""
 } else {
-	Write-Host "[$scriptName] Start-Process gitlab-runner -PassThru -Wait -NoNewWindow -ArgumentList `"$arguments`""
+	Write-Host "[$scriptName] URL not supplied so registration not attempted, register using :"
+	Write-Host "[$scriptName]   gitlab-runner --debug register"
 }
-
-if ( $saPassword ) {
-	$arguments = $arguments + " $saPassword"
-}
-
-$proc = Start-Process gitlab-runner -PassThru -Wait -NoNewWindow -ArgumentList $arguments
-if ( $proc.ExitCode -ne 0 ) {
-	Write-Host "`n[$scriptName] Install Failed! Exit with `$LASTEXITCODE $($proc.ExitCode)`n"
-    exit $proc.ExitCode
-}
-
-Write-Host "[$scriptName] Start Service using commandlet as gitlab-runner start can fail silently"
-executeExpression "Start-Service gitlab-runner"
 
 Write-Host "`n[$scriptName] ---------- stop -----------`n"
 exit 0
