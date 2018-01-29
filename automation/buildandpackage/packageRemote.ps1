@@ -12,9 +12,10 @@ $WORK_DIR_DEFAULT = $args[4]
 $SOLUTIONROOT = $args[5]
 $AUTOMATIONROOT = $args[6]
 
-$scriptName = $MyInvocation.MyCommand.Name
-$remoteCustomDir = "$SOLUTIONROOT\customRemote"
-$remoteCryptDir = "$SOLUTIONROOT\cryptRemote"
+$scriptName             = $MyInvocation.MyCommand.Name
+$remoteCustomDir        = "$SOLUTIONROOT\customRemote"
+$commonCustomDir        = "$SOLUTIONROOT\custom"
+$remoteCryptDir         = "$SOLUTIONROOT\cryptRemote"
 $remoteArtifactListFile = "$SOLUTIONROOT\storeForRemote"
 
 Write-Host "`n[$scriptName] ---------------------------------------------------------------" 
@@ -26,8 +27,12 @@ pathTest $remoteArtifactListFile
 Write-Host –NoNewLine "[$scriptName]   Remote Tasks Custom Scripts  : " 
 pathTest $remoteCustomDir
 
+Write-Host –NoNewLine "[$scriptName]   Common Custom Scripts        : " 
+pathTest $commonCustomDir
+
 Write-Host –NoNewLine "[$scriptName]   Remote Tasks Encrypted Data  : " 
 pathTest $remoteCryptDir
+
 
 # CDM-101 If Artefacts definition file is not found, do not perform any action, i.e. this solution is local tasks only
 if ( -not (Test-Path $remoteArtifactListFile) ) {
@@ -61,6 +66,11 @@ if ( -not (Test-Path $remoteArtifactListFile) ) {
 	# Copy custom scripts directory if it exists
 	if ( Test-Path $remoteCustomDir ) {
 		copyDir $remoteCustomDir $WORK_DIR_DEFAULT $true
+	}
+
+	# 1.6.7 Copy common custom scripts if custom directory exists, copy to root of workspace 
+	if ( Test-Path $commonCustomDir ) {
+		copyDir $commonCustomDir $WORK_DIR_DEFAULT $true
 	}
 	
 	# Copy remote artefacts if driver file exists exists

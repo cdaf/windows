@@ -13,7 +13,8 @@ function exceptionExit ($exception) {
     write-host "`n[$scriptName] Exception details follow ..." -ForegroundColor Magenta
     echo $exception.Exception|format-list -force
 	write-host "[$scriptName]   `$host.SetShouldExit(50)" -ForegroundColor Red
-	$host.SetShouldExit(50); exit
+	$host.SetShouldExit(50)
+	exit 50
 }
 
 function passExitCode ($message, $exitCode) {
@@ -25,7 +26,8 @@ function passExitCode ($message, $exitCode) {
 function taskFailure ($taskName) {
     write-host "`n[$scriptName] $taskName" -ForegroundColor Red
 	write-host "[$scriptName]   `$host.SetShouldExit(60)" -ForegroundColor Red
-	$host.SetShouldExit(60); exit 60
+	$host.SetShouldExit(60)
+	exit 60
 }
 
 function taskWarning { 

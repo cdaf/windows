@@ -21,6 +21,7 @@ $localArtifactListFile = "$SOLUTIONROOT\storeForLocal"
 $localPropertiesDir    = "$SOLUTIONROOT\propertiesForLocalTasks"
 $localEnvironmentPath  = "$SOLUTIONROOT\propertiesForLocalEnvironment"
 $localCustomDir        = "$SOLUTIONROOT\customLocal"
+$commonCustomDir       = "$SOLUTIONROOT\custom"
 $localCryptDir         = "$SOLUTIONROOT\cryptLocal"
 $remotePropertiesDir   = "$SOLUTIONROOT\propertiesForRemoteTasks"
 
@@ -42,6 +43,9 @@ pathTest $localCryptDir
 
 Write-Host –NoNewLine "[$scriptName]   Local Tasks Custom Scripts   : " 
 pathTest $localCustomDir
+
+Write-Host –NoNewLine "[$scriptName]   Common Custom Scripts        : " 
+pathTest $commonCustomDir
 
 Write-Host –NoNewLine "[$scriptName]   Remote Tasks Properties List : " 
 pathTest $remotePropertiesDir
@@ -100,9 +104,14 @@ if ( Test-Path $localCryptDir ) {
 	copyDir $localCryptDir $WORK_DIR_DEFAULT
 }
 
-# CDM-114 Copy custom scripts if custom directory exists, copy to root of workspace 
+# Copy custom scripts if custom directory exists, copy to root of workspace 
 if ( Test-Path $localCustomDir ) {
 	copyDir $localCustomDir $WORK_DIR_DEFAULT $true
+}
+
+# 1.6.7 Copy common custom scripts if custom directory exists, copy to root of workspace 
+if ( Test-Path $commonCustomDir ) {
+	copyDir $commonCustomDir $WORK_DIR_DEFAULT $true
 }
 
 # Copy artefacts if driver file exists exists

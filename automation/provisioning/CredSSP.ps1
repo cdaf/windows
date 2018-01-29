@@ -24,6 +24,7 @@ function testProperty ($path, $property) {
 	}
 }
 
+cmd /c "exit 0"
 $scriptName     = 'CredSSP.ps1'
 $installChoices = 'client or server' 
 Write-Host
