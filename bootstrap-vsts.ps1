@@ -27,13 +27,17 @@ Write-Host "`n[$scriptName] ---------- start ----------"
 if ($agentSAPassword) {
     Write-Host "[$scriptName] agentSAPassword        : `$agentSAPassword"
 } else {
-    Write-Host "[$scriptName] agentSAPassword not supplied, exit with error 7643"; exit 7643
+    Write-Host "[$scriptName] agentSAPassword        : (not supplied, will install as inbuilt acocunt)"
 }
 
 if ($vstsURL) {
     Write-Host "[$scriptName] vstsURL                : $vstsURL"
 } else {
-    Write-Host "[$scriptName] vstsURL not supplied, exit with error 7644"; exit 7644
+	if ($personalAccessToken) {
+	    Write-Host "[$scriptName] vstsURL not supplied, exit with error 7644"; exit 7644
+    } else {
+	    Write-Host "[$scriptName] vstsURL                : (not supplied and not required as PAT is not supplied)"
+	}
 }
 
 if ($personalAccessToken) {
@@ -100,9 +104,13 @@ executeExpression './automation/provisioning/GetMedia.ps1 https://github.com/Mic
 
 if ($personalAccessToken) {
 
-	executeExpression './automation/provisioning/newUser.ps1 $vstsSA $agentSAPassword -passwordExpires no'
-	executeExpression './automation/provisioning/addUserToLocalGroup.ps1 Administrators $vstsSA'
-	executeExpression "./automation/provisioning/InstallAgent.ps1 $vstsURL `$personalAccessToken $vstsPool $agentName $vstsSA `$agentSAPassword "
+	if ( $agentSAPassword ) {
+		executeExpression './automation/provisioning/newUser.ps1 $vstsSA $agentSAPassword -passwordExpires no'
+		executeExpression './automation/provisioning/addUserToLocalGroup.ps1 Administrators $vstsSA'
+		executeExpression "./automation/provisioning/InstallAgent.ps1 $vstsURL `$personalAccessToken $vstsPool $agentName $vstsSA `$agentSAPassword "
+	} else {
+		executeExpression "./automation/provisioning/InstallAgent.ps1 $vstsURL `$personalAccessToken $vstsPool $agentName"
+	}
 
 } else {
 
