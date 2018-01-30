@@ -8,7 +8,8 @@
 
 # Zip Package creation requires PowerShell v3 or above and .NET 4.5 or above.
 
-# SMB credentials are those for the user executing vagrant commands, if domain user, use @ format
+# Hyper-V uses SMB, the credentials are those for the user executing vagrant commands, if domain user, use @ format
+# [Environment]::SetEnvironmentVariable('VAGRANT_DEFAULT_PROVIDER', 'hyperv', 'Machine')
 # [Environment]::SetEnvironmentVariable('VAGRANT_SMB_USER', 'username', 'User')
 # [Environment]::SetEnvironmentVariable('VAGRANT_SMB_PASS', 'p4ssWord!', 'User')
 
@@ -41,18 +42,20 @@ Vagrant.configure(2) do |allhosts|
   allhosts.vm.define 'target' do |target|
     target.vm.box = "#{vagrantBox}"
     target.vm.communicator = 'winrm'
-    target.vm.boot_timeout = 600
+    target.vm.boot_timeout = 600  # 10 minutes
     target.winrm.timeout =   1800 # 30 minutes
     target.winrm.retry_limit = 10
     target.winrm.username = "vagrant" # Making defaults explicit
     target.winrm.password = "vagrant" # Making defaults explicit
     target.vm.graceful_halt_timeout = 180 # 3 minutes
+    
     # Oracle VirtualBox, relaxed configuration for Desktop environment
     target.vm.provision 'shell', inline: 'cat C:\windows-master\automation\CDAF.windows | findstr "productVersion="'
     target.vm.provision 'shell', path: './automation/remote/capabilities.ps1'
     target.vm.provision 'shell', path: './automation/provisioning/mkdir.ps1', args: 'C:\deploy'
     target.vm.provider 'virtualbox' do |virtualbox, override|
       virtualbox.gui = false
+      virtualbox.name = 'cdaf-target'
       virtualbox.memory = "#{vRAM}"
       virtualbox.cpus = "#{vCPU}"
       override.vm.network 'private_network', ip: '172.16.17.103'
@@ -63,8 +66,10 @@ Vagrant.configure(2) do |allhosts|
       override.vm.network 'forwarded_port', guest:  443, host: 30443, auto_correct: true
       override.vm.provision 'shell', path: './automation/provisioning/CredSSP.ps1', args: 'server'
     end
-    # Microsoft Hyper-V does not support NAT or setting hostname. vagrant up app --provider hyperv
+    
+    # Microsoft Hyper-V does not support NAT or setting hostname. vagrant up target --provider hyperv
     target.vm.provider 'hyperv' do |hyperv, override|
+      hyperv.vmname = "cdaf-target"
       hyperv.memory = "#{vRAM}"
       hyperv.cpus = "#{vCPU}"
       hyperv.ip_address_timeout = 300 # 5 minutes, default is 2 minutes (120 seconds)
@@ -75,16 +80,18 @@ Vagrant.configure(2) do |allhosts|
   allhosts.vm.define 'buildserver' do |buildserver|
     buildserver.vm.box = "#{vagrantBox}"
     buildserver.vm.communicator = 'winrm'
-    buildserver.vm.boot_timeout = 600
+    buildserver.vm.boot_timeout = 600  # 10 minutes
     buildserver.winrm.timeout =   1800 # 30 minutes
     buildserver.winrm.retry_limit = 10
     buildserver.winrm.username = "vagrant" # Making defaults explicit
     buildserver.winrm.password = "vagrant" # Making defaults explicit
     buildserver.vm.graceful_halt_timeout = 180 # 3 minutes
     buildserver.vm.provision 'shell', path: './automation/remote/capabilities.ps1'
+    
     # Oracle VirtualBox, relaxed configuration for Desktop environment
     buildserver.vm.provider 'virtualbox' do |virtualbox, override|
       virtualbox.gui = false
+      virtualbox.name = 'cdaf-buildserver'
       virtualbox.memory = "#{vRAM}"
       virtualbox.cpus = "#{vCPU}"
       override.vm.network 'private_network', ip: '172.16.17.101'
@@ -103,7 +110,10 @@ Vagrant.configure(2) do |allhosts|
       override.vm.provision 'shell', path: './automation/provisioning/CDAF.ps1', args: '-OPT_ARG cionly'
       override.vm.provision 'shell', path: './automation/provisioning/CDAF.ps1', args: '-OPT_ARG cdonly'
     end
+    
+    # Microsoft Hyper-V does not support NAT or setting hostname. vagrant up buildserver --provider hyperv
     buildserver.vm.provider 'hyperv' do |hyperv, override|
+      hyperv.vmname = "cdaf-buildserver"
       hyperv.memory = "#{vRAM}"
       hyperv.cpus = "#{vCPU}"
       hyperv.ip_address_timeout = 300 # 5 minutes, default is 2 minutes (120 seconds)
