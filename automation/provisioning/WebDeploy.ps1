@@ -21,6 +21,13 @@ function executeExpression ($expression) {
     return $output
 }
 
+function listAndContinue {
+	Write-Host "[$scriptName] Error accessing cache falling back to `$env:temp"
+	$mediaDir = $env:temp
+	$fullpath = $mediaDir + '\' + $file
+	return $fullpath
+}
+
 Write-Host "`n[$scriptName] Install Web Deploy. As of Visual Studio 2015 Web Deploy build targets are automatically"
 Write-Host "[$scriptName] included, so the default action for this provisioner is now agent."
 Write-Host "`n[$scriptName] ---------- start ----------"
@@ -100,16 +107,18 @@ if ( $InstallPath ) {
 	Write-Host "[$scriptName] installFile     : $installFile"
 	
 	$logFile = $installDir = [Environment]::GetEnvironmentVariable('TEMP', 'user') + '\' + $file + '.log'
-	Write-Host "[$scriptName] logFile         : $logFile"
+	Write-Host "[$scriptName] logFile         : $logFile`n"
 	
-	Write-Host
-	$fullpath = $mediaDir + '\' + $file
-	if ( Test-Path $fullpath ) {
-		Write-Host "[$scriptName] $fullpath exists, download not required"
+	if ( Test-Path $installFile ) {
+		Write-Host "[$scriptName] $installFile exists, download not required"
 	} else {
-		$webclient = new-object system.net.webclient
-		Write-Host "[$scriptName] $webclient.DownloadFile(`"$uri`", `"$fullpath`")"
-		$webclient.DownloadFile($uri, $fullpath)
+		Write-Host "[$scriptName] $file does not exist in $mediaDir, listing contents"
+		try {
+			Get-ChildItem $mediaDir | Format-Table name
+		    if(!$?) { $installFile = listAndContinue }
+		} catch { $installFile = listAndContinue }
+		Write-Host "[$scriptName] Attempt download"
+		executeExpression "(New-Object System.Net.WebClient).DownloadFile(`"$uri`", `"$installFile`")"
 	}
 	
 	# Output File (plain text or XML depending on method) must be supplioed
@@ -158,7 +167,7 @@ if ( $InstallPath ) {
 	$failed = Select-String $logFile -Pattern "Installation failed"
 	if ( $failed  ) { 
 		Select-String $logFile -Pattern "Installation success or error status"
-		exit 4
+		exit 4900
 	}
 }
 

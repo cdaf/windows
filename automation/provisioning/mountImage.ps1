@@ -26,7 +26,7 @@ if ($imagePath) {
     Write-Host "[$scriptName] imagePath  : $imagePath"
 } else {
     Write-Host "[$scriptName] imagePath not supplied, supply full path. Exiting!"
-    exit 100
+    exit 7740
 }
 
 if ($sourcePath) {
@@ -66,7 +66,14 @@ if ($sourcePath) {
 			}
 		} else {
 		    Write-Host "[$scriptName] Attempt copy from file share $sourcePath"
-			executeExpression "Copy-Item `"$sourcePath`" `"$imagePath`""
+		    if ( Test-Path $sourcePath ) {
+				executeExpression "Copy-Item `"$sourcePath`" `"$imagePath`""
+			} else {
+				$parentPath = Split-Path $sourcePath
+			    Write-Host "[$scriptName] $sourcePath is not found, listing parent directory $parentPath"
+			    dir $parentPath
+			    exit 7741
+		    }
 		}
 	}
 
@@ -77,7 +84,7 @@ if ($sourcePath) {
 	    Write-Host "`n[$scriptName] Drive Letter : $driveLetter"
 		$result = executeExpression "[Environment]::SetEnvironmentVariable(`'MOUNT_DRIVE_LETTER`', `"$driveLetter`:\`", `'User`')"
 	} else {
-	    Write-Host "`n[$scriptName] Mount failed! Exit with lastexitcode=22`n";exit 22
+	    Write-Host "`n[$scriptName] Mount failed! Exit with lastexitcode=7742`n";exit 7742
 	}
 
 # Dismount image
