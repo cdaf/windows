@@ -13,13 +13,24 @@ Param (
 # Common expression logging and error handling function, copied, not referenced to ensure atomic process
 function executeExpression ($expression) {
 	$error.clear()
-	Write-Host "[$scriptName] $expression"
+	$exitCode = 0
+	Write-Host "$expression"
 	try {
-		Invoke-Expression $expression
-	    if(!$?) { Write-Host "[$scriptName] `$? = $?"; exit 1 }
-	} catch { echo $_.Exception|format-list -force; exit 2 }
-    if ( $error[0] ) { Write-Host "[$scriptName] `$error[0] = $error"; exit 3 }
-    if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) { Write-Host "[$scriptName] `$LASTEXITCODE = $LASTEXITCODE "; exit $LASTEXITCODE }
+		$output = Invoke-Expression $expression
+	    if(!$?) { Write-Host "[$scriptName] `$? = $?"; $exitCode = 1 }
+	} catch { echo $_.Exception|format-list -force; $exitCode = 2 }
+    if ( $error[0] ) { Write-Host "[$scriptName] `$error[0] = $error"; $exitCode = 3 }
+    if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) { Write-Host "[$scriptName] `$LASTEXITCODE = $LASTEXITCODE "; $exitCode = $LASTEXITCODE }
+    if ( $exitCode -ne 0 ) {
+    	if ( Test-Path "$muleInstallDir/logs/mule_ee.log" ) {
+    		Write-Host "[$scriptName] List log file ($muleInstallDir/logs/mule_ee.log) then exit with $exitCode"
+    		Get-Content $muleInstallDir/logs/mule_ee.log
+    	} else {
+    		Write-Host "[$scriptName] Log file ($muleInstallDir/logs/mule_ee.log) not created, exit with $exitCode"
+    	}
+    	exit $exitCode
+    }
+    return $output
 }
 
 $scriptName = 'installMuleESB.ps1'
@@ -216,15 +227,7 @@ try {
 	throw $_
 }	
 Write-Host "[$scriptName] Start Mule windows service`n"
-try {
-	$service = Start-Service "$muleServiceName" -WarningAction SilentlyContinue -PassThru
-	if ($service.status -ine 'Running') {
-		Throw "Could not start service mule"
-	}		
-} catch {
-	Write-Host "[$scriptName] Mule service startup exception : $_.Exception.Message" -ForegroundColor Red
-	throw $_
-}	
+$service = executeExpression "Start-Service '$muleServiceName' -WarningAction SilentlyContinue -PassThru"
 
 # Install the task scheduller that verifies the EE license 
 Write-Host "[$scriptName] Install license ($InstallLicense)"
