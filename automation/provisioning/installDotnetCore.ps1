@@ -57,5 +57,9 @@ if ( $sdk -eq 'yes' ) {
 	}
 }
 
+# Reload the path (without logging off and back on)
+Write-Host "[$scriptName] Reload path " -ForegroundColor Green
+$env:Path = executeExpression "[System.Environment]::GetEnvironmentVariable('Path','Machine') + ';' + [System.Environment]::GetEnvironmentVariable('Path','User')"
+
 Write-Host "`n[$scriptName] ---------- stop -----------"
 exit 0
