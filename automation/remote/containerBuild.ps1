@@ -11,11 +11,12 @@ function executeExpression ($expression) {
 	$error.clear()
 	Write-Host "[$scriptName] $expression"
 	try {
-		Invoke-Expression $expression
+		$output = Invoke-Expression $expression
 	    if(!$?) { Write-Host "[$scriptName] `$? = $?"; exit 1 }
 	} catch { echo $_.Exception|format-list -force; exit 2 }
     if ( $error[0] ) { Write-Host "[$scriptName] `$error[0] = $error"; exit 3 }
     if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) { Write-Host "[$scriptName] `$LASTEXITCODE = $LASTEXITCODE "; exit $LASTEXITCODE }
+    return $output
 }
 
 # Use the CDAF provisioning helpers
@@ -45,6 +46,19 @@ Write-Host "[$scriptName]   hostname     : $(hostname)"
 Write-Host "[$scriptName]   whoami       : $(whoami)"
 
 # Test Docker is running
+Write-Host '$dockerStatus = ' -NoNewline 
+$dockerStatus = executeExpression '(Get-Service Docker).Status'
+if ( $dockerStatus -ne 'Running' ) {
+	Write-Host "[$scriptName] Docker service not running, `$dockerStatus = $dockerStatus"
+	executeExpression 'Start-Service Docker'
+	Write-Host '$dockerStatus = ' -NoNewline 
+	$dockerStatus = executeExpression '(Get-Service Docker).Status'
+	if ( $dockerStatus -ne 'Running' ) {
+		Write-Host "[$scriptName] Unable to start Docker, `$dockerStatus = $dockerStatus"
+		exit 8910
+	}
+}
+
 Write-Host "[$scriptName] List all current images"
 executeExpression "docker images"
 

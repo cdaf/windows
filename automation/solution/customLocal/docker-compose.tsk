@@ -6,7 +6,7 @@ docker images
 
 Write-Host "Cleanup any previously failed smoke test`n"
 $env:IMAGE_TAG = "${SOLUTION}"
-docker-compose down
+docker-compose down --remove-orphans
 docker-compose rm
 
 Write-Host "Create Test Containers`n"
