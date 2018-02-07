@@ -78,16 +78,16 @@ if ($scriptOverride ) {
     $taskOverride = getProp "deployTaskOverride"
     if ($taskOverride ) {
 	    $taskList = $taskOverride
-	    write-host "[$scriptName]   taskList  : $taskList"
     } else {
 	    $taskList = "tasksRunRemote.tsk"
-	    write-host "[$scriptName]   taskList  : $taskList (default, deployTaskOverride not found in properties file)"
     }
 
-    write-host "`n[$scriptName] Execute the Tasks defined in $taskList`n"
-    & .\execute.ps1 $SOLUTION $BUILDNUMBER $TARGET $taskList
-	if($LASTEXITCODE -ne 0){
-	    exitWithCode "OVERRIDE_EXECUTE_NON_ZERO_EXIT Invoke-Expression $expression" $LASTEXITCODE 
-	}
-    if(!$?){ taskFailure "POWERSHELL_TRAP" }
+	foreach ( $taskItem in $taskList.Split() ) {
+	    write-host "`n[$scriptName] --- Executing $taskItem ---`n" -ForegroundColor Green
+	    & .\execute.ps1 $SOLUTION $BUILDNUMBER $TARGET $taskItem
+		if($LASTEXITCODE -ne 0){
+		    exitWithCode "OVERRIDE_EXECUTE_NON_ZERO_EXIT & .\execute.ps1 $SOLUTION $BUILDNUMBER $TARGET $taskItem" $LASTEXITCODE 
+		}
+	    if(!$?){ taskFailure "POWERSHELL_TRAP" }
+    }
 }

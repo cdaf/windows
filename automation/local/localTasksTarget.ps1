@@ -37,15 +37,15 @@ if ($scriptOverride ) {
     $taskOverride = getProp ("deployTaskOverride")
     if ($taskOverride ) {
 	    $taskList = $taskOverride
-	    write-host "[$scriptName]   taskOverride         : $taskOverride"
     } else {
 	    $taskList = "tasksRunLocal.tsk"
-	    write-host "[$scriptName]   taskOverride         : $taskList (default, deployTaskOverride not found in properties file)"
     }
 
     Write-Host
-    # Execute the Tasks Driver File
-    & .\execute.ps1 $SOLUTION $BUILD $TARGET $taskList
-	if($LASTEXITCODE -ne 0){ passExitCode "LOCAL_TASKS_TARGET_EXECUTE_NON_ZERO_EXIT .\execute.ps1 $SOLUTION $BUILD $TARGET $taskList" $LASTEXITCODE }
-    if(!$?){ taskFailure "LOCAL_TASKS_TARGET_EXECUTE_TRAP" }
+	foreach ( $taskItem in $taskList.Split() ) {
+	    write-host "`n[$scriptName] --- Executing $taskItem ---`n" -ForegroundColor Green
+	    & .\execute.ps1 $SOLUTION $BUILD $TARGET $taskItem
+		if($LASTEXITCODE -ne 0){ passExitCode "LOCAL_TASKS_TARGET_EXECUTE_NON_ZERO_EXIT .\execute.ps1 $SOLUTION $BUILD $TARGET $taskItem" $LASTEXITCODE }
+	    if(!$?){ taskFailure "LOCAL_TASKS_TARGET_EXECUTE_TRAP" }
+    }
 }

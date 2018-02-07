@@ -36,7 +36,7 @@ if ($remoteUser) {
 			$password = get-content $remoteCred | convertto-securestring
 		}
 		$cred = New-Object System.Management.Automation.PSCredential ($remoteUser, $password )
-	} catch { exceptionExit "REMOTE_TASK_DECRYPT" $_ }
+	} catch { exceptionExit "REMOTE_TASK_DECRYPT" $_ 23400 }
 }
 
 # Initialise the session handle
@@ -51,7 +51,7 @@ if ($remoteUser) {
 		try {
 			$session = New-PSSession -credential $cred -connectionUri $deployHost -SessionOption (New-PSSessionOption -SkipRevocationCheck -SkipCACheck -SkipCNCheck)
 			if(!$?){ taskError "REMOTE_URI_SESSION_ERROR" }
-		} catch { exceptionExit "REMOTE_URI_SESSION_EXCEPTION" $_ }
+		} catch { exceptionExit "REMOTE_URI_SESSION_EXCEPTION" $_ 23401 }
 
 	} else {
 
@@ -59,7 +59,7 @@ if ($remoteUser) {
 		try {
 			$session = New-PSSession -credential $cred -ComputerName $deployHost -SessionOption (New-PSSessionOption -SkipRevocationCheck -SkipCACheck -SkipCNCheck)
 			if(!$?){ taskError "REMOTE_USER_SESSION_ERROR" }
-		} catch { exceptionExit "REMOTE_USER_SESSION_EXCEPTION" $_ }
+		} catch { exceptionExit "REMOTE_USER_SESSION_EXCEPTION" $_ 23402 }
 
 	}
 
@@ -71,7 +71,7 @@ if ($remoteUser) {
 		try {
 			$session = New-PSSession -connectionUri $deployHost -SessionOption (New-PSSessionOption -SkipRevocationCheck -SkipCACheck -SkipCNCheck)
 			if(!$?){ taskError "NTLM_URI_SESSION_ERROR" }
-		} catch { exceptionExit "NTLM_URI_SESSION_EXCEPTION" $_ }
+		} catch { exceptionExit "NTLM_URI_SESSION_EXCEPTION" $_ 23403 }
 
 	} else {
 
@@ -79,7 +79,7 @@ if ($remoteUser) {
 		try {
 			$session = New-PSSession -ComputerName $deployHost -SessionOption (New-PSSessionOption -SkipRevocationCheck -SkipCACheck -SkipCNCheck)
 			if(!$?){ taskError "NTLM_USER_SESSION_ERROR" }
-		} catch { exceptionExit "NTLM_USER_SESSION_EXCEPTION" $_ }
+		} catch { exceptionExit "NTLM_USER_SESSION_EXCEPTION" $_ 23404 }
 	}
 }
 
@@ -87,26 +87,26 @@ if ($remoteUser) {
 try {
 	Invoke-Command -session $session -File $WORK_DIR_DEFAULT\remotePackageManagement.ps1 -Args $deployLand,$SOLUTION-$BUILD
 	if(!$?){ taskError "PACKAGE_TEST_ERROR" }
-} catch { exceptionExit "PACKAGE_TEST_EXCEPTION"  $_ }
+} catch { exceptionExit "PACKAGE_TEST_EXCEPTION" $_ 23405 }
 
 # Copy Package
 try {
 	& $WORK_DIR_DEFAULT\copy.ps1 $SOLUTION-$BUILD.zip $deployLand $WORK_DIR_DEFAULT
 	if(!$?){ taskError "COPY_PACKAGE_ERROR" }
-} catch { exceptionExit "COPY_PACKAGE_EXCEPTION"  $_ }
+} catch { exceptionExit "COPY_PACKAGE_EXCEPTION" $_ 23406 }
 
 # Extract package artefacts and move to runtime location
 write-host "`n[$scriptName] Extract package artefacts to $deployLand\$SOLUTION-$BUILD"
 try {
 	Invoke-Command -session $session -File $WORK_DIR_DEFAULT\extract.ps1 -Args $deployLand,$SOLUTION-$BUILD
 	if(!$?){ taskError "EXTRACT_ERROR" }
-} catch { exceptionExit "EXTRACT_EXCEPTION"  $_ }
+} catch { exceptionExit "EXTRACT_EXCEPTION" $_ 23407 }
 
 # Copy Target Properties file into the extracted directory on the remote host
 try {
 	& $WORK_DIR_DEFAULT\copy.ps1 $propertiesFile $deployLand\$SOLUTION-$BUILD $WORK_DIR_DEFAULT 
 	if(!$?){ taskError "COPY_PROPERTIES_ERROR" }
-} catch { exceptionExit "COPY_PROPERTIES_EXCEPTION"  $_ }
+} catch { exceptionExit "COPY_PROPERTIES_EXCEPTION" $_ 23408 }
 
 # Trigger the Loosely coupled remote execution (principle is that this can be trigger manually for disconnected hosts)
 # Automated trigger passes workspace, this is not required for manual deploy as it is expected that the user has navigated to the workspace
@@ -115,11 +115,11 @@ write-host "`n[$scriptName] Transfer control to the remote host`n" -ForegroundCo
 try {
 	Invoke-Command -session $session -File $WORK_DIR_DEFAULT\deploy.ps1 -Args $DEPLOY_TARGET,$deployLand\$SOLUTION-$BUILD,$warnondeployerror
 } catch { 
-	$exceptionExit = echo $_.tostring()
-	[int]$exceptionExit = [convert]::ToInt32($exceptionExit)
-	if ( $exceptionExit -ne 0 ){
+	$exceptionCode = echo $_.tostring()
+	[int]$exceptionCode = [convert]::ToInt32($exceptionCode)
+	if ( $exceptionCode -ne 0 ){
 	    write-host "[$scriptName] EXCEPTION_PASS_BACK Invoke-Command -session $session -File $WORK_DIR_DEFAULT\deploy.ps1 -Args $DEPLOY_TARGET,$deployLand\$SOLUTION-$BUILD,$warnondeployerror" -ForegroundColor Magenta
-		write-host "[$scriptName]   Exit with `$LASTEXITCODE $exceptionExit" -ForegroundColor Red
-		exit $exceptionExit
+		write-host "[$scriptName]   Exit with `$LASTEXITCODE $exceptionCode" -ForegroundColor Red
+		exit $exceptionCode
 	}
 }

@@ -9,34 +9,44 @@ Param (
 
 # Entry Point for Build Process, child scripts inherit the functions of parent scripts, so these definitions are global for the CD process
 # Primary powershell, returns exitcode to DOS
-function exceptionExit ($exception) {
-    write-host "`n[$scriptName] Exception details follow ..." -ForegroundColor Magenta
-    echo $exception.Exception|format-list -force
-	write-host "[$scriptName]   `$host.SetShouldExit(50)" -ForegroundColor Red
-	$host.SetShouldExit(50)
-	exit 50
+function exceptionExit ( $identifier, $exception, $exitCode ) {
+    write-host "`n[delivery.ps1] Exception in ${identifier}, details follow ..." -ForegroundColor Magenta
+    echo $exception.Exception | format-list -force
+    if ( $exitCode ) {
+		$host.SetShouldExit($exitCode)
+		exit $exitCode
+    } else {
+		$host.SetShouldExit(2050)
+		exit 2050
+	}
 }
 
-function passExitCode ($message, $exitCode) {
-    write-host "[$scriptName] $message" -ForegroundColor Red
-    write-host "[$scriptName]   Exiting with `$LASTEXITCODE $exitCode" -ForegroundColor Magenta
-    exit $exitCode
+function passExitCode ( $message, $exitCode ) {
+    write-host "[delivery.ps1] $message" -ForegroundColor Red
+    write-host "[delivery.ps1]   Exiting with `$LASTEXITCODE $exitCode" -ForegroundColor Magenta
+    if ( $exitCode ) {
+		$host.SetShouldExit($exitCode)
+		exit $exitCode
+    } else {
+		$host.SetShouldExit(2051)
+		exit 2051
+	}
 }
 
 function taskFailure ($taskName) {
-    write-host "`n[$scriptName] $taskName" -ForegroundColor Red
-	write-host "[$scriptName]   `$host.SetShouldExit(60)" -ForegroundColor Red
-	$host.SetShouldExit(60)
-	exit 60
+    write-host "`n[delivery.ps1] $taskName" -ForegroundColor Red
+	write-host "[delivery.ps1]   `$host.SetShouldExit(2051)" -ForegroundColor Red
+	$host.SetShouldExit(2052)
+	exit 2052
 }
 
 function taskWarning { 
-    write-host "[$scriptName] Warning, $taskName encountered an error that was allowed to proceed." -ForegroundColor Yellow
+    write-host "[delivery.ps1] Warning, $taskName encountered an error that was allowed to proceed." -ForegroundColor Yellow
 }
 
 function itemRemove ($itemPath) { 
 	if ( Test-Path $itemPath ) {
-		write-host "[$scriptName] Delete $itemPath"
+		write-host "[delivery.ps1] Delete $itemPath"
 		Remove-Item $itemPath -Recurse 
 		if(!$?){ taskFailure("Remove-Item $itemPath") }
 	}
@@ -61,8 +71,8 @@ function pathTest ($pathToTest) {
 }
 
 function taskError ($taskName) {
-    write-host "[$scriptName] Error occured when excuting $taskName" -ForegroundColor Red
-    write-host "[$scriptName] Exit with `$LASTEXITCODE 70" -ForegroundColor Red
+    write-host "[delivery.ps1] Error occured when excuting $taskName" -ForegroundColor Red
+    write-host "[delivery.ps1] Exit with `$LASTEXITCODE 70" -ForegroundColor Red
     $host.SetShouldExit(70); exit 70
 }
 
@@ -71,7 +81,7 @@ function getProp ($propName) {
 	try {
 		$propValue=$(& $WORK_DIR_DEFAULT\getProperty.ps1 $propertiesFile $propName)
 		if(!$?){ taskWarning }
-	} catch { exceptionExit $_ }
+	} catch { exceptionExit $_ 2060 }
 	
     return $propValue
 }
@@ -87,7 +97,7 @@ function getFilename ($FullPathName) {
 }
 
 $exitStatus = 0
-$scriptName = $MyInvocation.MyCommand.Name
+$scriptName = 'delivery.ps1'
 
 if ( $ENVIRONMENT ) {
 	Write-Host "[$scriptName]   ENVIRONMENT      : $ENVIRONMENT"
