@@ -22,6 +22,7 @@ function executeExpression ($expression) {
 # Use the CDAF provisioning helpers
 Write-Host "`n[$scriptName] ---------- start ----------`n"
 if ( $imageName ) {
+	$imageName = "${imageName}_container_build"
 	Write-Host "[$scriptName]   imageName    : ${imageName}"
 } else {
 	Write-Host "[$scriptName]   imageName not supplied, exit with code 99"; exit 99

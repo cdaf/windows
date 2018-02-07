@@ -29,7 +29,7 @@ executeExpression "cd c:\workspace"
 if ( $buildNumber ) {
 	executeExpression ".\automation\processor\buildPackage.ps1 $buildNumber"
 } else {
-	executeExpression ".\automation\cdEmulate.bat buildonly"
+	executeExpression ".\automation\cdEmulate.bat cionly"
 }
 
 Write-Host "`n[$scriptName] ---------- stop ----------"
