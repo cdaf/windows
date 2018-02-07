@@ -22,8 +22,9 @@ function executeExpression ($expression) {
 # Use the CDAF provisioning helpers
 Write-Host "`n[$scriptName] ---------- start ----------`n"
 if ( $imageName ) {
+	Write-Host "[$scriptName]   imageName    : ${imageName} (passed)"
 	$imageName = "${imageName}_container_build"
-	Write-Host "[$scriptName]   imageName    : ${imageName}"
+	Write-Host "[$scriptName]   imageName    : ${imageName} (to be used in docker)"
 } else {
 	Write-Host "[$scriptName]   imageName not supplied, exit with code 99"; exit 99
 }
