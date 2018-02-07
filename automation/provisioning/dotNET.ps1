@@ -67,19 +67,36 @@ function IsInstalled ($release) {
     return (!($ver -eq $null) -and ($ver -ge $release))
 }
 
+function listAndContinue {
+	Write-Host "[$scriptName] Error accessing cache falling back to `$env:temp"
+	$mediaDir = $env:temp
+	$fullpath = $mediaDir + '\' + $file
+	return $fullpath
+}
+
 function installFourAndAbove {
 	$rebootRequired = $False
 	$fullpath = $mediaDir + '\' + $file
+	
 	if ( Test-Path $fullpath -PathType Leaf) {
 		Write-Host "`n[$scriptName] $fullpath exists, download not required"
 	} else {
-	
-		$webclient = new-object system.net.webclient
-		Write-Host "[$scriptName] $webclient.DownloadFile($uri, $fullpath)"
+
+		Write-Host "[$scriptName] $file does not exist in $mediaDir, listing contents"
 		try {
-			$webclient.DownloadFile($uri, $fullpath)
-		    	if(!$?) { exit 1 }
-		} catch { echo $_.Exception|format-list -force; exit 2 }
+			Get-ChildItem $mediaDir | Format-Table name
+		    if(!$?) { $fullpath = listAndContinue }
+		} catch { $fullpath = listAndContinue }
+
+		Write-Host "[$scriptName] Attempt download"
+		executeExpression "(New-Object System.Net.WebClient).DownloadFile('$uri', '$fullpath')"
+
+		Write-Host "[$scriptName] Listing contents of $mediaDir to verify"
+		try {
+			Get-ChildItem $mediaDir | Format-Table name
+		    if(!$?) { $fullpath = listAndContinue }
+		} catch { $fullpath = listAndContinue }
+
 	}
 	
 	try {
@@ -108,6 +125,7 @@ $scriptName = 'dotNET.ps1'
 $latest = '4.7'
 $versionChoices = "$latest, 4.6.2, 4.6.1, 4.5.2, 4.5.1, 4.0, 3.5 or latest"
 $finalCode = 0
+cmd /c "exit 0"
 
 Write-Host "`n[$scriptName] ---------- start ----------"
 if ($version) {
@@ -157,9 +175,11 @@ if ($reboot) {
     Write-Host "[$scriptName] reboot   : $reboot (default, options yes, no or shutdown)"
 }
 
-if (!( Test-Path $mediaDir )) {
-	Write-Host "[$scriptName] mkdir $mediaDir"
-	mkdir $mediaDir
+# Create media cache if missing
+if ( Test-Path $mediaDir ) {
+    Write-Host "`n[$scriptName] `$mediaDir ($mediaDir) exists"
+} else {
+	Write-Host "[$scriptName] Created $(mkdir $mediaDir)"
 }
 
 if ($env:interactive) {

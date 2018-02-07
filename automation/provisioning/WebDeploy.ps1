@@ -58,9 +58,13 @@ if ($mediaDir) {
     Write-Host "[$scriptName] mediaDir     : $mediaDir (default)`n"
 }
 
-if (!( Test-Path $mediaDir )) {
+# Create media cache if missing
+if ( Test-Path $mediaDir ) {
+    Write-Host "`n[$scriptName] `$mediaDir ($mediaDir) exists"
+} else {
 	Write-Host "[$scriptName] Created $(mkdir $mediaDir)"
 }
+
 if ($env:interactive) {
     Write-Host "[$scriptName] `$env:interactive = `$env:interactive, run in current window"
     $sessionControl = '-PassThru -Wait -NoNewWindow'

@@ -18,6 +18,13 @@ function executeExpression ($expression) {
     return $output
 }
 
+function listAndContinue {
+	Write-Host "[$scriptName] Error accessing cache falling back to `$env:temp"
+	$mediaDir = $env:temp
+	$fullpath = $mediaDir + '\' + $file
+	return $fullpath
+}
+
 cmd /c "exit 0"
 
 Write-Host "`n[$scriptName] ---------- start ----------"
@@ -45,17 +52,28 @@ if ($md5) {
 if ( Test-Path $mediaDir ) {
     Write-Host "`n[$scriptName] `$mediaDir ($mediaDir) exists"
 } else {
-    Write-Host "`n[$scriptName] `$mediaDir ($mediaDir) does not exist, attempt to create ..."
-	$result = executeExpression "mkdir $mediaDir"
-	Write-Host "[$scriptName] Created $result`n"
+	Write-Host "[$scriptName] Created $(mkdir $mediaDir)"
 }
 
-$filename = $uri.Substring($uri.LastIndexOf("/") + 1)
-$fullpath = $mediaDir + '\' + $filename
+$file = $uri.Substring($uri.LastIndexOf("/") + 1)
+$fullpath = $mediaDir + '\' + $file
 if ( Test-Path $fullpath ) {
 	Write-Host "[$scriptName] $fullpath exists, download not required"
 } else {
-	executeExpression "(New-Object System.Net.WebClient).DownloadFile('$uri', '$fullpath')" 
+	Write-Host "[$scriptName] $file does not exist in $mediaDir, listing contents"
+	try {
+		Get-ChildItem $mediaDir | Format-Table name
+	    if(!$?) { $fullpath = listAndContinue }
+	} catch { $fullpath = listAndContinue }
+
+	Write-Host "[$scriptName] Attempt download"
+	executeExpression "(New-Object System.Net.WebClient).DownloadFile('$uri', '$fullpath')"
+
+	Write-Host "[$scriptName] Listing contents of $mediaDir to verify"
+	try {
+		Get-ChildItem $mediaDir | Format-Table name
+	    if(!$?) { $fullpath = listAndContinue }
+	} catch { $fullpath = listAndContinue }
 }
 
 if ( $md5 ) {
