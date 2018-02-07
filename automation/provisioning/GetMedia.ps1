@@ -87,4 +87,5 @@ if ( $md5 ) {
 }
 
 Write-Host "`n[$scriptName] ---------- stop ----------`n"
+$error.clear()
 exit 0

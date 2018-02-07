@@ -337,4 +337,5 @@ if ($file) {
 }
 
 Write-Host "`n[$scriptName] ---------- stop -----------`n"
+$error.clear()
 exit $finalCode
