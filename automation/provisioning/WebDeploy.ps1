@@ -123,12 +123,6 @@ if ( $InstallPath ) {
 
 		Write-Host "[$scriptName] Attempt download"
 		executeExpression "(New-Object System.Net.WebClient).DownloadFile('$uri', '$installFile')"
-
-		Write-Host "[$scriptName] Listing contents of $mediaDir to verify"
-		try {
-			Get-ChildItem $mediaDir | Format-Table name
-		    if(!$?) { $installFile = listAndContinue }
-		} catch { $installFile = listAndContinue }
 	}
 	
 	# Output File (plain text or XML depending on method) must be supplioed

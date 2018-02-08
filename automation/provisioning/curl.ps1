@@ -63,7 +63,14 @@ if ( ! ( $zipVersion )) {
 		Write-Host "[$scriptName] $fullpath exists, download not required"
 	} else {
 		$uri = "http://$7zipFQDN/a/" + $file
-		executeExpression "(New-Object System.Net.WebClient).DownloadFile(`'$uri`', `'$fullpath`')"
+		Write-Host "[$scriptName] $file does not exist in $mediaDir, listing contents"
+		try {
+			Get-ChildItem $mediaDir | Format-Table name
+		    if(!$?) { $fullpath = listAndContinue }
+		} catch { $fullpath = listAndContinue }
+
+		Write-Host "[$scriptName] Attempt download"
+		executeExpression "(New-Object System.Net.WebClient).DownloadFile('$uri', '$fullpath')"
 	}
 	
 	if ( ! (Test-Path "$7zipDir") ) {

@@ -68,12 +68,6 @@ if ( Test-Path $fullpath ) {
 
 	Write-Host "[$scriptName] Attempt download"
 	executeExpression "(New-Object System.Net.WebClient).DownloadFile('$uri', '$fullpath')"
-
-	Write-Host "[$scriptName] Listing contents of $mediaDir to verify"
-	try {
-		Get-ChildItem $mediaDir | Format-Table name
-	    if(!$?) { $fullpath = listAndContinue }
-	} catch { $fullpath = listAndContinue }
 }
 
 if ( $md5 ) {

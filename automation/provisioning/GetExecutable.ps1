@@ -39,7 +39,7 @@ if ($runTime) {
     Write-Host "[$scriptName] runTime  : $runTime (default)"
 }
 
-$exename = Split-Path -Path  $url -Leaf
+$file = Split-Path -Path  $url -Leaf
 
 if (!( Test-Path $mediaDir )) {
 	Write-Host "[$scriptName] mkdir $mediaDir"
@@ -47,11 +47,18 @@ if (!( Test-Path $mediaDir )) {
 }
 
 Write-Host
-$fullpath = $mediaDir + '\' + $exename
+$fullpath = $mediaDir + '\' + $file
 if ( Test-Path $fullpath ) {
 	Write-Host "[$scriptName] $fullpath exists, download not required"
 } else {
-	executeExpression "(New-Object System.Net.WebClient).DownloadFile(`"`$url`", `"`$fullpath`")" 
+	Write-Host "[$scriptName] $file does not exist in $mediaDir, listing contents"
+	try {
+		Get-ChildItem $mediaDir | Format-Table name
+	    if(!$?) { $fullpath = listAndContinue }
+	} catch { $fullpath = listAndContinue }
+
+	Write-Host "[$scriptName] Attempt download"
+	executeExpression "(New-Object System.Net.WebClient).DownloadFile('$url', '$fullpath')"
 }
 
 executeExpression "Copy-Item `"$fullpath`" `"$runTime`""
