@@ -4,17 +4,28 @@ Param (
 
 # Common expression logging and error handling function, copied, not referenced to ensure atomic process
 function executeExpression ($expression) {
+	$exitCode = 0
 	$error.clear()
 	Write-Host "$expression"
 	try {
 		$output = Invoke-Expression $expression
-	    if(!$?) { Write-Host "[$scriptName] `$? = $?"; exit 1 }
-	} catch { echo $_.Exception|format-list -force; exit 2 }
-    if ( $error[0] ) { Write-Host "[$scriptName] `$error[0] = $error"; exit 3 }
-    if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) { Write-Host "[$scriptName] `$LASTEXITCODE = $LASTEXITCODE "; exit $LASTEXITCODE }
+	    if(!$?) { Write-Host "[$scriptName] `$? = $?"; $exitCode = 1 }
+	} catch { echo $_.Exception|format-list -force; $exitCode = 2 }
+    if ( $error[0] ) { Write-Host "[$scriptName] `$error[0] = $error"; $exitCode = 3 }
+    if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) { Write-Host "[$scriptName] `$LASTEXITCODE = $LASTEXITCODE "; $exitCode = $LASTEXITCODE }
+    if ( $exitCode -ne 0 ) {
+    	if ( Test-Path "$env:ProgramData\chocolatey\logs\chocolatey.log" ) {
+    		Write-Host "[$scriptName] List $env:ProgramData\chocolatey\logs\chocolatey.log"
+    		Get-Content "$env:ProgramData\chocolatey\logs\chocolatey.log"
+		} else {
+    		Write-Host "[$scriptName] Log ($env:ProgramData\chocolatey\logs\chocolatey.log) not created"
+		}
+    	exit $exitCode
+	}
     return $output
 }
 
+cmd /c "exit 0"
 $scriptName = 'chocolatey.ps1'
 Write-Host "`n[$scriptName] ---------- start ----------"
 if ($mediaDir) {
@@ -54,4 +65,5 @@ Write-Host "[$scriptName] Reload path " -ForegroundColor Green
 $env:Path = executeExpression "[System.Environment]::GetEnvironmentVariable('Path','Machine') + ';' + [System.Environment]::GetEnvironmentVariable('Path','User')"
 
 Write-Host "`n[$scriptName] ---------- stop -----------`n"
+$error.clear()
 exit 0
