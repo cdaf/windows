@@ -39,14 +39,26 @@ if (! (Test-Path $encryptedFile) ) {
 	}
 }
 
-if (! $location) {
-    $location = 'CurrentUser'
-}
-
+# If a thumbprint is passed, decrypt file using PKI
 if ($thumbprint) {
 
-	# If a thumbprint is passed, decrypt file using RSA certificate
 	try {
+		# Check for certificate existance
+		if (! $location) {
+		    $location = 'LocalMachine'
+		}
+		if (!( Test-Path "Cert:\$location\My\$thumbprint" )) {
+			if ($location -eq 'LocalMachine') {
+			    $location = 'CurrentUser'
+		    } else {
+			    $location = 'LocalMachine'
+			}
+			if (!( Test-Path "Cert:\$location\My\$thumbprint" )) {
+			    throwError "DECRYPT_KEY_107" "Unable to find thumbprint in either Cert:\CurrentUser\My\$thumbprint or Cert:\LocalMachine\My\$thumbprint."
+		    }
+		}
+
+		# Attempted to open and decrypt
 	    $object = Import-Clixml -Path $encryptedFile
 		if (! $object) {
 		    throwError "DECRYPT_KEY_102" "Unable to Import-Clixml $encryptedFile! Exit Code 102."
@@ -84,4 +96,5 @@ if ($thumbprint) {
 }
 
 #Write-Host "[$scriptName] `$plain = $plain"
+$env:RESULT = $plain
 return $plain
