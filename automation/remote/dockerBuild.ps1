@@ -4,6 +4,7 @@ Param (
 	[string]$version,
 	[string]$rebuild
 )
+
 $scriptName = 'dockerBuild.ps1'
 
 # Common expression logging and error handling function, copied, not referenced to ensure atomic process
@@ -17,6 +18,19 @@ function executeExpression ($expression) {
     if ( $error[0] ) { Write-Host "[$scriptName] `$error[0] = $error"; exit 3 }
     if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) { Write-Host "[$scriptName] `$LASTEXITCODE = $LASTEXITCODE "; exit $LASTEXITCODE }
 }
+
+# Common expression logging and error handling function, copied, not referenced to ensure atomic process
+function executeSuppress ($expression) {
+	Write-Host "[$scriptName] $expression"
+	try {
+		Invoke-Expression $expression
+	    if(!$?) { Write-Host "[$scriptName] `$? = $?"; exit 1 }
+	} catch { Write-Host $_.Exception|format-list -force; exit 2 }
+	$error.clear()
+    if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -eq 0 )) { Write-Host "[$scriptName] Suppress `$LASTEXITCODE ($LASTEXITCODE)"; cmd /c "exit 0" } # reset LASTEXITCODE
+}
+
+cmd /c "exit 0"
 
 Write-Host "`n[$scriptName] ---------- start ----------"
 Write-Host "`n[$scriptName] Build docker image, resulting image naming \${imageName}"
@@ -45,6 +59,9 @@ if ($rebuild) {
 } else {
     Write-Host "[$scriptName] rebuild   : (not supplied, docker will use cache where possible)"
 }
+
+Write-Host "`n[$scriptName] As of 1.13.0 new prune commands, if using older version, suppress error"
+executeSuppress "docker system prune -f"
 
 $buildCommand = 'docker build'
 if ($rebuild -eq 'yes') {

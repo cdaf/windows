@@ -2,6 +2,9 @@ Param (
   [string]$imageName,
   [string]$tag
 )
+
+$scriptName = 'dockerClean.ps1'
+
 # Common expression logging and error handling function, copied, not referenced to ensure atomic process
 function executeExpression ($expression) {
 	$error.clear()
@@ -26,7 +29,7 @@ function executeSuppress ($expression) {
 }
 
 cmd /c "exit 0"
-$scriptName = 'dockerClean.ps1'
+
 Write-Host "`n[$scriptName] Clean image from registry based on Product label. If a tag is passed, only images with a tag value less that the one supplied are removed."
 Write-Host "`n[$scriptName] --- start ---"
 if ($imageName) {
@@ -45,7 +48,7 @@ Write-Host "`n[$scriptName] List images (before)"
 executeExpression "docker images"
 
 Write-Host "`n[$scriptName] As of 1.13.0 new prune commands, if using older version, suppress error"
-executeSuppress "docker system prune"
+executeSuppress "docker system prune -f"
 
 Write-Host "`n[$scriptName] List stopped containers"
 executeExpression "docker ps --filter `"status=exited`" -a"
