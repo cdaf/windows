@@ -44,6 +44,9 @@ if ($tag) {
 Write-Host "`n[$scriptName] List images (before)"
 executeExpression "docker images"
 
+Write-Host "`n[$scriptName] As of 1.13.0 new prune commands, if using older version, suppress error"
+executeSuppress "docker system prune"
+
 Write-Host "`n[$scriptName] List stopped containers"
 executeExpression "docker ps --filter `"status=exited`" -a"
 
