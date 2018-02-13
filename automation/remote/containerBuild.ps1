@@ -19,6 +19,7 @@ function executeExpression ($expression) {
     return $output
 }
 
+cmd /c "exit 0"
 # Use the CDAF provisioning helpers
 Write-Host "`n[$scriptName] ---------- start ----------`n"
 if ( $imageName ) {
