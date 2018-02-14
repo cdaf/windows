@@ -49,26 +49,24 @@ if ( $mediaDir ) {
 	Write-Host "[$scriptName] mediaDir : $mediaDir (not passed, set to default)`n"
 }
 
-if ( $sdk -eq 'yes' ) {
-	$installer = "${mediaDir}\${file}"
-	if ( Test-Path $installer ) {
-		Write-Host "[$scriptName] Installer $installer found, download not required`n"
-	} else {
-		Write-Host "[$scriptName] $file does not exist in $mediaDir, listing contents"
-		try {
-			Get-ChildItem $mediaDir | Format-Table name
-		    if(!$?) { $installer = listAndContinue }
-		} catch { $installer = listAndContinue }
+$installer = "${mediaDir}\${file}"
+if ( Test-Path $installer ) {
+	Write-Host "[$scriptName] Installer $installer found, download not required`n"
+} else {
+	Write-Host "[$scriptName] $file does not exist in $mediaDir, listing contents"
+	try {
+		Get-ChildItem $mediaDir | Format-Table name
+	    if(!$?) { $installer = listAndContinue }
+	} catch { $installer = listAndContinue }
 
-		Write-Host "[$scriptName] Attempt download"
-		executeExpression "(New-Object System.Net.WebClient).DownloadFile($url, '$installer')"
-	}
-	
-	$proc = executeExpression "Start-Process -FilePath '$installer' -ArgumentList '/INSTALL /QUIET /NORESTART /LOG $installer.log' -PassThru -Wait"
-	if ( $proc.ExitCode -ne 0 ) {
-		Write-Host "`n[$scriptName] Exit with `$LASTEXITCODE = $($proc.ExitCode)`n"
-	    exit $proc.ExitCode
-	}
+	Write-Host "[$scriptName] Attempt download"
+	executeExpression "(New-Object System.Net.WebClient).DownloadFile($url, '$installer')"
+}
+
+$proc = executeExpression "Start-Process -FilePath '$installer' -ArgumentList '/INSTALL /QUIET /NORESTART /LOG $installer.log' -PassThru -Wait"
+if ( $proc.ExitCode -ne 0 ) {
+	Write-Host "`n[$scriptName] Exit with `$LASTEXITCODE = $($proc.ExitCode)`n"
+    exit $proc.ExitCode
 }
 
 # Reload the path (without logging off and back on)
