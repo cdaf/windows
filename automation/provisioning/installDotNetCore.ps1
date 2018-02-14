@@ -60,7 +60,7 @@ if ( Test-Path $installer ) {
 	} catch { $installer = listAndContinue }
 
 	Write-Host "[$scriptName] Attempt download"
-	executeExpression "(New-Object System.Net.WebClient).DownloadFile($url, '$installer')"
+	executeExpression "(New-Object System.Net.WebClient).DownloadFile('$url', '$installer')"
 }
 
 $proc = executeExpression "Start-Process -FilePath '$installer' -ArgumentList '/INSTALL /QUIET /NORESTART /LOG $installer.log' -PassThru -Wait"
