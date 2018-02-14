@@ -1,5 +1,5 @@
 # Do not make customisation or configuration changes in these folders, copy the solution folder 
 # and apply configuration changes that are specific to your solution.
-productVersion=1.6.6.21
+productVersion=1.6.6.22
 productName=Continuous Delivery Automation Framework
 solutionName=WU-CDM
