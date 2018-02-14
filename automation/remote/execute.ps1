@@ -182,6 +182,26 @@ function IGNORE()
 	}
 }
 
+# Run command elevated (as inbuit NT SYSTEM account)
+function ELEVAT ($command) { 
+    $scriptBlock = [scriptblock]::Create($command)
+    configuration elevated
+    {
+        Set-StrictMode -Off
+        Node localhost
+        {
+            Script execute
+            {
+                SetScript = $scriptBlock
+                TestScript = { return $false }
+                GetScript = { return @{ 'Result' = 'RUN' } }
+            }
+        }
+    }
+    elevated
+    Start-DscConfiguration -Wait -Path ./elevated -Verbose -Force
+}
+
 $SOLUTION    = $args[0]
 $BUILDNUMBER = $args[1]
 $TARGET      = $args[2]
