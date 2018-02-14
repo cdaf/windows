@@ -30,7 +30,15 @@ if ( $sdk ) {
 if ( $version ) {
 	Write-Host "[$scriptName] version  : $version"
 } else {
-	$version = '2.1.4'
+	if ( $sdk -eq 'yes' ) {
+		$version = '2.1.4'
+		$file = "dotnet-sdk-${version}-win-x64.exe"
+		$url = "https://download.microsoft.com/download/1/1/5/115B762D-2B41-4AF3-9A63-92D9680B9409/$file"
+	} else {
+		$version = '2.0.5'
+		$file = "dotnet-runtime-${version}-win-x64.exe"
+		$url = "https://download.microsoft.com/download/1/1/0/11046135-4207-40D3-A795-13ECEA741B32/$file"
+	} 
 	Write-Host "[$scriptName] version  : $version (default)"
 }
 
@@ -42,7 +50,6 @@ if ( $mediaDir ) {
 }
 
 if ( $sdk -eq 'yes' ) {
-	$file = "dotnet-sdk-${$version}-win-x64.exe"
 	$installer = "${mediaDir}\${file}"
 	if ( Test-Path $installer ) {
 		Write-Host "[$scriptName] Installer $installer found, download not required`n"
@@ -54,7 +61,7 @@ if ( $sdk -eq 'yes' ) {
 		} catch { $installer = listAndContinue }
 
 		Write-Host "[$scriptName] Attempt download"
-		executeExpression "(New-Object System.Net.WebClient).DownloadFile('https://download.microsoft.com/download/1/1/5/115B762D-2B41-4AF3-9A63-92D9680B9409/dotnet-sdk-2.1.4-win-x64.exe', '$installer')"
+		executeExpression "(New-Object System.Net.WebClient).DownloadFile($url, '$installer')"
 	}
 	
 	$proc = executeExpression "Start-Process -FilePath '$installer' -ArgumentList '/INSTALL /QUIET /NORESTART /LOG $installer.log' -PassThru -Wait"
