@@ -1,6 +1,5 @@
 Param (
 	[string]$sdk,
-	[string]$version,
 	[string]$mediaDir
 )
 $scriptName = 'installDotnetCore.ps1'
@@ -72,6 +71,19 @@ if ( $proc.ExitCode -ne 0 ) {
 # Reload the path (without logging off and back on)
 Write-Host "[$scriptName] Reload path " -ForegroundColor Green
 $env:Path = executeExpression "[System.Environment]::GetEnvironmentVariable('Path','Machine') + ';' + [System.Environment]::GetEnvironmentVariable('Path','User')"
+
+$versionTest = cmd /c dotnet --version 2`>`&1
+if ($versionTest -like '*not recognized*') {
+	Write-Host "  dotnet core not installed! Exiting with error 666"; exit 666
+} else {
+	$versionLine = $(foreach ($line in dotnet) { Select-String  -InputObject $line -CaseSensitive "Version  " })
+	if ( $versionLine ) {
+	$arr = $versionLine -split ':'
+		Write-Host "  dotnet core : $($arr[1])"
+	} else {
+		Write-Host "  dotnet core : $versionTest"
+	}
+}
 
 Write-Host "`n[$scriptName] ---------- stop -----------"
 exit 0
