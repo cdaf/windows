@@ -27,9 +27,9 @@ if ( $buildNumber ) {
 executeExpression "cd c:\workspace"
 
 if ( $buildNumber ) {
-	executeExpression ".\automation\processor\buildPackage.ps1 $buildNumber"
+	executeExpression ".\automation\processor\buildPackage.ps1 $buildNumber revision containerbuild"
 } else {
-	executeExpression ".\automation\cdEmulate.bat cionly"
+	executeExpression ".\automation\cdEmulate.bat containerbuild"
 }
 
 Write-Host "`n[$scriptName] ---------- stop ----------"

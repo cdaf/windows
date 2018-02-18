@@ -162,19 +162,23 @@ $cdafVersion = getProp 'productVersion' "$AUTOMATIONROOT\CDAF.windows"
 Write-Host "[$scriptName]   CDAF Version    : $cdafVersion"
 
 # CDAF 1.6.7 Container Build process
-$containerBuild = getProp 'containerBuild' "$solutionRoot\CDAF.solution"
-if ( $containerBuild ) {
-	$versionTest = cmd /c docker --version 2`>`&1; cmd /c "exit 0"
-	if ($versionTest -like '*not recognized*') {
-		Write-Host "[$scriptName]   containerBuild  : containerBuild defined in $solutionRoot\CDAF.solution, but Docker not installed, will attempt to execute natively"
-		Clear-Variable -Name 'containerBuild'
-	} else {
-		$array = $versionTest.split(" ")
-		$dockerRun = $($array[2])
-		Write-Host "[$scriptName]   Docker          : $dockerRun"
-	}
+if ( $ACTION -eq 'containerbuild' ) {
+	Write-Host "`n[$scriptName] `$ACTION = $ACTION, skip detection.`n"
 } else {
-	Write-Host "[$scriptName]   containerBuild  : (not defined in $solutionRoot\CDAF.solution)"
+	$containerBuild = getProp 'containerBuild' "$solutionRoot\CDAF.solution"
+	if ( $containerBuild ) {
+		$versionTest = cmd /c docker --version 2`>`&1; cmd /c "exit 0"
+		if ($versionTest -like '*not recognized*') {
+			Write-Host "[$scriptName]   containerBuild  : containerBuild defined in $solutionRoot\CDAF.solution, but Docker not installed, will attempt to execute natively"
+			Clear-Variable -Name 'containerBuild'
+		} else {
+			$array = $versionTest.split(" ")
+			$dockerRun = $($array[2])
+			Write-Host "[$scriptName]   Docker          : $dockerRun"
+		}
+	} else {
+		Write-Host "[$scriptName]   containerBuild  : (not defined in $solutionRoot\CDAF.solution)"
+	}
 }
 
 if ( $containerBuild ) {
