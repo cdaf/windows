@@ -1,3 +1,15 @@
+# Common expression logging and error handling function, copied, not referenced to ensure atomic process
+function executeExpression ($expression) {
+	$error.clear()
+	Write-Host "[$scriptName] $expression"
+	try {
+		Invoke-Expression $expression
+	    if(!$?) { Write-Host "[$scriptName] `$? = $?"; exit 1 }
+	} catch { echo $_.Exception|format-list -force; exit 2 }
+    if ( $error[0] ) { Write-Host "[$scriptName] `$error[0] = $error"; exit 3 }
+    if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) { Write-Host "[$scriptName] `$LASTEXITCODE = $LASTEXITCODE "; exit $LASTEXITCODE }
+}
+
 # Entry Point for Build Process, child scripts inherit the functions of parent scripts, so these definitions are global for the CI process
 # Primary powershell, returns exitcode to DOS
 function exitWithCode ($message, $exitCode) {
@@ -59,7 +71,7 @@ function pathTest ($pathToTest) {
 	}
 }
 
-function getProp ($propName) {
+function getProp ($propName, $propertiesFile) {
 	try {
 		$propValue=$(& .\$AUTOMATIONROOT\remote\getProperty.ps1 $propertiesFile $propName)
 		if(!$?){ taskWarning }
@@ -114,8 +126,7 @@ $SOLUTION = $args[3]
 if ($SOLUTION) {
 	Write-Host "[$scriptName]   SOLUTION        : $SOLUTION"
 } else {
-	$propertiesFile = "$solutionRoot\CDAF.solution"
-	$SOLUTION = getProp 'solutionName'
+	$SOLUTION = getProp 'solutionName' "$solutionRoot\CDAF.solution"
 	if ($SOLUTION) {
 		Write-Host "[$scriptName]   SOLUTION        : $SOLUTION (from `$solutionRoot\CDAF.solution)"
 	} else {
@@ -147,26 +158,49 @@ Write-Host "[$scriptName]   pwd             : $(pwd)"
 Write-Host "[$scriptName]   hostname        : $(hostname)" 
 Write-Host "[$scriptName]   whoami          : $(whoami)"
 
-$propertiesFile = "$AUTOMATIONROOT\CDAF.windows"
-$cdafVersion = getProp 'productVersion'
+$cdafVersion = getProp 'productVersion' "$AUTOMATIONROOT\CDAF.windows"
 Write-Host "[$scriptName]   CDAF Version    : $cdafVersion"
 
-if ( $ACTION -eq 'packageonly' ) {
-	Write-Host "`n[$scriptName] Action is $ACTION so skipping build process" -ForegroundColor Yellow
-} else {
-	& .\$AUTOMATIONROOT\buildandpackage\buildProjects.ps1 $SOLUTION $BUILDNUMBER $REVISION $AUTOMATIONROOT $solutionRoot $ACTION
-	if($LASTEXITCODE -ne 0){
-		exitWithCode "BUILD_NON_ZERO_EXIT .\$AUTOMATIONROOT\buildandpackage\buildProjects.ps1 $SOLUTION $BUILDNUMBER $REVISION $AUTOMATIONROOT $solutionRoot $ACTION" $LASTEXITCODE
+# CDAF 1.6.7 Container Build process
+$containerBuild = getProp 'containerBuild' "$solutionRoot\CDAF.solution"
+if ( $containerBuild ) {
+	$versionTest = cmd /c docker --version 2`>`&1; cmd /c "exit 0"
+	if ($versionTest -like '*not recognized*') {
+		Write-Host "[$scriptName]   Docker          : containerBuild defined in $solutionRoot\CDAF.solution, but Docker not installed, will attempt to execute natively"
+	} else {
+		$array = $versionTest.split(" ")
+		$dockerRun = $($array[2])
+		Write-Host "[$scriptName]   Docker          : $dockerRun"
 	}
-	if(!$?){ taskWarning "buildProjects.ps1" }
+} else {
+	Write-Host "[$scriptName]   containerBuild  : (not defined in $solutionRoot\CDAF.solution)"
 }
 
-if ( $ACTION -eq 'buildonly' ) {
-	Write-Host "`n[$scriptName] Action is $ACTION so skipping package process" -ForegroundColor Yellow
-} else {
-	& .\$AUTOMATIONROOT\buildandpackage\package.ps1 $SOLUTION $BUILDNUMBER $REVISION $AUTOMATIONROOT $solutionRoot $LOCAL_WORK_DIR $REMOTE_WORK_DIR $ACTION
-	if($LASTEXITCODE -ne 0){
-		exitWithCode "PACKAGE_NON_ZERO_EXIT .\$AUTOMATIONROOT\buildandpackage\package.ps1 $SOLUTION $BUILDNUMBER $REVISION $AUTOMATIONROOT $solutionRoot $LOCAL_WORK_DIR $REMOTE_WORK_DIR $ACTION" $LASTEXITCODE
+if ( $dockerRun ) {
+
+	Write-Host "`n[$scriptName] Execute Container build, this performs cionly, options packageonly and buildonly are ignored.`n"
+	executeExpression $containerBuild
+
+} else { # Native build
+	
+	if ( $ACTION -eq 'packageonly' ) {
+		Write-Host "`n[$scriptName] Action is $ACTION so skipping build process" -ForegroundColor Yellow
+	} else {
+	
+		& .\$AUTOMATIONROOT\buildandpackage\buildProjects.ps1 $SOLUTION $BUILDNUMBER $REVISION $AUTOMATIONROOT $solutionRoot $ACTION
+		if($LASTEXITCODE -ne 0){
+			exitWithCode "BUILD_NON_ZERO_EXIT .\$AUTOMATIONROOT\buildandpackage\buildProjects.ps1 $SOLUTION $BUILDNUMBER $REVISION $AUTOMATIONROOT $solutionRoot $ACTION" $LASTEXITCODE
+		}
+		if(!$?){ taskWarning "buildProjects.ps1" }
 	}
-	if(!$?){ taskWarning "package.ps1" }
+	
+	if ( $ACTION -eq 'buildonly' ) {
+		Write-Host "`n[$scriptName] Action is $ACTION so skipping package process" -ForegroundColor Yellow
+	} else {
+		& .\$AUTOMATIONROOT\buildandpackage\package.ps1 $SOLUTION $BUILDNUMBER $REVISION $AUTOMATIONROOT $solutionRoot $LOCAL_WORK_DIR $REMOTE_WORK_DIR $ACTION
+		if($LASTEXITCODE -ne 0){
+			exitWithCode "PACKAGE_NON_ZERO_EXIT .\$AUTOMATIONROOT\buildandpackage\package.ps1 $SOLUTION $BUILDNUMBER $REVISION $AUTOMATIONROOT $solutionRoot $LOCAL_WORK_DIR $REMOTE_WORK_DIR $ACTION" $LASTEXITCODE
+		}
+		if(!$?){ taskWarning "package.ps1" }
+	}
 }

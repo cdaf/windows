@@ -44,7 +44,7 @@ To alleviate the burden of argument passing, exception handling and logging, the
 | DETOKN  | Detokenise file with target prop  | DETOKN tokenised.file           |
 |         | Detokenise with specific file     | DETOKN tokenised.file prop.file |
 | EXCREM  | Execute Remote Command            | EXCREM hostname                 |
-|         | Execute Remote script             | EXCREM ./capabilities.sh        |
+|         | Execute Remote script             | EXCREM ./capabilities.ps1       |
 | EXITIF  | Exit normally is argument set     | EXITIF $ACTION -eq clean        |
 | INVOKE  | call a custom script              | INVOKE ./script "Hello"         |
 | MAKDIR  | Create a directory and path (opt) | MAKDIR directory/and/path       |
@@ -92,7 +92,7 @@ Default task definitions, these can be overridden using deployScriptOverride or 
 	tasksRunLocal.tsk
 	tasksRunRemote.tsk
 
-For an empty solution, the automation/cdEmulate.sh should run successfully and simply create a zip file with the remote deployment wrapper and helper scripts. Transform.ps1 utility can be used to load all defined properties or detokenise a settings file.
+For an empty solution, the automation/cdEmulate.bat should run successfully and simply create a zip file with the remote deployment wrapper and helper scripts. Transform.ps1 utility can be used to load all defined properties or detokenise a settings file.
 
 Optional sub-directories of /solution
 
@@ -118,12 +118,12 @@ Automated Build
 ---------------
 
 If it exists, each project in the Project.list file is processed, in order (to support cross project dependencies), if the file does not exist, all project directories are processed, alphabetically.
-Each project directory is entered and the build.sh script is executed. Each build script is expected to support build and clean actions.
+Each project directory is entered and the build.ps1 script is executed. Each build script is expected to support build and clean actions.
 
 Automated Packaging
 -------------------
 
-The artifacts from each project are copied to the root workspace, along with local and remote support scripts. The remote support scripts and include with the build artifacts in a single zip file, while the local scripts and retained in a directory (DeployLocal). It is the package.sh script which manages this, leaving only artifacts that are to be retained in the workspace root.
+The artifacts from each project are copied to the root workspace, along with local and remote support scripts. The remote support scripts and include with the build artifacts in a single zip file, while the local scripts and retained in a directory (DeployLocal). It is the package.ps1 script which manages this, leaving only artifacts that are to be retained in the workspace root.
 
 Remote Tasks
 ------------
