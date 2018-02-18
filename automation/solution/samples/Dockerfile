@@ -12,4 +12,4 @@ COPY automation-solution/bootstrapAgent.ps1 automation-solution/bootstrapAgent.p
 RUN automation\provisioning\runner.bat automation-solution\bootstrapAgent.ps1
 
 # Default entry point, if build number not passed, will build using CDAF Emulator build counter
-CMD automation\provisioning\runner.bat automation\remote\entrypoint.ps1
+CMD automation\provisioning\runner.bat automation\processor\entrypoint.ps

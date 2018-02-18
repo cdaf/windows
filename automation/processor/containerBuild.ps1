@@ -99,9 +99,9 @@ if ( $rebuildImage -ne 'imageonly') {
 	Write-Host "[$scriptName] `$workspace : $workspace"
 	
 	if ( $buildNumber ) {
-		executeExpression "docker run --tty --volume ${workspace}\:C:/workspace ${imageName}:${imageTag} automation\provisioning\runner.bat automation\remote\entrypoint.ps1 $buildNumber"
+		executeExpression "docker run --tty --volume ${workspace}\:C:/workspace ${imageName}:${imageTag} automation\provisioning\runner.bat automation\processor\entrypoint.ps $buildNumber"
 	} else {
-		executeExpression "docker run --tty --volume ${workspace}\:C:/workspace ${imageName}:${imageTag} automation\provisioning\runner.bat automation\remote\entrypoint.ps1"
+		executeExpression "docker run --tty --volume ${workspace}\:C:/workspace ${imageName}:${imageTag} automation\provisioning\runner.bat automation\processor\entrypoint.ps"
 	}
 	
 	Write-Host "`n[$scriptName] List and remove all stopped containers"
