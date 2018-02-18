@@ -166,7 +166,8 @@ $containerBuild = getProp 'containerBuild' "$solutionRoot\CDAF.solution"
 if ( $containerBuild ) {
 	$versionTest = cmd /c docker --version 2`>`&1; cmd /c "exit 0"
 	if ($versionTest -like '*not recognized*') {
-		Write-Host "[$scriptName]   Docker          : containerBuild defined in $solutionRoot\CDAF.solution, but Docker not installed, will attempt to execute natively"
+		Write-Host "[$scriptName]   containerBuild  : containerBuild defined in $solutionRoot\CDAF.solution, but Docker not installed, will attempt to execute natively"
+		Clear-Variable $containerBuild
 	} else {
 		$array = $versionTest.split(" ")
 		$dockerRun = $($array[2])
@@ -176,7 +177,18 @@ if ( $containerBuild ) {
 	Write-Host "[$scriptName]   containerBuild  : (not defined in $solutionRoot\CDAF.solution)"
 }
 
-if ( $dockerRun ) {
+if ( $containerBuild ) {
+
+	Write-Host "`n[$scriptName] Execute Container build, this performs cionly, options packageonly and buildonly are ignored.`n"
+	executeExpression $containerBuild
+
+	$imageBuild = getProp 'imageBuild' "$solutionRoot\CDAF.solution"
+	if ( $imageBuild ) {
+		Write-Host "`n[$scriptName] Execute Image build, as defined in imageBuild defined in $solutionRoot\CDAF.solution`n"
+		executeExpression $containerBuild
+	} else {
+		Write-Host "[$scriptName]   imageBuild      : (not defined in $solutionRoot\CDAF.solution)"
+	}
 
 	Write-Host "`n[$scriptName] Execute Container build, this performs cionly, options packageonly and buildonly are ignored.`n"
 	executeExpression $containerBuild
