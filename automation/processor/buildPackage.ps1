@@ -167,7 +167,7 @@ if ( $containerBuild ) {
 	$versionTest = cmd /c docker --version 2`>`&1; cmd /c "exit 0"
 	if ($versionTest -like '*not recognized*') {
 		Write-Host "[$scriptName]   containerBuild  : containerBuild defined in $solutionRoot\CDAF.solution, but Docker not installed, will attempt to execute natively"
-		Clear-Variable $containerBuild
+		Clear-Variable -Name 'containerBuild'
 	} else {
 		$array = $versionTest.split(" ")
 		$dockerRun = $($array[2])
