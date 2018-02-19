@@ -36,9 +36,9 @@ if ( $ACTION -ne "cdonly" ) { # Do not incriment when just deploying
 }
 Out-File buildnumber.counter -InputObject $buildNumber
 Write-Host "[$scriptName]   buildNumber         : $buildNumber"
-$revision = 'master' # Assuming source control is Git
+$revision = 'master'
 Write-Host "[$scriptName]   revision            : $revision"
-$release = $buildNumber += 1 # Assuming Release is an integer, set it to a different value from build number 
+$release = 'emulatioon-release' 
 Write-Host "[$scriptName]   release             : $release"
 
 # Check for user defined solution folder, i.e. outside of automation root, if found override solution root

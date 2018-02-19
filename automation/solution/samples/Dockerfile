@@ -11,5 +11,4 @@ COPY automation-solution/bootstrapAgent.ps1 automation-solution/bootstrapAgent.p
 # Provision Build Dependancies
 RUN automation\provisioning\runner.bat automation-solution\bootstrapAgent.ps1
 
-# Default entry point, if build number not passed, will build using CDAF Emulator build counter
-CMD automation\provisioning\runner.bat automation\processor\entrypoint.ps
+CMD echo Usage: docker run --tty --volume ${workspace}\:C:/workspace ${imageName}:${imageTag} .\automation\processor\buildPackage.bat $buildNumber revision containerbuild
