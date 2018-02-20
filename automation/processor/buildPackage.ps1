@@ -5,7 +5,7 @@ function executeExpression ($expression) {
 	try {
 		Invoke-Expression $expression
 	    if(!$?) { Write-Host "[$scriptName] `$? = $?"; exit 1 }
-	} catch { echo $_.Exception|format-list -force; exit 2 }
+	} catch { Write-Output $_.Exception|format-list -force; exit 2 }
     if ( $error[0] ) { Write-Host "[$scriptName] `$error[0] = $error"; exit 3 }
     if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) { Write-Host "[$scriptName] `$LASTEXITCODE = $LASTEXITCODE "; exit $LASTEXITCODE }
 }
@@ -27,7 +27,7 @@ function passExitCode ($message, $exitCode) {
 
 function exceptionExit ($exception) {
     write-host "[$scriptName]   Exception details follow ..." -ForegroundColor Red
-    echo $exception.Exception|format-list -force
+    Write-Output $exception.Exception|format-list -force
     write-host "[$scriptName] Returning errorlevel (20) to DOS" -ForegroundColor Magenta
     $host.SetShouldExit(20)
     exit
@@ -80,7 +80,6 @@ function getProp ($propName, $propertiesFile) {
     return $propValue
 }
 
-$exitStatus = 0
 $scriptName = $MyInvocation.MyCommand.Name
 
 # Load automation root out of sequence as needed for solution root derivation
@@ -188,14 +187,11 @@ if ( $containerBuild ) {
 
 	$imageBuild = getProp 'imageBuild' "$solutionRoot\CDAF.solution"
 	if ( $imageBuild ) {
-		Write-Host "`n[$scriptName] Execute Image build, as defined in imageBuild defined in $solutionRoot\CDAF.solution`n"
-		executeExpression $containerBuild
+		Write-Host "`n[$scriptName] Execute Image build, as defined for imageBuild in $solutionRoot\CDAF.solution`n"
+		executeExpression $imageBuild
 	} else {
 		Write-Host "[$scriptName]   imageBuild      : (not defined in $solutionRoot\CDAF.solution)"
 	}
-
-	Write-Host "`n[$scriptName] Execute Container build, this performs cionly, options packageonly and buildonly are ignored.`n"
-	executeExpression $containerBuild
 
 } else { # Native build
 	

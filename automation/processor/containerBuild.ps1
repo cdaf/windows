@@ -13,7 +13,7 @@ function executeExpression ($expression) {
 	try {
 		Invoke-Expression $expression
 	    if(!$?) { Write-Host "[$scriptName] `$? = $?"; exit 1 }
-	} catch { echo $_.Exception|format-list -force; exit 2 }
+	} catch { Write-Output $_.Exception|format-list -force; exit 2 }
     if ( $error[0] ) { Write-Host "[$scriptName] `$error[0] = $error"; exit 3 }
     if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) { Write-Host "[$scriptName] `$LASTEXITCODE = $LASTEXITCODE "; exit $LASTEXITCODE }
 }
@@ -25,7 +25,7 @@ function executeReturn ($expression) {
 	try {
 		$output = Invoke-Expression $expression
 	    if(!$?) { Write-Host "[$scriptName] `$? = $?"; exit 1 }
-	} catch { echo $_.Exception|format-list -force; exit 2 }
+	} catch { Write-Output $_.Exception|format-list -force; exit 2 }
     if ( $error[0] ) { Write-Host "[$scriptName] `$error[0] = $error"; exit 3 }
     if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) { Write-Host "[$scriptName] `$LASTEXITCODE = $LASTEXITCODE "; exit $LASTEXITCODE }
     return $output
@@ -56,7 +56,7 @@ if ( $rebuildImage ) {
 }
 
 Write-Host "[$scriptName]   DOCKER_HOST  : $env:DOCKER_HOST"
-Write-Host "[$scriptName]   pwd          : $(pwd)"
+Write-Host "[$scriptName]   pwd          : $(Get-Location)"
 Write-Host "[$scriptName]   hostname     : $(hostname)"
 Write-Host "[$scriptName]   whoami       : $(whoami)"
 
@@ -112,7 +112,7 @@ if ( $rebuildImage -ne 'imageonly') {
 	Write-Host "[$scriptName] `$imageTag  : $imageTag"
 	Write-Host "[$scriptName] `$workspace : $workspace"
 	
-	executeExpression "docker run --tty --volume ${workspace}\:C:/workspace ${imageName}:${imageTag} cd C:/workspace;.\automation\processor\buildPackage.bat $buildNumber revision containerbuild"
+	executeExpression "docker run --tty --volume ${workspace}\:C:/solution/workspace ${imageName}:${imageTag} automation\processor\buildPackage.bat $buildNumber revision containerbuild"
 	
 	Write-Host "`n[$scriptName] List and remove all stopped containers"
 	executeExpression "docker ps --filter `"status=exited`" -a"
