@@ -1,3 +1,10 @@
+function taskException ($taskName, $exit, $exception) {
+    write-host "[$scriptName] Caught an exception excuting $taskName :" -ForegroundColor Red
+    write-host "     Exception Type: $($exception.Exception.GetType().FullName)" -ForegroundColor Red
+    write-host "     Exception Message: $($exception.Exception.Message)" -ForegroundColor Red
+	exit $exit
+}
+
 function getFilename ($FullPathName) {
 
 	$PIECES=$FullPathName.split(“\”) 
@@ -34,5 +41,4 @@ Foreach ($line in get-content $WORK_DIR_DEFAULT\copyTemplate.ps1) {
 try {
 	& $WORK_DIR_DEFAULT\copyLand.ps1 $copyFile
 	if(!$?){ taskWarning }
-} catch { $exitStatus = taskException }
-
+} catch { taskException "$copyFile" 2491 $_ }
