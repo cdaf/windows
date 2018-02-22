@@ -106,6 +106,9 @@ if ($enableTCP) {
 	} catch { echo $_.Exception|format-list -force; exit 478 }
 }
 
+# As per guidance here https://stackoverflow.com/questions/36265534/invoke-webrequest-ssl-fails
+$AllProtocols = [System.Net.SecurityProtocolType]'Tls11,Tls12'
+[System.Net.ServicePointManager]::SecurityProtocol = $AllProtocols
 executeExpression "Invoke-WebRequest 'https://github.com/docker/compose/releases/download/1.17.0/docker-compose-Windows-x86_64.exe' -UseBasicParsing -OutFile `$Env:ProgramFiles\docker\docker-compose.exe"
 
 if ($restart -eq 'yes') {
