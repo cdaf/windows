@@ -77,7 +77,7 @@ if ($vstsSA) {
 if ($stable) {
     Write-Host "[$scriptName] stable                 : $stable"
 } else {
-	$stable = 'no'
+	$stable = 'yes'
     Write-Host "[$scriptName] stable                 : $stable (not supplied, set to default)"
 }
 
