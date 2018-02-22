@@ -133,6 +133,10 @@ if ( $url ) {
 		Write-Host "`n[$scriptName] Install Failed! Exit with `$LASTEXITCODE $($proc.ExitCode)`n"
 	    exit $proc.ExitCode
 	}
+
+	Write-Host "[$scriptName] Set the service to delated start"
+	$agentService = get-service vstsagent*
+	executeExpression "sc.exe config $($agentService.name) start= delayed-auto"
 } else {
 	Write-Host "`n[$scriptName] URL not supplied. Agent software extracted to C:\agent`n"
 }
