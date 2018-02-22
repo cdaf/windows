@@ -110,7 +110,7 @@ if ( $stable -eq 'yes' ) {
 }
 
 Write-Host "[$scriptName] Download VSTS Agent"
-executeExpression './automation/provisioning/GetMedia.ps1 https://github.com/Microsoft/vsts-agent/releases/download/v2.129.1/vsts-agent-win7-x64-2.120.1.zip'
+executeExpression './automation/provisioning/GetMedia.ps1 https://github.com/Microsoft/vsts-agent/releases/download/v2.129.1/vsts-agent-win7-x64-2.129.1.zip'
 
 if ($personalAccessToken) {
 
