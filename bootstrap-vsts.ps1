@@ -5,7 +5,8 @@ Param (
 	[string]$agentName,
 	[string]$vstsPackageAccessToken,
 	[string]$vstsPool,
-	[string]$vstsSA
+	[string]$vstsSA,
+	[string]$stable
 )
 
 # Common expression logging and error handling function, copied, not referenced to ensure atomic process
@@ -73,31 +74,40 @@ if ($vstsSA) {
     Write-Host "[$scriptName] vstsSA                 : $vstsSA (not supplied, set to default)"
 }
 
+if ($stable) {
+    Write-Host "[$scriptName] stable                 : $stable"
+} else {
+	$stable = 'no'
+    Write-Host "[$scriptName] stable                 : $stable (not supplied, set to default)"
+}
+
 Write-Host "[$scriptName] pwd                    : $(pwd)"
 Write-Host "[$scriptName] whoami                 : $(whoami)"
 
-#Write-Host "[$scriptName] Download Continuous Delivery Automation Framework"
-#Write-Host "[$scriptName] `$zipFile = 'WU-CDAF.zip'"
-#$zipFile = 'WU-CDAF.zip'
-#Write-Host "[$scriptName] `$url = `"http://cdaf.io/static/app/downloads/$zipFile`""
-#$url = "http://cdaf.io/static/app/downloads/$zipFile"
-#executeExpression "(New-Object System.Net.WebClient).DownloadFile('$url', '$PWD\$zipFile')"
-#executeExpression 'Add-Type -AssemblyName System.IO.Compression.FileSystem'
-#executeExpression '[System.IO.Compression.ZipFile]::ExtractToDirectory("$PWD\$zipfile", "$PWD")'
-#executeExpression 'cat .\automation\CDAF.windows'
-#executeExpression '.\automation\provisioning\runner.bat .\automation\remote\capabilities.ps1'
-
-Write-Host "[$scriptName] Get latest from GitHub"
-Write-Host "[$scriptName] `$zipFile = 'windows-master.zip'"
-$zipFile = 'windows-master.zip'
-Write-Host "[$scriptName] `$url = `"https://codeload.github.com/cdaf/windows/zip/master`""
-$url = "https://codeload.github.com/cdaf/windows/zip/master"
-executeExpression "(New-Object System.Net.WebClient).DownloadFile('$url', '$PWD\$zipFile')"
-executeExpression 'Add-Type -AssemblyName System.IO.Compression.FileSystem'
-executeExpression '[System.IO.Compression.ZipFile]::ExtractToDirectory("$PWD\$zipfile", "$PWD")'
-executeExpression 'mv windows-master\automation .'
-executeExpression 'cat .\automation\CDAF.windows'
-executeExpression '.\automation\provisioning\runner.bat .\automation\remote\capabilities.ps1'
+if ( $stable -eq 'yes' ) { 
+	Write-Host "[$scriptName] Download Continuous Delivery Automation Framework"
+	Write-Host "[$scriptName] `$zipFile = 'WU-CDAF.zip'"
+	$zipFile = 'WU-CDAF.zip'
+	Write-Host "[$scriptName] `$url = `"http://cdaf.io/static/app/downloads/$zipFile`""
+	$url = "http://cdaf.io/static/app/downloads/$zipFile"
+	executeExpression "(New-Object System.Net.WebClient).DownloadFile('$url', '$PWD\$zipFile')"
+	executeExpression 'Add-Type -AssemblyName System.IO.Compression.FileSystem'
+	executeExpression '[System.IO.Compression.ZipFile]::ExtractToDirectory("$PWD\$zipfile", "$PWD")'
+	executeExpression 'cat .\automation\CDAF.windows'
+	executeExpression '.\automation\provisioning\runner.bat .\automation\remote\capabilities.ps1'
+} else {
+	Write-Host "[$scriptName] Get latest CDAF from GitHub"
+	Write-Host "[$scriptName] `$zipFile = 'windows-master.zip'"
+	$zipFile = 'windows-master.zip'
+	Write-Host "[$scriptName] `$url = `"https://codeload.github.com/cdaf/windows/zip/master`""
+	$url = "https://codeload.github.com/cdaf/windows/zip/master"
+	executeExpression "(New-Object System.Net.WebClient).DownloadFile('$url', '$PWD\$zipFile')"
+	executeExpression 'Add-Type -AssemblyName System.IO.Compression.FileSystem'
+	executeExpression '[System.IO.Compression.ZipFile]::ExtractToDirectory("$PWD\$zipfile", "$PWD")'
+	executeExpression 'mv windows-master\automation .'
+	executeExpression 'cat .\automation\CDAF.windows'
+	executeExpression '.\automation\provisioning\runner.bat .\automation\remote\capabilities.ps1'
+}
 
 Write-Host "[$scriptName] Download VSTS Agent"
 executeExpression './automation/provisioning/GetMedia.ps1 https://github.com/Microsoft/vsts-agent/releases/download/v2.120.1/vsts-agent-win7-x64-2.120.1.zip'
