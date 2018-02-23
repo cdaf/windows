@@ -38,7 +38,7 @@ function taskFailure ($taskName) {
     write-host
     write-host "[$scriptName] Failure occured! Code returned ... $taskName" -ForegroundColor Red
     $host.SetShouldExit(30)
-    exit
+    exit 30
 }
 
 function taskWarning { 

@@ -11,4 +11,7 @@ COPY automation-solution/bootstrapAgent.ps1 automation-solution/bootstrapAgent.p
 # Provision Build Dependancies
 RUN automation\provisioning\runner.bat automation-solution\bootstrapAgent.ps1
 
-CMD echo Usage: docker run --tty --volume ${workspace}\:C:/workspace ${imageName}:${imageTag} .\automation\processor\buildPackage.bat $buildNumber revision containerbuild
+# Change workdir to the mapped folder so that the build artefacts are available on the host
+WORKDIR workspace
+
+CMD echo Usage: docker run --tty --volume ${workspace}\:C:/solution/workspace ${imageName}:${imageTag} automation\processor\buildPackage.bat $buildNumber revision containerbuild

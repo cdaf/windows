@@ -24,7 +24,8 @@ function taskFailure ($taskName) {
     write-host
     write-host "[$scriptName] Failure occured! Code returned ... $taskName" -ForegroundColor Red
     write-host "[$scriptName] Returning errorlevel (510) to DOS" -ForegroundColor Magenta
-    $host.SetShouldExit(510); exit
+    $host.SetShouldExit(510)
+	exit 510
 }
 
 function taskWarning { 
