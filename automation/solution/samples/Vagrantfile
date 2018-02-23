@@ -53,7 +53,7 @@ Vagrant.configure(2) do |allhosts|
         override.vm.network 'private_network', ip: "172.16.17.10#{i}"
         override.vm.provision 'shell', inline: '$zipFile = "WU-CDAF.zip"; $url = "http://cdaf.io/static/app/downloads/$zipFile"; (New-Object System.Net.WebClient).DownloadFile($url, "$PWD\$zipFile"); Add-Type -AssemblyName System.IO.Compression.FileSystem; [System.IO.Compression.ZipFile]::ExtractToDirectory("$PWD\$zipfile", "$PWD")'
         override.vm.provision 'shell', inline: './automation/provisioning/setDNS.ps1 172.16.17.100'
-        override.vm.provision 'shell', inline: "./automation/provisioning/newComputer.ps1 sky.net member-#{i}"
+        override.vm.provision 'shell', inline: "./automation/provisioning/newComputer.ps1 sky.net"
         override.vm.provision :reload
         override.vm.provision 'shell', inline: "DISM /Online /Enable-Feature /FeatureName:FailoverCluster-Mgmt /FeatureName:FailoverCluster-FullServer /FeatureName:FailoverCluster-PowerShell /All"
         override.vm.provision 'shell', inline: "DISM /online /Get-Features /Format:Table | findstr Fail"
