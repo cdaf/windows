@@ -21,7 +21,7 @@ $soapui_version = $args[0]
 if ( $soapui_version ) {
 	Write-Host "[$scriptName] soapui_version         : $soapui_version"
 } else {
-	$soapui_version = '5.3.0'
+	$soapui_version = '5.4.0'
 	Write-Host "[$scriptName] soapui_version         : $soapui_version (default)"
 }
 

@@ -1,7 +1,7 @@
 # Common expression logging and error handling function, copied, not referenced to ensure atomic process
 function executeExpression ($expression) {
 	$error.clear()
-	Write-Host "[$scriptName] $expression"
+	Write-Host "$expression"
 	try {
 		Invoke-Expression $expression
 	    if(!$?) { Write-Host "[$scriptName] `$? = $?"; exit 1 }
@@ -108,18 +108,35 @@ Write-Host
 
 # Configure environment variables
 Write-Host "[$scriptName] Configuring environment variables ..."
-Write-Host
 [System.Environment]::SetEnvironmentVariable("JAVA_HOME", "$jdkInstallDir", "Machine")
 $pathEnvVar=[System.Environment]::GetEnvironmentVariable("PATH","Machine")
 [System.Environment]::SetEnvironmentVariable("PATH", $pathEnvVar + ";$jdkInstallDir\bin", "Machine")
-Write-Host
-Write-Host "[$scriptName] Configuring environment variables complete, reload path."
-Write-Host
 
-$env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")
+# Reload the path (without logging off and back on)
+$env:Path = [System.Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path", "User")
+$env:JAVA_HOME = [System.Environment]::GetEnvironmentVariable("JAVA_HOME", "Machine")
 
-Write-Host "[$scriptName]   `$env:Path = $env:Path"
+Write-Host "`n[$scriptName] `$env:JAVA_HOME = $env:JAVA_HOME`n"
 
-Write-Host
-Write-Host "[$scriptName] ---------- stop -----------"
-Write-Host
+$versionTest = cmd /c java -version 2`>`&1
+if ($versionTest -like '*not recognized*') {
+	Write-Host "  Java                    : not installed"
+} else {
+	$array = $versionTest.split(" ")
+	$array = $array[2].split('"')
+	Write-Host "  Java                    : $($array[1])"
+}
+
+$versionTest = cmd /c javac -version 2`>`&1
+if ($versionTest -like '*not recognized*') {
+	Write-Host "  Java Compiler           : not installed"
+} else {
+	$array = $versionTest.split(" ")
+	if ($array[2]) {
+		Write-Host "  Java Compiler           : $($array[2])"
+	} else {
+		Write-Host "  Java Compiler           : $($array[1])"
+	}
+}
+
+Write-Host "`n[$scriptName] ---------- stop -----------`n"

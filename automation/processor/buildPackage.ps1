@@ -182,7 +182,7 @@ if ( $ACTION -eq 'containerbuild' ) {
 
 if ( $containerBuild ) {
 
-	Write-Host "`n[$scriptName] Execute Container build, this performs cionly, options packageonly and buildonly are ignored.`n"
+	Write-Host "`n[$scriptName] Execute Container build, this performs cionly, options packageonly and buildonly are ignored.`n" -ForegroundColor Green
 	executeExpression $containerBuild
 
 	$imageBuild = getProp 'imageBuild' "$solutionRoot\CDAF.solution"

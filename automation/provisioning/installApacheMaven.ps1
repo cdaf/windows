@@ -1,7 +1,7 @@
 # Common expression logging and error handling function, copied, not referenced to ensure atomic process
 function executeExpression ($expression) {
 	$error.clear()
-	Write-Host "[$scriptName] $expression"
+	Write-Host "$expression"
 	try {
 		Invoke-Expression $expression
 	    if(!$?) { Write-Host "[$scriptName] `$? = $?"; exit 1 }
@@ -14,8 +14,7 @@ Add-Type -AssemblyName System.IO.Compression.FileSystem
 
 $scriptName = 'installApacheMaven.ps1'
 
-Write-Host
-Write-Host "[$scriptName] ---------- start ----------"
+Write-Host "`n[$scriptName] ---------- start ----------"
 
 $maven_version = $args[0]
 if ( $maven_version ) {
@@ -71,10 +70,22 @@ if ( Test-Path $destinationInstallDir ) {
 
 executeExpression "[System.IO.Compression.ZipFile]::ExtractToDirectory(`"$mediaDirectory\$mediaFileName`", `"$destinationInstallDir`")"
 
-Write-Host
-Write-Host " Add Maven to PATH"
+Write-Host "`n[$scriptName] Add Maven to PATH"
 $pathEnvVar=[System.Environment]::GetEnvironmentVariable("PATH","Machine")
 executeExpression "[System.Environment]::SetEnvironmentVariable('PATH', `"$pathEnvVar`" + `";$destinationInstallDir\apache-maven-$maven_version\bin`", 'Machine')"
-Write-Host
-Write-Host "[$scriptName] ---------- stop -----------"
-Write-Host
+
+# Reload the path (without logging off and back on)
+$env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")
+
+# Reload the path (without logging off and back on)
+$versionTest = cmd /c mvn --version 2`>`&1
+if ($versionTest -like '*not recognized*') {
+	Write-Host "`n[$scriptName] Maven not installed! Exit with LASTEXITCODE 8546"
+	exit 8546
+} else {
+	$array = $versionTest.split(" ")
+	Write-Host "`n[$scriptName] Maven : $($array[2])"
+}
+
+Write-Host "`n[$scriptName] ---------- stop -----------`n"
+exit 0
