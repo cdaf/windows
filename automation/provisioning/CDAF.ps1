@@ -19,16 +19,16 @@ function executeExpression ($expression) {
     return $output
 }
 
+cmd /c "exit 0" # Clear from any previously failed run
+
 Write-Host "`n[$scriptName] Execute the Continous Delivery Automation Framework for the solution."
 Write-Host "[$scriptName] This process is dependant on the solution being synchonised onto the"
 Write-Host "[$scriptName] `"build server`" using Vagrant and VirtualBox, which maps the local workspace"
 Write-Host "[$scriptName] at C:\vagrant. If this is not used, then the workspace must be passed."
-Write-Host
-Write-Host "[$scriptName] By default the emulation is performed using the local Vagrant user, however"
+Write-Host "`n[$scriptName] By default the emulation is performed using the local Vagrant user, however"
 Write-Host "[$scriptName] alternate credentials can be passed and a remote PowerShell connection will"
 Write-Host "[$scriptName] be attempted, connecting back to the `"build server`" via the localhost adapter."
-Write-Host
-Write-Host "[$scriptName] ---------- start ----------`n"
+Write-Host "`n[$scriptName] ---------- start ----------`n"
 if ($userName) {
     Write-Host "[$scriptName] userName  : $userName"
 } else {

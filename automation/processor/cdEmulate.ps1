@@ -1,17 +1,13 @@
 # Override function used in entry points
 function exceptionExit ($taskName) {
-    write-host
-    write-host "[$scriptName] --- Emulation Error Handling ---" -ForegroundColor Red
-    write-host
-    write-host "[$scriptName] This logging will not appear in toolset" -ForegroundColor Red
-    write-host
-    write-host "[$scriptName] $taskName failed!" -ForegroundColor Red
+    write-host "`n[$scriptName] --- Emulation Error Handling ---" -ForegroundColor Red
+    write-host "`n[$scriptName] This logging will not appear in toolset" -ForegroundColor Red
+    write-host "`n[$scriptName] $taskName failed!" -ForegroundColor Red
     write-host "[$scriptName]   Returning errorlevel (-2) to emulation wrapper" -ForegroundColor Magenta
-    $host.SetShouldExit(-2) # Returning exit code to DOS
-    exit
+    exit 2034
 }
 
-$scriptName          = $MyInvocation.MyCommand.Name
+$scriptName = $MyInvocation.MyCommand.Name
 
 $ACTION = $args[0]
 Write-Host "[$scriptName]   ACTION              : $ACTION"
@@ -25,8 +21,8 @@ if ($AUTOMATIONROOT) {
 }
 
 # Use a simple text file (buildnumber.counter) for incrimental build number
-if ( Test-Path buildnumber.counter ) {
-	$buildNumber = Get-Content buildnumber.counter
+if ( Test-Path "$env:USERPROFILE\buildnumber.counter" ) {
+	$buildNumber = Get-Content "$env:USERPROFILE\buildnumber.counter"
 } else {
 	$buildNumber = 0
 }
@@ -34,7 +30,7 @@ if ( Test-Path buildnumber.counter ) {
 if ( $ACTION -ne "cdonly" ) { # Do not incriment when just deploying
 	$buildNumber += 1
 }
-Out-File buildnumber.counter -InputObject $buildNumber
+Out-File "$env:USERPROFILE\buildnumber.counter" -InputObject $buildNumber
 Write-Host "[$scriptName]   buildNumber         : $buildNumber"
 $revision = 'master'
 Write-Host "[$scriptName]   revision            : $revision"
@@ -255,3 +251,5 @@ if ( $execCD -eq 'yes' ) {
 write-host "`n[$scriptName] ------------------"
 write-host "[$scriptName] Emulation Complete"
 write-host "[$scriptName] ------------------`n"
+$error.clear()
+exit 0
