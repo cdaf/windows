@@ -39,31 +39,30 @@ function executeRetry ($expression) {
 $scriptName = 'windowsService.ps1'
 Write-Host "`n[$scriptName] ---------- start ----------"
 if ($serviceName) {
-    Write-Host "[$scriptName] serviceName : $serviceName"
+    Write-Host "[$scriptName] serviceName                      : $serviceName"
 } else {
     Write-Host "[$scriptName] serviceName not passed, exit with LASTEXITCODE 564"; exit 564
 }
-if ($windowsServiceLocalAdmin) {
-    Write-Host "[$scriptName] windowsServiceLocalAdmin : $windowsServiceLocalAdmin"
+if ($binpath) {
+    Write-Host "[$scriptName] binpath                          : $binpath"
+	if ($start) {
+	    Write-Host "[$scriptName] start                            : $start"
+	} else {
+		$start = 'yes'
+	    Write-Host "[$scriptName] start                            : $start (default)"
+	}
 } else {
-    Write-Host "[$scriptName] windowsServiceLocalAdminPassword not passed"
+    Write-Host "[$scriptName] binpath not passed, delete service"
+}
+if ($windowsServiceLocalAdmin) {
+    Write-Host "[$scriptName] windowsServiceLocalAdmin         : $windowsServiceLocalAdmin"
+} else {
+    Write-Host "[$scriptName] windowsServiceLocalAdminPassword : (not supplied)"
 }
 if ($windowsServiceLocalAdminPassword) {
     Write-Host "[$scriptName] windowsServiceLocalAdminPassword : `$windowsServiceLocalAdminPassword"
 } else {
-    Write-Host "[$scriptName] windowsServiceLocalAdminPassword not passed"
-}
-
-if ($binpath) {
-    Write-Host "[$scriptName] binpath     : $binpath"
-	if ($start) {
-	    Write-Host "[$scriptName] start       : $start"
-	} else {
-		$start = 'yes'
-	    Write-Host "[$scriptName] start       : $start (default)"
-	}
-} else {
-    Write-Host "[$scriptName] binpath not passed, delete service"
+    Write-Host "[$scriptName] windowsServiceLocalAdminPassword : (not supplied)"
 }
 
 if ($binpath) {
