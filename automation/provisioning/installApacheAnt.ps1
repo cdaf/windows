@@ -1,7 +1,7 @@
 # Common expression logging and error handling function, copied, not referenced to ensure atomic process
 function executeExpression ($expression) {
 	$error.clear()
-	Write-Host "[$scriptName] $expression"
+	Write-Host "$expression"
 	try {
 		Invoke-Expression $expression
 	    if(!$?) { Write-Host "[$scriptName] `$? = $?"; exit 1 }
@@ -26,10 +26,10 @@ $scriptName = 'installApacheAnt.ps1'
 Write-Host "`n[$scriptName] ---------- start ----------"
 $version = $args[0]
 if ( $version ) {
-	Write-Host "[$scriptName] version         : $version"
+	Write-Host "[$scriptName] version               : $version"
 } else {
 	$version = '1.9.10'
-	Write-Host "[$scriptName] version         : $version (default)"
+	Write-Host "[$scriptName] version               : $version (default)"
 }
 
 $mediaDir = $args[1]
@@ -69,7 +69,7 @@ if ( Test-Path $installFile ) {
 	executeExpression "(New-Object System.Net.WebClient).DownloadFile('$uri', '$installFile')"
 }
 
-Write-Host "[$scriptName] Maven media is packaged as a directory (apache-maven-$version)"
+Write-Host "[$scriptName] ant media is packaged as a directory (apache-ant-$version)"
 if ( Test-Path $destinationInstallDir\$target ) {
 	Write-Host "`n[$scriptName] Target ($destinationInstallDir\$target) exists, remove first"
 	executeExpression "Remove-Item -Recurse -Force $destinationInstallDir\$target"
@@ -87,7 +87,18 @@ executeExpression "[System.IO.Compression.ZipFile]::ExtractToDirectory('$install
 
 Write-Host "`n[$scriptName] Add to PATH"
 $pathEnvVar=[System.Environment]::GetEnvironmentVariable("PATH","Machine")
-executeExpression "[System.Environment]::SetEnvironmentVariable('PATH', '$pathEnvVar' + ';$destinationInstallDir\apache-maven-$version\bin', 'Machine')"
+executeExpression "[System.Environment]::SetEnvironmentVariable('PATH', '$pathEnvVar' + ';$destinationInstallDir\apache-ant-$version\bin', 'Machine')"
+
+# Reload the path (without logging off and back on)
+$env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")
+
+$versionTest = cmd /c ant -version 2`>`&1
+if ($versionTest -like '*not recognized*') {
+	Write-Host "  Apache Ant install failed!": exit 23700
+} else {
+	$array = $versionTest.split(" ")
+	Write-Host "  Apache Ant              : $($array[3])"
+}
 
 Write-Host "`n[$scriptName] ---------- stop -----------`n"
 $error.clear()
