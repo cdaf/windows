@@ -37,9 +37,10 @@ end
 vRAM = baseRAM * scale
 vCPU = scale
 
-Vagrant.configure(2) do |allhosts|
+Vagrant.configure(2) do |config|
 
-  allhosts.vm.define 'target' do |target|
+  # Build Server connects to this host to perform deployment
+  config.vm.define 'target' do |target|
     target.vm.box = "#{vagrantBox}"
     target.vm.communicator = 'winrm'
     target.vm.boot_timeout = 600  # 10 minutes
@@ -49,27 +50,26 @@ Vagrant.configure(2) do |allhosts|
     target.winrm.password = "vagrant" # Making defaults explicit
     target.vm.graceful_halt_timeout = 180 # 3 minutes
     
-    # Oracle VirtualBox, relaxed configuration for Desktop environment
+    # CDAF Images have the version they were built from included in the file system
     target.vm.provision 'shell', inline: 'cat C:\windows-master\automation\CDAF.windows | findstr "productVersion="'
+
     target.vm.provision 'shell', path: './automation/remote/capabilities.ps1'
     target.vm.provision 'shell', path: './automation/provisioning/mkdir.ps1', args: 'C:\deploy'
+
+    # Oracle VirtualBox with private NAT has insecure deployer keys for desktop testing
     target.vm.provider 'virtualbox' do |virtualbox, override|
-      virtualbox.gui = false
-      virtualbox.name = 'cdaf-target'
+      virtualbox.name = 'windows-target'
       virtualbox.memory = "#{vRAM}"
       virtualbox.cpus = "#{vCPU}"
+      virtualbox.gui = false
       override.vm.network 'private_network', ip: '172.16.17.103'
-      override.vm.network 'forwarded_port', guest: 3389, host: 33389, auto_correct: true # Remote Desktop
-      override.vm.network 'forwarded_port', guest: 5985, host: 35985, auto_correct: true # WinRM HTTP
-      override.vm.network 'forwarded_port', guest: 5986, host: 33986, auto_correct: true # WinRM HTTPS
       override.vm.network 'forwarded_port', guest:   80, host: 30080, auto_correct: true
-      override.vm.network 'forwarded_port', guest:  443, host: 30443, auto_correct: true
       override.vm.provision 'shell', path: './automation/provisioning/CredSSP.ps1', args: 'server'
     end
     
     # Microsoft Hyper-V does not support NAT or setting hostname. vagrant up target --provider hyperv
     target.vm.provider 'hyperv' do |hyperv, override|
-      hyperv.vmname = "cdaf-target"
+      hyperv.vmname = "windows-target"
       hyperv.memory = "#{vRAM}"
       hyperv.cpus = "#{vCPU}"
       hyperv.ip_address_timeout = 300 # 5 minutes, default is 2 minutes (120 seconds)
@@ -77,32 +77,30 @@ Vagrant.configure(2) do |allhosts|
     end
   end
 
-  allhosts.vm.define 'buildserver' do |buildserver|
-    buildserver.vm.box = "#{vagrantBox}"
-    buildserver.vm.communicator = 'winrm'
-    buildserver.vm.boot_timeout = 600  # 10 minutes
-    buildserver.winrm.timeout =   1800 # 30 minutes
-    buildserver.winrm.retry_limit = 10
-    buildserver.winrm.username = "vagrant" # Making defaults explicit
-    buildserver.winrm.password = "vagrant" # Making defaults explicit
-    buildserver.vm.graceful_halt_timeout = 180 # 3 minutes
-    buildserver.vm.provision 'shell', path: './automation/remote/capabilities.ps1'
+  # Build Server, fills the role of the build agent and delivers to the host above
+  config.vm.define 'build' do |build|
+    build.vm.box = "#{vagrantBox}"
+    build.vm.communicator = 'winrm'
+    build.vm.boot_timeout = 600  # 10 minutes
+    build.winrm.timeout =   1800 # 30 minutes
+    build.winrm.retry_limit = 10
+    build.winrm.username = "vagrant" # Making defaults explicit
+    build.winrm.password = "vagrant" # Making defaults explicit
+    build.vm.graceful_halt_timeout = 180 # 3 minutes
+    build.vm.provision 'shell', path: './automation/remote/capabilities.ps1'
     
-    # Oracle VirtualBox, relaxed configuration for Desktop environment
-    buildserver.vm.provider 'virtualbox' do |virtualbox, override|
-      virtualbox.gui = false
-      virtualbox.name = 'cdaf-buildserver'
+    # Oracle VirtualBox with private NAT has insecure deployer keys for desktop testing
+    build.vm.provider 'virtualbox' do |virtualbox, override|
+      virtualbox.name = 'windows-build'
       virtualbox.memory = "#{vRAM}"
       virtualbox.cpus = "#{vCPU}"
+      virtualbox.gui = false
       override.vm.network 'private_network', ip: '172.16.17.101'
-      override.vm.network 'forwarded_port', guest: 3389, host: 13389, auto_correct: true # Remote Desktop
-      override.vm.network 'forwarded_port', guest: 5985, host: 15985, auto_correct: true # WinRM HTTP
-      override.vm.network 'forwarded_port', guest: 5986, host: 15986, auto_correct: true # WinRM HTTPS
       override.vm.provision 'shell', path: './automation/provisioning/addHOSTS.ps1', args: '172.16.17.103 target.sky.net'
+      override.vm.provision 'shell', path: './automation/provisioning/setenv.ps1', args: 'environmentDelivery VAGRANT Machine'
       override.vm.provision 'shell', path: './automation/provisioning/trustedHosts.ps1', args: '*'
       override.vm.provision 'shell', path: './automation/provisioning/CredSSP.ps1', args: 'client'
       override.vm.provision 'shell', path: './automation/provisioning/setenv.ps1', args: 'interactive yes User'
-      override.vm.provision 'shell', path: './automation/provisioning/setenv.ps1', args: 'environmentDelivery VAGRANT Machine'
       override.vm.provision 'shell', path: './automation/provisioning/CDAF_Desktop_Certificate.ps1'
       override.vm.provision 'shell', path: './automation/provisioning/CDAF.ps1'
       override.vm.provision 'shell', path: './automation/provisioning/CDAF.ps1', args: '-OPT_ARG buildonly'
@@ -111,9 +109,9 @@ Vagrant.configure(2) do |allhosts|
       override.vm.provision 'shell', path: './automation/provisioning/CDAF.ps1', args: '-OPT_ARG cdonly'
     end
     
-    # Microsoft Hyper-V does not support NAT or setting hostname. vagrant up buildserver --provider hyperv
-    buildserver.vm.provider 'hyperv' do |hyperv, override|
-      hyperv.vmname = "cdaf-buildserver"
+    # Microsoft Hyper-V does not support NAT or setting hostname. vagrant up build --provider hyperv
+    build.vm.provider 'hyperv' do |hyperv, override|
+      hyperv.vmname = "windows-build"
       hyperv.memory = "#{vRAM}"
       hyperv.cpus = "#{vCPU}"
       hyperv.ip_address_timeout = 300 # 5 minutes, default is 2 minutes (120 seconds)
