@@ -55,6 +55,13 @@ if ( Test-Path $mediaDir ) {
 	Write-Host "[$scriptName] Created $(mkdir $mediaDir)"
 }
 
+if ($uri -match 'github.com') {
+	Write-Host "[$scriptName] URL contains github.com, set TLS to version 1.1 or higher"
+	Write-Host "`$AllProtocols = [System.Net.SecurityProtocolType]'Tls11,Tls12'"
+	$AllProtocols = [System.Net.SecurityProtocolType]'Tls11,Tls12'
+	executeExpression '[System.Net.ServicePointManager]::SecurityProtocol = $AllProtocols'
+}
+
 $file = $uri.Substring($uri.LastIndexOf("/") + 1)
 $fullpath = $mediaDir + '\' + $file
 if ( Test-Path $fullpath ) {
