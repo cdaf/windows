@@ -27,7 +27,7 @@ function executeSuppress ($expression) {
 	    if(!$?) { Write-Host "[$scriptName] `$? = $?"; exit 1 }
 	} catch { Write-Host $_.Exception|format-list -force; exit 2 }
 	$error.clear()
-    if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -eq 0 )) { Write-Host "[$scriptName] Suppress `$LASTEXITCODE ($LASTEXITCODE)"; cmd /c "exit 0" } # reset LASTEXITCODE
+    if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) { Write-Host "[$scriptName] Suppress `$LASTEXITCODE ($LASTEXITCODE)"; cmd /c "exit 0" } # reset LASTEXITCODE
 }
 
 cmd /c "exit 0"
@@ -58,6 +58,16 @@ if ($rebuild) {
     Write-Host "[$scriptName] rebuild   : $rebuild"
 } else {
     Write-Host "[$scriptName] rebuild   : (not supplied, docker will use cache where possible)"
+}
+$imagesBefore = docker images -f label=cdaf.${imageName}.image.version
+if ( $LASTEXITCODE -ne 0 ) {
+	cmd /c "exit 0"
+	Write-Host "`n[$scriptName] Attempting to start docker ...`n"
+	executeExpression 'Start-Service Docker'
+	executeExpression "docker images -f label=cdaf.${imageName}.image.version"
+} else {
+	Write-Host "docker images -f label=cdaf.${imageName}.image.version"
+	$imagesBefore
 }
 
 Write-Host "`n[$scriptName] As of 1.13.0 new prune commands, if using older version, suppress error"
