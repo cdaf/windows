@@ -10,6 +10,15 @@ function executeExpression ($expression) {
     if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) { Write-Host "[$scriptName] `$LASTEXITCODE = $LASTEXITCODE "; exit $LASTEXITCODE }
 }
 
+# Cater for media directory being inaccesible, i.e. Vagrant/Hyper-V
+function listAndContinue {
+	Write-Host "[$scriptName] Error accessing cache falling back to `$env:temp"
+	$mediaDir = $env:temp
+	$fullpath = $mediaDir + '\' + $file
+	return $fullpath
+}
+
+cmd /c "exit 0"
 Add-Type -AssemblyName System.IO.Compression.FileSystem
 
 $scriptName = 'installApacheMaven.ps1'
@@ -20,7 +29,7 @@ $maven_version = $args[0]
 if ( $maven_version ) {
 	Write-Host "[$scriptName] maven_version         : $maven_version"
 } else {
-	$maven_version = '3.3.9'
+	$maven_version = '3.5.0'
 	Write-Host "[$scriptName] maven_version         : $maven_version (default)"
 }
 
@@ -40,35 +49,44 @@ if ( $destinationInstallDir ) {
 	Write-Host "[$scriptName] destinationInstallDir : $destinationInstallDir (default)"
 }
 
-Write-Host
+if ( Test-Path $mediaDirectory ) {
+	Write-Host "`n[$scriptName] $mediaDirectory exists"
+} else {
+	Write-Host "`n[$scriptName] $(mkdir $mediaDirectory) created"
+}
 
 # The installation directory for JDK, the script will create this
 $target = 'apache-maven-' + $maven_version
 $mediaFileName = $target + "-bin.zip"
 Write-Host
 if ( Test-Path $mediaDirectory\$mediaFileName ) {
-	Write-Host "[$scriptName] Source media found ($mediaDirectory\$mediaFileName)"
+	Write-Host "`n[$scriptName] Source media found ($mediaDirectory\$mediaFileName)"
 } else { 
-	Write-Host "[$scriptName] Source media ($mediaDirectory\$mediaFileName) NOT FOUND, exiting with code 1!"
-	exit 1
+	Write-Host "`n[$scriptName] $file does not exist in $mediaDir, listing contents"
+	try {
+		Get-ChildItem $mediaDir | Format-Table name
+	    if(!$?) { $installFile = listAndContinue }
+	} catch { $installFile = listAndContinue }
+
+	Write-Host "[$scriptName] Attempt download"
+	$uri = "https://archive.apache.org/dist/maven/maven-3/${maven_version}/binaries/" + $mediaFileName
+	executeExpression "(New-Object System.Net.WebClient).DownloadFile('$uri', '$mediaDirectory\$mediaFileName')"
 }
 
 Write-Host "[$scriptName] Maven media is packaged as a directory (apache-maven-$maven_version)"
 if ( Test-Path $destinationInstallDir\$target ) {
-	Write-Host
-	Write-Host "[$scriptName] Target ($destinationInstallDir\$target) exists, remove first"
+	Write-Host "`n[$scriptName] Target ($destinationInstallDir\$target) exists, remove first"
 	executeExpression "Remove-Item -Recurse -Force $destinationInstallDir\$target"
 }
 
-Write-Host
 if ( Test-Path $destinationInstallDir ) {
-	Write-Host "[$scriptName] destinationInstallDir ($destinationInstallDir) exists"
+	Write-Host "`n[$scriptName] destinationInstallDir ($destinationInstallDir) exists"
 } else { 
-	Write-Host "[$scriptName] Create destinationInstallDir ($destinationInstallDir)"
+	Write-Host "`n[$scriptName] Create destinationInstallDir ($destinationInstallDir)"
 	executeExpression "New-Item -path $destinationInstallDir -type directory"
 }
 
-executeExpression "[System.IO.Compression.ZipFile]::ExtractToDirectory(`"$mediaDirectory\$mediaFileName`", `"$destinationInstallDir`")"
+executeExpression "[System.IO.Compression.ZipFile]::ExtractToDirectory('$mediaDirectory\$mediaFileName', '$destinationInstallDir')"
 
 Write-Host "`n[$scriptName] Add Maven to PATH"
 $pathEnvVar=[System.Environment]::GetEnvironmentVariable("PATH","Machine")
