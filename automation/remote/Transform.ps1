@@ -54,38 +54,37 @@ Foreach ($line in get-content $PROPFILE) {
         $nameValue=$line.split("#")
         $nameValue=$nameValue[0]
 
-#		write-host "[$scriptName] nameValue = $nameValue"
         # Do not attempt any processing when a line is just a comment
         if ($nameValue) {
-
-			$data = $nameValue.split("=")
-			$name, $value = $line -split '=', 2
-			if ( $value -like "`$*" ) {
-				$value = Invoke-Expression $value
-			}
-
-			# If token file is supplied, detokenise file (in situ)
-			if ($TOKENFILE) { 
-
-				$token = "%" + $name + "%"
-				Foreach ($record in get-content $TOKENFILE) {
-#					write-host "[$scriptName] record = $record"
-
-					if ($record -match "$token") {
-						write-host "Found $token, replacing with $value"
-					}
-					$newLine = $record -replace "$token","$value"
-					Add-Content newFile.txt $newLine
-
-				}
-				Move-Item newFile.txt $TOKENFILE -force
-
-			# If token file is not supplied, echo strings for instantiating as variables (cannot instantiate here as they will be out of scope)
+			$name, $value = $nameValue -split '=', 2
+			if ( $name -like "*.*" ) {
+				write-host "[$scriptName] Ignoring $name as contains '.'"
 			} else {
-
-				$loadVariable = "`$$name=`"$value`""
-				Write-Output "$loadVariable"
-				write-host "[$scriptName]   $name = $value"
+				if ( $value -like "`$*" ) {
+					$value = Invoke-Expression $value
+				}
+	
+				# If token file is supplied, detokenise file (in situ)
+				if ($TOKENFILE) { 
+	
+					$token = "%" + $name + "%"
+					Foreach ($record in get-content $TOKENFILE) {
+						if ($record -match "$token") {
+							write-host "Found $token, replacing with $value"
+						}
+						$newLine = $record -replace "$token","$value"
+						Add-Content newFile.txt $newLine
+	
+					}
+					Move-Item newFile.txt $TOKENFILE -force
+	
+				# If token file is not supplied, echo strings for instantiating as variables (cannot instantiate here as they will be out of scope)
+				} else {
+	
+					$loadVariable = "`$$name=`"$value`""
+					Write-Output "$loadVariable"
+					write-host "[$scriptName]   $name = $value"
+				}
 			}
         }
     }
