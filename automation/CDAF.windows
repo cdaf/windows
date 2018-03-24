@@ -2,4 +2,4 @@
 # and apply configuration changes that are specific to your solution.
 productVersion=1.7.2
 productName=Continuous Delivery Automation Framework
-solutionName=agentrunner
+solutionName=WU-CDM
