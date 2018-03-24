@@ -38,7 +38,6 @@ if ($7zipDir) {
 }
 
 # Where the curl installed software will reside
-$curlFQDN = 'winampplugins.co.uk'
 if ($curlDir) {
     Write-Host "[$scriptName] curlDir  : $curlDir`n"
 } else {
@@ -73,7 +72,12 @@ if ( ! ( $zipVersion )) {
 		executeExpression "(New-Object System.Net.WebClient).DownloadFile('$uri', '$fullpath')"
 	}
 	
-	if ( ! (Test-Path "$7zipDir") ) {
+	# If already installed, remove files (but not directory because it maybe default, which is system
+	if (Test-Path "$7zipDir") {
+		if (Test-Path "$7zipDir\7-zip.chm") {
+			executeExpression "rm $7zipDir\7-zip.chm"
+		}
+	} else {
 		executeExpression "mkdir $7zipDir"
 	}
 	Add-Type -AssemblyName System.IO.Compression.FileSystem
@@ -97,13 +101,13 @@ if ( $curlVersion ) {
 	Write-Host "[$scriptName] curl.exe not installed"
 }
 
-$file = 'curl_7_50_3_openssl_nghttp2_x64.7z'
+$file = 'curl_7_53_1_openssl_nghttp2_x64.7z'
 $fullpath = $mediaDir + '\' + $file
 if ( Test-Path $fullpath ) {
 	Write-Host "[$scriptName] $fullpath exists, download not required"
 } else {
-	$uri = "http://$curlFQDN/curl/" + $file
-	executeExpression "(New-Object System.Net.WebClient).DownloadFile(`'$uri`', `'$fullpath`')"
+	$uri = "https://winampplugins.co.uk/download.php?file=curl/" + $file
+	executeExpression "(New-Object System.Net.WebClient).DownloadFile('$uri', '$fullpath')"
 }
 
 executeExpression "& 7za.exe x $fullpath -o$curlDir -aoa"
