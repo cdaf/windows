@@ -88,13 +88,13 @@ if ($stripDISM) {
 }
 	
 if ( $hypervisor -eq 'virtualbox' ) {
-	executeExpression ".\automation\provisioning\mountImage.ps1 $env:userprofile\VBoxGuestAdditions_5.1.30.iso http://download.virtualbox.org/virtualbox/5.1.30/VBoxGuestAdditions_5.1.30.iso"
+	executeExpression ".\automation\provisioning\mountImage.ps1 $env:userprofile\VBoxGuestAdditions_5.1.10.iso http://download.virtualbox.org/virtualbox/5.1.10/VBoxGuestAdditions_5.1.10.iso"
 	$result = executeExpression "[Environment]::GetEnvironmentVariable(`'MOUNT_DRIVE_LETTER`', `'User`')"
 	emailProgress "Guest Additiions requires manual intervention ..."
 	
 	executeExpression "`$proc = Start-Process -FilePath `"$result\VBoxWindowsAdditions-amd64.exe`" -ArgumentList `'/S`' -PassThru -Wait"
-	executeExpression ".\automation\provisioning\mountImage.ps1 $env:userprofile\VBoxGuestAdditions_5.1.30.iso"
-	executeExpression "Remove-Item $env:userprofile\VBoxGuestAdditions_5.1.30.iso"
+	executeExpression ".\automation\provisioning\mountImage.ps1 $env:userprofile\VBoxGuestAdditions_5.1.10.iso"
+	executeExpression "Remove-Item $env:userprofile\VBoxGuestAdditions_5.1.10.iso"
 } else {
 	writeLog "Hypervisor ($hypervisor) not virtualbox, skip Guest Additions install"
 }
