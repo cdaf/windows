@@ -134,7 +134,7 @@ $output = $CurrentPageFile.Put()
 writeLog "$output"
  
 writeLog "Prepare for Zeroing"
-executeExpression "Optimize-Volume -DriveLetter C"
+executeIgnoreExit "Optimize-Volume -DriveLetter C"
 
 writeLog "See https://technet.microsoft.com/en-us/sysinternals/sdelete.aspx"
 $zipFile = "SDelete.zip"
