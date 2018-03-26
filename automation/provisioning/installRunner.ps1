@@ -93,7 +93,6 @@ if (!($versionTest -like '*not recognized*')) {
 	Write-Host "[$scriptName] gitlab-runner already installed, using version $($arr[1].replace(' ',''))"
 } else {
 	cmd /c "exit 0" # reset $LASTEXITCODE
-	Write-Host "[$scriptName] DEBUG 5"
 	if (!( Test-Path "C:\GitLab-Runner" )) {
 		Write-Host "[$scriptName] Create runtime directory $(mkdir C:\GitLab-Runner)"
 		Write-Host "[$scriptName] Add C:\GitLab-Runner to PATH and reload path"
