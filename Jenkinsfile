@@ -43,12 +43,6 @@ node {
 def notifyFailed() {
 
   emailext (
-    to: "jenkins@SP1.hdc.webhop.net",
-    subject: "Jenkins Job [${env.JOB_NAME}] Build [${env.BUILD_NUMBER}] failure",
-    body: "Check console output at ${env.BUILD_URL}"
-  )
-
-  emailext (
     recipientProviders: [[$class: 'DevelopersRecipientProvider']],
     subject: "Jenkins Job [${env.JOB_NAME}] Build [${env.BUILD_NUMBER}] failure",
     body: "Check console output at ${env.BUILD_URL}"
