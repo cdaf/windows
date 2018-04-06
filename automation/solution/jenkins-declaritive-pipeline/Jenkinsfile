@@ -1,0 +1,92 @@
+pipeline {
+	agent none
+	options {
+		buildDiscarder(logRotator(numToKeepStr: '10'))
+	}
+	triggers {
+		pollSCM 'H/3 * * * *'
+	}
+	stages {
+		stage('Application Build and Test') {
+			agent any 
+			steps {
+				checkout scm
+				bat "automation\\processor\\buildPackage.bat ${BUILD_NUMBER} ${BRANCH_NAME}"
+			}
+		}
+		stage('Packer Image') {
+			when { branch 'master'}
+			agent any 
+			steps {
+				sh "TasksLocal/delivery.sh PACKER"
+			}
+		}
+		stage('CD') {
+			when { branch 'master'}
+			agent any 
+			steps {
+				bat "TasksLocal\\delivery.bat ${env.STAGE_NAME}"
+			}
+		}
+
+		stage ('Test Manager Approval') {
+			when { branch 'master'}
+			steps {
+				timeout(time:1, unit:'DAYS') {
+					input message:'Deploy to Acceptence Test?'
+				}
+			}
+		}
+		
+		stage('TEST') {
+			when { branch 'master'}
+			agent any 
+			steps {
+				bat "TasksLocal\\delivery.bat ${env.STAGE_NAME}"
+			}
+		}
+
+		stage ('Product Owner Approval') {
+			when { branch 'master'}
+			steps {
+				timeout(time:2, unit:'DAYS') {
+					input message:'Deploy to Production?'
+				}
+			}
+		}
+		
+		stage('PROD') {
+			when { branch 'master'}
+			agent any 
+			steps {
+				bat "TasksLocal\\delivery.bat ${env.STAGE_NAME}"
+			}
+		}
+	}
+    post {
+        success {
+            echo 'I succeeeded!'
+        }
+        unstable {
+            echo 'I am unstable :/'
+			emailext (
+				subject: "STARTED: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]'",
+				body: """<p>STARTED: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]':</p>
+              <p>Check console output at &QUOT;<a href='${env.BUILD_URL}'>${env.JOB_NAME} [${env.BUILD_NUMBER}]</a>&QUOT;</p>""",
+				recipientProviders: [[$class: 'DevelopersRecipientProvider']]
+			)
+        }
+        failure {
+            echo 'I failed :('
+			emailext (
+				subject: "STARTED: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]'",
+				body: """<p>STARTED: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]':</p>
+              <p>Check console output at &QUOT;<a href='${env.BUILD_URL}'>${env.JOB_NAME} [${env.BUILD_NUMBER}]</a>&QUOT;</p>""",
+				recipientProviders: [[$class: 'DevelopersRecipientProvider']]
+			)
+        }
+        changed {
+            echo 'Things were different before...'
+        }
+    }	
+}
