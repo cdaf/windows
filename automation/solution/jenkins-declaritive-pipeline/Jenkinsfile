@@ -70,18 +70,18 @@ pipeline {
         unstable {
             echo 'I am unstable :/'
 			emailext (
-				subject: "STARTED: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]'",
-				body: """<p>STARTED: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]':</p>
-              <p>Check console output at &QUOT;<a href='${env.BUILD_URL}'>${env.JOB_NAME} [${env.BUILD_NUMBER}]</a>&QUOT;</p>""",
+				subject: "Jenkins Job Unstable : Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]'",
+				body: "${env.BUILD_URL}",
+                compressLog: true,
 				recipientProviders: [[$class: 'DevelopersRecipientProvider']]
 			)
         }
         failure {
             echo 'I failed :('
 			emailext (
-				subject: "STARTED: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]'",
-				body: """<p>STARTED: Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]':</p>
-              <p>Check console output at &QUOT;<a href='${env.BUILD_URL}'>${env.JOB_NAME} [${env.BUILD_NUMBER}]</a>&QUOT;</p>""",
+				subject: "Jenkins Job Failed : Job '${env.JOB_NAME} [${env.BUILD_NUMBER}]'",
+				body: "${env.BUILD_URL}",
+                attachLog: true,
 				recipientProviders: [[$class: 'DevelopersRecipientProvider']]
 			)
         }
