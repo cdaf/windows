@@ -1,0 +1,112 @@
+node  {
+  properties(
+    [
+      [
+        $class: 'BuildDiscarderProperty',
+        strategy: [$class: 'LogRotator', numToKeepStr: '10']
+      ],
+      pipelineTriggers(
+        [
+	      [$class: "SCMTrigger", scmpoll_spec: "H/3 * * * *"],
+	    ]
+	  )
+    ]
+  )
+}
+
+if (env.BRANCH_NAME != 'master') {
+
+  node {
+    try {
+
+      withEnv(["BRANCH_NAME=${env.BRANCH_NAME}"]) {
+        stage ('Application Build and Test') {
+          checkout scm
+          bat "automation\\processor\\buildPackage.bat ${BUILD_NUMBER} ${BRANCH_NAME}"
+        }
+      }
+
+    } catch (e) {
+    
+      currentBuild.result = "FAILED"
+      println currentBuild.result
+      notifyFailed()
+      throw e
+    }
+  }
+
+} else {
+
+  node {
+    try {
+
+      stage ('Application Build and Test') {
+        checkout scm
+          bat "automation\\processor\\buildPackage.bat ${BUILD_NUMBER} ${BRANCH_NAME}"
+      }
+
+    } catch (e) {
+    
+      currentBuild.result = "FAILED"
+      println currentBuild.result
+      notifyFailed()
+      throw e
+    }
+  }
+
+  node {
+    try {
+      stage ('Automated Test') {
+        bat "TasksLocal\\delivery.bat CD"
+      }
+
+    } catch (e) {
+      currentBuild.result = "FAILED"
+      println currentBuild.result
+      notifyFailed()
+      throw e
+    }
+  }
+
+  stage ('Test Manager Approval') { input "Deploy to Acceptence Test?" }
+
+  node {
+    try {
+      stage ('Acceptance Test') {
+        bat "TasksLocal\\delivery.bat TEST"
+      }
+
+    } catch (e) {
+      currentBuild.result = "FAILED"
+      println currentBuild.result
+      notifyFailed()
+      throw e
+    }
+  }
+
+  stage ('Product Owner Approval') { input "Deploy to Production?" }
+
+  node {
+    try {
+      stage ('Production') {
+        bat "TasksLocal\\delivery.bat PROD"
+      }
+
+    } catch (e) {
+      currentBuild.result = "FAILED"
+      println currentBuild.result
+      notifyFailed()
+      throw e
+    }
+  }
+
+}
+
+def notifyFailed() {
+
+  emailext (
+    recipientProviders: [[$class: 'DevelopersRecipientProvider']],
+    subject: "Jenkins Job [${env.JOB_NAME}] Build [${env.BUILD_NUMBER}] failure",
+    body: "Check console output at ${env.BUILD_URL}"
+  )
+}
