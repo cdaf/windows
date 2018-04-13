@@ -6,3 +6,4 @@
 /buildnumber.counter
 /projectDirectories.txt
 /*.exe
+/projectsToBuild.txt

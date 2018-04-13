@@ -1,3 +1,4 @@
+# Entry Point for Build Process, child scripts inherit the functions of parent scripts, so these definitions are global for the CD process
 Param (
 	[string]$ENVIRONMENT,
 	[string]$RELEASE,
@@ -7,7 +8,18 @@ Param (
 	[string]$BUILDNUMBER
 )
 
-# Entry Point for Build Process, child scripts inherit the functions of parent scripts, so these definitions are global for the CD process
+# Common expression logging and error handling function, copied, not referenced to ensure atomic process
+function executeExpression ($expression) {
+	$error.clear()
+	Write-Host "[$scriptName] $expression"
+	try {
+		Invoke-Expression $expression
+	    if(!$?) { Write-Host "[$scriptName] `$? = $?"; exit 1 }
+	} catch { Write-Output $_.Exception|format-list -force; exit 2 }
+    if ( $error[0] ) { Write-Host "[$scriptName] `$error[0] = $error"; exit 3 }
+    if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) { Write-Host "[$scriptName] `$LASTEXITCODE = $LASTEXITCODE "; exit $LASTEXITCODE }
+}
+
 # Primary powershell, returns exitcode to DOS
 function exceptionExit ( $identifier, $exception, $exitCode ) {
     write-host "`n[delivery.ps1] Exception in ${identifier}, details follow ..." -ForegroundColor Magenta
@@ -160,18 +172,17 @@ $propertiesFile = "$WORK_DIR_DEFAULT\CDAF.properties"
 $cdafVersion = getProp 'productVersion'
 Write-Host "[$scriptName]   CDAF Version     : $cdafVersion"
 
-& .\$WORK_DIR_DEFAULT\remoteTasks.ps1 $ENVIRONMENT $BUILDNUMBER $SOLUTION $WORK_DIR_DEFAULT $OPT_ARG
-if( $LASTEXITCODE -ne 0 ){
-    write-host "[$scriptName] REMOTE_NON_ZERO_EXIT & .\$WORK_DIR_DEFAULT\remoteTasks.ps1 $ENVIRONMENT $BUILDNUMBER $SOLUTION $WORK_DIR_DEFAULT $OPT_ARG" -ForegroundColor Magenta
-	write-host "[$scriptName]   `$host.SetShouldExit($LASTEXITCODE)" -ForegroundColor Red
-	$host.SetShouldExit($LASTEXITCODE); exit
-}
-if(!$?){ taskWarning }
 
-& .\$WORK_DIR_DEFAULT\localTasks.ps1 $ENVIRONMENT $BUILDNUMBER $SOLUTION $WORK_DIR_DEFAULT $OPT_ARG
-if( $LASTEXITCODE -ne 0 ){
-    write-host "[$scriptName] LOCAL_NON_ZERO_EXIT & .\$WORK_DIR_DEFAULT\localTasks.ps1 $ENVIRONMENT $BUILDNUMBER $SOLUTION $WORK_DIR_DEFAULT $OPT_ARG" -ForegroundColor Magenta
-	write-host "[$scriptName]   `$host.SetShouldExit($LASTEXITCODE)" -ForegroundColor Red
-	$host.SetShouldExit($LASTEXITCODE); exit
+$propertiesFile = "$WORK_DIR_DEFAULT\manifest.txt"
+$processSequence = getProp 'processSequence'
+
+if ( $processSequence ) {
+	Write-Host "[$scriptName]   processSequence  : $processSequence (override)"
+} else {
+	$processSequence = 'remoteTasks.ps1 localTasks.ps1'
 }
-if(!$?){ taskWarning }
+
+foreach ($step in $processSequence.Split()) {
+	Write-Host
+	executeExpression "& .\$WORK_DIR_DEFAULT\$step '$ENVIRONMENT' '$BUILDNUMBER' '$SOLUTION' '$WORK_DIR_DEFAULT' '$OPT_ARG'"
+}

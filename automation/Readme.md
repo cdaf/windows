@@ -87,7 +87,7 @@ All scripts contained in the /local folder are copied to the TasksLocal director
 
 Deploy (many)
 --------------
-Default task definitions, these can be overridden using deployScriptOverride or deployTaskOverride in properties file
+Default task definitions, these can be overridden using deployScriptOverride or deployTaskOverride (a space separated list is supported) in properties file
 
 	tasksRunLocal.tsk
 	tasksRunRemote.tsk
@@ -104,8 +104,9 @@ Encrypted files (for passwords), see automation/provisioning/crypt.ps1 to create
 	/cryptRemoteRemote
 	/cryptRemoteLocal
 
-Custom elements, i,.e. deployScriptOverride and deployTaskOverride scripts
+Custom elements, i.e. deployScriptOverride and deployTaskOverride scripts
 
+	/custom
 	/customRemote
 	/customLocal
 
