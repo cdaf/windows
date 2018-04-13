@@ -37,6 +37,12 @@ end
 vRAM = baseRAM * scale
 vCPU = scale
 
+# If this environment variable is set, then the location defined will be used for media
+# [Environment]::SetEnvironmentVariable('SYNCED_FOLDER', '/opt/.provision', 'Machine')
+if ENV['SYNCED_FOLDER']
+  synchedFolder = ENV['SYNCED_FOLDER']
+end
+
 Vagrant.configure(2) do |config|
 
   # Build Server connects to this host to perform deployment
@@ -63,6 +69,9 @@ Vagrant.configure(2) do |config|
       virtualbox.cpus = "#{vCPU}"
       virtualbox.gui = false
       override.vm.network 'private_network', ip: '172.16.17.103'
+      if synchedFolder
+        override.vm.synced_folder "#{synchedFolder}", "/.provision" # equates to C:\.provision
+      end
       override.vm.network 'forwarded_port', guest:   80, host: 30080, auto_correct: true
       override.vm.provision 'shell', path: './automation/provisioning/CredSSP.ps1', args: 'server'
     end
@@ -96,6 +105,9 @@ Vagrant.configure(2) do |config|
       virtualbox.cpus = "#{vCPU}"
       virtualbox.gui = false
       override.vm.network 'private_network', ip: '172.16.17.101'
+      if synchedFolder
+        override.vm.synced_folder "#{synchedFolder}", "/.provision" # equates to C:\.provision
+      end
       override.vm.provision 'shell', path: './automation/provisioning/addHOSTS.ps1', args: '172.16.17.103 target.sky.net'
       override.vm.provision 'shell', path: './automation/provisioning/setenv.ps1', args: 'environmentDelivery VAGRANT Machine'
       override.vm.provision 'shell', path: './automation/provisioning/trustedHosts.ps1', args: '*'
