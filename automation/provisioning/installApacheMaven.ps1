@@ -29,7 +29,7 @@ $maven_version = $args[0]
 if ( $maven_version ) {
 	Write-Host "[$scriptName] maven_version         : $maven_version"
 } else {
-	$maven_version = '3.5.0'
+	$maven_version = '3.5.3'
 	Write-Host "[$scriptName] maven_version         : $maven_version (default)"
 }
 
