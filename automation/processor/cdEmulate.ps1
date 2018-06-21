@@ -124,7 +124,7 @@ if ( $ACTION ) { # Do not list configuration instructions when an action is pass
     write-host
     write-host 'For Bamboo ...'
     write-host "  Script file         : $ciProcess"
-    write-host "  Argument            : `${bamboo.buildNumber} `${bamboo.repository.revision.number}"
+    write-host "  Argument            : `${bamboo.buildNumber} `${bamboo.repository.branch.name}"
     write-host
     write-host 'For Jenkins ...'
     write-host "  Command : $ciProcess %BUILD_NUMBER% %SVN_REVISION%"
@@ -209,7 +209,7 @@ if ( $ACTION ) {
 	write-host "  Argument            : `${bamboo.deploy.environment} `${bamboo.deploy.release}"
 	write-host
 	write-host 'For Jenkins (each environment requires a literal definition) ...'
-	write-host "  Command             : $workDirLocal\$cdInstruction $solutionName <environment literal> %SVN_REVISION%"
+	write-host "  Command             : $workDirLocal\$cdInstruction <environment literal> %SVN_REVISION%"
 	write-host
 	write-host 'For BuildMaster ...'
 	write-host "  Executable file     : $workDirLocal\$cdInstruction"
