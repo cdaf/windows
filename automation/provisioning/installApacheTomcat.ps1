@@ -18,14 +18,13 @@ function executeExpression ($expression) {
     return $output
 }
 
-Write-Host "`n[$scriptName] Requires 32-bit/64-bit Windows Service Installer"
 Write-Host "`n[$scriptName] ---------- start ----------"
 
 if ( $tomcat_version ) {
 	Write-Host "[$scriptName] tomcat_version        : $tomcat_version"
 } else {
-	$tomcat_version = '8.5.23'
-	$md5 = '910794759d9216cf81dec25da952e649'
+	$tomcat_version = '8.5.32'
+	$md5 = 'fce525887c4d60ab7b8871f4e85ef5906e61e62b'
 	Write-Host "[$scriptName] tomcat_version        : $tomcat_version (default)"
 }
 
