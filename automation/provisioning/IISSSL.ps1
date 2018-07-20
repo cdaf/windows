@@ -8,7 +8,7 @@ $scriptName = 'IISSSL.ps1'
 # Common expression logging and error handling function, copied, not referenced to ensure atomic process
 function executeExpression ($expression) {
 	$error.clear()
-	Write-Host "[$scriptName] $expression"
+	Write-Host "$expression"
 	try {
 		$output = Invoke-Expression $expression
 	    if(!$?) { Write-Host "[$scriptName] `$? = $?"; exit 1 }

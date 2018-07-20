@@ -49,7 +49,7 @@ function executeRetry ($expression) {
 		    if(!$?) { Write-Host "[$scriptName] `$? = $?"; $exitCode = 1 }
 		} catch { Write-Host "[$scriptName] $_"; $exitCode = 2 }
 	    if ( $error[0] ) { Write-Host "[$scriptName] Warning, message in `$error[0] = $error"; $error.clear() } # do not treat messages in error array as failure
-	    if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) { Write-Host "[$scriptName] `$lastExitCode = $lastExitCode "; $exitCode = $lastExitCode }
+		if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) { $exitCode = $LASTEXITCODE; Write-Host "[$scriptName] `$LASTEXITCODE = $LASTEXITCODE " -ForegroundColor Red; cmd /c "exit 0" }
 	    if ($exitCode -ne 0) {
 			if ($retryCount -ge $retryMax ) {
 				Write-Host "[$scriptName] Retry maximum ($retryCount) reached, exiting with `$LASTEXITCODE = $exitCode.`n"

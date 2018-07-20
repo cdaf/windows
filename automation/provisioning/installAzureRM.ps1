@@ -13,13 +13,13 @@ function executeRetry ($expression) {
 	while (( $retryCount -le $retryMax ) -and ($exitCode -ne 0)) {
 		$exitCode = 0
 		$error.clear()
-		Write-Host "[$retryCount] $expression"
+		Write-Host "$expression"
 		try {
 			Invoke-Expression $expression
 		    if(!$?) { Write-Host "[$scriptName] `$? = $?" -ForegroundColor Red; $exitCode = 1 }
 		} catch { Write-Host "[$scriptName] $_" -ForegroundColor Red; $exitCode = 2 }
 	    if ( $error[0] ) { Write-Host "[$scriptName] Warning, message in `$error[0] = $error" -ForegroundColor Yellow; $error.clear() } # do not treat messages in error array as failure
-	    if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) { Write-Host "[$scriptName] `$lastExitCode = $lastExitCode " -ForegroundColor Red; $exitCode = $lastExitCode }
+		if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) { $exitCode = $LASTEXITCODE; Write-Host "[$scriptName] `$LASTEXITCODE = $LASTEXITCODE " -ForegroundColor Red; cmd /c "exit 0" }
 	    if ($exitCode -ne 0) {
 			if ($retryCount -ge $retryMax ) {
 				Write-Host "[$scriptName] Retry maximum ($retryCount) reached, exiting with `$LASTEXITCODE = $exitCode.`n"
@@ -28,7 +28,6 @@ function executeRetry ($expression) {
 				$retryCount += 1
 				Write-Host "[$scriptName] Wait $wait seconds, then retry $retryCount of $retryMax"
 				sleep $wait
-				$wait = $wait + $wait
 			}
 		}
     }

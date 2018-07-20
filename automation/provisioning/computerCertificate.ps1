@@ -5,7 +5,7 @@ Param (
 function executeExpression ($expression) {
 	$error.clear()
 	$LASTEXITCODE = 0
-	Write-Host "[$scriptName] $expression"
+	Write-Host "$expression"
 	try {
 		$output = Invoke-Expression $expression
 	    if(!$?) { Write-Host "[$scriptName] `$? = $?"; exit 1 }

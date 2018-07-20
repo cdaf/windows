@@ -11,7 +11,7 @@ $scriptName = 'addDISM.ps1' # TelnetClient
 # Custom expression execution for DISM exit codes and not failing on LASTEXITCODE (to allow subsequent fall-back/retry processing
 function executeSuppress ($expression) {
 	$error.clear()
-	Write-Host "[$scriptName] $expression"
+	Write-Host "$expression"
 	try {
 		Invoke-Expression $expression
 	    if(!$?) { Write-Host "[$scriptName] `$? = $?"; exit 1 }
