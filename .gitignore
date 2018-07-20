@@ -7,3 +7,5 @@
 /projectDirectories.txt
 /*.exe
 /projectsToBuild.txt
+/*_virtualbox/
+/*_virtualbox.txt
