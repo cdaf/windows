@@ -21,10 +21,7 @@ function executeRetry ($expression) {
 				exit $exitCode
 			} else {
 				$retryCount += 1
-				Write-Host "[$scriptName] Set TLS to version 1.1 or higher, Wait $wait seconds, then retry $retryCount of $retryMax"
-				Write-Host "`$AllProtocols = [System.Net.SecurityProtocolType]'Tls11,Tls12'"
-				$AllProtocols = [System.Net.SecurityProtocolType]'Tls11,Tls12'
-				executeExpression '[System.Net.ServicePointManager]::SecurityProtocol = $AllProtocols'
+				Write-Host "[$scriptName] Wait $wait seconds, then retry $retryCount of $retryMax"
 				sleep $wait
 			}
 		}
@@ -44,8 +41,15 @@ function executeExpression ($expression) {
 }
 
 $scriptName = 'installPython.ps1'
-Write-Host "`n[$scriptName] Only Python 3 Supported"
 Write-Host "`n[$scriptName] ---------- start ----------"
+$version = $args[0]
+if ($version) {
+    Write-Host "[$scriptName] version  : $version"
+} else {
+	$version = '3'
+    Write-Host "[$scriptName] version  : $version (default)"
+}
+
 if ($mediaDir) {
     Write-Host "[$scriptName] mediaDir : $mediaDir"
 } else {
@@ -60,19 +64,34 @@ if ( Test-Path $mediaDir ) {
 	Write-Host "[$scriptName] Created $(mkdir $mediaDir)"
 }
 
-$file = 'python-3.6.3-amd64.exe'
+if ($version -eq '3') {
+	$file = 'python-3.6.3-amd64.exe'
+	$md5 = '89044FB577636803BF49F36371DCA09C'
+	$uri = "https://www.python.org/ftp/python/3.6.3/$file"
+} else {
+	$file = 'python-2.7.15.amd64.msi'
+	$uri = "https://www.python.org/ftp/python/2.7.15/$file"
+}
+
 $fullpath = $mediaDir + '\' + $file
 if ( Test-Path $fullpath ) {
 	Write-Host "[$scriptName] $fullpath exists, download not required"
 } else {
-	$md5 = '89044FB577636803BF49F36371DCA09C'
-	$uri = "https://www.python.org/ftp/python/3.6.3/$exeFile"
-	executeRetry "(New-Object System.Net.WebClient).DownloadFile('$uri', '$fullpath')" 
-	$hashValue = executeExpression "Get-FileHash '$fullpath' -Algorithm MD5"
-	if ($hashValue = $md5) {
-		Write-Host "[$scriptName] MD5 ($md5) check successful"
-	} else {
-		Write-Host "[$scriptName] MD5 ($md5) check failed! Halting with `$lastexitcode 65"; exit 65
+	$proxy = [System.Net.WebRequest]::GetSystemWebProxy()
+	$proxy.Credentials = [System.Net.CredentialCache]::DefaultCredentials
+	$wc = new-object system.net.WebClient
+	$wc.proxy = $proxy
+	Write-Host "`$AllProtocols = [System.Net.SecurityProtocolType]'Tls11,Tls12'"
+	$AllProtocols = [System.Net.SecurityProtocolType]'Tls11,Tls12'
+	executeExpression '[System.Net.ServicePointManager]::SecurityProtocol = $AllProtocols'
+	executeRetry "`$wc.DownloadFile('$uri', '$fullpath')" 
+	if ($md5) {
+		$hashValue = executeExpression "Get-FileHash '$fullpath' -Algorithm MD5"
+		if ($hashValue = $md5) {
+			Write-Host "[$scriptName] MD5 ($md5) check successful"
+		} else {
+			Write-Host "[$scriptName] MD5 ($md5) check failed! Halting with `$lastexitcode 65"; exit 65
+		}
 	}
 }
 
@@ -84,15 +103,39 @@ if ( $proc.ExitCode -ne 0 ) {
     exit $proc.ExitCode
 }
 
-# Determine if Python 3.6 has already been installed, if not, set path
-if ( ! (Test-Path ~/AppData/Roaming/Python/Python36/Scripts)) {
-	executeExpression "mkdir ~/AppData/Roaming/Python/Python36/Scripts" # default binary location for subsequent PiP installs
-	$pathWithPython = $env:Path + ';' + (Get-Item ~/AppData/Local/Programs/Python/Python36).fullname + ';' + (Get-Item ~/AppData/Local/Programs/Python/Python36/Scripts).fullname + ';' + (Get-Item ~/AppData/Roaming/Python/Python36/Scripts).fullname
-	executeExpression "[Environment]::SetEnvironmentVariable('Path', '$pathWithPython', 'User')"
-	$env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")
+# Determine if Python has already been installed, if not, set path
+if ($version -eq '3') {
+	$scriptPath = '~/AppData/Roaming/Python/Python36/Scripts'
+	$binPath = 'C:\Python36'
+} else {
+
+#	$fullpath = $mediaDir + '\get-pip.py'
+#	executeRetry "`$wc.DownloadFile('https://bootstrap.pypa.io/get-pip.py', '$fullpath')"
+#	executeExpression "python $fullpath"
+
+	$scriptPath = '~/AppData/Roaming/Python/Python27/Scripts'
+	$binPath = 'C:\Python27'
 }
 
-executeExpression "python.exe --version"
-executeExpression "pip.exe --version"
+if ( ! (Test-Path $scriptPath)) {
+	executeExpression "mkdir $scriptPath" # default binary location for subsequent PiP installs
+}
+
+Write-Host "`n[$scriptName] List current path before making changes"
+$env:Path
+
+# Set user (PiP) and machine (Python) paths
+$pathWithPython = $env:Path + ';' + (Get-Item $scriptPath).fullname
+executeExpression "[Environment]::SetEnvironmentVariable('Path', '$pathWithPython', 'User')"
+$pathWithPython = $env:Path + ';' + (Get-Item $binPath).fullname
+executeExpression "[Environment]::SetEnvironmentVariable('Path', '$pathWithPython', 'Machine')"
+$pipPath = $binPath + '\Scripts'
+$pathWithPython = $env:Path + ';' + (Get-Item $pipPath).fullname
+executeExpression "[Environment]::SetEnvironmentVariable('Path', '$pathWithPython', 'Machine')"
+
+$env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")
+
+executeExpression "python --version"
+executeExpression "pip --version"
 
 Write-Host "`n[$scriptName] ---------- stop ----------`n"
