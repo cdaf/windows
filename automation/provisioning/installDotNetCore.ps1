@@ -30,13 +30,13 @@ if ( $version ) {
 	Write-Host "[$scriptName] version  : $version"
 } else {
 	if ( $sdk -eq 'yes' ) {
-		$version = '2.1.4'
+		$version = '2.1.302'
 		$file = "dotnet-sdk-${version}-win-x64.exe"
-		$url = "https://download.microsoft.com/download/1/1/5/115B762D-2B41-4AF3-9A63-92D9680B9409/$file"
+		$url = "https://download.microsoft.com/download/4/0/9/40920432-3302-47a8-b13c-bbc4848ad114/$file"
 	} else {
-		$version = '2.0.5'
-		$file = "dotnet-runtime-${version}-win-x64.exe"
-		$url = "https://download.microsoft.com/download/1/1/0/11046135-4207-40D3-A795-13ECEA741B32/$file"
+		$version = '2.1.2'
+		$file = "dotnet-hosting-${version}-win.exe"
+		$url = "https://download.microsoft.com/download/1/f/7/1f7755c5-934d-4638-b89f-1f4ffa5afe89/$file"
 	} 
 	Write-Host "[$scriptName] version  : $version (default)"
 }
@@ -46,6 +46,13 @@ if ( $mediaDir ) {
 } else {
 	$mediaDir = 'C:\.provision'
 	Write-Host "[$scriptName] mediaDir : $mediaDir (not passed, set to default)`n"
+}
+
+# Create media cache if missing
+if ( Test-Path $mediaDir ) {
+    Write-Host "`n[$scriptName] `$mediaDir ($mediaDir) exists"
+} else {
+	Write-Host "[$scriptName] Created $(mkdir $mediaDir)"
 }
 
 $installer = "${mediaDir}\${file}"
