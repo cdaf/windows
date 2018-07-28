@@ -94,13 +94,14 @@ $fullpath = $mediaDir + '\' + $file
 if ( Test-Path $fullpath ) {
 	Write-Host "[$scriptName] $fullpath exists, download not required"
 } else {
-	Write-Host "[$scriptName] $file does not exist in $mediaDir, listing contents"
+	Write-Host "[$scriptName] $file does not exist in $mediaDir, listing possible matches ..."
 	try {
-		Get-ChildItem $mediaDir | Format-Table name
+		Get-ChildItem $mediaDir $([System.IO.Path]::GetFileNameWithoutExtension($filename) + '.*') | Format-Table name
+		Get-ChildItem $mediaDir $('*.' + [System.IO.Path]::GetExtension($filename)) | Format-Table name
 	    if(!$?) { $fullpath = listAndContinue }
 	} catch { $fullpath = listAndContinue }
 
-	Write-Host "[$scriptName] Attempt download"
+	Write-Host "`n[$scriptName] Attempt download`n"
 	executeRetry "(New-Object System.Net.WebClient).DownloadFile('$uri', '$fullpath')"
 }
 
