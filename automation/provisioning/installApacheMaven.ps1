@@ -10,6 +10,40 @@ function executeExpression ($expression) {
     if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) { Write-Host "[$scriptName] `$LASTEXITCODE = $LASTEXITCODE "; exit $LASTEXITCODE }
 }
 
+# Retry logic for connection issues, i.e. "Cannot retrieve the dynamic parameters for the cmdlet. PowerShell Gallery is currently unavailable.  Please try again later."
+# Includes warning for "Cannot find a variable with the name 'PackageManagementProvider'. Cannot find a variable with the name 'SourceLocation'."
+function executeRetry ($expression) {
+	$exitCode = 1
+	$wait = 10
+	$retryMax = 3
+	$retryCount = 0
+	while (( $retryCount -le $retryMax ) -and ($exitCode -ne 0)) {
+		$exitCode = 0
+		$error.clear()
+		Write-Host "$expression"
+		try {
+			Invoke-Expression $expression
+		    if(!$?) { Write-Host "[$scriptName] `$? = $?" -ForegroundColor Red; $exitCode = 1 }
+		} catch { Write-Host "[$scriptName] $_" -ForegroundColor Red; $exitCode = 2 }
+	    if ( $error[0] ) { Write-Host "[$scriptName] Warning, message in `$error[0] = $error" -ForegroundColor Yellow; $error.clear() } # do not treat messages in error array as failure
+		if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) { $exitCode = $LASTEXITCODE; Write-Host "[$scriptName] `$LASTEXITCODE = $LASTEXITCODE " -ForegroundColor Red; cmd /c "exit 0" }
+	    if ($exitCode -ne 0) {
+			if ($retryCount -ge $retryMax ) {
+				Write-Host "[$scriptName] Retry maximum ($retryCount) reached, exiting with `$LASTEXITCODE = $exitCode.`n"
+				exit $exitCode
+			} else {
+				$retryCount += 1
+				Write-Host "[$scriptName] Set TLS to version 1.1 or higher, Wait $wait seconds, then retry $retryCount of $retryMax"
+				Write-Host "`$AllProtocols = [System.Net.SecurityProtocolType]'Tls11,Tls12'"
+				$AllProtocols = [System.Net.SecurityProtocolType]'Tls11,Tls12'
+				executeExpression '[System.Net.ServicePointManager]::SecurityProtocol = $AllProtocols'
+				sleep $wait
+				$wait = $wait + $wait
+			}
+		}
+    }
+}
+
 # Cater for media directory being inaccesible, i.e. Vagrant/Hyper-V
 function listAndContinue {
 	Write-Host "[$scriptName] Error accessing cache falling back to `$env:temp"
@@ -70,7 +104,7 @@ if ( Test-Path $mediaDirectory\$mediaFileName ) {
 
 	Write-Host "[$scriptName] Attempt download"
 	$uri = "https://archive.apache.org/dist/maven/maven-3/${maven_version}/binaries/" + $mediaFileName
-	executeExpression "(New-Object System.Net.WebClient).DownloadFile('$uri', '$mediaDirectory\$mediaFileName')"
+	executeRetry "(New-Object System.Net.WebClient).DownloadFile('$uri', '$mediaDirectory\$mediaFileName')"
 }
 
 Write-Host "[$scriptName] Maven media is packaged as a directory (apache-maven-$maven_version)"
