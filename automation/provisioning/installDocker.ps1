@@ -80,16 +80,31 @@ if ($restart) {
     Write-Host "[$scriptName]  restart   : $restart (set to default)"
 }
 
-Write-Host "Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.201 -Verbose -Force"
-Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.201 -Verbose -Force
+$proxyURI = $([system.net.webrequest]::defaultwebproxy.Address).AbsoluteUri
 
+if ( $proxyURI ) {
+	$proxy = "-Proxy $proxyURI"
+    Write-Host "[$scriptName]  proxyURI  : $proxyURI"
+    [system.net.webrequest]::defaultwebproxy = new-object system.net.webproxy($env:HPP_PROXY)
+}
+
+executeExpression "Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.201 -Verbose -Force $proxy"
+
+# Found these repositories unreliable so included retry logic
+$galleryAvailable = Get-PSRepository -Name PSGallery*
+if ($galleryAvailable) {
+	Write-Host "[$scriptName] $((Get-PSRepository -Name PSGallery).Name) is already available"
+} else {
+	executeRetry "Register-PSRepository -Default"
+}
+
+# Avoid "You are installing the modules from an untrusted repository" message
 executeRetry "Set-PSRepository -Name PSGallery -InstallationPolicy Trusted"
 
-executeRetry "Find-PackageProvider *docker* | Format-Table Name, Version, Source"
+executeRetry "Find-PackageProvider $proxy *docker* | Format-Table Name, Version, Source"
 
 executeRetry "Install-Module NuGet -Confirm:`$False"
 
-Write-Host "`n[$scriptName] Found these repositories unreliable`n"
 executeRetry "Install-Module -Name DockerMsftProviderInsider -Repository PSGallery -Confirm:`$False -Verbose -Force"
 executeRetry "Install-Package -Name docker -ProviderName DockerMsftProviderInsider -Confirm:`$False -Verbose -Force"
 
