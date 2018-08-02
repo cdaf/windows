@@ -1,5 +1,5 @@
 # Mandatory properties to land package on host
-deployHost=target.sky.net
+deployHost=server-1.sky.net
 remoteUser=vagrant
 remoteCred=WINDOWS_PASSWORD
 decryptThb=1C5A22D1DA540F210122BB63EB8F38ABBBB9009A

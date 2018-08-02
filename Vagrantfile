@@ -37,6 +37,9 @@ end
 vRAM = baseRAM * scale
 vCPU = scale
 
+# This is provided to make scaling easier
+MAX_SERVER_TARGETS = 1
+
 # If this environment variable is set, then the location defined will be used for media
 # [Environment]::SetEnvironmentVariable('SYNCED_FOLDER', '/opt/.provision', 'Machine')
 if ENV['SYNCED_FOLDER']
@@ -46,43 +49,48 @@ end
 Vagrant.configure(2) do |config|
 
   # Build Server connects to this host to perform deployment
-  config.vm.define 'target' do |target|
-    target.vm.box = "#{vagrantBox}"
-    target.vm.communicator = 'winrm'
-    target.vm.boot_timeout = 600  # 10 minutes
-    target.winrm.timeout =   1800 # 30 minutes
-    target.winrm.retry_limit = 10
-    target.winrm.username = "vagrant" # Making defaults explicit
-    target.winrm.password = "vagrant" # Making defaults explicit
-    target.vm.graceful_halt_timeout = 180 # 3 minutes
-    
-    # CDAF Images have the version they were built from included in the file system
-    target.vm.provision 'shell', inline: 'cat C:\windows-master\automation\CDAF.windows | findstr "productVersion="'
-
-    target.vm.provision 'shell', path: './automation/remote/capabilities.ps1'
-    target.vm.provision 'shell', path: './automation/provisioning/mkdir.ps1', args: 'C:\deploy'
-
-    # Oracle VirtualBox with private NAT has insecure deployer keys for desktop testing
-    target.vm.provider 'virtualbox' do |virtualbox, override|
-      virtualbox.name = 'windows-target'
-      virtualbox.memory = "#{vRAM}"
-      virtualbox.cpus = "#{vCPU}"
-      virtualbox.gui = false
-      override.vm.network 'private_network', ip: '172.16.17.103'
-      if synchedFolder
-        override.vm.synced_folder "#{synchedFolder}", "/.provision" # equates to C:\.provision
+  (1..MAX_SERVER_TARGETS).each do |i|
+    config.vm.define "server-#{i}" do |server|
+      server.vm.box = "#{vagrantBox}"
+      server.vm.communicator = 'winrm'
+      server.vm.boot_timeout = 600  # 10 minutes
+      server.winrm.timeout =   1800 # 30 minutes
+      server.winrm.retry_limit = 10
+      server.winrm.username = "vagrant" # Making defaults explicit
+      server.winrm.password = "vagrant" # Making defaults explicit
+      server.vm.graceful_halt_timeout = 180 # 3 minutes
+      
+      # CDAF Images have the version they were built from included in the file system
+      server.vm.provision 'shell', inline: 'cat C:\windows-master\automation\CDAF.windows | findstr "productVersion="'
+  
+      server.vm.provision 'shell', path: './automation/remote/capabilities.ps1'
+      (1..MAX_SERVER_TARGETS).each do |s|
+        server.vm.provision 'shell', path: './automation/provisioning/addHOSTS.ps1', args: "172.16.17.10#{s} server-#{s}.sky.net"
       end
-      override.vm.network 'forwarded_port', guest:   80, host: 30080, auto_correct: true
-      override.vm.provision 'shell', path: './automation/provisioning/CredSSP.ps1', args: 'server'
-    end
-    
-    # Microsoft Hyper-V does not support NAT or setting hostname. vagrant up target --provider hyperv
-    target.vm.provider 'hyperv' do |hyperv, override|
-      hyperv.vmname = "windows-target"
-      hyperv.memory = "#{vRAM}"
-      hyperv.cpus = "#{vCPU}"
-      hyperv.ip_address_timeout = 300 # 5 minutes, default is 2 minutes (120 seconds)
-      override.vm.synced_folder ".", "/vagrant", type: "smb", smb_username: "#{ENV['VAGRANT_SMB_USER']}", smb_password: "#{ENV['VAGRANT_SMB_PASS']}"
+      server.vm.provision 'shell', path: './automation/provisioning/mkdir.ps1', args: 'C:\deploy'
+  
+      # Oracle VirtualBox with private NAT has insecure deployer keys for desktop testing
+      server.vm.provider 'virtualbox' do |virtualbox, override|
+        virtualbox.memory = "#{vRAM}"
+        virtualbox.cpus = "#{vCPU}"
+        virtualbox.gui = false
+        override.vm.network 'private_network', ip: "172.16.17.10#{i}"
+        override.vm.hostname  = "server-#{i}" # Cannot set to FQDN
+        if synchedFolder
+          override.vm.synced_folder "#{synchedFolder}", "/.provision" # equates to C:\.provision
+        end
+        override.vm.network 'forwarded_port', guest:   80, host: 30080, auto_correct: true
+        override.vm.provision 'shell', path: './automation/provisioning/CredSSP.ps1', args: 'server'
+      end
+      
+      # Microsoft Hyper-V does not support NAT or setting hostname. vagrant up server-1 --provider hyperv
+      server.vm.provider 'hyperv' do |hyperv, override|
+        hyperv.vmname = "windows-target"
+        hyperv.memory = "#{vRAM}"
+        hyperv.cpus = "#{vCPU}"
+        hyperv.ip_address_timeout = 300 # 5 minutes, default is 2 minutes (120 seconds)
+        override.vm.synced_folder ".", "/vagrant", type: "smb", smb_username: "#{ENV['VAGRANT_SMB_USER']}", smb_password: "#{ENV['VAGRANT_SMB_PASS']}"
+      end
     end
   end
 
@@ -104,11 +112,13 @@ Vagrant.configure(2) do |config|
       virtualbox.memory = "#{vRAM}"
       virtualbox.cpus = "#{vCPU}"
       virtualbox.gui = false
-      override.vm.network 'private_network', ip: '172.16.17.101'
+      override.vm.network 'private_network', ip: '172.16.17.100'
       if synchedFolder
         override.vm.synced_folder "#{synchedFolder}", "/.provision" # equates to C:\.provision
       end
-      override.vm.provision 'shell', path: './automation/provisioning/addHOSTS.ps1', args: '172.16.17.103 target.sky.net'
+      (1..MAX_SERVER_TARGETS).each do |s|
+        override.vm.provision 'shell', path: './automation/provisioning/addHOSTS.ps1', args: "172.16.17.10#{s} server-#{s}.sky.net"
+      end
       override.vm.provision 'shell', path: './automation/provisioning/setenv.ps1', args: 'environmentDelivery VAGRANT Machine'
       override.vm.provision 'shell', path: './automation/provisioning/trustedHosts.ps1', args: '*'
       override.vm.provision 'shell', path: './automation/provisioning/CredSSP.ps1', args: 'client'
