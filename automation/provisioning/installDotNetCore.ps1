@@ -17,7 +17,7 @@ function executeExpression ($expression) {
     return $output
 }
 
-function downloadAndInstall ($installer) {
+function downloadAndInstall ($url, $installer) {
 	if ( Test-Path $installer ) {
 		Write-Host "[$scriptName] Installer $installer found, download not required`n"
 	} else {
@@ -38,6 +38,11 @@ function downloadAndInstall ($installer) {
 	}
 }
 
+# As at dotnet 2 install files have changed https://www.microsoft.com/net/download/dotnet-core/2.1
+# ASP.NET Core/.NET Core	dotnet-hosting-2.1.x-win.exe
+# ASP.NET Core Installer	aspnetcore-runtime-2.1.x-win-x64.exe
+# .NET Core Binaries		dotnet-runtime-2.1.x-win-x64.exe
+
 cmd /c "exit 0"
 Write-Host "`n[$scriptName] ---------- start ----------"
 if ( $sdk ) {
@@ -52,25 +57,12 @@ if ( $version ) {
 } else {
 	if ( $sdk -eq 'yes' ) {
 		$version = '2.1.302'
-		$file = "dotnet-sdk-${version}-win-x64.exe"
-		$url = "https://download.microsoft.com/download/4/0/9/40920432-3302-47a8-b13c-bbc4848ad114/$file"
 	} else {
 		$runtimeRootURL = 'https://download.microsoft.com/download/1/f/7/1f7755c5-934d-4638-b89f-1f4ffa5afe89'
 		$version = '2.1.2'
-		$file = "dotnet-hosting-${version}-win.exe"
-		$url = "${runtimeRootURL}/${file}"
 	} 
 	Write-Host "[$scriptName] version  : $version (default)"
 }
-
-#ASP.NET Core/.NET Core
-#https://download.microsoft.com/download/1/f/7/1f7755c5-934d-4638-b89f-1f4ffa5afe89/dotnet-hosting-2.1.2-win.exe
-#
-#ASP.NET Core Installer
-#https://download.microsoft.com/download/1/f/7/1f7755c5-934d-4638-b89f-1f4ffa5afe89/aspnetcore-runtime-2.1.2-win-x64.exe
-#
-#.NET Core Binaries
-#https://download.microsoft.com/download/1/f/7/1f7755c5-934d-4638-b89f-1f4ffa5afe89/dotnet-runtime-2.1.2-win-x64.exe
 
 if ( $mediaDir ) {
 	Write-Host "[$scriptName] mediaDir : $mediaDir`n"
@@ -86,24 +78,32 @@ if ( Test-Path $mediaDir ) {
 	Write-Host "[$scriptName] Created $(mkdir $mediaDir)"
 }
 
-$installer = "${mediaDir}\${file}"
-downloadAndInstall "$installer"
-
 if ( $sdk -eq 'asp' ) {
 	$file = "aspnetcore-runtime-${version}-win-x64.exe"
 	$url = "${runtimeRootURL}/${file}"
 	$installer = "${mediaDir}\${file}"
-	downloadAndInstall "$installer"
+	downloadAndInstall $url $installer	
 }
+
+if ( $sdk -eq 'yes' ) {
+	$file = "dotnet-sdk-${version}-win-x64.exe"
+	$url = "https://download.microsoft.com/download/4/0/9/40920432-3302-47a8-b13c-bbc4848ad114/$file"
+} else {
+	$file = "dotnet-hosting-${version}-win.exe"
+	$url = "${runtimeRootURL}/${file}"	
+} 
+
+$installer = "${mediaDir}\${file}"
+downloadAndInstall $url $installer
 
 Write-Host "[$scriptName] Reload path (without logging off and back on) " -ForegroundColor Green
 $env:Path = executeExpression "[System.Environment]::GetEnvironmentVariable('Path','Machine') + ';' + [System.Environment]::GetEnvironmentVariable('Path','User')"
 
-$versionTest = cmd /c dotnet --version 2`>`&1
+$(dotnet --info | select-string -pattern 'Version')
 if ($versionTest -like '*not recognized*') {
 	Write-Host "  dotnet core not installed! Exiting with error 666"; exit 666
 } else {
-	$versionLine = $(foreach ($line in dotnet) { Select-String  -InputObject $line -CaseSensitive "Version  " })
+	$versionLine = $(foreach ($line in dotnet) { Select-String  -InputObject $line -CaseSensitive "Version" })
 	if ( $versionLine ) {
 	$arr = $versionLine -split ':'
 		Write-Host "  dotnet core : $($arr[1])"
