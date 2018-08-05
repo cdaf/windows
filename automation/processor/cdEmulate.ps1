@@ -195,10 +195,8 @@ if ( $ACTION ) {
 	write-host '  Source Folder   : $(Agent.BuildDirectory)\s'
 	write-host '  Copy files task : TasksLocal/**'
 	write-host '                    *.zip'
+
 	write-host "`n[$scriptName] ---------- CD Toolset Configuration Guide -------------`n"
-	write-host 'Note: artifact retention typically does include file attribute for executable, so'
-	write-host '  set the first step of deploy process to make all scripts executable'
-	write-host '  chmod +x ./*/*.sh'
 	write-host
 	write-host 'For TeamCity (each environment requires a literal definiion) ...'
 	write-host "  Command Executable  : $workDirLocal/$cdInstruction"
@@ -218,7 +216,6 @@ if ( $ACTION ) {
     write-host 'For Team Foundation Server (TFS)/Visual Studio Team Services (VSTS)'
 	write-host '  Verify the queue for each Environment definition, and ensure Environment names do not contain spaces.'
 	write-host '  Run an template build initially to load the workspace, which can then be navigated to for following configuration.'
-	write-host '  Create an "Empty" Release definition, and use the "Shell Script" utility task.'
 	write-host "    Command Filename  : `$(System.DefaultWorkingDirectory)/$solutionName/drop/$workDirLocal/$cdInstruction"
 	write-host "    Command arguments : %RELEASE_ENVIRONMENTNAME% %RELEASE_RELEASENAME%"
 	write-host "    Working folder    : `$(System.DefaultWorkingDirectory)/$solutionName/drop"
