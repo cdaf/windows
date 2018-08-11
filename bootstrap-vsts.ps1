@@ -109,12 +109,6 @@ if ( $stable -eq 'yes' ) {
 	executeExpression '.\automation\provisioning\runner.bat .\automation\remote\capabilities.ps1'
 }
 
-Write-Host "[$scriptName] Download VSTS Agent (using TLS 1.1 or 1.2)"
-# As per guidance here https://stackoverflow.com/questions/36265534/invoke-webrequest-ssl-fails
-$AllProtocols = [System.Net.SecurityProtocolType]'Tls11,Tls12'
-[System.Net.ServicePointManager]::SecurityProtocol = $AllProtocols
-executeExpression './automation/provisioning/GetMedia.ps1 https://github.com/Microsoft/vsts-agent/releases/download/v2.120.1/vsts-agent-win7-x64-2.120.1.zip'
-
 if ($personalAccessToken) {
 
 	if ( $agentSAPassword ) {

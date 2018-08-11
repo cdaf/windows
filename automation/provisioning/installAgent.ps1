@@ -79,23 +79,20 @@ if ( $mediaDirectory ) {
 	Write-Host "[$scriptName] mediaDirectory  : $mediaDirectory (not supplied, set to default)"
 }
 
+$version = '2.136.1'
+Write-Host "[$scriptName] version         : $version"
+
 $fullpath = 'C:\agent\config.cmd'
 $workspace = $(pwd)
 
 executeExpression 'Add-Type -AssemblyName System.IO.Compression.FileSystem'
+$mediaFileName = "vsts-agent-win7-x64-${version}.zip"
 
-$files = Get-ChildItem "$mediaDirectory/vsts-*"
-if ($files) {
-	Write-Host;	Write-Host "[$scriptName] Files available ..."
-	foreach ($file in $files) {
-		Write-Host "[$scriptName]   $($file.name)"
-		$mediaFileName = $($file.name)
-	}
-	Write-Host; Write-Host "[$scriptName] Using latest file ($mediaFileName)"
-} else {
-	Write-Host "[$scriptName] mediaFileName with prefix `'vsts-`' not found, exiting with error code 1"; exit 1
-}
-
+Write-Host "[$scriptName] Download VSTS Agent (using TLS 1.1 or 1.2)"
+# As per guidance here https://stackoverflow.com/questions/36265534/invoke-webrequest-ssl-fails
+$AllProtocols = [System.Net.SecurityProtocolType]'Tls11,Tls12'
+[System.Net.ServicePointManager]::SecurityProtocol = $AllProtocols
+executeExpression './automation/provisioning/GetMedia.ps1 https://github.com/Microsoft/vsts-agent/releases/download/v${version}/${mediaFileName}'
 
 Write-Host "`nExtract using default instructions from Microsoft"
 if (Test-Path "C:\agent") {
