@@ -86,7 +86,7 @@ $fullpath = 'C:\agent\config.cmd'
 $workspace = $(pwd)
 
 executeExpression 'Add-Type -AssemblyName System.IO.Compression.FileSystem'
-$mediaFileName = "vsts-agent-win7-x64-${version}.zip"
+$mediaFileName = "vsts-agent-win-x64-${version}.zip"
 
 Write-Host "[$scriptName] Download VSTS Agent (using TLS 1.1 or 1.2)"
 # As per guidance here https://stackoverflow.com/questions/36265534/invoke-webrequest-ssl-fails
