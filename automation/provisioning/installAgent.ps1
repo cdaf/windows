@@ -92,7 +92,7 @@ Write-Host "[$scriptName] Download VSTS Agent (using TLS 1.1 or 1.2)"
 # As per guidance here https://stackoverflow.com/questions/36265534/invoke-webrequest-ssl-fails
 $AllProtocols = [System.Net.SecurityProtocolType]'Tls11,Tls12'
 [System.Net.ServicePointManager]::SecurityProtocol = $AllProtocols
-executeExpression './automation/provisioning/GetMedia.ps1 https://github.com/Microsoft/vsts-agent/releases/download/v${version}/${mediaFileName}'
+executeExpression './automation/provisioning/GetMedia.ps1 https://vstsagentpackage.azureedge.net/agent/${version}/${mediaFileName}'
 
 Write-Host "`nExtract using default instructions from Microsoft"
 if (Test-Path "C:\agent") {
