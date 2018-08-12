@@ -93,8 +93,6 @@ if ( $stable -eq 'yes' ) {
 	executeExpression "(New-Object System.Net.WebClient).DownloadFile('$url', '$PWD\$zipFile')"
 	executeExpression 'Add-Type -AssemblyName System.IO.Compression.FileSystem'
 	executeExpression '[System.IO.Compression.ZipFile]::ExtractToDirectory("$PWD\$zipfile", "$PWD")'
-	executeExpression 'cat .\automation\CDAF.windows'
-	executeExpression '.\automation\provisioning\runner.bat .\automation\remote\capabilities.ps1'
 } else {
 	Write-Host "[$scriptName] Get latest CDAF from GitHub"
 	Write-Host "[$scriptName] `$zipFile = 'windows-master.zip'"
@@ -105,9 +103,10 @@ if ( $stable -eq 'yes' ) {
 	executeExpression 'Add-Type -AssemblyName System.IO.Compression.FileSystem'
 	executeExpression '[System.IO.Compression.ZipFile]::ExtractToDirectory("$PWD\$zipfile", "$PWD")'
 	executeExpression 'mv windows-master\automation .'
-	executeExpression 'cat .\automation\CDAF.windows'
-	executeExpression '.\automation\provisioning\runner.bat .\automation\remote\capabilities.ps1'
 }
+
+executeExpression 'cat .\automation\CDAF.windows'
+executeExpression '.\automation\provisioning\runner.bat .\automation\remote\capabilities.ps1'
 
 if ($personalAccessToken) {
 
