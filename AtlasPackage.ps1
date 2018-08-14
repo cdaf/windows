@@ -216,12 +216,6 @@ if ($skipTest -eq 'yes') {
 	    exit $proc.ExitCode
 	}
 	
-	writeLog "$logFile" "[$scriptName] vagrant box list"
-	$proc = Start-Process -FilePath 'vagrant' -ArgumentList 'box list' -PassThru -Wait -NoNewWindow
-	if ( $proc.ExitCode -ne 0 ) {
-		writeLog "`n[$scriptName] Exit with `$LASTEXITCODE = $($proc.ExitCode)`n"
-	    exit $proc.ExitCode
-	}
     writeLog "`n[$scriptName] vagrant destroy -f"
 	writeLog "$logFile" "[$scriptName] vagrant destroy -f"
     $proc = Start-Process -FilePath 'vagrant' -ArgumentList 'destroy -f' -PassThru -Wait -NoNewWindow
@@ -233,6 +227,13 @@ if ($skipTest -eq 'yes') {
     writeLog "`n[$scriptName] Clean-up Vagrant Temporary files"
     executeExpression "Remove-Item -Recurse $env:USERPROFILE\.vagrant.d\tmp\*"
 }  
+
+writeLog "$logFile" "[$scriptName] vagrant box list"
+$proc = Start-Process -FilePath 'vagrant' -ArgumentList 'box list' -PassThru -Wait -NoNewWindow
+if ( $proc.ExitCode -ne 0 ) {
+	writeLog "`n[$scriptName] Exit with `$LASTEXITCODE = $($proc.ExitCode)`n"
+    exit $proc.ExitCode
+}
 
 emailProgress "Final notifcation, package of ${packageFile} complete"
 
