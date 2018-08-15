@@ -18,7 +18,7 @@ function writeLog ($message) {
 # Use executeIgnoreExit to only trap exceptions, use executeExpression to trap all errors ($LASTEXITCODE is global)
 function execute ($expression) {
 	$error.clear()
-	writeLog " > $expression"
+	writeLog "[$(date)] $expression"
 	try {
 		Invoke-Expression $expression
 	    if(!$?) { writeLog "`$? = $?"; exit 1 }
@@ -88,13 +88,14 @@ if ($stripDISM) {
 }
 	
 if ( $hypervisor -eq 'virtualbox' ) {
-	executeExpression ".\automation\provisioning\mountImage.ps1 $env:userprofile\VBoxGuestAdditions_5.1.10.iso http://download.virtualbox.org/virtualbox/5.1.10/VBoxGuestAdditions_5.1.10.iso"
+	$vbadd = '5.2.16'
+	executeExpression ".\automation\provisioning\mountImage.ps1 $env:userprofile\VBoxGuestAdditions_${vbadd}.iso http://download.virtualbox.org/virtualbox/${vbadd}/VBoxGuestAdditions_${vbadd}.iso"
 	$result = executeExpression "[Environment]::GetEnvironmentVariable(`'MOUNT_DRIVE_LETTER`', `'User`')"
 	emailProgress "Guest Additiions requires manual intervention ..."
 	
 	executeExpression "`$proc = Start-Process -FilePath `"$result\VBoxWindowsAdditions-amd64.exe`" -ArgumentList `'/S`' -PassThru -Wait"
-	executeExpression ".\automation\provisioning\mountImage.ps1 $env:userprofile\VBoxGuestAdditions_5.1.10.iso"
-	executeExpression "Remove-Item $env:userprofile\VBoxGuestAdditions_5.1.10.iso"
+	executeExpression ".\automation\provisioning\mountImage.ps1 $env:userprofile\VBoxGuestAdditions_${vbadd}.iso"
+	executeExpression "Remove-Item $env:userprofile\VBoxGuestAdditions_${vbadd}.iso"
 } else {
 	writeLog "Hypervisor ($hypervisor) not virtualbox, skip Guest Additions install"
 }

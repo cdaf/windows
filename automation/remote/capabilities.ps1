@@ -37,6 +37,12 @@ write-host "  PSVersion.Major         : $($PSVersionTable.PSVersion.Major)"
 #Write-Host "$WinFeatures"
 #Remove-Item -Path $tempFile 
 
+if ( Test-Path "C:\windows-master\automation\CDAF.windows" ) {
+	$name = $(Valuecat "C:\windows-master\automation\CDAF.windows" | findstr "productVersion")
+	$name, $value = $nameValue -split '=', 2
+	write-host "  CDAF Box Version        : $value"
+}
+
 Write-Host "`n[$scriptName] List 3rd party components`n"
 $versionTest = cmd /c dotnet --version 2`>`&1
 if ($versionTest -like '*not recognized*') {

@@ -59,10 +59,7 @@ Vagrant.configure(2) do |config|
       server.winrm.username = "vagrant" # Making defaults explicit
       server.winrm.password = "vagrant" # Making defaults explicit
       server.vm.graceful_halt_timeout = 180 # 3 minutes
-      
-      # CDAF Images have the version they were built from included in the file system
-      server.vm.provision 'shell', inline: 'cat C:\windows-master\automation\CDAF.windows | findstr "productVersion="'
-  
+
       server.vm.provision 'shell', path: './automation/remote/capabilities.ps1'
       (1..MAX_SERVER_TARGETS).each do |s|
         server.vm.provision 'shell', path: './automation/provisioning/addHOSTS.ps1', args: "172.16.17.10#{s} server-#{s}.sky.net"
