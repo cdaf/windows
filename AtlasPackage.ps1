@@ -18,7 +18,7 @@ function writeLog ($message) {
 # Use executeIgnoreExit to only trap exceptions, use executeExpression to trap all errors ($LASTEXITCODE is global)
 function execute ($expression) {
 	$error.clear()
-	writeLog " > $expression"
+	writeLog "[$(date)] $expression"
 	try {
 		Invoke-Expression $expression
 	    if(!$?) { writeLog "`$? = $?"; exit 1 }
