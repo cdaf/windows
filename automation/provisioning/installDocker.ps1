@@ -1,6 +1,7 @@
 Param (
 	[string]$enableTCP,
-	[string]$restart
+	[string]$restart,
+	[string]$httpProxy
 )
 
 cmd /c "exit 0"
@@ -79,16 +80,22 @@ if ($restart) {
 	$restart = 'yes'
     Write-Host "[$scriptName]  restart   : $restart (set to default)"
 }
-
-$proxyURI = $([system.net.webrequest]::defaultwebproxy.Address).AbsoluteUri
-
-if ( $proxyURI ) {
-	$proxy = "-Proxy $proxyURI"
-    Write-Host "[$scriptName]  proxyURI  : $proxyURI"
-    [system.net.webrequest]::defaultwebproxy = new-object system.net.webproxy($env:HPP_PROXY)
+if ($httpProxy) {
+    Write-Host "[$scriptName]  httpProxy : $httpProxy"
+	$proxyParameter = "-Proxy '$httpProxy'"
+	[system.net.webrequest]::defaultwebproxy = new-object system.net.webproxy($httpProxy)
+} else {
+    Write-Host "[$scriptName]  httpProxy : (not set)"
+	$proxyURI = $([system.net.webrequest]::defaultwebproxy.Address).AbsoluteUri
+	
+	if ( $proxyURI ) {
+		$proxyParameter = "-Proxy $proxyURI"
+	    Write-Host "[$scriptName]  proxyURI  : $proxyURI"
+	    [system.net.webrequest]::defaultwebproxy = new-object system.net.webproxy($env:HTTP_PROXY)
+	}
 }
 
-executeExpression "Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.201 -Verbose -Force $proxy"
+executeExpression "Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.201 -Verbose -Force $proxyParameter"
 
 # Found these repositories unreliable so included retry logic
 $galleryAvailable = Get-PSRepository -Name PSGallery*
@@ -101,7 +108,7 @@ if ($galleryAvailable) {
 # Avoid "You are installing the modules from an untrusted repository" message
 executeRetry "Set-PSRepository -Name PSGallery -InstallationPolicy Trusted"
 
-executeRetry "Find-PackageProvider $proxy *docker* | Format-Table Name, Version, Source"
+executeRetry "Find-PackageProvider $proxyParameter *docker* | Format-Table Name, Version, Source"
 
 executeRetry "Install-Module NuGet -Confirm:`$False"
 
