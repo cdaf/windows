@@ -28,6 +28,9 @@ executeExpression "[System.IO.Compression.ZipFile]::ExtractToDirectory('$extract
  
 executeExpression 'Remove-Item -Recurse .\automation\'
 executeExpression 'Copy-Item -Recurse $extract\automation .'
+executeExpression 'cd automation'
+executeExpression 'foreach ($script in Get-ChildItem -Recurse *.sh) {git add $script}'
+executeExpression 'cd ..'
 
 Write-Host "`n[$scriptName] ---------- stop ----------"
 exit 0
