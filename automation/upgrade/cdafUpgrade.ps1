@@ -15,9 +15,9 @@ function executeExpression ($expression) {
 
 Write-Host "`n[$scriptName] ---------- start ----------"
 
-$zipFile = 'LU-CDAF.zip'
+$zipFile = 'WU-CDAF.zip'
 $url = "http://cdaf.io/static/app/downloads/$zipFile"
-$extract = "$env:TEMP\LU-CDAF"
+$extract = "$env:TEMP\WU-CDAF"
 if (Test-Path $extract ) {
 	executeExpression "Remove-Item -Recurse -Force $extract"
 }
