@@ -32,7 +32,7 @@ executeExpression 'Copy-Item -Recurse $extract\automation .'
 git branch
 if ( $LASTEXITCODE -eq 0 ) {
 	executeExpression 'cd automation'
-	executeExpression 'foreach ($script in Get-ChildItem) {git add $script}'
+	executeExpression 'foreach ($file in Get-ChildItem) {git add $file}'
 	executeExpression 'cd ..'
 } else {
 	cmd /c "exit 0"
