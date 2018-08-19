@@ -2,7 +2,8 @@ Param (
 	[string]$forest,
 	[string]$domainAdminUser,
 	[string]$domainAdminPass,
-	[string]$domainController
+	[string]$domainController,
+	[string]$delegateTo
 )
 
 # Common expression logging and error handling function, copied, not referenced to ensure atomic process
@@ -49,11 +50,25 @@ if ($domainController) {
     Write-Host "[$scriptName] domainController : $domainController (default)"
 }
 
+if ($delegateTo) {
+    Write-Host "[$scriptName] delegateTo       : $delegateTo"
+} else {
+    Write-Host "[$scriptName] delegateTo       : (not supplied)"
+}
+
 $securePassword = ConvertTo-SecureString $domainAdminPass -asplaintext -force
 $cred = New-Object System.Management.Automation.PSCredential ($domainAdminUser, $securePassword)
 
 Write-Host "`n[$scriptName] Set this computer ($(hostname)) delegation privileges on domain ($forest)"
-executeExpression "Invoke-Command -ComputerName $domainController -Credential `$cred -ScriptBlock { Set-ADComputer -Identity $(hostname) -TrustedForDelegation `$True } "
+executeExpression "Invoke-Command -ComputerName $domainController -Credential `$cred -ScriptBlock {
+	Set-ADComputer -Identity '$env:COMPUTERNAME' -TrustedForDelegation `$True
+} "
 
+if ($delegateTo) {
+	executeExpression "Invoke-Command -ComputerName $domainController -Credential `$cred -ScriptBlock {
+		`$delegator = Get-ADComputer -Identity '$env:COMPUTERNAME'
+		Set-ADComputer -Identity '$delegateTo' -PrincipalsAllowedToDelegateToAccount `$delegator
+	} "
+}
 Write-Host "`n[$scriptName] ---------- stop ----------"
 exit 0
