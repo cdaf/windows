@@ -21,7 +21,11 @@ function executeExpression ($expression) {
 
 Write-Host "`n[$scriptName] --- start ---"
 if ($container) {
-    Write-Host "[$scriptName] container   : $container"
+	if ( $container -eq 'DOCKER-COMPOSE' ) {
+	    Write-Host "[$scriptName] container   : $container (will use docker-compose logs)"
+	} else {
+	    Write-Host "[$scriptName] container   : $container"
+	}
 } else {
     Write-Host "[$scriptName] container not supplied, exit with `$LASTEXITCODE = 101"; exit 101
 }
@@ -49,7 +53,11 @@ $lastLineNumber = 0
 $exitCode = 4365
 while (( $retryCount -le $retryMax ) -and ($exitCode -ne 0)) {
 	sleep $wait
-	$output = $(docker logs $container)
+	if ( $container -eq 'DOCKER-COMPOSE' ) {
+		$output = $(docker-compose logs)
+	} else {
+		$output = $(docker logs $container)
+	}
 	if ( $output ) {
 		$lineCount = 1
 	    foreach ($line in $output -split "`r`n") {
