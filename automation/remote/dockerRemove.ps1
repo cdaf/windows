@@ -2,18 +2,21 @@ Param (
   [string]$imageName,
   [string]$environment
 )
+
+cmd /c "exit 0"
+$scriptName = 'dockerRemove.ps1'
+
 # Common expression logging and error handling function, copied, not referenced to ensure atomic process
 function executeExpression ($expression) {
 	$error.clear()
-	Write-Host "[$scriptName] $expression"
+	Write-Host "$expression"
 	try {
 		Invoke-Expression $expression
 	    if(!$?) { Write-Host "[$scriptName] `$? = $?"; exit 1 }
-	} catch { echo $_.Exception|format-list -force; exit 2 }
+	} catch { Write-Host $_.Exception|format-list -force; exit 2 }
     if ( $error[0] ) { Write-Host "[$scriptName] `$error[0] = $error"; exit 3 }
     if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) { Write-Host "[$scriptName] `$LASTEXITCODE = $LASTEXITCODE "; exit $LASTEXITCODE }
 }
-
 
 # Common expression logging and error handling function, copied, not referenced to ensure atomic process
 function executeSuppress ($expression) {
@@ -26,7 +29,6 @@ function executeSuppress ($expression) {
     if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) { Write-Host "[$scriptName] Suppress `$LASTEXITCODE ($LASTEXITCODE)"; cmd /c "exit 0" } # reset LASTEXITCODE
 }
 
-$scriptName = 'dockerRemove.ps1'
 Write-Host "`n[$scriptName] This script stops and removes all instances for the imageName, based "
 Write-Host "[$scriptName] on environment tag. Use this to purge all targets for the environment."
 Write-Host "`n[$scriptName] --- start ---"

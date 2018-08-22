@@ -3,12 +3,13 @@ Param (
   [string]$tag
 )
 
+cmd /c "exit 0"
 $scriptName = 'dockerClean.ps1'
 
 # Common expression logging and error handling function, copied, not referenced to ensure atomic process
 function executeExpression ($expression) {
 	$error.clear()
-	Write-Host "[$scriptName] $expression"
+	Write-Host "$expression"
 	try {
 		Invoke-Expression $expression
 	    if(!$?) { Write-Host "[$scriptName] `$? = $?"; exit 1 }
@@ -27,8 +28,6 @@ function executeSuppress ($expression) {
 	$error.clear()
     if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) { Write-Host "[$scriptName] Suppress `$LASTEXITCODE ($LASTEXITCODE)"; cmd /c "exit 0" } # reset LASTEXITCODE
 }
-
-cmd /c "exit 0"
 
 Write-Host "`n[$scriptName] Clean image from registry based on Product label. If a tag is passed, only images with a tag value less that the one supplied are removed."
 Write-Host "`n[$scriptName] --- start ---"

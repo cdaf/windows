@@ -7,10 +7,14 @@ Param (
     [string]$registry,
     [string]$dockerOpt
 )
+
+cmd /c "exit 0"
+$scriptName = 'dockerRun.ps1'
+
 # Common expression logging and error handling function, copied, not referenced to ensure atomic process
 function executeExpression ($expression) {
 	$error.clear()
-	Write-Host "[$scriptName] $expression"
+	Write-Host "$expression"
 	try {
 		Invoke-Expression $expression
 	    if(!$?) { Write-Host "[$scriptName] `$? = $?"; exit 1 }
@@ -19,7 +23,6 @@ function executeExpression ($expression) {
     if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) { Write-Host "[$scriptName] `$LASTEXITCODE = $LASTEXITCODE "; exit $LASTEXITCODE }
 }
 
-$scriptName = 'dockerRun.ps1'
 Write-Host "`n[$scriptName] Start a container instance, if an instance (based on `"instance`") exists it is"
 Write-Host "[$scriptName] stopped and removed before starting the new instance."
 Write-Host "`n[$scriptName] --- start ---"
