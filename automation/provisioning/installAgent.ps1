@@ -1,13 +1,13 @@
 Param (
-  [string]$url,
-  [string]$pat,
-  [string]$pool,
-  [string]$agentName,
-  [string]$serviceAccount,
-  [string]$servicePassword,
-  [string]$deploymentgroup,
-  [string]$projectname,
-  [string]$mediaDirectory
+[string]$url,
+[string]$pat,
+[string]$pool,
+[string]$agentName,
+[string]$serviceAccount,
+[string]$servicePassword,
+[string]$deploymentgroup,
+[string]$projectname,
+[string]$mediaDirectory
 )
 $scriptName = 'installAgent.ps1'
 
@@ -131,9 +131,15 @@ if ( $url ) {
 	    exit $proc.ExitCode
 	}
 
-	Write-Host "[$scriptName] Set the service to delated start"
-	$agentService = get-service vstsagent*
-	executeExpression "sc.exe config $($agentService.name) start= delayed-auto"
+    $agentService = get-service vstsagent*
+    if ( $agentService ) {
+    	Write-Host "[$scriptName] Set the service to delayed start"
+    	executeExpression "sc.exe config $($agentService.name) start= delayed-auto"
+    	executeExpression "Start-Service $($agentService.name)"
+    } else {
+    	Write-Host "[$scriptName] Service not found! Exiting with exit code 3345"
+    	exit 3345
+	}
 } else {
 	Write-Host "`n[$scriptName] URL not supplied. Agent software extracted to C:\agent`n"
 }
