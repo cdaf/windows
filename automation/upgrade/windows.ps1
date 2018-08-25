@@ -35,7 +35,14 @@ if ( $LASTEXITCODE -eq 0 ) {
 	executeExpression 'foreach ($file in Get-ChildItem) {git add $file}'
 	executeExpression 'cd ..'
 } else {
-	cmd /c "exit 0"
+	svn ls
+	if ( $LASTEXITCODE -eq 0 ) {
+		foreach ($script in Get-ChildItem -Recurse *.sh) {
+			svn add $script --force
+		}
+	} else {
+		cmd /c "exit 0"
+	}
 }
 
 Write-Host "`n[$scriptName] ---------- stop ----------"
