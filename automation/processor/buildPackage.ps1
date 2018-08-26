@@ -180,17 +180,21 @@ if ( $ACTION -eq 'containerbuild' ) {
 	}
 }
 
+# 1.7.7 imageBuild supported for container and non container build
+$imageBuild = getProp 'imageBuild' "$solutionRoot\CDAF.solution"
+if ( $imageBuild ) {
+	Write-Host "[$scriptName]   imageBuild      : $imageBuild"
+} else {
+	Write-Host "[$scriptName]   imageBuild      : (not defined in $solutionRoot\CDAF.solution)"
+}
+
 if ( $containerBuild ) {
 
 	Write-Host "`n[$scriptName] Execute Container build, this performs cionly, options packageonly and buildonly are ignored.`n" -ForegroundColor Green
 	executeExpression $containerBuild
 
-	$imageBuild = getProp 'imageBuild' "$solutionRoot\CDAF.solution"
 	if ( $imageBuild ) {
-		Write-Host "`n[$scriptName] Execute Image build, as defined for imageBuild in $solutionRoot\CDAF.solution`n"
 		executeExpression $imageBuild
-	} else {
-		Write-Host "[$scriptName]   imageBuild      : (not defined in $solutionRoot\CDAF.solution)"
 	}
 
 } else { # Native build
@@ -204,6 +208,10 @@ if ( $containerBuild ) {
 			exitWithCode "BUILD_NON_ZERO_EXIT .\$AUTOMATIONROOT\buildandpackage\buildProjects.ps1 $SOLUTION $BUILDNUMBER $REVISION $AUTOMATIONROOT $solutionRoot $ACTION" $LASTEXITCODE
 		}
 		if(!$?){ taskWarning "buildProjects.ps1" }
+	}
+
+	if ( $imageBuild ) {
+		executeExpression $imageBuild
 	}
 	
 	if ( $ACTION -eq 'buildonly' ) {
