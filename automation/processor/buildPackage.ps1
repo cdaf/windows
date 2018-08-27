@@ -210,7 +210,7 @@ if ( $containerBuild ) {
 		if(!$?){ taskWarning "buildProjects.ps1" }
 	}
 
-	if ( $imageBuild ) {
+	if ( $imageBuild -and (-not $containerBuild )) {
 		executeExpression $imageBuild
 	}
 	
