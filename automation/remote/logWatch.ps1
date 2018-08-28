@@ -39,9 +39,6 @@ if ($waitTime) {
     Write-Host "[$scriptName] waitTime    : $waitTime (default)"
 }
 
-if ( Test-Path test.log ) { Remove-Item -Force test.log }
-if ( Test-Path prevtest.log ) { Remove-Item -Force prevtest.log }
-
 $wait = 5
 $retryMax = [int]( $waitTime / $wait )
 $retryCount = 0
