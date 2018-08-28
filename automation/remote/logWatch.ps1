@@ -1,5 +1,5 @@
 Param (
-    [string]$container,
+    [string]$logFile,
     [string]$stringMatch,
     [string]$waitTime
 )
