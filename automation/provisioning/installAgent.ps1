@@ -89,10 +89,18 @@ executeExpression 'Add-Type -AssemblyName System.IO.Compression.FileSystem'
 $mediaFileName = "vsts-agent-win-x64-${version}.zip"
 
 Write-Host "[$scriptName] Download VSTS Agent (using TLS 1.1 or 1.2)"
+
+if (Test-Path $mediaDirectory) {
+	Write-Host "[$scriptName] Media Directory $mediaDirectory exists"
+} else {
+	$result = executeExpression "mkdir $mediaDirectory"
+}
+
 # As per guidance here https://stackoverflow.com/questions/36265534/invoke-webrequest-ssl-fails
 $AllProtocols = [System.Net.SecurityProtocolType]'Tls11,Tls12'
 [System.Net.ServicePointManager]::SecurityProtocol = $AllProtocols
-executeExpression './automation/provisioning/GetMedia.ps1 https://vstsagentpackage.azureedge.net/agent/${version}/${mediaFileName}'
+$mediaURL = "https://vstsagentpackage.azureedge.net/agent/${version}/${mediaFileName}"
+executeExpression "(New-Object System.Net.WebClient).DownloadFile('$mediaURL', '$mediaDirectory\${mediaFileName}')"
 
 Write-Host "`nExtract using default instructions from Microsoft"
 if (Test-Path "C:\agent") {
