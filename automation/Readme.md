@@ -1,18 +1,11 @@
-Continuous Delivery Automation Framework (CDAF)
-===============================================
+# Continuous Delivery Automation Framework (CDAF)
 
     Author  : Jules Clements
     Version : See CDAF.windows
 
-Framework Overview
-==================
+This readme focuses on implementation details of the framework, see the overview documentation, see http://cdaf.io/about
 
-The automation framework provides a "lowest common denominator" approach, where underlying action are implemented in PowerShell.
-
-This automation framework functionality is based on user defined solution files. By default the /solution folder stores these files, however, a stand alone folder, in the solution root is supported, identified by the CDAF.solution file in the root.
-
-Provisioning
-============
+# Provisioning
 
 When using for the first time, the users workstation needs to be prepared by provisioning the following features
 
@@ -20,8 +13,7 @@ When using for the first time, the users workstation needs to be prepared by pro
 - Loopback Connection
 - Landing Folder
 
-Solution Driver
-===============
+# Solution Driver
 
 The following files control solution level functionality.
 
@@ -30,8 +22,8 @@ The following files control solution level functionality.
 
 Properties and definition files support comments, prefixed with # character.
 
-Execution Engine
-----------------
+## Execution Engine
+
 To alleviate the burden of argument passing, exception handling and logging, the execution engine has been provided. The execution engine will essentially execute the native interpretive language (PowerShell or bash), line by line, but each execution will be tested for exceptions (trivial in bash, significantly more complex in PowerShell) and, with careful usage, the driver files (.tsk) can be used on Windows workstations, while target Linux servers for Continuous Delivery. To provide translated runtime, the following keywords are supported
 
 | Keyword | Description                       | Example                         |
@@ -67,8 +59,7 @@ Runtime variables, automatically set
 | -----------------|-----------------------------------|
 |  $TMPDIR         | Automatically set to the temp dir |
 
-Build and Package (once)
-------------------------
+## Build and Package (once)
 
 buildProjects: (optional, all directories containing build.ps1 or build.tsk will be processed). The build sequence can be controlled using the optional file, buildProjects. Note: build projects entries needs to be the directory name and not the project name.
 
@@ -85,8 +76,8 @@ The package (.zip) file is generated from the contents of the TasksRemote direct
 
 All scripts contained in the /local folder are copied to the TasksLocal directory, along with the files/directories listed in storeForLocal file (maybe empty). A package file of local tasks can also be created by setting zipLocal in the CDAF.solution file, the value set will be used in the package name itself.
 
-Deploy (many)
---------------
+## Deploy (many)
+
 Default task definitions, these can be overridden using deployScriptOverride or deployTaskOverride (a space separated list is supported) in properties file
 
 	tasksRunLocal.tsk
@@ -110,41 +101,40 @@ Custom elements, i.e. deployScriptOverride and deployTaskOverride scripts
 	/customRemote
 	/customLocal
 
-Continuous Delivery Emulation
-=============================
+# Continuous Delivery Emulation
 
 To support Continuous Delivery, the automation of Deployment is required, to automate deployment, the automation of packaging is required, and to automate packaging, the automation of build is required.
 
-Automated Build
----------------
+## Build and Package  
+
+### Automated Build
 
 If it exists, each project in the Project.list file is processed, in order (to support cross project dependencies), if the file does not exist, all project directories are processed, alphabetically.
 Each project directory is entered and the build.ps1 script is executed. Each build script is expected to support build and clean actions.
 
-Automated Packaging
--------------------
+### Automated Packaging
 
 The artifacts from each project are copied to the root workspace, along with local and remote support scripts. The remote support scripts and include with the build artifacts in a single zip file, while the local scripts and retained in a directory (DeployLocal). It is the package.ps1 script which manages this, leaving only artifacts that are to be retained in the workspace root.
 
-Remote Tasks
-------------
+## Container Builds
+
+This functionality allows for multiple build requirements (which maybe mutually exclusive at a system level) to be combined on a single host. It is expected that the build dependencies are defined in code (bootstrapAgent.sh) and not image based. This exploits the disk layer mechanisms of Docker to only rebuild the agent image if a change in definition occurs and not every time a build is perform.
+
+### Applying a Container Build
+
+ - Copy the Dockerfile from the automation/solution directory to the root of your solution
+ - Copy the bootstrapAgent.ps1 from the automation/solution to your solution folder
+ - uncomment the containerBuild line from the CDAF.solution in your solution folder
+
+Alter the bootstrapAgent.ps1 to fulfill the build dependencies. Note: if you have a Vagrantfile for your solution, ideally the same bootstrap would be used for both Vagrant and Container Build implementations:
+
+    override.vm.provision 'shell', path: './automation-solution/bootstrapAgent.ps1'
+
+## Remote Tasks
 
 The automation of deployment uses remote PowerShell to establish a connection to each target in the local/properties files for the environment symbol, i.e. CD, ST, etc. The zip file (Package) is copied to the target host and extracted, the properties file for that target is also copied and then the entry script (deploy.bat) is called.
 
-Local Tasks
------------
+## Local Tasks
 
 Executed from the current host, i.e. the build server or agent, and may connect to remove hosts through direct protocols, i.e. WebDAV, ODBC/JDBC, HTTP(S), etc.
 
-Frequently Asked Questions
-==========================
-
-Why use CDAF
-------------
-
-To provide a consistent approach to Continuous Delivery and leverage the efforts of others to provide greater reusability and easier problem determination. CDAF will provide the building blocks for common tasks, with rich logging and exception handling. The CDAf provides tool-set configuration guidance, keeping the actions loosely coupled with the tool-set, to allow visibility and traceability through source control rather than direct changes.
-
-Why not have a shared folder for CDAF on the system
----------------------------------------------------
-
-CDAF principles are to have a minimum level of system dependency. By having solution specific copies each solution can use differing versions of CDAF, and once a solution is upgraded, that upgrade will be propogated to all uses (at next update/pull/get) where a system provisioned solution will requrie all users to update to the same version, even if their current solution has not been tested for this system wide change.
