@@ -216,3 +216,10 @@ if ( $containerBuild ) {
 		if(!$?){ taskWarning "package.ps1" }
 	}
 }
+
+if ( $ACTION -like 'staging>*' ) { # Primarily for VSTS / Azure pipelines
+	$parts = $ACTION.split('>')
+	write-host "`n[$scriptName] Copy artefacts to staging directory $parts[1]"
+	executeExpression "Copy-Item -Recurse '.\TasksLocal\' '$parts[1]'"
+	executeExpression "Copy-Item '*.zip' '$parts[1]'"
+}

@@ -12,8 +12,6 @@ variables:
 
 steps:
 - script: |
-    automation\processor\buildPackage.bat $(Build.BuildId) $(Build.SourceBranchName)
-    xcopy TasksLocal $(BUILD.ARTIFACTSTAGINGDIRECTORY)
-    copy *.zip $(BUILD.ARTIFACTSTAGINGDIRECTORY)
+    automation\processor\buildPackage.bat $(Build.BuildId) $(Build.SourceBranchName) staging>$(BUILD.ARTIFACTSTAGINGDIRECTORY)
     
 - task: PublishBuildArtifacts@1
