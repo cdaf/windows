@@ -217,9 +217,9 @@ if ( $containerBuild ) {
 	}
 }
 
-if ( $ACTION -like 'staging>*' ) { # Primarily for VSTS / Azure pipelines
-	$parts = $ACTION.split('>')
-	write-host "`n[$scriptName] Copy artefacts to staging directory $parts[1]"
-	executeExpression "Copy-Item -Recurse '.\TasksLocal\' '$parts[1]'"
-	executeExpression "Copy-Item '*.zip' '$parts[1]'"
+if ( $ACTION -like 'staging@*' ) { # Primarily for VSTS / Azure pipelines
+	$parts = $ACTION.split('@')
+	$stageTarget = $parts[1]
+	executeExpression "Copy-Item -Recurse '.\TasksLocal\' '$stageTarget'"
+	executeExpression "Copy-Item '*.zip' '$stageTarget'"
 }
