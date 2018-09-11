@@ -13,7 +13,11 @@ variables:
 steps:
 - script: |
     automation\processor\buildPackage.bat $(Build.BuildId) $(Build.SourceBranchName)
+
+- script: |
     xcopy TasksLocal $BUILD_ARTIFACTSTAGINGDIRECTORY
+
+- script: |
     copy *.zip $BUILD_ARTIFACTSTAGINGDIRECTORY
     
 - task: PublishBuildArtifacts@1
