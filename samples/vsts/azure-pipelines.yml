@@ -1,0 +1,19 @@
+# https://docs.microsoft.com/en-us/azure/devops/pipelines/get-started-yaml
+# https://docs.microsoft.com/en-us/azure/devops/pipelines/process/variables
+# https://docs.microsoft.com/en-us/azure/devops/pipelines/agents/hosted?view=vsts&tabs=yaml
+
+name: $(TeamProject)_$(BuildDefinitionName)_$(SourceBranchName)_$(Date:yyyyMMdd)$(Rev:.r)
+
+pool:
+  vmImage: 'vs2017-win2016'
+  
+variables:
+  buildConfiguration: 'Release'
+
+steps:
+- script: |
+    ./automation/processor/buildPackage.ps1 $(Build.BuildId) $(Build.SourceBranchName)
+    cp -r TasksLocal $BUILD_ARTIFACTSTAGINGDIRECTORY
+    cp *.zip $BUILD_ARTIFACTSTAGINGDIRECTORY
+    
+- task: PublishBuildArtifacts@1
