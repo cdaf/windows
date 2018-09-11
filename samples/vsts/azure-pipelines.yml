@@ -12,6 +12,6 @@ variables:
 
 steps:
 - script: |
-    automation\processor\buildPackage.bat $(Build.BuildId) $(Build.SourceBranchName) staging@$(BUILD.ARTIFACTSTAGINGDIRECTORY)
-    
+    automation\processor\buildPackage.bat $(Build.BuildId) $(Build.SourceBranchName) staging@$(Build.ArtifactStagingDirectory)
+
 - task: PublishBuildArtifacts@1
