@@ -149,6 +149,14 @@ if (Test-Path "$prepackageTasks") {
 	Write-Host "none ($prepackageTasks)"
 }
 
+$propertiesDriver = "$SOLUTIONROOT\properties.cm"
+Write-Host –NoNewLine "[$scriptName]   Properties Driver       : " 
+if (Test-Path "$propertiesDriver") {
+	Write-Host "found ($propertiesDriver)"
+} else {
+	Write-Host "none ($propertiesDriver)"
+}
+
 $postpackageTasks = "$SOLUTIONROOT\wrap.tsk"
 Write-Host –NoNewLine "[$scriptName]   Postpackage Tasks       : " 
 if (Test-Path "$postpackageTasks") {
@@ -190,6 +198,8 @@ itemRemove ".\*.nupkg"
 itemRemove "$LOCAL_WORK_DIR"
 itemRemove "$REMOTE_WORK_DIR"
 itemRemove "artifacts"
+itemRemove ".\propertiesForLocalTasks"
+itemRemove ".\propertiesForRemoteTasks"
 
 if ( $ACTION -eq "clean" ) {
 
@@ -201,6 +211,31 @@ if ( $ACTION -eq "clean" ) {
 	if (Test-Path "$SOLUTIONROOT\CDAF.solution") {
 		write-host "`n[$scriptName] Load solution properties from $SOLUTIONROOT\CDAF.solution"
 		& .\$AUTOMATIONROOT\remote\Transform.ps1 "$SOLUTIONROOT\CDAF.solution" | ForEach-Object { invoke-expression $_ }
+	}
+
+	# Properties generator (added in release 1.7.8)
+    if (Test-Path "$propertiesDriver") {
+		Write-Host "`n[$scriptName] Generating properties files from ${propertiesDriver}"
+		$columns = (-split (Get-Content ${propertiesDriver} -First 1))
+		foreach ($line in (Get-Content ${propertiesDriver}) ) {
+			$arr = (-split $line)
+			if ( $arr[0] -ne 'context' ) {
+				if ( $arr[0] -eq 'remote' ) {
+					$cdafPath="./propertiesForRemoteTasks"
+				} else {
+					$cdafPath="./propertiesForLocalTasks"
+				}
+				if ( ! (Test-Path $cdafPath) ) {
+					Write-Host "[$scriptName]   mkdir $(mkdir $cdafPath)"
+				}
+				Write-Host "[$scriptName]   Generating ${cdafPath}/$($arr[1])"
+				foreach ($field in $columns) {
+					if ( $columns.IndexOf($field) -gt 1 ) { # do not create entries for context and target
+						Add-Content "${cdafPath}/$($arr[1])" "${field}=$($arr[$columns.IndexOf($field)])"
+					}
+				}
+			}
+		}
 	}
 
 	# Process optional pre-packaging tasks (Task driver support added in release 0.7.2)

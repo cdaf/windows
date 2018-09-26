@@ -19,11 +19,13 @@ $scriptName = $MyInvocation.MyCommand.Name
 
 $localArtifactListFile = "$SOLUTIONROOT\storeForLocal"
 $localPropertiesDir    = "$SOLUTIONROOT\propertiesForLocalTasks"
+$localGenPropDir       = "propertiesForLocalTasks"
 $localEnvironmentPath  = "$SOLUTIONROOT\propertiesForLocalEnvironment"
 $localCustomDir        = "$SOLUTIONROOT\customLocal"
 $commonCustomDir       = "$SOLUTIONROOT\custom"
 $localCryptDir         = "$SOLUTIONROOT\cryptLocal"
 $remotePropertiesDir   = "$SOLUTIONROOT\propertiesForRemoteTasks"
+$remoteGenPropDir      = "propertiesForRemoteTasks"
 
 Write-Host
 Write-Host "[$scriptName] ---------------------------------------------------------------" 
@@ -34,6 +36,9 @@ pathTest $localArtifactListFile
 
 Write-Host –NoNewLine "[$scriptName]   Local Tasks Properties List  : " 
 pathTest $localPropertiesDir
+
+Write-Host –NoNewLine "[$scriptName]   Generated local properties   : " 
+pathTest $localGenPropDir
 
 Write-Host –NoNewLine "[$scriptName]   Local Environment Properties : " 
 pathTest $localEnvironmentPath
@@ -50,9 +55,11 @@ pathTest $commonCustomDir
 Write-Host –NoNewLine "[$scriptName]   Remote Tasks Properties List : " 
 pathTest $remotePropertiesDir
 
+Write-Host –NoNewLine "[$scriptName]   Generated remote properties  : " 
+pathTest $remoteGenPropDir
+
 # Create the workspace directory
-Write-Host
-Write-Host "[$scriptName] mkdir $WORK_DIR_DEFAULT and seed with solution files" 
+Write-Host "`n[$scriptName] mkdir $WORK_DIR_DEFAULT and seed with solution files" 
 New-Item $WORK_DIR_DEFAULT -type directory > $null
 if(!$?){ taskFailure ("mkdir $WORK_DIR_DEFAULT") }
 
@@ -75,8 +82,7 @@ copyDir ".\$AUTOMATIONROOT\local" $WORK_DIR_DEFAULT $true
 # Copy all remote script helpers, flat set to true to copy to root, not sub directory
 copyDir ".\$AUTOMATIONROOT\remote" $WORK_DIR_DEFAULT $true
 
-Write-Host
-Write-Host "[$scriptName]  Copy all task definition files, excluding build tasks"
+Write-Host "`n[$scriptName] Copy all task definition files, excluding build tasks"
 $files = Get-ChildItem $workingDirectory -Filter "$SOLUTIONROOT\*.tsk"
 foreach ($file in $files) {
 	if (!($file -match 'build.tsk')) {
@@ -89,6 +95,18 @@ if ( Test-Path $localPropertiesDir ) {
 	copyDir $localPropertiesDir $WORK_DIR_DEFAULT
 }
 
+# 1.7.8  Merge files into directory, i.e. don't replace any properties provided above
+if ( Test-Path ".\$localGenPropDir" ) {
+	Write-Host "`n[$scriptName] Processing generated properties directory (${localGenPropDir}):`n"
+	if ( ! ( Test-Path "$WORK_DIR_DEFAULT\${localGenPropDir}" )) {
+		Write-Host "[$scriptName]   $(mkdir $WORK_DIR_DEFAULT\${localGenPropDir})"
+	}
+	foreach ( $generatedPropertyFile in (Get-ChildItem ".\${localGenPropDir}")) {
+		Write-Host "[$scriptName]   ${localGenPropDir}\${generatedPropertyFile} --> $WORK_DIR_DEFAULT\${localGenPropDir}\${generatedPropertyFile}"
+		Get-Content ".\${localGenPropDir}\${generatedPropertyFile}" | Add-Content "$WORK_DIR_DEFAULT\${localGenPropDir}\${generatedPropertyFile}"
+	}
+}
+
 # Copy local environment properties (pre and post target process)
 if ( Test-Path $localEnvironmentPath ) {
 	copyDir $localEnvironmentPath $WORK_DIR_DEFAULT
@@ -97,6 +115,18 @@ if ( Test-Path $localEnvironmentPath ) {
 # Copy remote properties if directory exists
 if ( Test-Path $remotePropertiesDir ) {
 	copyDir $remotePropertiesDir $WORK_DIR_DEFAULT
+}
+
+# 1.7.8 Merge files into directory, i.e. don't replace any properties provided above
+if ( Test-Path ".\$remoteGenPropDir" ) {
+	Write-Host "`n[$scriptName] Processing generated properties directory (${remoteGenPropDir}):`n"
+	if ( ! ( Test-Path "$WORK_DIR_DEFAULT\${remoteGenPropDir}" )) {
+		Write-Host "[$scriptName]   $(mkdir $WORK_DIR_DEFAULT\${remoteGenPropDir})"
+	}
+	foreach ( $generatedPropertyFile in (Get-ChildItem ".\${remoteGenPropDir}")) {
+		Write-Host "[$scriptName]   ${remoteGenPropDir}\${generatedPropertyFile} --> $WORK_DIR_DEFAULT\${remoteGenPropDir}\${generatedPropertyFile}"
+		Get-Content ".\${remoteGenPropDir}\${generatedPropertyFile}" | Add-Content "$WORK_DIR_DEFAULT\${remoteGenPropDir}\${generatedPropertyFile}"
+	}
 }
 
 # Copy encrypted file directory if it exists
@@ -124,8 +154,7 @@ if ( Test-Path $localArtifactListFile ) {
 
 } else {
 
-	Write-Host
-	Write-Host "[$scriptName] Local Artifact file ($localArtifactListFile) does not exist, packaging framework scripts only" -ForegroundColor Yellow
+	Write-Host; Write-Host "[$scriptName] Local Artifact file ($localArtifactListFile) does not exist, packaging framework scripts only" -ForegroundColor Yellow
 
 }
 
