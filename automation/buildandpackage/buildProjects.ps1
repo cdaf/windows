@@ -6,23 +6,31 @@ Write-Host "[$scriptName] +----------------------------+"
 
 $SOLUTION = $args[0]
 if (-not($SOLUTION)) { passExitCode "SOLUTION_NOT_PASSED" 100 }
-Write-Host "[$scriptName]   SOLUTION       : $SOLUTION"
+Write-Host "[$scriptName]   SOLUTION          : $SOLUTION"
 
 $BUILDNUMBER = $args[1]
 if (-not($BUILDNUMBER)) { passExitCode "BUILDNUMBER_NOT_PASSED" 101 }
-Write-Host "[$scriptName]   BUILDNUMBER    : $BUILDNUMBER"
+Write-Host "[$scriptName]   BUILDNUMBER       : $BUILDNUMBER"
 
 $REVISION = $args[2]
 if (-not($REVISION)) { passExitCode "REVISION_NOT_PASSED" 102 }
-Write-Host "[$scriptName]   REVISION       : $REVISION"
+Write-Host "[$scriptName]   REVISION          : $REVISION"
 
 $AUTOMATIONROOT = $args[3]
 if (-not($AUTOMATIONROOT)) { passExitCode "AUTOMATIONROOT_NOT_PASSED" 103 }
-Write-Host "[$scriptName]   AUTOMATIONROOT : $AUTOMATIONROOT"
+Write-Host "[$scriptName]   AUTOMATIONROOT    : $AUTOMATIONROOT"
 
 $SOLUTIONROOT = $args[4]
 if (-not($SOLUTIONROOT)) { passExitCode "SOLUTIONROOT_NOT_PASSED" 104 }
-Write-Host "[$scriptName]   SOLUTIONROOT   : $SOLUTIONROOT"
+Write-Host "[$scriptName]   SOLUTIONROOT      : $SOLUTIONROOT"
+
+$propertiesDriver = "$SOLUTIONROOT\properties.cm"
+Write-Host –NoNewLine "[$scriptName]   Properties Driver : " 
+if (Test-Path "$propertiesDriver") {
+	Write-Host "found ($propertiesDriver)"
+} else {
+	Write-Host "none ($propertiesDriver)"
+}
 
 $ACTION = $args[5]
 if ( $ACTION ) {
@@ -59,10 +67,37 @@ write-host "`n[$scriptName] Load solution properties ..."
 
 Write-Host "`n[$scriptName] Clean temp files and folders from workspace" 
 removeTempFiles
-itemRemove .\projectDirectories.txt
-itemRemove .\projectsToBuild.txt
-itemRemove .\*.zip
-itemRemove .\*.nupkg
+itemRemove ".\projectDirectories.txt"
+itemRemove ".\projectsToBuild.txt"
+itemRemove ".\*.zip"
+itemRemove ".\*.nupkg"
+itemRemove ".\propertiesForLocalTasks"
+itemRemove ".\propertiesForRemoteTasks"
+
+# Properties generator (added in release 1.7.8)
+if (Test-Path "$propertiesDriver") {
+	Write-Host "`n[$scriptName] Generating properties files from ${propertiesDriver}"
+	$columns = (-split (Get-Content ${propertiesDriver} -First 1))
+	foreach ($line in (Get-Content ${propertiesDriver}) ) {
+		$arr = (-split $line)
+		if ( $arr[0] -ne 'context' ) {
+			if ( $arr[0] -eq 'remote' ) {
+				$cdafPath="./propertiesForRemoteTasks"
+			} else {
+				$cdafPath="./propertiesForLocalTasks"
+			}
+			if ( ! (Test-Path $cdafPath) ) {
+				Write-Host "[$scriptName]   mkdir $(mkdir $cdafPath)"
+			}
+			Write-Host "[$scriptName]   Generating ${cdafPath}/$($arr[1])"
+			foreach ($field in $columns) {
+				if ( $columns.IndexOf($field) -gt 1 ) { # do not create entries for context and target
+					Add-Content "${cdafPath}/$($arr[1])" "${field}=$($arr[$columns.IndexOf($field)])"
+				}
+			}
+		}
+	}
+}
 
 # If there is a custom task in the solution root, execute this.
 if (Test-Path build.tsk) {
