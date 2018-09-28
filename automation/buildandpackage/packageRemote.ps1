@@ -61,6 +61,12 @@ if ( (-not (Test-Path $remoteArtifactListFile)) -and  (-not (Test-Path $genericA
 	if ( Test-Path "$SOLUTIONROOT\tasksRunRemote.tsk" ) {
 		copySet "tasksRunRemote.tsk" "$SOLUTIONROOT" $WORK_DIR_DEFAULT
 	}
+
+	# 1.7.8 Merge generic tasks into explicit tasks
+	if ( Test-Path "$SOLUTIONROOT\tasksRun.tsk" ) {
+		Write-Host "[$scriptName]   $SOLUTIONROOT/tasksRun.tsk --> $WORK_DIR_DEFAULT\tasksRunRemote.tsk"
+		Get-Content ".\$SOLUTIONROOT\tasksRun.tsk" | Add-Content "$WORK_DIR_DEFAULT\tasksRunRemote.tsk"
+	}
 	
 	# Copy encrypted file directory if it exists
 	if ( Test-Path $remoteCryptDir ) {

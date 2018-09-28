@@ -86,11 +86,19 @@ copyDir ".\$AUTOMATIONROOT\local" $WORK_DIR_DEFAULT $true
 # Copy all remote script helpers, flat set to true to copy to root, not sub directory
 copyDir ".\$AUTOMATIONROOT\remote" $WORK_DIR_DEFAULT $true
 
-Write-Host "`n[$scriptName] Copy all task definition files, excluding build tasks"
-$files = Get-ChildItem $workingDirectory -Filter "$SOLUTIONROOT\*.tsk"
-foreach ($file in $files) {
-	if (!($file -match 'build.tsk')) {
+Write-Host "`n[$scriptName] Copy local and remote defintions`n"
+$listOfTaskFile = "tasksRunLocal.tsk", "tasksRunRemote.tsk"
+foreach ($file in $listOfTaskFile) {
+	if ( test-Path "$SOLUTIONROOT\$file" ) {
 		copySet "$file" "$SOLUTIONROOT" "$WORK_DIR_DEFAULT"
+	}
+}
+
+# 1.7.8 Merge generic tasks into explicit tasks
+if ( Test-Path "$SOLUTIONROOT\tasksRun.tsk" ) {
+	foreach ($file in $listOfTaskFile) {
+		Write-Host "[$scriptName]   $SOLUTIONROOT\tasksRun.tsk --> $WORK_DIR_DEFAULT\$file"
+		Get-Content ".\$SOLUTIONROOT\tasksRun.tsk" | Add-Content "$WORK_DIR_DEFAULT\$file"
 	}
 }
 
@@ -150,16 +158,10 @@ if ( Test-Path $commonCustomDir ) {
 
 # Copy artefacts if driver file exists
 if ( Test-Path $localArtifactListFile ) {
-
 	try {
 		& .\$AUTOMATIONROOT\buildandpackage\packageCopyArtefacts.ps1 $localArtifactListFile $WORK_DIR_DEFAULT 
 		if(!$?){ taskFailure "& .\$AUTOMATIONROOT\buildandpackage\packageCopyArtefacts.ps1 $localArtifactListFile $WORK_DIR_DEFAULT" }
 	} catch { taskFailure "& .\$AUTOMATIONROOT\buildandpackage\packageCopyArtefacts.ps1 $localArtifactListFile $WORK_DIR_DEFAULT" }
-
-} else {
-
-	Write-Host; Write-Host "[$scriptName] Local Artifact file ($localArtifactListFile) does not exist, packaging framework scripts only" -ForegroundColor Yellow
-
 }
 
 # 1.7.8 Copy generic artefacts if driver file exists
