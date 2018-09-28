@@ -17,12 +17,16 @@ $remoteCustomDir        = "$SOLUTIONROOT\customRemote"
 $commonCustomDir        = "$SOLUTIONROOT\custom"
 $remoteCryptDir         = "$SOLUTIONROOT\cryptRemote"
 $remoteArtifactListFile = "$SOLUTIONROOT\storeForRemote"
+$genericArtifactList    = "$SOLUTIONROOT\storeFor"
 
 Write-Host "`n[$scriptName] ---------------------------------------------------------------" 
 Write-Host "[$scriptName]   WORK_DIR_DEFAULT             : $WORK_DIR_DEFAULT" 
 
 Write-Host –NoNewLine "[$scriptName]   Remote Artifact List         : " 
 pathTest $remoteArtifactListFile
+
+Write-Host –NoNewLine "[$scriptName]   Generic Artifact List        : " 
+pathTest $genericArtifactList
 
 Write-Host –NoNewLine "[$scriptName]   Remote Tasks Custom Scripts  : " 
 pathTest $remoteCustomDir
@@ -35,7 +39,7 @@ pathTest $remoteCryptDir
 
 
 # CDM-101 If Artefacts definition file is not found, do not perform any action, i.e. this solution is local tasks only
-if ( -not (Test-Path $remoteArtifactListFile) ) {
+if ( (-not (Test-Path $remoteArtifactListFile)) -and  (-not (Test-Path $genericArtifactList))) {
 
 	Write-Host "`n[$scriptName] Artefacts definition file not found $remoteArtifactListFile, therefore no action, assuming local tasks only."
 	
@@ -73,17 +77,18 @@ if ( -not (Test-Path $remoteArtifactListFile) ) {
 		copyDir $commonCustomDir $WORK_DIR_DEFAULT $true
 	}
 	
-	# Copy remote artefacts if driver file exists exists
-	# Copy artefacts if driver file exists exists
+	# Copy remote artefacts if driver file exists
 	if ( Test-Path $remoteArtifactListFile ) {
 	
 		# Pass the local work directory if the package is to be zipped
 		& $AUTOMATIONROOT\buildandpackage\packageCopyArtefacts.ps1 $remoteArtifactListFile $WORK_DIR_DEFAULT 
+	}
+
+	# 1.7.8 Copy generic artefacts if driver file exists
+	if ( Test-Path $genericArtifactList ) {
 	
-	} else {
-	
-		Write-Host "`n[$scriptName] Remote Artifact file ($remoteArtifactListFile) does not exist, packaging framework scripts only" -ForegroundColor Yellow
-	
+		# Pass the local work directory if the package is to be zipped
+		& $AUTOMATIONROOT\buildandpackage\packageCopyArtefacts.ps1 $genericArtifactList $WORK_DIR_DEFAULT 
 	}
 	
 	# Zip the working directory to create the artefact Package

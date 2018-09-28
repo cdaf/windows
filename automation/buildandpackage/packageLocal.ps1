@@ -18,6 +18,7 @@ $AUTOMATIONROOT = $args[5]
 $scriptName = $MyInvocation.MyCommand.Name
 
 $localArtifactListFile = "$SOLUTIONROOT\storeForLocal"
+$genericArtifactList   = "$SOLUTIONROOT\storeFor"
 $localPropertiesDir    = "$SOLUTIONROOT\propertiesForLocalTasks"
 $localGenPropDir       = "propertiesForLocalTasks"
 $localEnvironmentPath  = "$SOLUTIONROOT\propertiesForLocalEnvironment"
@@ -33,6 +34,9 @@ Write-Host "[$scriptName]   WORK_DIR_DEFAULT             : $WORK_DIR_DEFAULT"
 
 Write-Host –NoNewLine "[$scriptName]   Local Artifact List          : " 
 pathTest $localArtifactListFile
+
+Write-Host –NoNewLine "[$scriptName]   Generic Artifact List        : " 
+pathTest $genericArtifactList
 
 Write-Host –NoNewLine "[$scriptName]   Local Tasks Properties List  : " 
 pathTest $localPropertiesDir
@@ -144,7 +148,7 @@ if ( Test-Path $commonCustomDir ) {
 	copyDir $commonCustomDir $WORK_DIR_DEFAULT $true
 }
 
-# Copy artefacts if driver file exists exists
+# Copy artefacts if driver file exists
 if ( Test-Path $localArtifactListFile ) {
 
 	try {
@@ -156,6 +160,14 @@ if ( Test-Path $localArtifactListFile ) {
 
 	Write-Host; Write-Host "[$scriptName] Local Artifact file ($localArtifactListFile) does not exist, packaging framework scripts only" -ForegroundColor Yellow
 
+}
+
+# 1.7.8 Copy generic artefacts if driver file exists
+if ( Test-Path $genericArtifactList ) {
+	try {
+		& .\$AUTOMATIONROOT\buildandpackage\packageCopyArtefacts.ps1 $genericArtifactList $WORK_DIR_DEFAULT 
+		if(!$?){ taskFailure "& .\$AUTOMATIONROOT\buildandpackage\packageCopyArtefacts.ps1 $genericArtifactList $WORK_DIR_DEFAULT" }
+	} catch { taskFailure "& .\$AUTOMATIONROOT\buildandpackage\packageCopyArtefacts.ps1 $genericArtifactList $WORK_DIR_DEFAULT" }
 }
 
 # Zip the working directory to create the artefact Package, CDAF.solution and build time values
