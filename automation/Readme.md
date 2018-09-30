@@ -20,6 +20,12 @@ The following files control solution level functionality.
     CDAF.linux : used by the CD emulator to determine the automation root directory  
     CDAF.solution : optional file to identify a directory as the automation solution directory
 
+Basic driver files (introduced 1.7.8):
+
+	properties.cm
+	storeFor
+	tasksRun.tsk
+
 Properties and definition files support comments, prefixed with # character.
 
 ## Execution Engine
