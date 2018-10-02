@@ -142,15 +142,20 @@ if ( $url ) {
 	    exit $proc.ExitCode
 	}
 
-    $agentService = get-service vstsagent*
-    if ( $agentService ) {
-    	Write-Host "[$scriptName] Set the service to delayed start"
-    	executeExpression "sc.exe config $($agentService.name) start= delayed-auto"
-    	executeExpression "Start-Service $($agentService.name)"
+	if ( $serviceAccount ) {
+        $agentService = get-service vstsagent*
+        if ( $agentService ) {
+        	Write-Host "[$scriptName] Set the service to delayed start"
+        	executeExpression "sc.exe config $($agentService.name) start= delayed-auto"
+        	executeExpression "Start-Service $($agentService.name)"
+        } else {
+        	Write-Host "[$scriptName] Service not found! Exiting with exit code 3345"
+        	exit 3345
+    	}
     } else {
-    	Write-Host "[$scriptName] Service not found! Exiting with exit code 3345"
-    	exit 3345
-	}
+    	Write-Host "`n[$scriptName] Service Account not supplied will not attempt to start`n"
+    }
+
 } else {
 	Write-Host "`n[$scriptName] URL not supplied. Agent software extracted to C:\agent`n"
 }
