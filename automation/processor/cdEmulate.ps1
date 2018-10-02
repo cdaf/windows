@@ -139,14 +139,13 @@ if ( $ACTION ) { # Do not list configuration instructions when an action is pass
     write-host "    Command arguments : BuildDetail.BuildNumber + revision"
     write-host
     write-host '  Team Build (vNext)...'
-    write-host '    Use the visual studio template and delete the nuget and VS tasks.'
+    write-host '    Use the visual studio ".NET Desktop" template'
 	write-host '    NOTE: The BUILD DEFINITION NAME must not contain spaces in the name as it is the directory.'
 	write-host '          recommend using solution name, then the Release instructions can be used unchanged.'
-	write-host '          Set the build number $(rev:r)'
-	write-host '    Recommend using the navigation UI to find the entry script.'
-	write-host '    Cannot use %BUILD_SOURCEVERSION% with external Git'
-    write-host "    Command Filename  : $ciProcess"
-    write-host "    Command arguments : %BUILD_BUILDNUMBER% %BUILD_SOURCEVERSION%"
+	write-host '    Set the build number format in the Options to $(rev:r)'
+    write-host '    Remove all tasks except Copy File and Publish Artifact, insert "Run script" task as first task in the stage, recommend using the navigation UI to find the entry script.'
+    write-host "    Path      : $ciProcess"
+    write-host "    Arguments : %BUILD_BUILDNUMBER% %BUILD_SOURCEBRANCH%"
     write-host
     write-host 'For GitLab (requires shell runner) ...'
     write-host '  In .gitlab-ci.yml (in the root of the repository) add the following hook into the CI job, see example in sample folder'
