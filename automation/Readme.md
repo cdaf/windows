@@ -128,8 +128,8 @@ This functionality allows for multiple build requirements (which maybe mutually 
 
 ### Applying a Container Build
 
- - Copy the Dockerfile from the automation/solution directory to the root of your solution
- - Copy the bootstrapAgent.ps1 from the automation/solution to your solution folder
+ - Copy the Dockerfile from the GitHub samples directory to the root of your solution
+ - Copy the bootstrapAgent.ps1 from the GitHub samples to your solution folder
  - uncomment the containerBuild line from the CDAF.solution in your solution folder
 
 Alter the bootstrapAgent.ps1 to fulfill the build dependencies. Note: if you have a Vagrantfile for your solution, ideally the same bootstrap would be used for both Vagrant and Container Build implementations:
