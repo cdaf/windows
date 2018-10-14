@@ -149,6 +149,20 @@ if ($versionTest -like '*not recognized*') {
 	Write-Host "  PiP                     : $($array[1])"
 }
 
+$versionTest = cmd /c node --version 2`>`&1
+if ($versionTest -like '*not recognized*') {
+	Write-Host "  NodeJS                  : not installed"
+} else {
+	Write-Host "  NodeJS                  : $versionTest"
+}
+
+$versionTest = cmd /c npm --version 2`>`&1
+if ($versionTest -like '*not recognized*') {
+	Write-Host "  NPM                     : not installed"
+} else {
+	Write-Host "  NPM                     : $versionTest"
+}
+
 Write-Host "`n[$scriptName] List the build tools`n"
 $regkey = 'HKLM:\Software\Microsoft\MSBuild\ToolsVersions'
 if ( Test-Path $regkey ) { 
