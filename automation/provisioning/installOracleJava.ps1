@@ -20,7 +20,7 @@ if ( $java_version ) {
 	$java_version,$urlUID = $java_version.split('@')
 	Write-Host "[$scriptName] java_version          : ${java_version}@${urlUID} (must be passed as version@urlUID)"
 } else {
-	$java_version = '8u181'
+	$java_version = '8u191'
 	$urlUID = '8u191-b12/2787e4a523244c269598db4e85c51e0c'
 	Write-Host "[$scriptName] java_version          : ${java_version}@${urlUID} (default)"
 }
