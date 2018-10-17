@@ -17,10 +17,12 @@ Write-Host "[$scriptName] ---------- start ----------"
 
 $java_version = $args[0]
 if ( $java_version ) {
-	Write-Host "[$scriptName] java_version          : $java_version"
+	$java_version,$urlUID = $java_version.split('@')
+	Write-Host "[$scriptName] java_version          : ${java_version}@${urlUID} (must be passed as version@urlUID)"
 } else {
 	$java_version = '8u181'
-	Write-Host "[$scriptName] java_version          : $java_version (default)"
+	$urlUID = '8u191-b12/2787e4a523244c269598db4e85c51e0c'
+	Write-Host "[$scriptName] java_version          : ${java_version}@${urlUID} (default)"
 }
 
 $architecture = $args[1]
@@ -67,7 +69,7 @@ if (!( Test-Path "$installer" )) {
 		$array = $versionTest.split(" ")
 		Write-Host "  curl.exe                : $($array[1])"
 	}
-	executeExpression "& curl.exe --silent -L -b 'oraclelicense=a' http://download.oracle.com/otn-pub/java/jdk/8u181-b13/96a7b8442fe848ef90c96a2fad6ed6d1/jdk-8u181-windows-x64.exe --output $sourceInstallDir\$jdkInstallFileName"
+	executeExpression "& curl.exe --silent -L -b 'oraclelicense=a' http://download.oracle.com/otn-pub/java/jdk/${urlUID}/jdk-${java_version}-windows-x64.exe --output $sourceInstallDir\$jdkInstallFileName"
 }
 
 $installer = "$sourceInstallDir\$jdkInstallFileName"
