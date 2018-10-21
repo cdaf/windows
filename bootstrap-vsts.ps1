@@ -99,6 +99,8 @@ if ( $stable -eq 'yes' ) {
 	$zipFile = 'windows-master.zip'
 	Write-Host "[$scriptName] `$url = `"https://codeload.github.com/cdaf/windows/zip/master`""
 	$url = "https://codeload.github.com/cdaf/windows/zip/master"
+	$AllProtocols = [System.Net.SecurityProtocolType]'Tls11,Tls12'
+	executeExpression '[System.Net.ServicePointManager]::SecurityProtocol = $AllProtocols'
 	executeExpression "(New-Object System.Net.WebClient).DownloadFile('$url', '$PWD\$zipFile')"
 	executeExpression 'Add-Type -AssemblyName System.IO.Compression.FileSystem'
 	executeExpression '[System.IO.Compression.ZipFile]::ExtractToDirectory("$PWD\$zipfile", "$PWD")'
