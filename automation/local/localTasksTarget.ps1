@@ -12,6 +12,7 @@ $ENVIRONMENT      = $args[0]
 $SOLUTION         = $args[1]
 $BUILD            = $args[2]
 $TARGET           = $args[3]
+$OPT_ARG          = $args[4]
 
 $scriptName = $myInvocation.MyCommand.Name 
 $propertiesFile = "propertiesForLocalTasks\$TARGET"
@@ -44,7 +45,7 @@ if ($scriptOverride ) {
     Write-Host
 	foreach ( $taskItem in $taskList.Split() ) {
 	    write-host "`n[$scriptName] --- Executing $taskItem ---`n" -ForegroundColor Green
-	    & .\execute.ps1 $SOLUTION $BUILD $TARGET $taskItem
+	    & .\execute.ps1 $SOLUTION $BUILD $TARGET $taskItem $OPT_ARG
 		if($LASTEXITCODE -ne 0){ passExitCode "LOCAL_TASKS_TARGET_EXECUTE_NON_ZERO_EXIT .\execute.ps1 $SOLUTION $BUILD $TARGET $taskItem" $LASTEXITCODE }
 	    if(!$?){ taskFailure "LOCAL_TASKS_TARGET_EXECUTE_TRAP" }
     }

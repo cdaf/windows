@@ -3,6 +3,7 @@ $SOLUTION = $args[1]
 $BUILD = $args[2]
 $DEPLOY_TARGET = $args[3]
 $WORK_DIR_DEFAULT = $args[4]
+$OPT_ARG          = $args[5]
 
 $scriptName = $myInvocation.MyCommand.Name
 
@@ -113,7 +114,7 @@ try {
 
 write-host "`n[$scriptName] Transfer control to the remote host`n" -ForegroundColor Blue
 try {
-	Invoke-Command -session $session -File $WORK_DIR_DEFAULT\deploy.ps1 -Args $DEPLOY_TARGET,$deployLand\$SOLUTION-$BUILD,$warnondeployerror
+	Invoke-Command -session $session -File $WORK_DIR_DEFAULT\deploy.ps1 -Args $DEPLOY_TARGET,$deployLand\$SOLUTION-$BUILD,$warnondeployerror,$OPT_ARG
 } catch { 
 	$exceptionCode = echo $_.tostring()
 	[int]$exceptionCode = [convert]::ToInt32($exceptionCode)

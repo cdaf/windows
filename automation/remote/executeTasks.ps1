@@ -44,16 +44,24 @@ function getProp ($propName) {
 
 $TARGET    = $args[0]
 $WORKSPACE = $args[1]
+$OPT_ARG   = $args[2]
 
 # $myInvocation.MyCommand.Name not working when processing DOS
 $scriptName = "executeTasks.ps1"
 
 write-host "[$scriptName]   TARGET               : $TARGET"
 if ($WORKSPACE ) {
-    write-host "[$scriptName]   WORKSPACE            : $(pwd) (passed as argument)"
+    write-host "[$scriptName]   WORKSPACE            : $WORKSPACE (passed as argument)"
 } else {
     write-host "[$scriptName]   WORKSPACE            : $(pwd)"
 }
+
+if ($OPT_ARG ) {
+    write-host "[$scriptName]   OPT_ARG            : $OPT_ARG"
+} else {
+    write-host "[$scriptName]   OPT_ARG            : (not supplied)"
+}
+
 
 write-host "[$scriptName]   hostname             : $(hostname)"
 write-host "[$scriptName]   whoami               : $(whoami)"
@@ -64,7 +72,7 @@ write-host "`n[$scriptName] Load SOLUTION and BUILDNUMBER from manifest.txt"
 $scriptOverride = getProp ("deployScriptOverride")
 if ($scriptOverride ) {
 	write-host "[$scriptName]   deployScriptOverride : $scriptOverride`n"
-    $expression=".\$scriptOverride $SOLUTION $BUILDNUMBER $TARGET"
+    $expression=".\$scriptOverride $SOLUTION $BUILDNUMBER $TARGET $OPT_ARG"
     write-host $expression
 	try {
 		Invoke-Expression $expression
@@ -85,9 +93,9 @@ if ($scriptOverride ) {
 
 	foreach ( $taskItem in $taskList.Split() ) {
 	    write-host "`n[$scriptName] --- Executing $taskItem ---`n" -ForegroundColor Green
-	    & .\execute.ps1 $SOLUTION $BUILDNUMBER $TARGET $taskItem
+	    & .\execute.ps1 $SOLUTION $BUILDNUMBER $TARGET $taskItem $OPT_ARG
 		if($LASTEXITCODE -ne 0){
-		    exitWithCode "OVERRIDE_EXECUTE_NON_ZERO_EXIT & .\execute.ps1 $SOLUTION $BUILDNUMBER $TARGET $taskItem" $LASTEXITCODE 
+		    exitWithCode "OVERRIDE_EXECUTE_NON_ZERO_EXIT & .\execute.ps1 $SOLUTION $BUILDNUMBER $TARGET $taskItem $OPT_ARG" $LASTEXITCODE 
 		}
 	    if(!$?){ taskFailure "POWERSHELL_TRAP" }
     }

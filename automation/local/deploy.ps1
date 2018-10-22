@@ -7,6 +7,7 @@ function throwErrorlevel ($trappedExit) {
 $TARGET            = $args[0]
 $WORKSPACE         = $args[1]
 $warnondeployerror = $args[2]
+$OPT_ARG           = $args[3]
 
 # $myInvocation.MyCommand.Name not working when processing DOS
 $scriptName = "deploy.ps1"
@@ -15,7 +16,7 @@ $scriptName = "deploy.ps1"
 write-host "[$scriptName] cd $WORKSPACE"
 cd $WORKSPACE
 write-host
-& .\deploy.bat $TARGET $ENVIRONMENT
+& .\deploy.bat $TARGET $ENVIRONMENT $OPT_ARG
 if(!$?){ 
 	if ( $warnondeployerror ) {
 		Write-host "[$scriptName] deploy.bat did not complete normally, however `$warnondeployerror set ($warnondeployerror) so proceeding normally." -ForegroundColor Yellow

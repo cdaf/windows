@@ -14,6 +14,8 @@ $SOLUTION = $args[2]
 Write-Host "[$scriptName]   SOLUTION               : $SOLUTION" 
 $WORK_DIR_DEFAULT = $args[3]
 Write-Host "[$scriptName]   WORK_DIR_DEFAULT       : $WORK_DIR_DEFAULT" 
+$OPT_ARG = $args[4]
+Write-Host "[$scriptName]   OPT_ARG                : $OPT_ARG" 
 
 $localPropertiesPath = 'propertiesForLocalTasks\'
 $localPropertiesFilter = $localPropertiesPath + "$ENVIRONMENT*"
@@ -63,7 +65,7 @@ $exitStatus = 0
 if ( $localEnvPreDeployTask) {
     Write-Host
     # Execute the Tasks Driver File
-    & .\execute.ps1 $SOLUTION $BUILD $localEnvironmentPath\$ENVIRONMENT $localEnvPreDeployTask
+    & .\execute.ps1 $SOLUTION $BUILD $localEnvironmentPath\$ENVIRONMENT $localEnvPreDeployTask $OPT_ARG
 	if($LASTEXITCODE -ne 0){ passExitCode "LOCAL_TASKS_PRE_DEPLOY_NON_ZERO_EXIT .\execute.ps1 $SOLUTION $BUILD $localEnvironmentPath\$ENVIRONMENT $localEnvPreDeployTask" $LASTEXITCODE }
     if(!$?){ taskFailure "LOCAL_TASKS_PRE_DEPLOY_TRAP" }
 }
@@ -78,9 +80,7 @@ if (-not(Test-Path $localPropertiesFilter)) {
 	# Load the environment target properties files to the root
 	Copy-Item $localPropertiesFilter .
 
-	Write-Host
-	Write-Host "[$scriptName] Preparing to process targets :"
-	Write-Host
+	Write-Host "`n[$scriptName] Preparing to process targets :`n"
 	foreach ($propFile in (Get-ChildItem -Path $localPropertiesFilter)) {
 		$propFilename = getFilename($propFile.ToString())
 		Write-Host "[$scriptName]   $propFilename"
@@ -91,7 +91,7 @@ if (-not(Test-Path $localPropertiesFilter)) {
 		$propFilename = getFilename($propFile.ToString())
 
 		write-host "`n[$scriptName]   --- Process Target $propFilename --- " -ForegroundColor Green
-		& .\localTasksTarget.ps1 $ENVIRONMENT $SOLUTION $BUILD $propFilename
+		& .\localTasksTarget.ps1 $ENVIRONMENT $SOLUTION $BUILD $propFilename $OPT_ARG
 		if($LASTEXITCODE -ne 0){ passExitCode "LOCAL_NON_ZERO_EXIT & .\localTasksTarget.ps1 $ENVIRONMENT $SOLUTION $BUILD $propFilename" $LASTEXITCODE }
 		if(!$?){ taskWarning }
 
@@ -103,7 +103,7 @@ if (-not(Test-Path $localPropertiesFilter)) {
 if ( $localEnvPostDeployTask) {
     Write-Host
     # Execute the Tasks Driver File
-    & .\execute.ps1 $SOLUTION $BUILD $localEnvironmentPath\$ENVIRONMENT $localEnvPostDeployTask
+    & .\execute.ps1 $SOLUTION $BUILD $localEnvironmentPath\$ENVIRONMENT $localEnvPostDeployTask $OPT_ARG
 	if($LASTEXITCODE -ne 0){ passExitCode "LOCAL_TASKS_POST_DEPLOY_NON_ZERO_EXIT .\execute.ps1 $SOLUTION $BUILD $localEnvironmentPath\$ENVIRONMENT $localEnvPostDeployTask" $LASTEXITCODE }
     if(!$?){ taskFailure "LOCAL_TASKS_POST_DEPLOY_TRAP" }
 }
