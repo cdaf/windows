@@ -53,16 +53,6 @@ function itemRemove ($itemPath) {
 	}
 }
 
-function removeTempFiles { 
-    if (Test-Path projectsToBuild.txt) {
-        Remove-Item projectsToBuild.txt -recurse
-    }
-
-    if (Test-Path projectDirectories.txt) {
-        Remove-Item projectDirectories.txt -recurse
-    }
-}
-
 function pathTest ($pathToTest) { 
 	if ( Test-Path $pathToTest ) {
 		Write-Host "found ($pathToTest)"

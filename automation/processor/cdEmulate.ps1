@@ -216,6 +216,7 @@ if ( $ACTION ) {
     write-host 'For Team Foundation Server (TFS)/Visual Studio Team Services (VSTS)'
 	write-host '  Verify the queue for each Environment definition, and ensure Environment names do not contain spaces.'
 	write-host '  Run an template build initially to load the workspace, which can then be navigated to for following configuration.'
+	write-host '  From an empty release configuration, bind to the existing build and within the stage, add a "run script" step.'
 	write-host "    Command Filename  : `$(System.DefaultWorkingDirectory)/$solutionName/drop/$workDirLocal/$cdInstruction"
 	write-host "    Command arguments : %RELEASE_ENVIRONMENTNAME% %RELEASE_RELEASENAME%"
 	write-host "    Working folder    : `$(System.DefaultWorkingDirectory)/$solutionName/drop"

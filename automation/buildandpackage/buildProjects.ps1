@@ -1,4 +1,11 @@
 
+function removeTempFiles {
+	$itemList = @("projectDirectories.txt", "projectsToBuild.txt", "*.zip", "*.nupkg", "propertiesForLocalTasks", "propertiesForRemoteTasks")
+	foreach ($itemName in $itemList) {  
+		itemRemove ".\${itemName}"
+    }
+}
+
 $scriptName = $MyInvocation.MyCommand.Name
 Write-Host "`n[$scriptName] +----------------------------+"
 Write-Host "[$scriptName] | Process BUILD all projects |"
@@ -67,12 +74,6 @@ write-host "`n[$scriptName] Load solution properties ..."
 
 Write-Host "`n[$scriptName] Clean temp files and folders from workspace" 
 removeTempFiles
-itemRemove ".\projectDirectories.txt"
-itemRemove ".\projectsToBuild.txt"
-itemRemove ".\*.zip"
-itemRemove ".\*.nupkg"
-itemRemove ".\propertiesForLocalTasks"
-itemRemove ".\propertiesForRemoteTasks"
 
 # Properties generator (added in release 1.7.8)
 if (Test-Path "$propertiesDriver") {
