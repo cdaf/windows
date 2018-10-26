@@ -1,3 +1,4 @@
+[![Licence](https://img.shields.io/github/license/semprini/cbe.svg)](https://github.com/Semprini/cbe/blob/master/LICENSE)
 [![cdaf version](automation/badge.svg)](http://cdaf.io)
 
 # Continuous Delivery Automation Framework for Windows
