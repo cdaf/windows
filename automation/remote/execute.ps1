@@ -10,10 +10,7 @@ function taskException ($taskName, $exception) {
 
 function executeExpression ($expression) {
 	$error.clear()
-    # Do not echo line if it is an echo itself
-    if (-not (($expression -match 'Write-Host') -or ($expression -match 'echo'))) {
-		$ExecutionContext.InvokeCommand.ExpandString($expression)
-    }
+	Write-Host "[$scriptName] $expression"
 	try {
 		$output = Invoke-Expression $expression
 	    if(!$?) { Write-Host "[$scriptName] `$? = $?"; exit 1 }
@@ -36,7 +33,7 @@ function MAKDIR ($itemPath) {
 		}	
 	} else {
 		mkdir $itemPath > $null
-		if(!$?) {taskFailure "[$scriptName (MAKDIR)] $itemPath Creation failed" }
+		if(!$?) { taskFailure "[$scriptName (MAKDIR)] $itemPath Creation failed" }
 	}
 }
 
@@ -45,7 +42,7 @@ function REMOVE ($itemPath) {
 	if ( Test-Path $itemPath ) {
 		write-host "[REMOVE] Delete $itemPath"
 		Remove-Item $itemPath -Recurse -Force
-		if(!$?) {taskFailure "[$scriptName (REMOVE)] Remove-Item $itemPath -Recurse -Force" }
+		if(!$?) { taskFailure "[$scriptName (REMOVE)] Remove-Item $itemPath -Recurse -Force" }
 	}
 }
 
@@ -381,8 +378,20 @@ Foreach ($line in get-content $TASK_LIST) {
 			# Perform no further processing if Feature is Property Loader
             if ( $feature -ne 'PROPLD ' ) {
 
-	            # Execute expression and trap powershell exceptions
-		        executeExpression $expression
+	            # Execute expression and trap powershell exceptions, do not use executeExpression function of variables will go out of scope
+            	$error.clear()
+            	
+			    # Do not echo line if it is an echo itself
+			    if (-not (($expression -match 'Write-Host') -or ($expression -match 'echo'))) {
+			    	$escapeAssign = $expression -replace '^\$', '`$'
+					$ExecutionContext.InvokeCommand.ExpandString($escapeAssign)
+			    }
+				try {
+					Invoke-Expression $expression
+				    if(!$?) { Write-Host "[$scriptName] `$? = $?"; exit 1 }
+				} catch { echo $_.Exception|format-list -force; exit 2 }
+			    if ( $error[0] ) { Write-Host "[$scriptName] `$error[0] = $error"; exit 3 }
+			    if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) { Write-Host "[$scriptName] `$LASTEXITCODE = $LASTEXITCODE "; exit $LASTEXITCODE }
 		    }
         }
     }
