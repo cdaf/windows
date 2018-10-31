@@ -10,7 +10,10 @@ function taskException ($taskName, $exception) {
 
 function executeExpression ($expression) {
 	$error.clear()
-	Write-Host "[$scriptName] $expression"
+    # Do not echo line if it is an echo itself
+    if (-not (($expression -match 'Write-Host') -or ($expression -match 'echo'))) {
+		$ExecutionContext.InvokeCommand.ExpandString($expression)
+    }
 	try {
 		$output = Invoke-Expression $expression
 	    if(!$?) { Write-Host "[$scriptName] `$? = $?"; exit 1 }
@@ -377,33 +380,12 @@ Foreach ($line in get-content $TASK_LIST) {
 
 			# Perform no further processing if Feature is Property Loader
             if ( $feature -ne 'PROPLD ' ) {
-			
-		        # Do not echo line if it is an echo itself
-	            if (-not (($expression -match 'Write-Host') -or ($expression -match 'echo'))) {
-		            Write-Host "$expression"
-	            }
-	
+
 	            # Execute expression and trap powershell exceptions
-		        try {
-			        Invoke-Expression $expression
-			        if(!$?) { taskException "POWERSHELL_TRAP" $_ }
-		        } catch { taskException "POWERSHELL_EXCEPTION" $_ }
-	
-	            # Look for DOS exit codes
-		        $exitcode = $LASTEXITCODE
-		        if ( $exitcode -ne 0 ) { 
-			        Write-Host "`n[$scriptName] $expression failed with `$LASTEXITCODE $exitcode" -ForegroundColor Red
-			        exit $exitcode
-		        }
-	
-	            # Check for non-terminating errors, any error will terminate execution
-		        if ( $error[0] ) { 
-			        Write-Host "`n[$scriptName] $expression failed with ERROR[0] = $error[0], exit with LASTEXITCODE 9999" -ForegroundColor Red
-			        exit 9999
-		        }
+		        executeExpression $expression
 		    }
         }
     }
 }
-Write-Host
-Write-Host "~~~~~ Shutdown Execution Engine ~~~~~~"
+
+Write-Host "`n~~~~~ Shutdown Execution Engine ~~~~~~"
