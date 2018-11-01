@@ -1,6 +1,11 @@
 Param (
-	[string]$install
+	[string]$install,
+	[string]$mediaDir,
+	[string]$proxy
 )
+
+cmd /c "exit 0"
+$scriptName = 'base.ps1'
 
 # Common expression logging and error handling function, copied, not referenced to ensure atomic process
 function executeExpression ($expression) {
@@ -14,7 +19,6 @@ function executeExpression ($expression) {
     if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) { Write-Host "[$scriptName] `$LASTEXITCODE = $LASTEXITCODE "; exit $LASTEXITCODE }
 }
 
-$scriptName = 'base.ps1'
 Write-Host "[$scriptName] Install components using Chocolatey.`n"
 Write-Host "[$scriptName] ---------- start ----------"
 if ($install) {
@@ -28,6 +32,15 @@ if ($mediaDir) {
 } else {
 	$mediaDir = '/.provision'
     Write-Host "[$scriptName] mediaDir   : $mediaDir (default)"
+}
+
+if ($proxy) {
+    Write-Host "[$scriptName] proxy      : $proxy`n"
+    executeExpression "[system.net.webrequest]::defaultwebproxy = new-object system.net.webproxy('$proxy')"
+    executeExpression "`$env:chocolateyProxyLocation = '$proxy'"
+    executeExpression "`$env:http_proxy = '$proxy'"
+} else {
+    Write-Host "[$scriptName] proxy      : ( not supplied)"
 }
 
 $versionTest = cmd /c choco --version 2`>`&1
