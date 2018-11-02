@@ -1,6 +1,8 @@
 Param (
 	[string]$sdk,
-	[string]$mediaDir
+	[string]$version,
+	[string]$mediaDir,
+	[string]$proxy
 )
 $scriptName = 'installDotnetCore.ps1'
 
@@ -71,12 +73,20 @@ if ( $mediaDir ) {
 	Write-Host "[$scriptName] mediaDir : $mediaDir (not passed, set to default)`n"
 }
 
+if ($proxy) {
+    Write-Host "[$scriptName] proxy      : $proxy`n"
+    executeExpression "[system.net.webrequest]::defaultwebproxy = new-object system.net.webproxy('$proxy')"
+} else {
+    Write-Host "[$scriptName] proxy      : ( not supplied)"
+}
+
 # Create media cache if missing
 if ( Test-Path $mediaDir ) {
     Write-Host "`n[$scriptName] `$mediaDir ($mediaDir) exists"
 } else {
 	Write-Host "[$scriptName] Created $(mkdir $mediaDir)"
 }
+
 
 if ( $sdk -eq 'asp' ) {
 	$file = "aspnetcore-runtime-${version}-win-x64.exe"
