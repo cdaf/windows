@@ -10,10 +10,8 @@ function executeExpression ($expression) {
 }
 
 function taskFailure ($taskName) {
-    write-host
-    write-host "[$scriptName] Failure executing :" -ForegroundColor Red
-    write-host "[$scriptName] $taskName :" -ForegroundColor Red
-	write-host
+    write-host "`n[$scriptName] Failure executing :" -ForegroundColor Red
+    write-host "[$scriptName] $taskName :`n" -ForegroundColor Red
     throw "$scriptName HALT"
 }
 
@@ -25,6 +23,8 @@ function copyOpt ($manifestFile, $from, $first, $second) {
 		$arrRecurse = "-recurse", "-r", "--recursive"
 		if ($arrRecurse -contains $first.ToUpper()) { $recurse = '-Recurse' }
 		if ($first.ToUpper() -eq '-flat') {	$flat = '-Flat' }
+	} else {
+		$recurse = '-Recurse'
 	}
 
 	if ($second) {
@@ -73,10 +73,9 @@ $scriptName = $MyInvocation.MyCommand.Name
 $manifestFile = getFilename $DRIVER
 $manifestFile += "_manifest.txt"
 
-Write-Host
-Write-Host "[$scriptName] Copy Artefacts defined in $DRIVER to $WORK_DIR_DEFAULT"
+Write-Host "`n[$scriptName] Copy Artefacts defined in $DRIVER to $WORK_DIR_DEFAULT"
 
-Foreach ($ARTIFACT in get-content $DRIVER) {
+foreach ($ARTIFACT in get-content $DRIVER) {
 
     # Don't process empty line
     if ($ARTIFACT) {
@@ -95,6 +94,5 @@ Foreach ($ARTIFACT in get-content $DRIVER) {
 }
 
 if (-not (Test-Path $manifestFile)) {
-	Write-Host
-	Write-Host "[$scriptName] Artifact list file exists ($DRIVER), but has no contents, copying framework scripts only." -ForegroundColor Yellow
+	Write-Host "`n[$scriptName] Artifact list file exists ($DRIVER), but has no contents, copying framework scripts only.`n" -ForegroundColor Yellow
 }

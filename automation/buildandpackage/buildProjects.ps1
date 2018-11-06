@@ -42,23 +42,23 @@ if (Test-Path "$propertiesDriver") {
 $ACTION = $args[5]
 if ( $ACTION ) {
 	if ( $ACTION -eq "clean" ) { # Case insensitive
-		Write-Host "[$scriptName]   ACTION         : $ACTION (Environment will use default value)"
+		Write-Host "[$scriptName]   ACTION            : $ACTION (Environment will use default value)"
 	} else {
 		$ENVIRONMENT = $ACTION
-		Write-Host "[$scriptName]   ACTION         : $ACTION (Not `"clean`", so used for Environment)"
-		Write-Host "[$scriptName]   ENVIRONMENT    : $ENVIRONMENT (derived from action)" 
+		Write-Host "[$scriptName]   ACTION            : $ACTION (Not `"clean`", so used for Environment)"
+		Write-Host "[$scriptName]   ENVIRONMENT       : $ENVIRONMENT (derived from action)" 
 	}
 } else {
-	Write-Host "[$scriptName]   ACTION         : $ACTION"
+	Write-Host "[$scriptName]   ACTION            : $ACTION"
 }
 if (!( $ENVIRONMENT )) {
 # Build and Delivery Properties Lookup values
 	$ENVIRONMENT = $env:environmentBuild
 	if ($ENVIRONMENT ) {
-		Write-Host "[$scriptName]   ENVIRONMENT    : $ENVIRONMENT (from `$env:environmentBuild)"
+		Write-Host "[$scriptName]   ENVIRONMENT       : $ENVIRONMENT (from `$env:environmentBuild)"
 	} else {
 		$ENVIRONMENT = 'BUILDER'
-		Write-Host "[$scriptName]   ENVIRONMENT    : $ENVIRONMENT (default)"
+		Write-Host "[$scriptName]   ENVIRONMENT       : $ENVIRONMENT (default)"
 	}
 } 
 
@@ -66,7 +66,7 @@ $automationHelper="$AUTOMATIONROOT\remote"
 
 # Build a list of projects, based on directory names, unless an override project list file exists
 $projectList = ".\$SOLUTIONROOT\buildProjects"
-Write-Host –NoNewLine "[$scriptName]   Project list   : " 
+Write-Host –NoNewLine "[$scriptName]   Project list      : " 
 pathTest $projectList
 
 write-host "`n[$scriptName] Load solution properties ..."
