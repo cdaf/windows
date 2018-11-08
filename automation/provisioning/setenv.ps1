@@ -1,3 +1,12 @@
+Param (
+	[string]$variable,
+	[string]$value,
+	[string]$target
+)
+
+cmd /c "exit 0"
+$scriptName = 'setenv.ps1'
+
 # Common expression logging and error handling function, copied, not referenced to ensure atomic process
 function executeExpression ($expression) {
 	$error.clear()
@@ -10,13 +19,7 @@ function executeExpression ($expression) {
     if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) { Write-Host "[$scriptName] `$LASTEXITCODE = $LASTEXITCODE "; exit $LASTEXITCODE }
 }
 
-$scriptName = 'setenv.ps1'
-Write-Host
-Write-Host "[$scriptName] ---------- start ----------"
-$variable = $args[0]
-$value    = $args[1]
-$target   = $args[2]
-
+Write-Host "`n[$scriptName] ---------- start ----------"
 # vagrant file share is dependant on provider, for VirtualBox, pass as C:\.provision
 if ($variable) {
     Write-Host "[$scriptName] variable : $variable"
@@ -42,7 +45,6 @@ if ($target) {
 
 Write-Host
 executeExpression "[Environment]::SetEnvironmentVariable(`'$variable`', `'$value`', `'$target`')"
+executeExpression "`$env:$variable = [Environment]::GetEnvironmentVariable(`'$variable`', `'$target`')"
 
-Write-Host
-Write-Host "[$scriptName] ---------- stop -----------"
-Write-Host
+Write-Host "`n[$scriptName] ---------- stop -----------`n"

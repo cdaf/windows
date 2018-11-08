@@ -1,3 +1,14 @@
+Param (
+	[string]$java_version,
+	[string]$architecture,
+	[string]$sourceInstallDir,
+	[string]$destinationInstallDir,
+	[string]$proxy
+)
+
+cmd /c "exit 0"
+$scriptName = 'installOracleJava.ps1'
+
 # Common expression logging and error handling function, copied, not referenced to ensure atomic process
 function executeExpression ($expression) {
 	$error.clear()
@@ -10,22 +21,17 @@ function executeExpression ($expression) {
     if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) { Write-Host "[$scriptName] `$LASTEXITCODE = $LASTEXITCODE "; exit $LASTEXITCODE }
 }
 
-$scriptName = 'installOracleJava.ps1'
+Write-Host "`n[$scriptName] ---------- start ----------"
 
-Write-Host
-Write-Host "[$scriptName] ---------- start ----------"
-
-$java_version = $args[0]
 if ( $java_version ) {
 	$java_version,$urlUID = $java_version.split('@')
 	Write-Host "[$scriptName] java_version          : ${java_version}@${urlUID} (must be passed as version@urlUID)"
 } else {
-	$java_version = '8u191'
-	$urlUID = '8u191-b12/2787e4a523244c269598db4e85c51e0c'
+	$java_version = '8u192'
+	$urlUID = '8u192-b12/750e1c8617c5452694857ad95c3ee230'
 	Write-Host "[$scriptName] java_version          : ${java_version}@${urlUID} (default)"
 }
 
-$architecture = $args[1]
 if ( $architecture ) {
 	Write-Host "[$scriptName] architecture          : $architecture (choices x64 or i586)"
 } else {
@@ -33,7 +39,6 @@ if ( $architecture ) {
 	Write-Host "[$scriptName] architecture          : $architecture (default, choices x64 or i586)"
 }
 
-$sourceInstallDir = $args[2]
 if ( $sourceInstallDir ) {
 	Write-Host "[$scriptName] sourceInstallDir      : $sourceInstallDir"
 } else {
@@ -41,12 +46,18 @@ if ( $sourceInstallDir ) {
 	Write-Host "[$scriptName] sourceInstallDir      : $sourceInstallDir (default)"
 }
 
-$destinationInstallDir = $args[3]
 if ( $destinationInstallDir ) {
 	Write-Host "[$scriptName] destinationInstallDir : $destinationInstallDir"
 } else {
 	$destinationInstallDir = 'c:\Oracle'
 	Write-Host "[$scriptName] destinationInstallDir : $destinationInstallDir (default)"
+}
+
+if ($proxy) {
+    Write-Host "[$scriptName] proxy                 : $proxy`n"
+    executeExpression "`$env:http_proxy = '$proxy'"
+} else {
+    Write-Host "[$scriptName] proxy                 : (not supplied)"
 }
 
 Write-Host
@@ -59,7 +70,6 @@ $jdkInstallFileName = "jdk-" + $java_version + "-windows-" + $architecture + ".e
 
 $installer = "$sourceInstallDir\$jdkInstallFileName"
 if (!( Test-Path "$installer" )) {
-	Write-Host
 	Write-Host "[$scriptName] $installer not found, attempt to download ..."
 	$versionTest = cmd /c curl.exe --version 2`>`&1
 	cmd /c "exit 0"
