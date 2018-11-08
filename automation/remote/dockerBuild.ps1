@@ -33,7 +33,7 @@ function executeSuppress ($expression) {
 cmd /c "exit 0"
 
 Write-Host "`n[$scriptName] ---------- start ----------"
-Write-Host "`n[$scriptName] Build docker image, resulting image naming \${imageName}"
+Write-Host "`n[$scriptName] Build docker image, resulting image tag will be ${imageName}:${tag}"
 if ($imageName) {
     Write-Host "[$scriptName] imageName : $imageName"
 } else {
@@ -59,6 +59,8 @@ if ($rebuild) {
 } else {
     Write-Host "[$scriptName] rebuild   : (not supplied, docker will use cache where possible)"
 }
+
+Write-Host "`n[$scriptName] List existing images ...`n"
 $imagesBefore = docker images -f label=cdaf.${imageName}.image.version
 if ( $LASTEXITCODE -ne 0 ) {
 	cmd /c "exit 0"
