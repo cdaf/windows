@@ -4,6 +4,7 @@ Param (
 	[string]$diskDir,
 	[string]$emailTo,
 	[string]$smtpServer,
+	[string]$emailFrom,
 	[string]$skipTest
 )
 $scriptName = 'AtlasPackage.ps1'
@@ -33,7 +34,7 @@ function executeIgnoreExit ($expression) {
 # Exception Handling email sending
 function emailAndExit ($exitCode) {
 	if ($smtpServer) {
-		Send-MailMessage -To "$emailTo" -From 'no-reply@cdaf.info' -Subject "[$scriptName][$hypervisor] ERROR $exitCode" -SmtpServer "$smtpServer"
+		Send-MailMessage -To "$emailTo" -From "$emailFrom" -Subject "[$scriptName][$hypervisor] ERROR $exitCode" -SmtpServer "$smtpServer"
 	}
 	exit $exitCode
 }
@@ -41,7 +42,7 @@ function emailAndExit ($exitCode) {
 # Informational email notification 
 function emailProgress ($subject) {
 	if ($smtpServer) {
-		Send-MailMessage -To "$emailTo" -From 'no-reply@cdaf.info' -Subject "[$scriptName][$hypervisor] $subject" -SmtpServer "$smtpServer"
+		Send-MailMessage -To "$emailTo" -From "$emailFrom" -Subject "[$scriptName][$hypervisor] $subject" -SmtpServer "$smtpServer"
 	}
 }
 
@@ -81,6 +82,12 @@ if ($smtpServer) {
     Write-Host "[$scriptName] smtpServer  : $smtpServer"
 } else {
     Write-Host "[$scriptName] smtpServer  : (not specified, email will not be attempted)"
+}
+
+if ($emailFrom) {
+    Write-Host "[$scriptName] emailFrom  : $emailFrom"
+} else {
+    Write-Host "[$scriptName] emailFrom  : (not specified, email will not be attempted)"
 }
 
 if ($skipTest) {
