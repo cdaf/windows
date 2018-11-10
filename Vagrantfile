@@ -61,9 +61,6 @@ Vagrant.configure(2) do |config|
       server.vm.graceful_halt_timeout = 180 # 3 minutes
 
       server.vm.provision 'shell', path: './automation/remote/capabilities.ps1'
-      (1..MAX_SERVER_TARGETS).each do |s|
-        server.vm.provision 'shell', path: './automation/provisioning/addHOSTS.ps1', args: "172.16.17.10#{s} server-#{s}.sky.net"
-      end
       server.vm.provision 'shell', path: './automation/provisioning/mkdir.ps1', args: 'C:\deploy'
   
       # Oracle VirtualBox with private NAT has insecure deployer keys for desktop testing
@@ -73,6 +70,9 @@ Vagrant.configure(2) do |config|
         virtualbox.gui = false
         override.vm.network 'private_network', ip: "172.16.17.10#{i}"
         override.vm.hostname  = "server-#{i}" # Cannot set to FQDN
+        (1..MAX_SERVER_TARGETS).each do |s|
+          server.vm.provision 'shell', path: './automation/provisioning/addHOSTS.ps1', args: "172.16.17.10#{s} server-#{s}.sky.net"
+        end
         if synchedFolder
           override.vm.synced_folder "#{synchedFolder}", "/.provision" # equates to C:\.provision
         end
