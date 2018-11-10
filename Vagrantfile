@@ -86,7 +86,9 @@ Vagrant.configure(2) do |config|
         hyperv.memory = "#{vRAM}"
         hyperv.cpus = "#{vCPU}"
         hyperv.ip_address_timeout = 300 # 5 minutes, default is 2 minutes (120 seconds)
-        override.vm.synced_folder ".", "/vagrant", type: "smb", smb_username: "#{ENV['VAGRANT_SMB_USER']}", smb_password: "#{ENV['VAGRANT_SMB_PASS']}"
+        if ENV['VAGRANT_SMB_USER']
+          override.vm.synced_folder ".", "/vagrant", type: "smb", smb_username: "#{ENV['VAGRANT_SMB_USER']}", smb_password: "#{ENV['VAGRANT_SMB_PASS']}"
+        end
       end
     end
   end
@@ -122,10 +124,6 @@ Vagrant.configure(2) do |config|
       override.vm.provision 'shell', path: './automation/provisioning/setenv.ps1', args: 'interactive yes User'
       override.vm.provision 'shell', path: './automation/provisioning/CDAF_Desktop_Certificate.ps1'
       override.vm.provision 'shell', path: './automation/provisioning/CDAF.ps1'
-      override.vm.provision 'shell', path: './automation/provisioning/CDAF.ps1', args: '-OPT_ARG buildonly'
-      override.vm.provision 'shell', path: './automation/provisioning/CDAF.ps1', args: '-OPT_ARG packageonly'
-      override.vm.provision 'shell', path: './automation/provisioning/CDAF.ps1', args: '-OPT_ARG cionly'
-      override.vm.provision 'shell', path: './automation/provisioning/CDAF.ps1', args: '-OPT_ARG cdonly'
     end
     
     # Microsoft Hyper-V does not support NAT or setting hostname. vagrant up build --provider hyperv
@@ -134,7 +132,9 @@ Vagrant.configure(2) do |config|
       hyperv.memory = "#{vRAM}"
       hyperv.cpus = "#{vCPU}"
       hyperv.ip_address_timeout = 300 # 5 minutes, default is 2 minutes (120 seconds)
-      override.vm.synced_folder ".", "/vagrant", type: "smb", smb_username: "#{ENV['VAGRANT_SMB_USER']}", smb_password: "#{ENV['VAGRANT_SMB_PASS']}"
+      if ENV['VAGRANT_SMB_USER']
+        override.vm.synced_folder ".", "/vagrant", type: "smb", smb_username: "#{ENV['VAGRANT_SMB_USER']}", smb_password: "#{ENV['VAGRANT_SMB_PASS']}"
+      end
     end
   end
 
