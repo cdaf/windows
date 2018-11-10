@@ -38,7 +38,7 @@ write-host "  PSVersion.Major         : $($PSVersionTable.PSVersion.Major)"
 #Remove-Item -Path $tempFile 
 
 if ( Test-Path "C:\windows-master\automation\CDAF.windows" ) {
-	$name = $(cat "C:\windows-master\automation\CDAF.windows" | findstr "productVersion")
+	$nameValue = $(cat "C:\windows-master\automation\CDAF.windows" | findstr "productVersion")
 	$name, $value = $nameValue -split '=', 2
 	write-host "  CDAF Box Version        : $value"
 }
