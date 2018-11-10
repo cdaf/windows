@@ -204,6 +204,28 @@ if ($skipTest -eq 'yes') {
 	Write-Host "`n[$scriptName] skipTest is ${skipTest}, tests not attempted."
 } else {
 
+	if ( Test-Path automation ) {
+		executeExpression "Remove-Item automation"
+	}	
+	if ( Test-Path readme.md ) {
+		executeExpression "Remove-Item readme.md"
+	}	
+	if ( Test-Path readme.md ) {
+		executeExpression "Remove-Item readme.md"
+	}	
+	if ( Test-Path Vagrantfile ) {
+		executeExpression "Remove-Item Vagrantfile"
+	}	
+
+	$zipFile = "WU-CDAF.zip"
+	if ( Test-Path $zipFile ) {
+		executeExpression "Remove-Item $zipFile"
+	}	
+	$url = "http://cdaf.io/static/app/downloads/$zipFile"
+	executeExpression "(New-Object System.Net.WebClient).DownloadFile('$url', '$PWD\$zipFile')"
+	executeExpression "Add-Type -AssemblyName System.IO.Compression.FileSystem"
+	executeExpression "[System.IO.Compression.ZipFile]::ExtractToDirectory('$PWD\$zipfile', '$PWD')"
+	
 	Write-Host "`n[$scriptName] Log vagrant file contents"
 	executeExpression "cat .\Vagrantfile"
 	

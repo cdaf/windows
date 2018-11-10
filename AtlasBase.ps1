@@ -63,6 +63,18 @@ if ($skipUpdates) {
     writeLog "skipUpdates : $skipUpdates (default)"
 }
 
+executeExpression "cd C:\"
+executeExpression "mkdir windows-master"
+executeExpression "cd windows-master"
+$zipFile = "WU-CDAF.zip"
+$url = "http://cdaf.io/static/app/downloads/$zipFile"
+executeExpression "(New-Object System.Net.WebClient).DownloadFile('$url', '$PWD\$zipFile')"
+executeExpression "Add-Type -AssemblyName System.IO.Compression.FileSystem"
+executeExpression "[System.IO.Compression.ZipFile]::ExtractToDirectory('$PWD\$zipfile', '$PWD')"
+executeExpression "rm .\readme.md"
+executeExpression "rm .\Vagrantfile"
+executeExpression "rm .\WU-CDAF.zip"
+
 writeLog "Enable Remote Desktop and Open firewall"
 $obj = executeExpression "Get-WmiObject -Class `"Win32_TerminalServiceSetting`" -Namespace root\cimv2\terminalservices"
 executeExpression "`$obj.SetAllowTsConnections(1,1)"
