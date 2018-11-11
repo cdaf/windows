@@ -69,7 +69,6 @@ Vagrant.configure(2) do |config|
         virtualbox.cpus = "#{vCPU}"
         virtualbox.gui = false
         override.vm.network 'private_network', ip: "172.16.17.10#{i}"
-        override.vm.hostname  = "server-#{i}" # Cannot set to FQDN
         (1..MAX_SERVER_TARGETS).each do |s|
           server.vm.provision 'shell', path: './automation/provisioning/addHOSTS.ps1', args: "172.16.17.10#{s} server-#{s}.sky.net"
         end
