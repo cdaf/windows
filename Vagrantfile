@@ -63,7 +63,7 @@ Vagrant.configure(2) do |config|
       server.vm.provision 'shell', path: './automation/remote/capabilities.ps1'
       server.vm.provision 'shell', path: './automation/provisioning/mkdir.ps1', args: 'C:\deploy'
   
-      # Oracle VirtualBox with private NAT has insecure deployer keys for desktop testing
+      # Oracle VirtualBox with private NAT, not setting hostname due to https://github.com/hashicorp/vagrant/issues/10229
       server.vm.provider 'virtualbox' do |virtualbox, override|
         virtualbox.memory = "#{vRAM}"
         virtualbox.cpus = "#{vCPU}"
