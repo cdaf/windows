@@ -85,9 +85,9 @@ if ($smtpServer) {
 }
 
 if ($emailFrom) {
-    Write-Host "[$scriptName] emailFrom  : $emailFrom"
+    Write-Host "[$scriptName] emailFrom   : $emailFrom"
 } else {
-    Write-Host "[$scriptName] emailFrom  : (not specified, email will not be attempted)"
+    Write-Host "[$scriptName] emailFrom   : (not specified, email will not be attempted)"
 }
 
 if ($skipTest) {
