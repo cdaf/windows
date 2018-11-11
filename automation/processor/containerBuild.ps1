@@ -75,21 +75,26 @@ Write-Host "[$scriptName]   DOCKER_HOST  : $env:DOCKER_HOST"
 Write-Host "[$scriptName]   pwd          : $(Get-Location)"
 Write-Host "[$scriptName]   hostname     : $(hostname)"
 Write-Host "[$scriptName]   whoami       : $(whoami)"
+Write-Host '$dockerStatus = ' -NoNewline 
 
 # Test Docker is running
-Write-Host '$dockerStatus = ' -NoNewline 
-$dockerStatus = executeReturn '(Get-Service Docker).Status'
-$dockerStatus
-if ( $dockerStatus -ne 'Running' ) {
-	Write-Host "[$scriptName] Docker service not running, `$dockerStatus = $dockerStatus"
-	executeExpression 'Start-Service Docker'
-	Write-Host '$dockerStatus = ' -NoNewline 
+If (Get-Service Docker -ErrorAction SilentlyContinue) {
 	$dockerStatus = executeReturn '(Get-Service Docker).Status'
 	$dockerStatus
 	if ( $dockerStatus -ne 'Running' ) {
-		Write-Host "[$scriptName] Unable to start Docker, `$dockerStatus = $dockerStatus"
-		exit 8910
+		Write-Host "[$scriptName] Docker service not running, `$dockerStatus = $dockerStatus"
+		executeExpression 'Start-Service Docker'
+		Write-Host '$dockerStatus = ' -NoNewline 
+		$dockerStatus = executeReturn '(Get-Service Docker).Status'
+		$dockerStatus
+		if ( $dockerStatus -ne 'Running' ) {
+			Write-Host "[$scriptName] Unable to start Docker, `$dockerStatus = $dockerStatus"
+			exit 8910
+		}
 	}
+} else {
+	Write-Host "service not installed, assuming Windows 10, switch to Windows Containers to proceed."
+	exit 8911
 }
 
 Write-Host "[$scriptName] List all current images"
