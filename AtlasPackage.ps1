@@ -185,9 +185,9 @@ if ($hypervisor -eq 'virtualbox') {
 Write-Host "`n[$scriptName] Add the box to the local cache"
 $testDir = 'packageTest'
 if (Test-Path "$testDir ") {
-	executeExpression "Remove-Item $testDir  -Recurse -Force"
+	executeExpression "Remove-Item $testDir -Recurse -Force"
 }
-executeIgnoreExit "vagrant box remove cdaf/$boxName --all" # ignore error if none exist
+executeIgnoreExit "vagrant box remove cdaf/$boxName --all --force" # ignore error if none exist
 
 Write-Host "`n[$scriptName] vagrant box add cdaf/$boxName $packageFile --force"
 Write-Host "$logFile" "[$scriptName] vagrant box add cdaf/$boxName $packageFile --force"
