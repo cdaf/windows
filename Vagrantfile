@@ -84,7 +84,7 @@ Vagrant.configure(2) do |config|
         hyperv.vmname = "windows-target"
         hyperv.memory = "#{vRAM}"
         hyperv.cpus = "#{vCPU}"
-        hyperv.ip_address_timeout = 300 # 5 minutes, default is 2 minutes (120 seconds)
+        hyperv.ip_address_timeout = 480 # 8 minutes, default is 2 minutes (120 seconds)
         if ENV['VAGRANT_SMB_USER']
           override.vm.synced_folder ".", "/vagrant", type: "smb", smb_username: "#{ENV['VAGRANT_SMB_USER']}", smb_password: "#{ENV['VAGRANT_SMB_PASS']}"
         end
@@ -130,7 +130,7 @@ Vagrant.configure(2) do |config|
       hyperv.vmname = "windows-build"
       hyperv.memory = "#{vRAM}"
       hyperv.cpus = "#{vCPU}"
-      hyperv.ip_address_timeout = 300 # 5 minutes, default is 2 minutes (120 seconds)
+      hyperv.ip_address_timeout = 480 # 8 minutes, default is 2 minutes (120 seconds)
       if ENV['VAGRANT_SMB_USER']
         override.vm.synced_folder ".", "/vagrant", type: "smb", smb_username: "#{ENV['VAGRANT_SMB_USER']}", smb_password: "#{ENV['VAGRANT_SMB_PASS']}"
       end
