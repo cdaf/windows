@@ -37,8 +37,13 @@ end
 vRAM = baseRAM * scale
 vCPU = scale
 
-# This is provided to make scaling easier
-MAX_SERVER_TARGETS = 1
+# Adjust for the number of target servers desired (delivery)
+# [Environment]::SetEnvironmentVariable('MAX_SERVER_TARGETS', '3', 'User')
+if ENV['MAX_SERVER_TARGETS']
+  put "Deploy targets (MAX_SERVER_TARGETS) = #{ENV['MAX_SERVER_TARGETS']}" 
+else
+  MAX_SERVER_TARGETS = 1
+end
 
 # If this environment variable is set, then the location defined will be used for media
 # [Environment]::SetEnvironmentVariable('SYNCED_FOLDER', '/opt/.provision', 'Machine')
