@@ -1,7 +1,9 @@
 Param (
 	[string]$enableTCP,
 	[string]$restart,
-	[string]$httpProxy
+	[string]$httpProxy,
+	[string]$version,
+	[string]$provider
 )
 
 cmd /c "exit 0"
@@ -95,6 +97,20 @@ if ($httpProxy) {
 	}
 }
 
+if ($version) {
+    Write-Host "[$scriptName]  version   : $version"
+	$versionParameter = "-RequiredVersion '$version'"
+} else {
+    Write-Host "[$scriptName]  version   : (not set, allow package manager to decide)"
+}
+
+if ($provider) {
+    Write-Host "[$scriptName]  provider  : $provider (DockerMsftProviderInsider or DockerMsftProvider)"
+} else {
+	$provider = 'DockerMsftProvider'
+    Write-Host "[$scriptName]  provider  : $provider (set to default, choices DockerMsftProviderInsider or DockerMsftProvider)"
+}
+
 executeExpression "Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.201 -Verbose -Force $proxyParameter"
 
 # Found these repositories unreliable so included retry logic
@@ -110,10 +126,13 @@ executeRetry "Set-PSRepository -Name PSGallery -InstallationPolicy Trusted"
 
 executeRetry "Find-PackageProvider $proxyParameter *docker* | Format-Table Name, Version, Source"
 
-executeRetry "Install-Module NuGet -Confirm:`$False"
+executeRetry "Install-Module NuGet -Confirm:`$False $proxyParameter"
 
-executeRetry "Install-Module -Name DockerMsftProviderInsider -Repository PSGallery -Confirm:`$False -Verbose -Force"
-executeRetry "Install-Package -Name docker -ProviderName DockerMsftProviderInsider -Confirm:`$False -Verbose -Force"
+executeRetry "Install-Module -Name $provider -Repository PSGallery -Confirm:`$False -Verbose -Force $proxyParameter"
+
+executeRetry "Get-PackageSource | Format-Table Name, ProviderName, IsTrusted"
+
+executeRetry "Install-Package -Name 'Docker' -ProviderName $provider -Confirm:`$False -Verbose -Force $versionParameter"
 
 executeExpression "sc.exe config docker start= delayed-auto"
 
