@@ -110,7 +110,13 @@ if ( $imageTag ) {
 	$imageTag = 0
 	Write-Host "[$scriptName] No existing images, new image will be $($imageTag + 1)"
 }
-executeExpression "cat Dockerfile"
+
+$file = 'Dockerfile'
+if ($env:http_proxy) {
+	Write-Host "`n[$scriptName] `$env:http_proxy is set ($env:http_proxy), apply to Dockerfile if placeholder (http_proxy=) defined"
+	(Get-Content $file) | Foreach-Object { $_ -replace "http_proxy=", "http_proxy=$env:http_proxy" } | Set-Content $file
+}
+executeExpression "cat $file"
 	
 if ( $rebuildImage -eq 'yes') {
 	# Force rebuild, i.e. no-cache
