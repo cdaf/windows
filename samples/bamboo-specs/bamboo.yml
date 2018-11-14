@@ -1,0 +1,18 @@
+---
+project:
+  key: YOUREXISTINGPROJECTKEY
+  plan:
+    key: YOURNEWPLANKEY
+    name: Plan using CDAF Build and Package
+stages:
+  - jobs:
+      - scripts:
+          - "./automation/processor/buildPackage.ps1 ${bamboo.buildNumber} ${bamboo.repository.revision.number}"
+        interpreter: powershell
+        requirements:
+          - container
+        artifacts:
+          - name: Package
+            path: '*.zip'
+          - name: TasksLocal
+            path: 'TasksLocal/**'
