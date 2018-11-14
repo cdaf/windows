@@ -1,7 +1,8 @@
 Param (
 	[string]$uri,
 	[string]$mediaDir,
-	[string]$md5
+	[string]$md5,
+	[string]$ignoreCertificate
 )
 $scriptName = 'GetMedia.ps1'
 
@@ -63,23 +64,30 @@ cmd /c "exit 0"
 
 Write-Host "`n[$scriptName] ---------- start ----------"
 if ($uri) {
-    Write-Host "[$scriptName] uri      : $uri"
+    Write-Host "[$scriptName] uri               : $uri"
 } else {
     Write-Host "[$scriptName] uri not supplied, exiting"
     exit 101
 }
 
 if ($mediaDir) {
-    Write-Host "[$scriptName] mediaDir : $mediaDir"
+    Write-Host "[$scriptName] mediaDir          : $mediaDir"
 } else {
 	$mediaDir = 'C:\.provision'
-    Write-Host "[$scriptName] mediaDir : $mediaDir (default)"
+    Write-Host "[$scriptName] mediaDir          : $mediaDir (default)"
 }
 
 if ($md5) {
-    Write-Host "[$scriptName] md5      : $md5"
+    Write-Host "[$scriptName] md5               : $md5"
 } else {
-    Write-Host "[$scriptName] md5      : (not supplied)"
+    Write-Host "[$scriptName] md5               : (not supplied)"
+}
+
+if ($ignoreCertificate) {
+    Write-Host "[$scriptName] ignoreCertificate : $ignoreCertificate"
+    executeExpression "[System.Net.ServicePointManager]::ServerCertificateValidationCallback = {`$true}"
+} else {
+    Write-Host "[$scriptName] ignoreCertificate : (not supplied)"
 }
 
 # Create media cache if missing
