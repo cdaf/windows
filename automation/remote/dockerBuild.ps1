@@ -76,6 +76,12 @@ Write-Host "`n[$scriptName] As of 1.13.0 new prune commands, if using older vers
 executeSuppress "docker system prune -f"
 
 $buildCommand = 'docker build'
+
+if ($env:http_proxy) {
+	Write-Host "`n[$scriptName] `$env:http_proxy is set ($env:http_proxy), pass as `$proxy to build`n"
+	$buildCommand += " --build-arg proxy=$env:http_proxy"
+}
+
 if ($rebuild -eq 'yes') {
 	$buildCommand += " --no-cache=true"
 }
