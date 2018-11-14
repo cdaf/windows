@@ -1,7 +1,8 @@
 Param (
-  [string]$url,
-  [string]$mediaDir,
-  [string]$runTime
+	[string]$url,
+	[string]$mediaDir,
+	[string]$runTime,
+	[string]$proxy
 )
 $scriptName = 'GetExecutable.ps1'
 
@@ -37,6 +38,13 @@ if ($runTime) {
 } else {
 	$runTime = '$env:windir'
     Write-Host "[$scriptName] runTime  : $runTime (default)"
+}
+
+if ($proxy) {
+    Write-Host "[$scriptName] proxy    : $proxy`n"
+    executeExpression "[system.net.webrequest]::defaultwebproxy = new-object system.net.webproxy('$proxy')"
+} else {
+    Write-Host "[$scriptName] proxy    : (not supplied)"
 }
 
 $file = Split-Path -Path  $url -Leaf

@@ -2,7 +2,8 @@ Param (
 	[string]$uri,
 	[string]$mediaDir,
 	[string]$md5,
-	[string]$ignoreCertificate
+	[string]$ignoreCertificate,
+	[string]$proxy
 )
 $scriptName = 'GetMedia.ps1'
 
@@ -88,6 +89,18 @@ if ($ignoreCertificate) {
     executeExpression "[System.Net.ServicePointManager]::ServerCertificateValidationCallback = {`$true}"
 } else {
     Write-Host "[$scriptName] ignoreCertificate : (not supplied)"
+}
+
+if ($proxy) {
+    Write-Host "[$scriptName] proxy             : $proxy`n"
+    executeExpression "[system.net.webrequest]::defaultwebproxy = new-object system.net.webproxy('$proxy')"
+} else {
+    Write-Host "[$scriptName] proxy             : (not supplied)"
+}
+
+if ($ignoreCertificate) {
+    Write-Host "[$scriptName] Configuration for ignoring certificates"
+    executeExpression "[System.Net.ServicePointManager]::ServerCertificateValidationCallback = {`$true}"
 }
 
 # Create media cache if missing

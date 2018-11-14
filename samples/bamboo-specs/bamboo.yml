@@ -7,8 +7,8 @@ project:
 stages:
   - jobs:
       - scripts:
-          - "./automation/processor/buildPackage.ps1 ${bamboo.buildNumber} ${bamboo.repository.revision.number}"
-        interpreter: powershell
+          - "automation\\provisioning\\runner.bat automation\\processor\\buildPackage.ps1 ${bamboo.buildNumber} ${bamboo.repository.revision.number}"
+        interpreter: cmd.exe
         requirements:
           - container
         artifacts:

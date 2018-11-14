@@ -44,7 +44,7 @@ if ($proxy) {
     executeExpression "`$env:chocolateyProxyLocation = '$proxy'"
     executeExpression "`$env:http_proxy = '$proxy'"
 } else {
-    Write-Host "[$scriptName] proxy      : ( not supplied)"
+    Write-Host "[$scriptName] proxy      : (not supplied)"
 }
 
 $versionTest = cmd /c choco --version 2`>`&1
