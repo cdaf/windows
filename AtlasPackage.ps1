@@ -217,10 +217,17 @@ if ($skipTest -eq 'yes') {
 		executeExpression "Remove-Item Vagrantfile"
 	}	
 
-	$zipFile = "WU-CDAF.zip"
-	if ( Test-Path $zipFile ) {
-		executeExpression "Remove-Item $zipFile"
-	}	
+	if ($string -like 'WindowsServer*') {
+		$zipFile = "WU-CDAF.zip"
+		if ( Test-Path $zipFile ) {
+			executeExpression "Remove-Item $zipFile"
+		}
+	} else {
+		$zipFile = "WL-CDAF.zip"
+		if ( Test-Path $zipFile ) {
+			executeExpression "Remove-Item $zipFile"
+		}
+	}
 	$url = "http://cdaf.io/static/app/downloads/$zipFile"
 	executeExpression "(New-Object System.Net.WebClient).DownloadFile('$url', '$PWD\$zipFile')"
 	executeExpression "Add-Type -AssemblyName System.IO.Compression.FileSystem"
