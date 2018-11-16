@@ -250,13 +250,13 @@ if ($skipTest -eq 'yes') {
 	Write-Host "$logFile" "[$scriptName] vagrant destroy -f"
     $proc = Start-Process -FilePath 'vagrant' -ArgumentList 'destroy -f' -PassThru -Wait -NoNewWindow
     if ( $proc.ExitCode -ne 0 ) {
-	    Write-Host "`n[$scriptName] Exit with `$LASTEXITCODE = $($proc.ExitCode)`n"
-        exit $proc.ExitCode
+	    Write-Host "`n[$scriptName] WARNING Laster `$LASTEXITCODE = $($proc.ExitCode)`n"
+        cmd /c "exit 0"
     }
 
     Write-Host "`n[$scriptName] Clean-up Vagrant Temporary files"
     executeExpression "Remove-Item -Recurse $env:USERPROFILE\.vagrant.d\tmp\*"
-}  
+}
 
 Write-Host "$logFile" "[$scriptName] vagrant box list"
 $proc = Start-Process -FilePath 'vagrant' -ArgumentList 'box list' -PassThru -Wait -NoNewWindow
