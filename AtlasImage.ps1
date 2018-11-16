@@ -63,21 +63,21 @@ if ($hypervisor) {
 }
 
 if ($emailTo) {
-    Write-Host "[$scriptName] emailTo    : $emailTo"
+    emailTo    : $emailTo"
 } else {
-    Write-Host "[$scriptName] emailTo    : (not specified, email will not be attempted)"
+    emailTo    : (not specified, email will not be attempted)"
 }
 
 if ($smtpServer) {
-    Write-Host "[$scriptName] smtpServer : $smtpServer"
+    smtpServer : $smtpServer"
 } else {
-    Write-Host "[$scriptName] smtpServer : (not specified, email will not be attempted)"
+    smtpServer : (not specified, email will not be attempted)"
 }
 
 if ($emailFrom) {
-    Write-Host "[$scriptName] emailFrom  : $emailFrom"
+    emailFrom  : $emailFrom"
 } else {
-    Write-Host "[$scriptName] emailFrom  : (not specified, email will not be attempted)"
+    emailFrom  : (not specified, email will not be attempted)"
 }
 
 if ($sysprep) {
