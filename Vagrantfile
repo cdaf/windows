@@ -40,7 +40,8 @@ vCPU = scale
 # Adjust for the number of target servers desired (delivery)
 # [Environment]::SetEnvironmentVariable('MAX_SERVER_TARGETS', '3', 'User')
 if ENV['MAX_SERVER_TARGETS']
-  put "Deploy targets (MAX_SERVER_TARGETS) = #{ENV['MAX_SERVER_TARGETS']}" 
+  puts "Deploy targets (MAX_SERVER_TARGETS) = #{ENV['MAX_SERVER_TARGETS']}" 
+  MAX_SERVER_TARGETS = ENV['MAX_SERVER_TARGETS'].to_i
 else
   MAX_SERVER_TARGETS = 1
 end
