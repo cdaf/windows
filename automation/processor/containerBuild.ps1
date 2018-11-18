@@ -38,7 +38,6 @@ cmd /c "exit 0"
 Write-Host "`n[$scriptName] ---------- start ----------`n"
 if ( $imageName ) {
 	Write-Host "[$scriptName]   imageName    : ${imageName} (passed)"
-	$imageName = "${imageName}_container_build"
 	Write-Host "[$scriptName]   imageName    : ${imageName} (to be used in docker)"
 } else {
 	Write-Host "[$scriptName]   imageName not supplied, exit with code 99"; exit 99
@@ -53,7 +52,7 @@ if ( $buildNumber ) {
 if ( $revision ) { 
 	Write-Host "[$scriptName]   revision     : $revision"
 } else {
-	$revision = 'revision'
+	$revision = 'container_build'
 	Write-Host "[$scriptName]   revision     : $revision (not supplied, set to default)"
 }
 
@@ -71,6 +70,8 @@ if ( $rebuildImage ) {
 	Write-Host "[$scriptName]   rebuildImage : $rebuildImage (not supplied, so set to default)"
 }
 
+$imageName = "${imageName}_$($revision.ToLower())"
+Write-Host "[$scriptName]   imageName    : $imageName"
 Write-Host "[$scriptName]   DOCKER_HOST  : $env:DOCKER_HOST"
 Write-Host "[$scriptName]   pwd          : $(Get-Location)"
 Write-Host "[$scriptName]   hostname     : $(hostname)"
