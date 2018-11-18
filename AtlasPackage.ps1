@@ -132,6 +132,8 @@ if ($hypervisor -eq 'virtualbox') {
 	} else {
 		executeExpression "(New-Object System.Net.WebClient).DownloadFile(`'https://raw.githubusercontent.com/cdaf/windows/master/samples/vagrant-box/Vagrantfile`', `"$PWD\Vagrantfile`")"
 	}
+	Write-Host "`n[$scriptName] List the contents of the package Vagrantfile"
+	executeExpression "cat Vagrantfile"
 	executeExpression "vagrant package --base $boxName --output $packageFile --vagrantfile Vagrantfile"
 
 } else {
@@ -179,7 +181,6 @@ if ($hypervisor -eq 'virtualbox') {
 	Write-Host "`n[$scriptName] Remove VM export files"
 	executeExpression "cd.."
 	executeExpression "Remove-Item $boxname -Force -Recurse"
-
 }
 
 Write-Host "`n[$scriptName] Add the box to the local cache"
