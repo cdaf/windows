@@ -21,11 +21,11 @@ if ($opt_arg) {
 }
 
 if ($opt_arg) {
-	Write-Host "`n[$scriptName] `$proc = Start-Process -FilePath `"$exeFile`" -ArgumentList `"$opt_arg`" -PassThru -Wait"
-	$proc = Start-Process -FilePath "$exeFile" -ArgumentList "$opt_arg" -PassThru -Wait
+	Write-Host "`n[$scriptName] `$proc = Start-Process -FilePath `"$exeFile`" -ArgumentList `"$opt_arg`" -PassThru -Wait -NoNewWindow"
+	$proc = Start-Process -FilePath "$exeFile" -ArgumentList "$opt_arg" -PassThru -Wait -NoNewWindow
 } else {
-	Write-Host "`n[$scriptName] `$proc = Start-Process -FilePath `"$exeFile`" -PassThru -Wait"
-	$proc = Start-Process -FilePath "$exeFile" -PassThru -Wait
+	Write-Host "`n[$scriptName] `$proc = Start-Process -FilePath `"$exeFile`" -PassThru -Wait -NoNewWindow"
+	$proc = Start-Process -FilePath "$exeFile" -PassThru -Wait -NoNewWindow
 }
 if ( $proc.ExitCode -ne 0 ) {
 	Write-Host "`n[$scriptName] Exit with `$LASTEXITCODE = $($proc.ExitCode)`n"
