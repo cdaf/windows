@@ -62,8 +62,6 @@ Vagrant.configure(2) do |config|
       server.vm.boot_timeout = 600  # 10 minutes
       server.winrm.timeout =   1800 # 30 minutes
       server.winrm.retry_limit = 10
-      server.winrm.username = "vagrant" # Making defaults explicit
-      server.winrm.password = "vagrant" # Making defaults explicit
       server.vm.graceful_halt_timeout = 180 # 3 minutes
 
       server.vm.provision 'shell', path: './automation/remote/capabilities.ps1'
@@ -105,8 +103,6 @@ Vagrant.configure(2) do |config|
     build.vm.boot_timeout = 600  # 10 minutes
     build.winrm.timeout =   1800 # 30 minutes
     build.winrm.retry_limit = 10
-    build.winrm.username = "vagrant" # Making defaults explicit
-    build.winrm.password = "vagrant" # Making defaults explicit
     build.vm.graceful_halt_timeout = 180 # 3 minutes
     build.vm.provision 'shell', path: './automation/remote/capabilities.ps1'
     
