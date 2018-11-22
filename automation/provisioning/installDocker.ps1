@@ -6,6 +6,7 @@ Param (
 	[string]$provider
 )
 
+$scriptName = 'installDocker.ps1'
 cmd /c "exit 0"
 
 # Use executeReinstall to support reinstalling, use executeExpression to trap all errors ($LASTEXITCODE is global)
@@ -68,8 +69,6 @@ function executeRetry ($expression) {
 }
 
 # Only from Windows Server 2016 and above
-$scriptName = 'installDocker.ps1'
-Write-Host "`n[$scriptName] Requires KB3176936"
 Write-Host "`n[$scriptName] ---------- start ----------"
 if ($enableTCP) {
     Write-Host "[$scriptName]  enableTCP : $enableTCP"
