@@ -65,6 +65,7 @@ while (( $retryCount -le $retryMax ) -and ($exitCode -ne 0)) {
 	    } else {
 			Write-Host "[$scriptName]   no output ..."
 	    }
+    } else {
 		Write-Host "[$scriptName]   no output (log file does not exist) ..."
     }
 		
