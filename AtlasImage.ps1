@@ -63,21 +63,21 @@ if ($hypervisor) {
 }
 
 if ($emailTo) {
-    emailTo    : $emailTo"
+    Write-Host "emailTo    : $emailTo"
 } else {
-    emailTo    : (not specified, email will not be attempted)"
+    Write-Host "emailTo    : (not specified, email will not be attempted)"
 }
 
 if ($smtpServer) {
-    smtpServer : $smtpServer"
+    Write-Host "smtpServer : $smtpServer"
 } else {
-    smtpServer : (not specified, email will not be attempted)"
+    Write-Host "smtpServer : (not specified, email will not be attempted)"
 }
 
 if ($emailFrom) {
-    emailFrom  : $emailFrom"
+    Write-Host "emailFrom  : $emailFrom"
 } else {
-    emailFrom  : (not specified, email will not be attempted)"
+    Write-Host "emailFrom  : (not specified, email will not be attempted)"
 }
 
 if ($sysprep) {
@@ -119,6 +119,7 @@ writeLog "Deployment Image Servicing and Management (DISM.exe) clean-up"
 executeIgnoreExit "Dism.exe /online /Cleanup-Image /StartComponentCleanup /ResetBase /Quiet"
 
 writeLog "Windows Server Update service (WSUS) Clean-up"
+executeExpression "Set-Service wuauserv -StartupType Manual"
 executeExpression "Stop-Service wuauserv"
 if ( Test-Path $env:systemroot\SoftwareDistribution ) {
     executeExpression "Remove-Item  $env:systemroot\SoftwareDistribution -Recurse -Force"
