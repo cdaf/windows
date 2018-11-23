@@ -224,7 +224,7 @@ if ($skipTest -eq 'yes') {
 			executeExpression "Remove-Item $zipFile"
 		}
 	} else {
-		$zipFile = "LU-CDAF.zip"
+		$zipFile = "WU-CDAF.zip"
 		if ( Test-Path $zipFile ) {
 			executeExpression "Remove-Item $zipFile"
 		}
