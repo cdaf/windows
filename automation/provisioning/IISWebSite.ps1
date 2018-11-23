@@ -1,9 +1,9 @@
 Param (
-  [string]$webSite,
-  [string]$bindingProtocol,
-  [string]$bindingInformation,
-  [string]$applicationPool,
-  [string]$physicalPath
+  [string]$webSite,
+  [string]$bindingProtocol,
+  [string]$bindingInformation,
+  [string]$applicationPool,
+  [string]$physicalPath
 )
 $scriptName = 'IISWebSite.ps1'
 

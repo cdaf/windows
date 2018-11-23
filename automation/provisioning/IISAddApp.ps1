@@ -1,9 +1,9 @@
 Param (
-  [string]$app,
-  [string]$physicalPath,
-  [string]$site,
-  [string]$appPool,
-  [string]$clrVersion
+  [string]$app,
+  [string]$physicalPath,
+  [string]$site,
+  [string]$appPool,
+  [string]$clrVersion
 )
 $scriptName = 'IISAddApp.ps1'
 

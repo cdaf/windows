@@ -1,6 +1,6 @@
 Param (
-  [string]$serviceName,
-  [string]$binpath,
+  [string]$serviceName,
+  [string]$binpath,
   [string]$start,
   [string]$windowsServiceLocalAdmin,
   [string]$windowsServiceLocalAdminPassword

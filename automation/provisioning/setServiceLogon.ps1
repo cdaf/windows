@@ -1,5 +1,5 @@
 Param (
-  [string]$userName
+  [string]$userName
 )
 $scriptName = 'setServiceLogon.ps1'
 

@@ -1,8 +1,8 @@
 Param (
-  [string]$forest,
-  [string]$newComputerName,
-  [string]$domainAdminUser,
-  [string]$domainAdminPass
+  [string]$forest,
+  [string]$newComputerName,
+  [string]$domainAdminUser,
+  [string]$domainAdminPass
 )
 $scriptName = 'newComputer.ps1'
 

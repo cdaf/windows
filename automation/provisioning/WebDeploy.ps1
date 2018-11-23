@@ -1,8 +1,8 @@
 Param (
-  [string]$Installtype,
-  [string]$MsDepSvcPort,
-  [string]$version,
-  [string]$mediaDir
+  [string]$Installtype,
+  [string]$MsDepSvcPort,
+  [string]$version,
+  [string]$mediaDir
 )
 $scriptName = 'WebDeploy.ps1'
 $versionChoices = '2, 3.5 or 3.6' 

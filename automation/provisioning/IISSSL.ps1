@@ -1,7 +1,7 @@
 Param (
-  [string]$thumbPrint,
-  [string]$ip,
-  [string]$port
+  [string]$thumbPrint,
+  [string]$ip,
+  [string]$port
 )
 $scriptName = 'IISSSL.ps1'
 

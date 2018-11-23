@@ -1,7 +1,7 @@
 Param (
-  [string]$encryptedFile,
-  [string]$thumbprint,
-  [string]$location
+  [string]$encryptedFile,
+  [string]$thumbprint,
+  [string]$location
 )
 $scriptName = $MyInvocation.MyCommand.Name
 

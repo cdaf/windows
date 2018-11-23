@@ -1,5 +1,5 @@
 Param (
-  [string]$location
+  [string]$location
 )
 Write-Host "`n[CDAF_Desktop_Certificate.ps1] ---------- start ----------"
 Write-Host "`n[CDAF_Desktop_Certificate.ps1] Requires elevated privilages"

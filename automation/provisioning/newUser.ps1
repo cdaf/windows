@@ -1,8 +1,8 @@
 Param (
-  [string]$userName,
-  [string]$password,
-  [string]$TrustedForDelegation,
-  [string]$passwordExpires
+  [string]$userName,
+  [string]$password,
+  [string]$TrustedForDelegation,
+  [string]$passwordExpires
 )
 
 cmd /c "exit 0"

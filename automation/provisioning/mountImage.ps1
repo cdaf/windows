@@ -1,6 +1,6 @@
 Param (
-  [string]$imagePath,
-  [string]$sourcePath
+  [string]$imagePath,
+  [string]$sourcePath
 )
 $scriptName = 'mountImage.ps1'
 

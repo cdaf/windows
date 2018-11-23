@@ -148,7 +148,7 @@ if ( Test-Path $media ) {
 # Not using powershell commandlets for provisioning as they do not support /LimitAccess
 Write-Host "`n[$scriptName] Install Active Directory Domain Roles and Services using Deployment Image Servicing and Management (DISM)"
 Write-Host "`n[$scriptName]   Remote Server Administration Tools (RSAT)`n"
-$featureList = @('ServerManager-Core-RSAT', 'ServerManager-Core-RSAT-Role-Tools', 'RSAT-AD-Tools-Feature')
+$featureList = @('ServerManager-Core-RSAT', 'ServerManager-Core-RSAT-Role-Tools', 'RSAT-AD-Tools-Feature')
 foreach ($feature in $featureList) {
 	executeSuppress "dism /online /NoRestart /enable-feature /featurename:$feature $sourceOption"
 	if ( $lastExitCode -ne 0 ) {

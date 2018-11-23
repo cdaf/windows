@@ -1,6 +1,6 @@
 Param (
-  [string]$imageName,
-  [string]$environment
+  [string]$imageName,
+  [string]$environment
 )
 
 cmd /c "exit 0"

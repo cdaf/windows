@@ -1,9 +1,9 @@
 Param (
-  [string]$feedName,
-  [string]$uri,
-  [string]$feedPass,
-  [string]$feedUser,
-  [string]$nugetPath
+  [string]$feedName,
+  [string]$uri,
+  [string]$feedPass,
+  [string]$feedUser,
+  [string]$nugetPath
 )
 $scriptName = 'addVSTSPackageCred.ps1'
 
