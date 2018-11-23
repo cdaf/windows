@@ -218,13 +218,13 @@ if ($skipTest -eq 'yes') {
 		executeExpression "Remove-Item Vagrantfile"
 	}	
 
-	if ($string -like 'WindowsServer*') {
+	if ($boxname -like 'WindowsServer*') {
 		$zipFile = "WU-CDAF.zip"
 		if ( Test-Path $zipFile ) {
 			executeExpression "Remove-Item $zipFile"
 		}
 	} else {
-		$zipFile = "WU-CDAF.zip"
+		$zipFile = "LU-CDAF.zip"
 		if ( Test-Path $zipFile ) {
 			executeExpression "Remove-Item $zipFile"
 		}
