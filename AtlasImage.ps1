@@ -95,7 +95,7 @@ if ($stripDISM) {
 }
 	
 if ( $hypervisor -eq 'virtualbox' ) {
-	$vbadd = '5.2.16'
+	$vbadd = '5.2.22'
 	executeExpression ".\automation\provisioning\mountImage.ps1 $env:userprofile\VBoxGuestAdditions_${vbadd}.iso http://download.virtualbox.org/virtualbox/${vbadd}/VBoxGuestAdditions_${vbadd}.iso"
 	$result = executeExpression "[Environment]::GetEnvironmentVariable(`'MOUNT_DRIVE_LETTER`', `'User`')"
 	emailProgress "Guest Additiions requires manual intervention ..."
