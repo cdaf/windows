@@ -1,9 +1,12 @@
 Param (
-  [string]$userName,
-  [string]$password,
-  [string]$TrustedForDelegation,
-  [string]$passwordExpires
+  [string]$userName,
+  [string]$password,
+  [string]$TrustedForDelegation,
+  [string]$passwordExpires
 )
+
+cmd /c "exit 0"
+$scriptName = 'newUser.ps1'
 
 # Common expression logging and error handling function, copied, not referenced to ensure atomic process
 function executeExpression ($expression) {
@@ -60,8 +63,8 @@ function executeRetry ($expression) {
     }
 }
 
-$scriptName = 'newUser.ps1'
 Write-Host "`n[$scriptName] New User on Domain or Workgroup, Windows Server 2012 and above"
+Write-Host "`n[$scriptName] If creating a local account, on a domain registered machine, prefix username with .\"
 Write-Host "`n[$scriptName] ---------- start ----------"
 if ($userName) {
     Write-Host "[$scriptName] userName             : $userName"
@@ -101,7 +104,10 @@ if ( $userName.StartsWith('.\')) {
 			Write-Host "`n[$scriptName] Password expiry setting only applicable to local accounts`n"
 		}
 	
-		executeRetry  "Import-Module ActiveDirectory"
+		if ( (Get-WindowsFeature RSAT-AD-PowerShell).installstate -eq 'Available' ) {
+			executeRetry "Add-WindowsFeature RSAT-AD-PowerShell"
+		}
+		executeRetry "Import-Module ActiveDirectory"
 	
 		Write-Host "`n[$scriptName] Add the new user, enabled with password`n"
 		executeRetry  "New-ADUser -Name $userName -AccountPassword (ConvertTo-SecureString -AsPlainText `$password -Force)"

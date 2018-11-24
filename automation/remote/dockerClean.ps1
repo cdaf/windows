@@ -1,6 +1,6 @@
 Param (
-  [string]$imageName,
-  [string]$tag
+  [string]$imageName,
+  [string]$tag
 )
 
 cmd /c "exit 0"

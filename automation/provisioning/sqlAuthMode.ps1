@@ -1,6 +1,6 @@
 Param (
-  [string]$mode,
-  [string]$instance
+  [string]$mode,
+  [string]$instance
 )
 $scriptName = 'sqlAuthMode.ps1'
 
@@ -36,7 +36,7 @@ if ($instance) {
 executeExpression '[reflection.assembly]::LoadWithPartialName("Microsoft.SqlServer.Smo")'
 $srv = executeExpression 'new-Object Microsoft.SqlServer.Management.Smo.Server(".")'
 executeExpression '$srv.Databases | Select name' # Establish connection
-   
+   
 # Change the mode and restart the instance
 executeExpression "`$srv.Settings.LoginMode = [Microsoft.SqlServer.Management.SMO.ServerLoginMode]::$mode"
 executeExpression '$srv.Alter()'

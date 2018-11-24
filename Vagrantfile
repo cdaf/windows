@@ -58,13 +58,6 @@ Vagrant.configure(2) do |config|
   (1..MAX_SERVER_TARGETS).each do |i|
     config.vm.define "server-#{i}" do |server|
       server.vm.box = "#{vagrantBox}"
-      server.vm.communicator = 'winrm'
-      server.vm.boot_timeout = 600  # 10 minutes
-      server.winrm.timeout =   1800 # 30 minutes
-      server.winrm.retry_limit = 10
-      server.winrm.username = "vagrant" # Making defaults explicit
-      server.winrm.password = "vagrant" # Making defaults explicit
-      server.vm.graceful_halt_timeout = 180 # 3 minutes
 
       server.vm.provision 'shell', path: './automation/remote/capabilities.ps1'
       server.vm.provision 'shell', path: './automation/provisioning/mkdir.ps1', args: 'C:\deploy'
@@ -73,7 +66,6 @@ Vagrant.configure(2) do |config|
       server.vm.provider 'virtualbox' do |virtualbox, override|
         virtualbox.memory = "#{vRAM}"
         virtualbox.cpus = "#{vCPU}"
-        virtualbox.gui = false
         override.vm.network 'private_network', ip: "172.16.17.10#{i}"
         (1..MAX_SERVER_TARGETS).each do |s|
           server.vm.provision 'shell', path: './automation/provisioning/addHOSTS.ps1', args: "172.16.17.10#{s} server-#{s}.sky.net"
@@ -101,13 +93,6 @@ Vagrant.configure(2) do |config|
   # Build Server, fills the role of the build agent and delivers to the host above
   config.vm.define 'build' do |build|
     build.vm.box = "#{vagrantBox}"
-    build.vm.communicator = 'winrm'
-    build.vm.boot_timeout = 600  # 10 minutes
-    build.winrm.timeout =   1800 # 30 minutes
-    build.winrm.retry_limit = 10
-    build.winrm.username = "vagrant" # Making defaults explicit
-    build.winrm.password = "vagrant" # Making defaults explicit
-    build.vm.graceful_halt_timeout = 180 # 3 minutes
     build.vm.provision 'shell', path: './automation/remote/capabilities.ps1'
     
     # Oracle VirtualBox with private NAT has insecure deployer keys for desktop testing
@@ -115,7 +100,6 @@ Vagrant.configure(2) do |config|
       virtualbox.name = 'windows-build'
       virtualbox.memory = "#{vRAM}"
       virtualbox.cpus = "#{vCPU}"
-      virtualbox.gui = false
       override.vm.network 'private_network', ip: '172.16.17.100'
       if synchedFolder
         override.vm.synced_folder "#{synchedFolder}", "/.provision" # equates to C:\.provision

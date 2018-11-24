@@ -63,21 +63,21 @@ if ($hypervisor) {
 }
 
 if ($emailTo) {
-    emailTo    : $emailTo"
+    Write-Host "[$scriptName] emailTo    : $emailTo"
 } else {
-    emailTo    : (not specified, email will not be attempted)"
+    Write-Host "[$scriptName] emailTo    : (not specified, email will not be attempted)"
 }
 
 if ($smtpServer) {
-    smtpServer : $smtpServer"
+    Write-Host "[$scriptName] smtpServer : $smtpServer"
 } else {
-    smtpServer : (not specified, email will not be attempted)"
+    Write-Host "[$scriptName] smtpServer : (not specified, email will not be attempted)"
 }
 
 if ($emailFrom) {
-    emailFrom  : $emailFrom"
+    Write-Host "[$scriptName] emailFrom  : $emailFrom"
 } else {
-    emailFrom  : (not specified, email will not be attempted)"
+    Write-Host "[$scriptName] emailFrom  : (not specified, email will not be attempted)"
 }
 
 if ($sysprep) {
@@ -95,7 +95,7 @@ if ($stripDISM) {
 }
 	
 if ( $hypervisor -eq 'virtualbox' ) {
-	$vbadd = '5.2.16'
+	$vbadd = '5.2.22'
 	executeExpression ".\automation\provisioning\mountImage.ps1 $env:userprofile\VBoxGuestAdditions_${vbadd}.iso http://download.virtualbox.org/virtualbox/${vbadd}/VBoxGuestAdditions_${vbadd}.iso"
 	$result = executeExpression "[Environment]::GetEnvironmentVariable(`'MOUNT_DRIVE_LETTER`', `'User`')"
 	emailProgress "Guest Additiions requires manual intervention ..."
@@ -119,6 +119,7 @@ writeLog "Deployment Image Servicing and Management (DISM.exe) clean-up"
 executeIgnoreExit "Dism.exe /online /Cleanup-Image /StartComponentCleanup /ResetBase /Quiet"
 
 writeLog "Windows Server Update service (WSUS) Clean-up"
+executeExpression "Set-Service wuauserv -StartupType Manual"
 executeExpression "Stop-Service wuauserv"
 if ( Test-Path $env:systemroot\SoftwareDistribution ) {
     executeExpression "Remove-Item  $env:systemroot\SoftwareDistribution -Recurse -Force"

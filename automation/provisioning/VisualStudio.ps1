@@ -1,7 +1,7 @@
 Param (
-  [string]$version,
-  [string]$media,
-  [string]$parameters
+  [string]$version,
+  [string]$media,
+  [string]$parameters
 )
 $scriptName = 'VisualStudio.ps1'
 
@@ -59,7 +59,7 @@ switch ($version) {
         
         # ASP.NET with Web Deploy, US English only (1.67GB download)
         # .\vs_Enterprise.exe --layout .\vs2017layout --add Microsoft.VisualStudio.Workload.NetWeb --add Microsoft.VisualStudio.Component.WebDeploy --lang en-US
-  
+  
         # Unattended Install
         $currentDir = $(pwd)
         executeExpression "cd $media"
@@ -76,7 +76,7 @@ switch ($version) {
         }
 		executeExpression "cd $currentDir "
     }
-  
+  
 
 	'2010' {
 		$initFile = [Environment]::GetEnvironmentVariable('TEMP', 'user') + '\VisualStudioPremium.ini'

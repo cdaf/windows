@@ -1,6 +1,6 @@
 Param (
-  [string]$portNumber,
-  [string]$displayName
+  [string]$portNumber,
+  [string]$displayName
 )
 $scriptName = 'openFirewallPort.ps1'
 

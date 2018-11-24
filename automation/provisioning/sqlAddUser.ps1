@@ -1,8 +1,8 @@
 Param (
-  [string]$dbUser,
-  [string]$dbhost,
-  [string]$loginType,
-  [string]$sqlPassword
+  [string]$dbUser,
+  [string]$dbhost,
+  [string]$loginType,
+  [string]$sqlPassword
 )
 $scriptName = 'sqlAddUser.ps1'
 

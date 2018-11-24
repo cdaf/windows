@@ -1,10 +1,10 @@
 Param (
-  [string]$version,
-  [string]$media,
-  [string]$wimIndex,
-  [string]$mediaDir,
-  [string]$sdk,
-  [string]$reboot
+  [string]$version,
+  [string]$media,
+  [string]$wimIndex,
+  [string]$mediaDir,
+  [string]$sdk,
+  [string]$reboot
 )
 $scriptName = 'dotNET.ps1' # (no arguments)             | install latest .NET runtime
                            # 4.5.1 install.wim 2        | install 4.5.1 from Windows Image file, found on install media

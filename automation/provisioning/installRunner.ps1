@@ -1,13 +1,13 @@
 Param (
-  [string]$url,
-  [string]$token,
-  [string]$name,
-  [string]$tags,
-  [string]$executor,
-  [string]$serviceAccount,
-  [string]$saPassword,
-  [string]$tlsCAFile,
-  [string]$mediaDirectory
+  [string]$url,
+  [string]$token,
+  [string]$name,
+  [string]$tags,
+  [string]$executor,
+  [string]$serviceAccount,
+  [string]$saPassword,
+  [string]$tlsCAFile,
+  [string]$mediaDirectory
 )
 $scriptName = 'installRunner.ps1'
 

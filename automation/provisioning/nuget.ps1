@@ -1,8 +1,8 @@
 Param (
-  [string]$packageName,
-  [string]$targetDirectory,
-  [string]$subDirectory,
-  [string]$version
+  [string]$packageName,
+  [string]$targetDirectory,
+  [string]$subDirectory,
+  [string]$version
 )
 $scriptName = 'nuget.ps1'
 

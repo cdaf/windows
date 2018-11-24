@@ -1,8 +1,8 @@
 Param (
-  [string]$outFile,
-  [string]$thumbprint,
-  [string]$value,
-  [string]$location
+  [string]$outFile,
+  [string]$thumbprint,
+  [string]$value,
+  [string]$location
 )
 
 $scriptName = 'crypt.ps1'
