@@ -79,8 +79,8 @@ Write-Host "[$scriptName]   whoami       : $(whoami)"
 Write-Host '$dockerStatus = ' -NoNewline 
 
 # Test Docker is running
-If (Get-Service Docker -ErrorAction SilentlyContinue) {
-	$dockerStatus = executeReturn '(Get-Service Docker).Status'
+If (Get-Service *Docker* -ErrorAction SilentlyContinue) {
+	$dockerStatus = executeReturn '(Get-Service *Docker*).Status'
 	$dockerStatus
 	if ( $dockerStatus -ne 'Running' ) {
 		Write-Host "[$scriptName] Docker service not running, `$dockerStatus = $dockerStatus"
