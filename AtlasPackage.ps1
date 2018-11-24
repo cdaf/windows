@@ -10,20 +10,23 @@ Param (
 $scriptName = 'AtlasPackage.ps1'
 cmd /c "exit 0"
 
-# Use executeIgnoreExit to only trap exceptions, use executeExpression to trap all errors ($LASTEXITCODE is global)
+# Use executeIgnoreExit to only trap powershell errors, use executeExpression to trap all errors, including $LASTEXITCODE
 function execute ($expression) {
 	$error.clear()
 	Write-Host "[$(date)] $expression"
 	try {
 		Invoke-Expression $expression
-	    if(!$?) { Write-Host "`$? = $?"; exit 1 }
-	} catch { echo $_.Exception|format-list -force; exit 2 }
-    if ( $error[0] ) { Write-Host "`$error[0] = $error"; exit 3 }
+	    if(!$?) { Write-Host "`$? = $?"; emailAndExit 1050 }
+	} catch { echo $_.Exception|format-list -force; emailAndExit 1051 }
+    if ( $error[0] ) { Write-Host "`$error[0] = $error"; emailAndExit 1052 }
 }
 
 function executeExpression ($expression) {
 	execute $expression
-    if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) { Write-Host "[$scriptName] ERROR! Exiting with `$LASTEXITCODE = $LASTEXITCODE" -foregroundcolor "red"; exit $LASTEXITCODE }
+    if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) {
+    	Write-Host "[$scriptName] ERROR! Exiting with `$LASTEXITCODE = $LASTEXITCODE" -foregroundcolor "red";
+    	emailAndExit $LASTEXITCODE
+	}
 }
 
 function executeIgnoreExit ($expression) {
