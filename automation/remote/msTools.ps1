@@ -7,18 +7,22 @@ $scriptName = 'msTools.ps1'
 
 Write-Host "`n[$scriptName] --- start ---`n"
 
-foreach ( $version in Get-ChildItem 'C:\Program Files (x86)\Microsoft Visual Studio\20*\*' ) {
-	if ( Test-Path "${version}\Common7\IDE\MSTest.exe" ) {
-		$env:MS_TEST = "${version}\Common7\IDE\MSTest.exe"
+# Search for Visual Studio install fist
+if ( Test-Path 'C:\Program Files (x86)\Microsoft Visual Studio' ) {
+	foreach ( $version in Get-ChildItem 'C:\Program Files (x86)\Microsoft Visual Studio\20*\*' ) {
+		if ( Test-Path "${version}\Common7\IDE\MSTest.exe" ) {
+			$env:MS_TEST = "${version}\Common7\IDE\MSTest.exe"
+		}
+	}
+	
+	foreach ( $version in Get-ChildItem 'C:\Program Files (x86)\Microsoft Visual Studio\20*\*\MSBuild\*\bin' ) {
+		if ( Test-Path "${version}\MSBuild.exe" ) {
+			$env:MS_BUILD = "${version}\MSBuild.exe"
+		}
 	}
 }
 
-foreach ( $version in Get-ChildItem 'C:\Program Files (x86)\Microsoft Visual Studio\20*\*\MSBuild\*\bin' ) {
-	if ( Test-Path "${version}\MSBuild.exe" ) {
-		$env:MS_BUILD = "${version}\MSBuild.exe"
-	}
-}
-
+# Then search OS install
 if (!( $env:MS_BUILD )) {
 	$registryKey = 'HKLM:\SOFTWARE\Microsoft\MSBuild\ToolsVersions\'
 	Get-ChildItem $registryKey
@@ -42,13 +46,14 @@ if ( $env:MS_BUILD ) {
 	exit 4700
 }
 
+# Visual Studio 2015 has a different path to latest
 if (! ($env:MS_TEST) ) {
-	# Try to retrieve MSTest path from Visual Studio 2015
 	if ( Test-Path 'C:\Program Files (x86)\Microsoft Visual Studio 14.0\Common7\IDE\MSTest.exe' ) {
 		$env:MS_TEST = 'C:\Program Files (x86)\Microsoft Visual Studio 14.0\Common7\IDE\MSTest.exe'
 	}
 }
 
+# Finally search for VSTS agent install
 if (! ($env:MS_TEST) ) {
 	$reg = 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Installer\UserData\S-1-5-18\Components\196D6C5077EC79D56863FE52B7080EF6'
 	if ( Test-Path $reg ) {
