@@ -25,7 +25,6 @@ if ( Test-Path 'C:\Program Files (x86)\Microsoft Visual Studio' ) {
 # Then search OS install
 if (!( $env:MS_BUILD )) {
 	$registryKey = 'HKLM:\SOFTWARE\Microsoft\MSBuild\ToolsVersions\'
-	Get-ChildItem $registryKey
 	foreach ($version in Get-ChildItem $registryKey) { 
 		$integer = [int][io.path]::GetFileNameWithoutExtension($version)
 		if ( $previous ) {

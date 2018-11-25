@@ -38,37 +38,48 @@ if ($imageName) {
     Write-Host "[$scriptName] imageName not supplied, exit with `$LASTEXITCODE = 1"; exit 1
 }
 
-if ($tag) {
-    Write-Host "[$scriptName] tag         : $tag"
-} else {
-	$tag = 'latest'
-    Write-Host "[$scriptName] tag         : $tag (default)"
-}
-
 if ($environment) {
-    Write-Host "[$scriptName] environment : $environment (not passed, set to same value as tag)"
+    Write-Host "[$scriptName] environment : $environment (not passed, remove all)"
 } else {
-	$environment = $tag
     Write-Host "[$scriptName] environment : $environment"
 }
 
-echo "[$scriptName] List running containers (before)"
-executeExpression "docker ps"
+echo "[$scriptName] List all (running and stopped) containers (before)"
+executeExpression "docker ps --all"
 
-echo "[$scriptName] If tag is passed, attempt to stopo and remove single container based on tag, ignore if it does not exist"
-if ($tag) {
-	executeSuppress "docker ps"
-	executeSuppress "docker ps"
+Write-Host "`n[$scriptName] As of 1.13.0 new prune commands, if using older version, suppress error"
+executeSuppress "docker system prune -f"
+
+Write-Host "`n[$scriptName] List stopped containers"
+executeExpression "docker ps --filter `"status=exited`" -a"
+
+$stoppedIDs = docker ps --filter "status=exited" -aq
+if ($stoppedIDs) {
+	Write-Host "`n[$scriptName] Remove stopped containers"
+	executeSuppress "docker rm $stoppedIDs"
 }
 
-Write-Host "`n[$scriptName] Stop and remove containers based on label (cdaf.${imageName}.container.environment=${environment})"
-foreach ($container in docker ps --all --filter "label=cdaf.${imageName}.container.environment=${environment}" -q) {
-	executeExpression "docker stop $container"
-	executeExpression "docker rm $container"
+Write-Host "`n[$scriptName] Remove untagged orphaned (dangling) images"
+foreach ($imageID in docker images -aq -f dangling=true) {
+	executeSuppress "docker rmi -f $imageID"
 }
 
-Write-Host "`n[$scriptName] List running containers (after)"
-executeExpression "docker ps"
+if ($environment) {
+	Write-Host "`n[$scriptName] Stop and remove containers based on label (cdaf.${imageName}.container.environment=${environment})"
+	foreach ($container in docker ps --all --filter "label=cdaf.${imageName}.container.environment=${environment}" -q) {
+		executeExpression "docker stop $container"
+		executeExpression "docker rm $container"
+	}
+} else {
+	Write-Host "`n[$scriptName] Stop and remove containers based on label (cdaf.${imageName}.container.environment)"
+	foreach ($container in docker ps --all --filter "label=cdaf.${imageName}.container.environment" -q) {
+		executeExpression "docker stop $container"
+		executeExpression "docker rm $container"
+	}
+}
+
+Write-Host "`n[$scriptName] List all (running and stopped) containers (after)"
+executeExpression "docker ps --all"
 
 Write-Host "`n[$scriptName] --- end ---"
 $error.clear()
