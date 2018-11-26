@@ -156,6 +156,14 @@ if ($hypervisor -eq 'virtualbox') {
 	Add-Content metadata.json "{`n  ""provider"": ""hyperv""`n}"
 	executeExpression "cat metadata.json"
 
+	if ( $boxname -Match "Windows" ) { # This tells Vagrant to use WinRM instead of SSH
+		executeExpression "(New-Object System.Net.WebClient).DownloadFile(`'https://raw.githubusercontent.com/cdaf/windows/master/samples/vagrant-box/Vagrantfile`', `"$PWD\Vagrantfile`")"
+	} else {
+		executeExpression "(New-Object System.Net.WebClient).DownloadFile(`'https://raw.githubusercontent.com/cdaf/linux/master/samples/vagrant-box/Vagrantfile`', `"$PWD\Vagrantfile`")"
+	}
+	Write-Host "`n[$scriptName] List the contents of the package Vagrantfile"
+	executeExpression "cat Vagrantfile"
+
     $versionTest = cmd /c bsdtar --version 2`>`&1 ; cmd /c "exit 0" # Reset LASTEXITCODE
     if ($versionTest -like '*not recognized*') {
     	Write-Host "`n[$scriptName] BSD Tar not installed, compress with tar"
