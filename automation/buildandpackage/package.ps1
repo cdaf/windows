@@ -142,7 +142,7 @@ $ACTION = $args[7]
 Write-Host "[$scriptName]   ACTION                  : $ACTION"
 
 $prepackageTasks = "$SOLUTIONROOT\package.tsk"
-Write-Host –NoNewLine "[$scriptName]   Prepackage Tasks        : " 
+Write-Host ï¿½NoNewLine "[$scriptName]   Prepackage Tasks        : " 
 if (Test-Path "$prepackageTasks") {
 	Write-Host "found ($prepackageTasks)"
 } else {
@@ -150,7 +150,7 @@ if (Test-Path "$prepackageTasks") {
 }
 
 $postpackageTasks = "$SOLUTIONROOT\wrap.tsk"
-Write-Host –NoNewLine "[$scriptName]   Postpackage Tasks       : " 
+Write-Host ï¿½NoNewLine "[$scriptName]   Postpackage Tasks       : " 
 if (Test-Path "$postpackageTasks") {
 	Write-Host "found ($postpackageTasks)"
 } else {
@@ -159,7 +159,7 @@ if (Test-Path "$postpackageTasks") {
 
 # Test for optional properties
 $remotePropertiesDir = "$SOLUTIONROOT\propertiesForRemoteTasks"
-Write-Host –NoNewLine "[$scriptName]   Remote Target Directory : " 
+Write-Host ï¿½NoNewLine "[$scriptName]   Remote Target Directory : " 
 
 if ( Test-Path $remotePropertiesDir ) {
 	Write-Host "found ($remotePropertiesDir)"
@@ -211,9 +211,10 @@ if ( $ACTION -eq "clean" ) {
 	}
 
 	# Load Manifest, these properties are used by remote deployment
-	Add-Content manifest.txt "# Manifest for revision $REVISION"
+	Add-Content manifest.txt "# Manifest for revision $SOLUTION"
 	Add-Content manifest.txt "SOLUTION=$SOLUTION"
 	Add-Content manifest.txt "BUILDNUMBER=$BUILDNUMBER"
+	Add-Content manifest.txt "REVISION=$REVISION"
 	# CDM-115 Add solution properties to manifest if it exists
 	if ((Test-Path "$SOLUTIONROOT\CDAF.solution") -and ($item -ne $LOCAL_WORK_DIR) -and ($item -ne $REMOTE_WORK_DIR)) {
 		Get-Content $SOLUTIONROOT\CDAF.solution | Add-Content manifest.txt
