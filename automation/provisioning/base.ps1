@@ -76,8 +76,8 @@ if ($versionTest -like '*not recognized*') {
 	
 	try {
 		$argList = @("$fullpath")
-		Write-Host "[$scriptName] Start-Process -FilePath 'powershell' -ArgumentList $argList -PassThru -Wait"
-		$proc = Start-Process -FilePath 'powershell' -ArgumentList $argList -PassThru -Wait
+		Write-Host "[$scriptName] Start-Process -FilePath 'powershell' -ArgumentList $argList -PassThru -Wait -NoNewWindow"
+		$proc = Start-Process -FilePath 'powershell' -ArgumentList $argList -PassThru -Wait -NoNewWindow
 	} catch {
 		Write-Host "[$scriptName] $file Install Exception : $_" -ForegroundColor Red
 		exit 200
