@@ -59,6 +59,7 @@ if ( $version ) {
 } else {
 	if ( $sdk -eq 'yes' ) {
 		$version = '2.1.302'
+		$sdkRootURL = 'https://download.microsoft.com/download/4/0/9/40920432-3302-47a8-b13c-bbc4848ad114'
 	} else {
 		$runtimeRootURL = 'https://download.microsoft.com/download/1/f/7/1f7755c5-934d-4638-b89f-1f4ffa5afe89'
 		$version = '2.1.2'
@@ -97,7 +98,7 @@ if ( $sdk -eq 'asp' ) {
 
 if ( $sdk -eq 'yes' ) {
 	$file = "dotnet-sdk-${version}-win-x64.exe"
-	$url = "https://download.microsoft.com/download/4/0/9/40920432-3302-47a8-b13c-bbc4848ad114/$file"
+	$url = "${sdkRootURL}/$file"
 } else {
 	$file = "dotnet-hosting-${version}-win.exe"
 	$url = "${runtimeRootURL}/${file}"	
