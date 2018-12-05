@@ -18,7 +18,7 @@ function executeExpression ($expression) {
     if ( $error[0] ) { Write-Host "[$scriptName] `$error[0] = $error"; exit 3 }
     if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) {
 		Write-Host "[$scriptName] `$LASTEXITCODE = ${LASTEXITCODE}, listing log file contents ..."
-		cat C:\ProgramData\chocolatey\logs\chocolatey.log
+		cat C:\ProgramData\chocolatey\logs\chocolatey.log | findstr 'ERROR'
 		exit $LASTEXITCODE
 	}
 }
