@@ -2,6 +2,7 @@ Param (
   [string]$portNumber,
   [string]$displayName
 )
+cmd /c "exit 0"
 $scriptName = 'openFirewallPort.ps1'
 
 # Common expression logging and error handling function, copied, not referenced to ensure atomic process
