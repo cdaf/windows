@@ -86,6 +86,10 @@ if ($rebuild -eq 'yes') {
 	$buildCommand += " --no-cache=true"
 }
 
+if ($env:CONTAINER_IMAGE) {
+	$buildCommand += " --build-arg CONTAINER_IMAGE=$env:CONTAINER_IMAGE"
+}
+
 if ($tag) {
 	$buildCommand += " --tag ${imageName}:${tag}"
 } else {

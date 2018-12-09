@@ -172,6 +172,17 @@ if ( $ACTION -eq 'containerbuild' ) {
 	}
 }
 
+$containerImage = getProp 'containerImage' "$solutionRoot\CDAF.solution"
+if ( $containerImage ) {
+	if ($env:CONTAINER_IMAGE) {
+		Write-Host "[$scriptName]   containerImage  : $containerImage"
+		Write-Host "[$scriptName]   CONTAINER_IMAGE : $env:CONTAINER_IMAGE (not changed as already set)"
+	} else {
+		$env:CONTAINER_IMAGE = $containerImage
+		Write-Host "[$scriptName]   CONTAINER_IMAGE : $env:CONTAINER_IMAGE (set to `$containerImage)"
+	}
+}
+
 if ( $containerBuild ) {
 
 	Write-Host "`n[$scriptName] Execute Container build, this performs cionly, options packageonly and buildonly are ignored.`n" -ForegroundColor Green
