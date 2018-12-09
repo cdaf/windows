@@ -78,7 +78,11 @@ if (Test-Path "$solutionRoot\delivery.bat") {
 $cdInstruction="delivery.bat"
 
 # If environment variable over-rides all other determinations
-$environmentDelivery = "$Env:environmentDelivery"
+if ($environmentDelivery) { # check for DOS variable and load as PowerShell environment variable
+	$Env:environmentDelivery = "$environmentDelivery"
+} else {
+	$environmentDelivery = "$Env:environmentDelivery"
+}
 if ($environmentDelivery ) {
 	Write-Host "[$scriptName]   environmentDelivery : $environmentDelivery (loaded from `$Env:environmentDelivery)"
 } else {
