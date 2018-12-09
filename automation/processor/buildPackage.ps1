@@ -174,9 +174,14 @@ if ( $ACTION -eq 'containerbuild' ) {
 
 $containerImage = getProp 'containerImage' "$solutionRoot\CDAF.solution"
 if ( $containerImage ) {
-	if ($env:CONTAINER_IMAGE) {
+	if (($env:CONTAINER_IMAGE) -or ($CONTAINER_IMAGE)) {
 		Write-Host "[$scriptName]   containerImage  : $containerImage"
-		Write-Host "[$scriptName]   CONTAINER_IMAGE : $env:CONTAINER_IMAGE (not changed as already set)"
+		if ($env:CONTAINER_IMAGE) {
+			Write-Host "[$scriptName]   CONTAINER_IMAGE : $env:CONTAINER_IMAGE (not changed as already set)"
+		} else {
+			$env:CONTAINER_IMAGE = $CONTAINER_IMAGE
+			Write-Host "[$scriptName]   CONTAINER_IMAGE : $env:CONTAINER_IMAGE (loaded from `$CONTAINER_IMAGE)"
+		}
 	} else {
 		$env:CONTAINER_IMAGE = $containerImage
 		Write-Host "[$scriptName]   CONTAINER_IMAGE : $env:CONTAINER_IMAGE (set to `$containerImage)"
