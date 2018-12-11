@@ -20,9 +20,10 @@ if ($AUTOMATIONROOT) {
 	Write-Host "[$scriptName]   AUTOMATIONROOT      : $AUTOMATIONROOT (default)"
 }
 
-# Use a simple text file (buildnumber.counter) for incrimental build number
-if ( Test-Path "$env:USERPROFILE\buildnumber.counter" ) {
-	$buildNumber = Get-Content "$env:USERPROFILE\buildnumber.counter"
+$counterFile = "$env:USERPROFILE\buildnumber.counter"
+# Use a simple text file ($counterFile) for incrimental build number
+if ( Test-Path "$counterFile" ) {
+	$buildNumber = Get-Content "$counterFile"
 } else {
 	$buildNumber = 0
 }
@@ -30,7 +31,7 @@ if ( Test-Path "$env:USERPROFILE\buildnumber.counter" ) {
 if ( $ACTION -ne "cdonly" ) { # Do not incriment when just deploying
 	$buildNumber += 1
 }
-Out-File "$env:USERPROFILE\buildnumber.counter" -InputObject $buildNumber
+Set-Content "$counterFile" "$buildNumber"
 Write-Host "[$scriptName]   buildNumber         : $buildNumber"
 $revision = 'master'
 Write-Host "[$scriptName]   revision            : $revision"
