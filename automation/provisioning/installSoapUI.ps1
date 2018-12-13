@@ -1,3 +1,13 @@
+Param (
+	[string]$soapui_version,
+	[string]$mediaDirectory,
+	[string]$destinationInstallDir,
+	[string]$proxy
+)
+
+cmd /c "exit 0"
+$scriptName = 'installSoapUI.ps1'
+
 # Common expression logging and error handling function, copied, not referenced to ensure atomic process
 function executeExpression ($expression) {
 	$error.clear()
@@ -20,11 +30,7 @@ function listAndContinue {
 
 Add-Type -AssemblyName System.IO.Compression.FileSystem
 
-$scriptName = 'installSoapUI.ps1'
-
 Write-Host "`n[$scriptName] ---------- start ----------"
-
-$soapui_version = $args[0]
 if ( $soapui_version ) {
 	Write-Host "[$scriptName] soapui_version        : $soapui_version"
 } else {
@@ -32,7 +38,6 @@ if ( $soapui_version ) {
 	Write-Host "[$scriptName] soapui_version        : $soapui_version (default)"
 }
 
-$mediaDirectory = $args[1]
 if ( $mediaDirectory ) {
 	Write-Host "[$scriptName] mediaDirectory        : $mediaDirectory"
 } else {
@@ -40,7 +45,6 @@ if ( $mediaDirectory ) {
 	Write-Host "[$scriptName] mediaDirectory        : $mediaDirectory (default)"
 }
 
-$destinationInstallDir = $args[2]
 if ( $destinationInstallDir ) {
 	Write-Host "[$scriptName] destinationInstallDir : $destinationInstallDir"
 } else {
@@ -52,6 +56,13 @@ if ( Test-Path $mediaDirectory ) {
 	Write-Host "`n[$scriptName] $mediaDirectory exists"
 } else {
 	Write-Host "`n[$scriptName] $(mkdir $mediaDirectory) created"
+}
+
+if ($proxy) {
+    Write-Host "[$scriptName] proxy                 : $proxy`n"
+    executeExpression "[system.net.webrequest]::defaultwebproxy = new-object system.net.webproxy('$proxy')"
+} else {
+    Write-Host "[$scriptName] proxy                 : (not supplied)"
 }
 
 # The installation directory for SoapUI, the script will create this

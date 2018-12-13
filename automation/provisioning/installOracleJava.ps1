@@ -55,7 +55,7 @@ if ( $destinationInstallDir ) {
 
 if ($proxy) {
     Write-Host "[$scriptName] proxy                 : $proxy`n"
-    executeExpression "`$env:http_proxy = '$proxy'"
+    executeExpression "[system.net.webrequest]::defaultwebproxy = new-object system.net.webproxy('$proxy')"
 } else {
     Write-Host "[$scriptName] proxy                 : (not supplied)"
 }
@@ -68,18 +68,19 @@ $jdkInstallDir = "$javaInstallDir\jdk$java_version"
 $jreInstallDir = "$javaInstallDir\jre$java_version"
 $jdkInstallFileName = "jdk-" + $java_version + "-windows-" + $architecture + ".exe"
 
+if (!( Test-Path "$sourceInstallDir" )) {
+	Write-Host "`n[$scriptName] Created $(mkdir -p $sourceInstallDir)"
+}
+
 $installer = "$sourceInstallDir\$jdkInstallFileName"
 if (!( Test-Path "$installer" )) {
 	Write-Host "[$scriptName] $installer not found, attempt to download ..."
-	$versionTest = cmd /c curl.exe --version 2`>`&1
-	cmd /c "exit 0"
-	if ($versionTest -like '*not recognized*') {
-		Write-Host "  curl.exe not installed, exiting with error code 6273"; exit 6273
-	} else {
-		$array = $versionTest.split(" ")
-		Write-Host "  curl.exe                : $($array[1])"
-	}
-	executeExpression "& curl.exe --silent -L -b 'oraclelicense=a' http://download.oracle.com/otn-pub/java/jdk/${urlUID}/jdk-${java_version}-windows-x64.exe --output $sourceInstallDir\$jdkInstallFileName"
+	$client = new-object System.Net.WebClient 
+	$cookie = "oraclelicense=accept-securebackup-cookie"
+	$client.Headers.Add([System.Net.HttpRequestHeader]::Cookie, $cookie) 
+	$uri = "http://download.oracle.com/otn-pub/java/jdk/${urlUID}/jdk-${java_version}-windows-x64.exe"
+	executeExpression "`$client.DownloadFile('$uri', '$sourceInstallDir\$jdkInstallFileName')"
+
 }
 
 $installer = "$sourceInstallDir\$jdkInstallFileName"
@@ -115,8 +116,7 @@ try {
 	Write-Host "[$scriptName] Exception : Start-Process -FilePath `"$installer`" -ArgumentList $arguments  -Wait -PassThru" -ForegroundColor Red
 	throw $_
 }
-Write-Host "[$scriptName] Installing the JDK complete."
-Write-Host
+Write-Host "[$scriptName] Installing the JDK complete.`n"
 
 # Configure environment variables
 Write-Host "[$scriptName] Configuring environment variables ..."

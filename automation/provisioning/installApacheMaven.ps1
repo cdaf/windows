@@ -1,3 +1,10 @@
+Param (
+	[string]$maven_version,
+	[string]$mediaDirectory,
+	[string]$destinationInstallDir,
+	[string]$proxy
+)
+
 # Common expression logging and error handling function, copied, not referenced to ensure atomic process
 function executeExpression ($expression) {
 	$error.clear()
@@ -58,8 +65,6 @@ Add-Type -AssemblyName System.IO.Compression.FileSystem
 $scriptName = 'installApacheMaven.ps1'
 
 Write-Host "`n[$scriptName] ---------- start ----------"
-
-$maven_version = $args[0]
 if ( $maven_version ) {
 	Write-Host "[$scriptName] maven_version         : $maven_version"
 } else {
@@ -67,7 +72,6 @@ if ( $maven_version ) {
 	Write-Host "[$scriptName] maven_version         : $maven_version (default)"
 }
 
-$mediaDirectory = $args[1]
 if ( $mediaDirectory ) {
 	Write-Host "[$scriptName] mediaDirectory        : $mediaDirectory"
 } else {
@@ -75,12 +79,18 @@ if ( $mediaDirectory ) {
 	Write-Host "[$scriptName] mediaDirectory        : $mediaDirectory (default)"
 }
 
-$destinationInstallDir = $args[2]
 if ( $destinationInstallDir ) {
 	Write-Host "[$scriptName] destinationInstallDir : $destinationInstallDir"
 } else {
 	$destinationInstallDir = 'c:\apache'
 	Write-Host "[$scriptName] destinationInstallDir : $destinationInstallDir (default)"
+}
+
+if ($proxy) {
+    Write-Host "[$scriptName] proxy                 : $proxy`n"
+    executeExpression "[system.net.webrequest]::defaultwebproxy = new-object system.net.webproxy('$proxy')"
+} else {
+    Write-Host "[$scriptName] proxy                 : (not supplied)"
 }
 
 if ( Test-Path $mediaDirectory ) {
