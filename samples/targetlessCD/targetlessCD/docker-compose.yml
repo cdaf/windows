@@ -1,0 +1,25 @@
+version: "3"
+services:
+    web:
+        image: "${WEB_TAG}"
+        healthcheck:
+            test: ["CMD", "powershell", "-command", "try { if ((iwr http://localhost -usebasicparsing).StatusCode -eq 200) { return 0 } else { return 1 } } catch { return 1 }"]
+            interval: 10s
+            timeout: 10s
+            retries: 5
+        volumes:
+          - ${WORK_SPACE}:c:/solution/workspace
+
+    test:
+        image: "${TEST_TAG}"
+        volumes:
+          - ${WORK_SPACE}:c:/solution/workspace
+        links:
+          - web:web
+        depends_on:
+          - web
+
+networks:
+  default:
+    external:
+      name: nat

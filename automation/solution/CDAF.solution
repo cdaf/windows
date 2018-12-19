@@ -4,5 +4,6 @@ productVersion=0.1.0
 productName=My Product Name
 solutionName=myProduct
 # containerBuild=automation/processor/containerBuild.ps1 $SOLUTION $BUILDNUMBER $REVISION $ACTION
+# containerImage=microsoft/windowsservercore@sha256:d46df1d4cef6ea30976227b981dbb379543f77fc884ef8200b89a852f14bd5f8
 # imageBuild=automation-solution/imageBuild.ps1 $SOLUTION $BUILDNUMBER $REVISION $ACTION
 # processSequence=localTasks.ps1 remoteTasks.ps1

@@ -1,0 +1,50 @@
+Write-Host "List containers current state`n"
+docker ps
+
+Write-Host "`nLoad the branch (REVISION) and container image from the manifest, placed here by package.tsk`n"
+PROPLD manifest.txt
+
+ASSIGN $id = "${SOLUTION}_${REVISION}"
+
+cd container
+..\imageBuild.ps1 ${id} ${BUILDNUMBER} ${containerImage}
+cd ..
+
+ASSIGN $composePersist = "${env:TEMP}\${id}"
+MAKDIR $composePersist
+VECOPY container\docker-compose.yml $composePersist
+VECOPY dockerLog.ps1 $composePersist
+VECOPY dockerClean.ps1 $composePersist
+VECOPY executeTests.ps1 $composePersist
+
+Write-Host "`nSolution specific files`n"
+# jar files, assemblies, etc.
+
+cd $composePersist
+
+ASSIGN $env:WORK_SPACE = ${PWD}
+
+Write-Host "`nCleanup from previously test`n"
+ASSIGN $env:TEST_TAG = "${id}_test"
+docker-compose down --remove-orphans
+docker-compose rm -f
+
+Write-Host "Set the build number to use`n"
+ASSIGN $env:TEST_TAG = "${id}_test:${BUILDNUMBER}"
+
+docker-compose up -d test
+
+Write-Host "Now watch the test container (allowing 5 minutes to complete)`n"
+ASSIGN $containerID = $(docker ps -aq --filter "ancestor=$env:TEST_TAG")
+./dockerLog.ps1 $containerID 'Automated Test Execution completed successfully.' 300
+
+Write-Host "List running containers`n"
+docker ps
+
+Write-Host "`nTear down if not explicit varaible to retain`n"
+if (!( $env:POEWRTOOLS_COMPOSE_KEEP )) { docker-compose down }
+if (!( $env:POEWRTOOLS_COMPOSE_KEEP )) { docker-compose rm -f }
+
+./dockerClean.ps1 ${id}_test ${BUILDNUMBER}
+
+cd $env:WORK_SPACE

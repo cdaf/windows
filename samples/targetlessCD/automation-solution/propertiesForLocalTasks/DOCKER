@@ -1,0 +1,3 @@
+# Test JSON (default no action)
+# jsonfile=config.json, passed directly vis dockerfile
+deployTaskOverride=compose.tsk
