@@ -5,13 +5,14 @@ Param (
 # Common expression logging and error handling function, copied, not referenced to ensure atomic process
 function executeExpression ($expression) {
 	$error.clear()
-	Write-Host "[$scriptName] $expression"
+	Write-Host "$expression"
 	try {
-		Invoke-Expression $expression
+		$output = Invoke-Expression $expression
 	    if(!$?) { Write-Host "[$scriptName] `$? = $?"; exit 1 }
 	} catch { echo $_.Exception|format-list -force; exit 2 }
     if ( $error[0] ) { Write-Host "[$scriptName] `$error[0] = $error"; exit 3 }
     if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) { Write-Host "[$scriptName] `$LASTEXITCODE = $LASTEXITCODE "; exit $LASTEXITCODE }
+    return $output
 }
 
 $scriptName = 'bootstrap-atlassian.ps1'
@@ -67,7 +68,7 @@ Write-Host "[$scriptName] Using managed service account $msa"
 # SMO installed as part of Standard, connect to the local default instance
 executeExpression '[reflection.assembly]::LoadWithPartialName("Microsoft.SqlServer.Smo")'
 executeExpression '[reflection.assembly]::LoadWithPartialName("Microsoft.SqlServer.SqlWmiManagement")'
-executeExpression '$srv = new-Object Microsoft.SqlServer.Management.Smo.Server(".")'
+$srv = executeExpression 'new-Object Microsoft.SqlServer.Management.Smo.Server(".")'
 
 # Change the mode and restart the instance
 executeExpression '$srv.Settings.LoginMode = [Microsoft.SqlServer.Management.SMO.ServerLoginMode]::Mixed'
