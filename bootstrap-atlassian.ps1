@@ -27,44 +27,42 @@ if ($sqlSA) {
 Write-Host "[$scriptName] pwd    = $(pwd)"
 Write-Host "[$scriptName] whoami = $(whoami)"
 
-if ( $stable -eq 'yes' ) { 
-	Write-Host "[$scriptName] Download Continuous Delivery Automation Framework"
-	Write-Host "[$scriptName] `$zipFile = 'WU-CDAF.zip'"
-	$zipFile = 'WU-CDAF.zip'
-	Write-Host "[$scriptName] `$url = `"http://cdaf.io/static/app/downloads/$zipFile`""
-	$url = "http://cdaf.io/static/app/downloads/$zipFile"
-	executeExpression "(New-Object System.Net.WebClient).DownloadFile('$url', '$PWD\$zipFile')"
-	executeExpression 'Add-Type -AssemblyName System.IO.Compression.FileSystem'
-	executeExpression '[System.IO.Compression.ZipFile]::ExtractToDirectory("$PWD\$zipfile", "$PWD")'
+if ( Test-Path "./automation/provisioning" ) {
+	$atomicPath = '.'
 } else {
-	Write-Host "[$scriptName] Get latest CDAF from GitHub"
-	Write-Host "[$scriptName] `$zipFile = 'windows-master.zip'"
-	$zipFile = 'windows-master.zip'
-	Write-Host "[$scriptName] `$url = `"https://codeload.github.com/cdaf/windows/zip/master`""
-	$url = "https://codeload.github.com/cdaf/windows/zip/master"
-	$AllProtocols = [System.Net.SecurityProtocolType]'Tls11,Tls12'
-	executeExpression '[System.Net.ServicePointManager]::SecurityProtocol = $AllProtocols'
-	executeExpression "(New-Object System.Net.WebClient).DownloadFile('$url', '$PWD\$zipFile')"
-	executeExpression 'Add-Type -AssemblyName System.IO.Compression.FileSystem'
-	executeExpression '[System.IO.Compression.ZipFile]::ExtractToDirectory("$PWD\$zipfile", "$PWD")'
-	executeExpression 'mv windows-master\automation .'
+	if ( Test-Path "/vagrant" ) {
+		$atomicPath = '/vagrant'
+	} else {
+	    Write-Host "[$scriptName] Cannot find CDAF directories in workspace or /vagrant, so downloading from internet"
+		Write-Host "[$scriptName] Download Continuous Delivery Automation Framework"
+		Write-Host "[$scriptName] `$zipFile = 'WU-CDAF.zip'"
+		$zipFile = 'WU-CDAF.zip'
+		Write-Host "[$scriptName] `$url = `"http://cdaf.io/static/app/downloads/$zipFile`""
+		$url = "http://cdaf.io/static/app/downloads/$zipFile"
+		executeExpression "(New-Object System.Net.WebClient).DownloadFile('$url', '$PWD\$zipFile')"
+		executeExpression 'Add-Type -AssemblyName System.IO.Compression.FileSystem'
+		executeExpression '[System.IO.Compression.ZipFile]::ExtractToDirectory("$PWD\$zipfile", "$PWD")'
+		executeExpression 'cat .\automation\CDAF.windows'
+		$atomicPath = '.'
+	}
 }
+Write-Host "[$scriptName] `$atomicPath = $atomicPath"
 
 $msa = $sqlSA + '$'
 Write-Host "[$scriptName] Using managed service account $msa"
 
-executeExpression "./automation/provisioning/InstallIIS.ps1 -management yes"
+executeExpression "$atomicPath\automation\provisioning\InstallIIS.ps1 -management yes"
 
 # Install Application Request Routing (ARR)
 executeExpression "Stop-Service W3SVC"
-executeExpression ".\automation\provisioning\GetMedia.ps1 http://download.microsoft.com/download/E/9/8/E9849D6A-020E-47E4-9FD0-A023E99B54EB/requestRouter_amd64.msi"
-executeExpression ".\automation\provisioning\installMSI.ps1 C:\.provision\requestRouter_amd64.msi"
-executeExpression ".\automation\provisioning\GetMedia.ps1  https://download.microsoft.com/download/C/9/E/C9E8180D-4E51-40A6-A9BF-776990D8BCA9/rewrite_amd64.msi"
-executeExpression ".\automation\provisioning\installMSI.ps1 C:\.provision\rewrite_amd64.msi"
+executeExpression "$atomicPath\automation\provisioning\GetMedia.ps1 http://download.microsoft.com/download/E/9/8/E9849D6A-020E-47E4-9FD0-A023E99B54EB/requestRouter_amd64.msi"
+executeExpression "$atomicPath\automation\provisioning\installMSI.ps1 C:\.provision\requestRouter_amd64.msi"
+executeExpression "$atomicPath\automation\provisioning\GetMedia.ps1  https://download.microsoft.com/download/C/9/E/C9E8180D-4E51-40A6-A9BF-776990D8BCA9/rewrite_amd64.msi"
+executeExpression "$atomicPath\automation\provisioning\installMSI.ps1 C:\.provision\rewrite_amd64.msi"
 executeExpression "Start-Service W3SVC"
 
 # Mount Install media to D:\ (default for script), NOTE the '$' after the managed service account
-executeExpression ".\automation\provisioning\installSQLServer.ps1 '$msa'"
+executeExpression "$atomicPath\automation\provisioning\installSQLServer.ps1 '$msa'"
 
 # SMO installed as part of Standard, connect to the local default instance
 [reflection.assembly]::LoadWithPartialName("Microsoft.SqlServer.Smo")
@@ -78,9 +76,9 @@ $srv.Settings.LoginMode
 executeExpression "Restart-Service MSSQLSERVER"
 
 # Allow remote access to the Database for SSMS to migrate the database
-executeExpression ".\automation\provisioning\openFirewallPort.ps1 1433 SQL"
+executeExpression "$atomicPath\automation\provisioning\openFirewallPort.ps1 1433 SQL"
 
 # Adopt Open JDK (migrating from Oracle JDK)
-executeExpression ".\automation\provisioning\base.ps1 adoptopenjdk -version 8.192"
+executeExpression "$atomicPath\automation\provisioning\base.ps1 adoptopenjdk -version 8.192"
 
 Write-Host "`n[$scriptName] ---------- stop ----------"
