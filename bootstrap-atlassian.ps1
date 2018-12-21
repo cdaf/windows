@@ -52,18 +52,18 @@ Write-Host "[$scriptName] `$atomicPath = $atomicPath"
 $msa = $sqlSA + '$'
 Write-Host "[$scriptName] Using managed service account $msa"
 
-#executeExpression "$atomicPath\automation\provisioning\InstallIIS.ps1 -management yes"
-#
+executeExpression "$atomicPath\automation\provisioning\InstallIIS.ps1 -management yes"
+
 ## Install Application Request Routing (ARR)
-#executeExpression "Stop-Service W3SVC"
-#executeExpression "$atomicPath\automation\provisioning\GetMedia.ps1 http://download.microsoft.com/download/E/9/8/E9849D6A-020E-47E4-9FD0-A023E99B54EB/requestRouter_amd64.msi"
-#executeExpression "$atomicPath\automation\provisioning\installMSI.ps1 C:\.provision\requestRouter_amd64.msi"
-#executeExpression "$atomicPath\automation\provisioning\GetMedia.ps1  https://download.microsoft.com/download/C/9/E/C9E8180D-4E51-40A6-A9BF-776990D8BCA9/rewrite_amd64.msi"
-#executeExpression "$atomicPath\automation\provisioning\installMSI.ps1 C:\.provision\rewrite_amd64.msi"
-#executeExpression "Start-Service W3SVC"
-#
+executeExpression "Stop-Service W3SVC"
+executeExpression "$atomicPath\automation\provisioning\GetMedia.ps1 http://download.microsoft.com/download/E/9/8/E9849D6A-020E-47E4-9FD0-A023E99B54EB/requestRouter_amd64.msi"
+executeExpression "$atomicPath\automation\provisioning\installMSI.ps1 C:\.provision\requestRouter_amd64.msi"
+executeExpression "$atomicPath\automation\provisioning\GetMedia.ps1  https://download.microsoft.com/download/C/9/E/C9E8180D-4E51-40A6-A9BF-776990D8BCA9/rewrite_amd64.msi"
+executeExpression "$atomicPath\automation\provisioning\installMSI.ps1 C:\.provision\rewrite_amd64.msi"
+executeExpression "Start-Service W3SVC"
+
 ## Mount Install media to D:\ (default for script), NOTE the '$' after the managed service account
-#executeExpression "$atomicPath\automation\provisioning\installSQLServer.ps1 '$msa'"
+executeExpression "$atomicPath\automation\provisioning\installSQLServer.ps1 '$msa'"
 
 # SMO installed as part of Standard, connect to the local default instance
 executeExpression '[reflection.assembly]::LoadWithPartialName("Microsoft.SqlServer.Smo")'
