@@ -51,28 +51,28 @@ Write-Host "[$scriptName] `$atomicPath = $atomicPath"
 $msa = $sqlSA + '$'
 Write-Host "[$scriptName] Using managed service account $msa"
 
-executeExpression "$atomicPath\automation\provisioning\InstallIIS.ps1 -management yes"
-
-# Install Application Request Routing (ARR)
-executeExpression "Stop-Service W3SVC"
-executeExpression "$atomicPath\automation\provisioning\GetMedia.ps1 http://download.microsoft.com/download/E/9/8/E9849D6A-020E-47E4-9FD0-A023E99B54EB/requestRouter_amd64.msi"
-executeExpression "$atomicPath\automation\provisioning\installMSI.ps1 C:\.provision\requestRouter_amd64.msi"
-executeExpression "$atomicPath\automation\provisioning\GetMedia.ps1  https://download.microsoft.com/download/C/9/E/C9E8180D-4E51-40A6-A9BF-776990D8BCA9/rewrite_amd64.msi"
-executeExpression "$atomicPath\automation\provisioning\installMSI.ps1 C:\.provision\rewrite_amd64.msi"
-executeExpression "Start-Service W3SVC"
-
-# Mount Install media to D:\ (default for script), NOTE the '$' after the managed service account
-executeExpression "$atomicPath\automation\provisioning\installSQLServer.ps1 '$msa'"
+#executeExpression "$atomicPath\automation\provisioning\InstallIIS.ps1 -management yes"
+#
+## Install Application Request Routing (ARR)
+#executeExpression "Stop-Service W3SVC"
+#executeExpression "$atomicPath\automation\provisioning\GetMedia.ps1 http://download.microsoft.com/download/E/9/8/E9849D6A-020E-47E4-9FD0-A023E99B54EB/requestRouter_amd64.msi"
+#executeExpression "$atomicPath\automation\provisioning\installMSI.ps1 C:\.provision\requestRouter_amd64.msi"
+#executeExpression "$atomicPath\automation\provisioning\GetMedia.ps1  https://download.microsoft.com/download/C/9/E/C9E8180D-4E51-40A6-A9BF-776990D8BCA9/rewrite_amd64.msi"
+#executeExpression "$atomicPath\automation\provisioning\installMSI.ps1 C:\.provision\rewrite_amd64.msi"
+#executeExpression "Start-Service W3SVC"
+#
+## Mount Install media to D:\ (default for script), NOTE the '$' after the managed service account
+#executeExpression "$atomicPath\automation\provisioning\installSQLServer.ps1 '$msa'"
 
 # SMO installed as part of Standard, connect to the local default instance
-[reflection.assembly]::LoadWithPartialName("Microsoft.SqlServer.Smo")
-[reflection.assembly]::LoadWithPartialName("Microsoft.SqlServer.SqlWmiManagement")
-$srv = new-Object Microsoft.SqlServer.Management.Smo.Server(".")
+executeExpression '[reflection.assembly]::LoadWithPartialName("Microsoft.SqlServer.Smo")'
+executeExpression '[reflection.assembly]::LoadWithPartialName("Microsoft.SqlServer.SqlWmiManagement")'
+executeExpression '$srv = new-Object Microsoft.SqlServer.Management.Smo.Server(".")'
 
 # Change the mode and restart the instance
-$srv.Settings.LoginMode = [Microsoft.SqlServer.Management.SMO.ServerLoginMode]::Mixed
-$srv.Alter()
-$srv.Settings.LoginMode
+executeExpression '$srv.Settings.LoginMode = [Microsoft.SqlServer.Management.SMO.ServerLoginMode]::Mixed'
+executeExpression '$srv.Alter()'
+executeExpression '$srv.Settings.LoginMode'
 executeExpression "Restart-Service MSSQLSERVER"
 
 # Allow remote access to the Database for SSMS to migrate the database

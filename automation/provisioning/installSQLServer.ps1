@@ -7,6 +7,7 @@ Param (
 	[string]$password
 )
 $scriptName = 'SQLServer.ps1'
+cmd /c "exit 0"
 
 # Common expression logging and error handling function, copied, not referenced to ensure atomic process
 function executeExpression ($expression) {
@@ -86,17 +87,9 @@ if ($password) {
 }
 
 $EditionId = (Get-ItemProperty -Path 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion' -Name 'EditionID').EditionId
-write-host "[$scriptName] EditionId      : $EditionId"
+write-host "[$scriptName] EditionId      : $EditionId`n"
 
-if ($env:interactive) {
-	Write-Host
-    Write-Host "[$scriptName]   env:interactive is set ($env:interactive), run in current window"
-    $sessionControl = '-PassThru -Wait -NoNewWindow'
-	$logToConsole = 'true'
-} else {
-    $sessionControl = '-PassThru -Wait'
-	$logToConsole = 'false'
-}
+$sessionControl = '-PassThru -Wait -NoNewWindow'
 
 $executable = Get-ChildItem $media -Filter *.exe
 
@@ -163,7 +156,6 @@ if ( $password ) {
 		'/TCPENABLED=1',
 		'/NPENABLED=1'
 	)
-	Write-Host "[$scriptName] `$proc = Start-Process -FilePath `"$media$executable`" -ArgumentList `"$argList`" $sessionControl"
 }
 
 # Note, the actual call passes the argument list as a literal
