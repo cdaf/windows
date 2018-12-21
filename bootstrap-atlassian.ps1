@@ -78,9 +78,9 @@ $srv.Settings.LoginMode
 executeExpression "Restart-Service MSSQLSERVER"
 
 # Allow remote access to the Database for SSMS to migrate the database
-.\automation\provisioning\openFirewallPort.ps1 1433 SQL
+executeExpression ".\automation\provisioning\openFirewallPort.ps1 1433 SQL"
 
 # Adopt Open JDK (migrating from Oracle JDK)
-.\automation\provisioning\base.ps1 adoptopenjdk -version 8.192
+executeExpression ".\automation\provisioning\base.ps1 adoptopenjdk -version 8.192"
 
 Write-Host "`n[$scriptName] ---------- stop ----------"
