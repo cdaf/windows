@@ -62,6 +62,22 @@ executeExpression "$atomicPath\automation\provisioning\GetMedia.ps1  https://dow
 executeExpression "$atomicPath\automation\provisioning\installMSI.ps1 C:\.provision\rewrite_amd64.msi"
 executeExpression "Start-Service W3SVC"
 
+executeExpression 'Add-Content C:\inetpub\wwwroot\web.config "<?xml version=`"1.0`" encoding=`"UTF-8`"?>"'
+executeExpression 'Add-Content C:\inetpub\wwwroot\web.config "<configuration>"'
+executeExpression 'Add-Content C:\inetpub\wwwroot\web.config "    <system.webServer>"'
+executeExpression 'Add-Content C:\inetpub\wwwroot\web.config "        <rewrite>"'
+executeExpression 'Add-Content C:\inetpub\wwwroot\web.config "            <rules>"'
+executeExpression 'Add-Content C:\inetpub\wwwroot\web.config "                <clear />"'
+executeExpression 'Add-Content C:\inetpub\wwwroot\web.config "                <rule name=`"ReverseProxyInboundRule1`" stopProcessing=`"true`">"'
+executeExpression 'Add-Content C:\inetpub\wwwroot\web.config "                    <match url=`"(.*)`" />"'
+executeExpression 'Add-Content C:\inetpub\wwwroot\web.config "                    <conditions logicalGrouping=`"MatchAll`" trackAllCaptures=`"false`" />"'
+executeExpression 'Add-Content C:\inetpub\wwwroot\web.config "                    <action type=`"Rewrite`" url=`"http://localhost:8085/{R:1}`" />"'
+executeExpression 'Add-Content C:\inetpub\wwwroot\web.config "                </rule>"'
+executeExpression 'Add-Content C:\inetpub\wwwroot\web.config "            </rules>"'
+executeExpression 'Add-Content C:\inetpub\wwwroot\web.config "        </rewrite>"'
+executeExpression 'Add-Content C:\inetpub\wwwroot\web.config "    </system.webServer>"'
+executeExpression 'Add-Content C:\inetpub\wwwroot\web.config "</configuration>"'
+
 ## Mount Install media to D:\ (default for script), NOTE the '$' after the managed service account
 executeExpression "$atomicPath\automation\provisioning\installSQLServer.ps1 '$msa'"
 
