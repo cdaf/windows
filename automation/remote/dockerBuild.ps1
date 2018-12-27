@@ -35,6 +35,7 @@ cmd /c "exit 0"
 Write-Host "`n[$scriptName] ---------- start ----------"
 Write-Host "`n[$scriptName] Build docker image, resulting image tag will be ${imageName}:${tag}"
 if ($imageName) {
+	$imageName = $imageName.ToLower()
     Write-Host "[$scriptName] imageName : $imageName"
 } else {
     Write-Host "[$scriptName] imageName not supplied, exit with `$LASTEXITCODE = 1"; exit 1

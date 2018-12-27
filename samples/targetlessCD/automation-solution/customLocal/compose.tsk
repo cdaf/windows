@@ -1,7 +1,8 @@
 Write-Host "`nLoad the branch (REVISION) and container image from the manifest, placed here by package.tsk`n"
 PROPLD manifest.txt
 
-ASSIGN $id = "${SOLUTION}_${REVISION}"
+$branch = $REVISION.ToLower()
+ASSIGN $id = "${SOLUTION}_${branch}"
 $env:WORK_SPACE = Split-Path -parent $(pwd)
 Write-host $env:WORK_SPACE
 

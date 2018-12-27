@@ -33,6 +33,7 @@ Write-Host "`n[$scriptName] This script stops and removes all instances for the 
 Write-Host "[$scriptName] on environment tag. Use this to purge all targets for the environment."
 Write-Host "`n[$scriptName] --- start ---"
 if ($imageName) {
+	$imageName = $imageName.ToLower()
     Write-Host "[$scriptName] imageName   : $imageName"
 } else {
     Write-Host "[$scriptName] imageName not supplied, exit with `$LASTEXITCODE = 1"; exit 1

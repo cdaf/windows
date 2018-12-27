@@ -54,7 +54,8 @@ function executeRetry ($expression) {
 
 cmd /c "exit 0"
 Write-Host "`n[$scriptName] ---------- start ----------`n"
-if ( $id ) { 
+if ( $id ) {
+	$id = $id.ToLower()
 	Write-Host "[$scriptName]   id              : $id"
 } else {
 	Write-Host "[$scriptName]   id not supplied! Exit with LASTEXITCODE 1"
