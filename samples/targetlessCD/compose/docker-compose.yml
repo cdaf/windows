@@ -1,12 +1,7 @@
 version: "3"
 services:
-    web:
-        image: "${WEB_TAG}"
-        healthcheck:
-            test: ["CMD", "powershell", "-command", "try { if ((iwr http://localhost -usebasicparsing).StatusCode -eq 200) { return 0 } else { return 1 } } catch { return 1 }"]
-            interval: 10s
-            timeout: 10s
-            retries: 5
+    target:
+        image: "${TARGET_TAG}"
         volumes:
           - ${WORK_SPACE}:c:/solution/workspace
 
@@ -15,9 +10,9 @@ services:
         volumes:
           - ${WORK_SPACE}:c:/solution/workspace
         links:
-          - web:web
+          - target:target
         depends_on:
-          - web
+          - target
 
 networks:
   default:

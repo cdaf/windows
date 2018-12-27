@@ -14,11 +14,14 @@ WORKDIR solution
 COPY automation automation
 
 # Shared bootstrap between Docker and Vagrant
-COPY bootstrapTarget.ps1 .
-RUN automation\provisioning\runner.bat bootstrapTarget.ps1
+COPY bootstrapTest.ps1 .
+RUN automation\provisioning\runner.bat bootstrapTest.ps1
+
+# Place entry script
+COPY executeTest.ps1 .
 
 # Change workdir to an new (empty) folder for volume mount to work
 WORKDIR workspace
 
 # Unlike the web server, this container is transient, and does not build the wrapper into the image, instead this relies of the volume mount
-CMD ["C:/solution/automation/provisioning/runner.bat", "executeTests.ps1", "http://web", "'IIS Windows Server'"]
+CMD ["C:/solution/automation/provisioning/runner.bat", "../executeTest.ps1", "TARGETLESS"]

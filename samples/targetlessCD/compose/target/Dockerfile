@@ -12,13 +12,14 @@ WORKDIR solution
 
 # Copy CDAF from solution (avoid bootStrap downloading)
 COPY automation automation
-COPY *.txt ./
 
 # Shared bootstrap between Docker and Vagrant
 COPY bootstrapTarget.ps1 .
 RUN automation\provisioning\runner.bat bootstrapTarget.ps1
 
+# Place entry script
+COPY keepAlive.ps1 .
+
 # Change workdir to an new (empty) folder for volume mount to work
-COPY executeIIS.ps1 .
 WORKDIR workspace
-CMD ["C:/solution/automation/provisioning/runner.bat", "../executeIIS.ps1"]
+CMD ["C:/solution/automation/provisioning/runner.bat", "../keepAlive.ps1", "TARGETLESS"]

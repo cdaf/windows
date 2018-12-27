@@ -39,18 +39,6 @@ if ( Test-Path ".\automation\remote\capabilities.ps1" ) {
 }
 Write-Host "[$scriptName] `$atomicPath = $atomicPath"
 
-Write-Host "[$scriptName] List components of the base image`n"
-executeExpression "$atomicPath\automation\remote\capabilities.ps1"
-
-Write-Host "[$scriptName] Install Oracle Java and Chrome for headless tests, using proxy if defined (`$env:http_proxy)`n"
-if ($env:http_proxy) {	
-	executeExpression "$atomicPath\automation\provisioning\base.ps1 'jdk8 chromedriver' -proxy $env:http_proxy"
-	executeExpression "$atomicPath\automation\provisioning\base.ps1 googlechrome -checksum ignore -proxy $env:http_proxy"
-} else {
-	executeExpression "$atomicPath\automation\provisioning\base.ps1 'jdk8 chromedriver'"
-	executeExpression "$atomicPath\automation\provisioning\base.ps1 googlechrome -checksum ignore"
-}
-
 Write-Host "[$scriptName] List installed components`n"
 executeExpression "$atomicPath\automation\remote\capabilities.ps1"
 

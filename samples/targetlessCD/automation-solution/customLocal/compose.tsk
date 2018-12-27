@@ -1,50 +1,46 @@
-Write-Host "List containers current state`n"
-docker ps
-
 Write-Host "`nLoad the branch (REVISION) and container image from the manifest, placed here by package.tsk`n"
 PROPLD manifest.txt
 
 ASSIGN $id = "${SOLUTION}_${REVISION}"
+$env:WORK_SPACE = Split-Path -parent $(pwd)
+Write-host $env:WORK_SPACE
 
-cd container
+cd compose
 ..\imageBuild.ps1 ${id} ${BUILDNUMBER} ${containerImage}
 cd ..
 
 ASSIGN $composePersist = "${env:TEMP}\${id}"
 MAKDIR $composePersist
-VECOPY container\docker-compose.yml $composePersist
-VECOPY dockerLog.ps1 $composePersist
-VECOPY dockerClean.ps1 $composePersist
-VECOPY executeTests.ps1 $composePersist
-
-Write-Host "`nSolution specific files`n"
-# jar files, assemblies, etc.
-
+VECOPY compose\docker-compose.yml $composePersist
 cd $composePersist
 
-ASSIGN $env:WORK_SPACE = ${PWD}
+Write-Host "List containers current state`n"
+docker ps
 
 Write-Host "`nCleanup from previously test`n"
+ASSIGN $env:TARGET_TAG = "${id}_target"
 ASSIGN $env:TEST_TAG = "${id}_test"
 docker-compose down --remove-orphans
 docker-compose rm -f
 
 Write-Host "Set the build number to use`n"
+ASSIGN $env:TARGET_TAG = "${id}_target:${BUILDNUMBER}"
 ASSIGN $env:TEST_TAG = "${id}_test:${BUILDNUMBER}"
+
+docker-compose up -d target
+
+Write-Host "Deploy to target (allow up to 2 minutes)`n"
+ASSIGN $containerID = $(docker ps -aq --filter "ancestor=$env:TARGET_TAG")
+& $env:WORK_SPACE\TasksLocal\dockerLog.ps1 $containerID 'Watch log to keep container alive' 120
 
 docker-compose up -d test
 
-Write-Host "Now watch the test container (allowing 5 minutes to complete)`n"
+Write-Host "Execute tests (allow 5 minutes to complete)`n"
 ASSIGN $containerID = $(docker ps -aq --filter "ancestor=$env:TEST_TAG")
-./dockerLog.ps1 $containerID 'Automated Test Execution completed successfully.' 300
-
-Write-Host "List running containers`n"
-docker ps
+& $env:WORK_SPACE\TasksLocal\dockerLog.ps1 $containerID 'Automated Test Execution completed successfully.' 300
 
 Write-Host "`nTear down if not explicit varaible to retain`n"
-if (!( $env:POEWRTOOLS_COMPOSE_KEEP )) { docker-compose down }
-if (!( $env:POEWRTOOLS_COMPOSE_KEEP )) { docker-compose rm -f }
+if ( $env:PWD_COMPOSE_KEEP ) { docker ps } else { docker-compose down; docker-compose rm -f }
 
-./dockerClean.ps1 ${id}_test ${BUILDNUMBER}
-
-cd $env:WORK_SPACE
+& $env:WORK_SPACE\TasksLocal\dockerClean.ps1 ${id}_target ${BUILDNUMBER}
+& $env:WORK_SPACE\TasksLocal\dockerClean.ps1 ${id}_test ${BUILDNUMBER}

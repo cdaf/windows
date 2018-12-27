@@ -1,11 +1,10 @@
 Param (
-	[string]$url,
-	[string]$title
+	[string]$ENVIRONMENT
 )
 
 # Initialise
 cmd /c "exit 0"
-$scriptName = 'executeTests.ps1'
+$scriptName = 'executeTest.ps1'
 
 # Common expression logging and error handling function, copied, not referenced to ensure atomic process
 function executeExpression ($expression) {
@@ -47,28 +46,11 @@ function executeRetry ($expression) {
 }
 
 Write-Host "`n[$scriptName] ---------- start ----------`n"
-if ($url) {
-    Write-Host "[$scriptName] url   : $url"
+if ($ENVIRONMENT) {
+    Write-Host "[$scriptName] ENVIRONMENT : $ENVIRONMENT"
 } else {
-    Write-Host "[$scriptName] url   : (not supplied, will only test Google)" 
+    Write-Host "[$scriptName] ENVIRONMENT : (not supplied)" 
 }
-
-if ($title) {
-    Write-Host "[$scriptName] title : $title"
-} else {
-    Write-Host "[$scriptName] title : (not supplied, will only test Google)" 
-}
-
-Write-Host "[$scriptName] hostname = $(hostname)"
-Write-Host "[$scriptName] pwd      = $(pwd)`n"
-
-Write-Host "[$scriptName] Run the tests`n"
-
-if ($url) {
-	executeExpression "java -jar $(dir Portable-*-jar-with-dependencies.jar) '$url' '$title'"
-}
-
-executeExpression 'java -jar $(dir Portable-*-jar-with-dependencies.jar)'
 
 Write-Host "`n[$scriptName] Automated Test Execution completed successfully."
 
