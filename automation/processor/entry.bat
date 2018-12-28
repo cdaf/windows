@@ -7,7 +7,7 @@ set BRANCH=%2
 
 echo.
 echo [%~nx0] --------------------
-echo [%~nx0] Initialise Emulation
+echo [%~nx0] Targetless Branch CD
 echo [%~nx0] --------------------
 
 rem Launcher script that overides execution policy
