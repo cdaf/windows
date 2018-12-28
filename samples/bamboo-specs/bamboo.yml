@@ -9,8 +9,8 @@ stages:
       - scripts:
           - "automation\\processor\\buildPackage.bat ${bamboo.buildNumber} ${bamboo.repository.branch.name}"
         interpreter: cmd.exe
-        requirements:
-          - container
+#        requirements:
+#          - container
         artifacts:
           - name: Package
             path: '*.zip'
