@@ -52,6 +52,9 @@ if ($ENVIRONMENT) {
     Write-Host "[$scriptName] ENVIRONMENT : (not supplied)" 
 }
 
+Write-Host "`n[$scriptName] Execute CDAF Delivery`n"
+executeExpression ".\TasksLocal\delivery.bat $ENVIRONMENT"
+
 Write-Host "`n[$scriptName] Automated Test Execution completed successfully."
 
 Write-Host "`n[$scriptName] ---------- stop ----------"
