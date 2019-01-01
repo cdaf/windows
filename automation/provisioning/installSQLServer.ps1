@@ -89,7 +89,15 @@ if ($password) {
 $EditionId = (Get-ItemProperty -Path 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion' -Name 'EditionID').EditionId
 write-host "[$scriptName] EditionId      : $EditionId`n"
 
-$sessionControl = '-PassThru -Wait -NoNewWindow'
+if ($env:interactive) {
+	Write-Host
+    Write-Host "[$scriptName]   env:interactive is set ($env:interactive), run in current window"
+    $sessionControl = '-PassThru -Wait -NoNewWindow'
+	$logToConsole = 'true'
+} else {
+    $sessionControl = '-PassThru -Wait'
+	$logToConsole = 'false'
+}
 
 $executable = Get-ChildItem $media -Filter *.exe
 
