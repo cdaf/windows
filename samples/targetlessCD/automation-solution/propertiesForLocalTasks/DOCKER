@@ -1,3 +1,2 @@
-# Test JSON (default no action)
-# jsonfile=config.json, passed directly vis dockerfile
+# Stand-up Docker Compose environment and execute tests
 deployTaskOverride=compose.tsk
