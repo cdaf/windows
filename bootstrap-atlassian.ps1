@@ -1,5 +1,6 @@
 Param (
-	[string]$sqlSA
+	[string]$sqlSA,
+	[string]$port
 )
 
 # Common expression logging and error handling function, copied, not referenced to ensure atomic process
@@ -23,6 +24,13 @@ if ($sqlSA) {
     Write-Host "[$scriptName] sqlSA  : $sqlSA"
 } else {
     Write-Host "[$scriptName] sqlSA not supplied! Halting with lastexitcode 8832"; exit 8832
+}
+
+if ($port) {
+    Write-Host "[$scriptName] port : $port"
+} else {\
+	$port = '8080'
+    Write-Host "[$scriptName] port : $port (not supplied so set to default)"
 }
 
 Write-Host "[$scriptName] pwd    = $(pwd)"
@@ -71,7 +79,7 @@ executeExpression 'Add-Content C:\inetpub\wwwroot\web.config "                <c
 executeExpression 'Add-Content C:\inetpub\wwwroot\web.config "                <rule name=`"ReverseProxyInboundRule1`" stopProcessing=`"true`">"'
 executeExpression 'Add-Content C:\inetpub\wwwroot\web.config "                    <match url=`"(.*)`" />"'
 executeExpression 'Add-Content C:\inetpub\wwwroot\web.config "                    <conditions logicalGrouping=`"MatchAll`" trackAllCaptures=`"false`" />"'
-executeExpression 'Add-Content C:\inetpub\wwwroot\web.config "                    <action type=`"Rewrite`" url=`"http://localhost:8085/{R:1}`" />"'
+executeExpression 'Add-Content C:\inetpub\wwwroot\web.config "                    <action type=`"Rewrite`" url=`"http://localhost:$port/{R:1}`" />"'
 executeExpression 'Add-Content C:\inetpub\wwwroot\web.config "                </rule>"'
 executeExpression 'Add-Content C:\inetpub\wwwroot\web.config "            </rules>"'
 executeExpression 'Add-Content C:\inetpub\wwwroot\web.config "        </rewrite>"'
