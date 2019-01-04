@@ -18,7 +18,7 @@ node {
   
       bat 'type Jenkinsfile'
       bat 'type Vagrantfile'
-      bat 'type automation/CDAF.windows | findstr "productVersion"'
+      bat 'type automation\\CDAF.windows | findstr "productVersion"'
 
       bat 'IF EXIST .vagrant vagrant destroy -f'
       bat 'IF EXIST .vagrant vagrant box list'
