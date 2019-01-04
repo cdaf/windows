@@ -50,9 +50,6 @@ if ( Test-Path "./automation/provisioning" ) {
 }
 Write-Host "[$scriptName] `$atomicPath = $atomicPath"
 
-$msa = $sqlSA + '$'
-Write-Host "[$scriptName] Using managed service account $msa"
-
 executeExpression "$atomicPath\automation\provisioning\InstallIIS.ps1 -management yes"
 
 ## Install Application Request Routing (ARR)
