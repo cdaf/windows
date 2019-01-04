@@ -16,9 +16,9 @@ node {
 
       checkout scm
   
-      bat "cat Jenkinsfile"
-      bat "cat Vagrantfile"
-      bat "cat automation/CDAF.windows | grep productVersion"
+      bat "type Jenkinsfile"
+      bat "type Vagrantfile"
+      bat "type automation/CDAF.windows | grep productVersion"
 
       bat "IF EXIST .vagrant vagrant destroy -f"
       bat "IF EXIST .vagrant vagrant box list"
