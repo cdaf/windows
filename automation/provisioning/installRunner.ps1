@@ -1,5 +1,5 @@
 Param (
-  [string]$url,
+  [string]$register,
   [string]$token,
   [string]$name,
   [string]$tags,
@@ -28,10 +28,10 @@ cmd /c "exit 0"
 
 Write-Host "`n[$scriptName] Refer to https://docs.gitlab.com/runner/install/windows.html"
 Write-Host "`n[$scriptName] ---------- start ----------"
-if ( $url ) {
-	Write-Host "[$scriptName] url            : $url"
+if ( $register ) {
+	Write-Host "[$scriptName] register       : $register"
 } else {
-	Write-Host "[$scriptName] url            : (not supplied, will just extract the agent software)"
+	Write-Host "[$scriptName] register       : (not supplied, will just extract the agent software)"
 }
 
 if ( $token ) {
@@ -116,10 +116,10 @@ if (!($versionTest -like '*not recognized*')) {
 } 
 
 
-if ( $url ) {
+if ( $register ) {
 	
-	$printList = "--debug register --non-interactive --url $url --registration-token `$token --name $name --tag-list '$tags' --executor $executor --locked=false --shell powershell"
-	$argList = "--debug register --non-interactive --url $url --registration-token $token --name $name --tag-list '$tags' --executor $executor --locked=false --shell powershell"
+	$printList = "--debug register --non-interactive --url $register --registration-token `$token --name $name --tag-list '$tags' --executor $executor --locked=false --shell powershell"
+	$argList = "--debug register --non-interactive --url $register --registration-token $token --name $name --tag-list '$tags' --executor $executor --locked=false --shell powershell"
 	
 	if ( $tlsCAFile ) {
 		$printList = $printList + " --tls-ca-file $tlsCAFile"
