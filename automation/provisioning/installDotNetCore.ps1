@@ -59,9 +59,9 @@ if ( $version ) {
 } else {
 	if ( $sdk -eq 'yes' ) {
 		$version = '2.1.302'
-		$sdkRootURL = 'https://download.microsoft.com/download/4/0/9/40920432-3302-47a8-b13c-bbc4848ad114'
+		$sdkRoot = 'https://download.microsoft.com/download/4/0/9/40920432-3302-47a8-b13c-bbc4848ad114'
 	} else {
-		$runtimeRootURL = 'https://download.microsoft.com/download/1/f/7/1f7755c5-934d-4638-b89f-1f4ffa5afe89'
+		$runtimeRoot = 'https://download.microsoft.com/download/1/f/7/1f7755c5-934d-4638-b89f-1f4ffa5afe89'
 		$version = '2.1.2'
 	} 
 	Write-Host "[$scriptName] version  : $version (default)"
@@ -91,17 +91,17 @@ if ( Test-Path $mediaDir ) {
 
 if ( $sdk -eq 'asp' ) {
 	$file = "aspnetcore-runtime-${version}-win-x64.exe"
-	$url = "${runtimeRootURL}/${file}"
+	$url = "${runtimeRoot}/${file}"
 	$installer = "${mediaDir}\${file}"
 	downloadAndInstall $url $installer	
 }
 
 if ( $sdk -eq 'yes' ) {
 	$file = "dotnet-sdk-${version}-win-x64.exe"
-	$url = "${sdkRootURL}/$file"
+	$url = "${sdkRoot}/$file"
 } else {
 	$file = "dotnet-hosting-${version}-win.exe"
-	$url = "${runtimeRootURL}/${file}"	
+	$url = "${runtimeRoot}/${file}"	
 } 
 
 $installer = "${mediaDir}\${file}"
