@@ -1,5 +1,5 @@
 Param (
-  [string]$register,
+  [string]$url,
   [string]$token,
   [string]$name,
   [string]$tags,
@@ -28,10 +28,11 @@ cmd /c "exit 0"
 
 Write-Host "`n[$scriptName] Refer to https://docs.gitlab.com/runner/install/windows.html"
 Write-Host "`n[$scriptName] ---------- start ----------"
+$register = $url
 if ( $register ) {
-	Write-Host "[$scriptName] register       : $register"
+	Write-Host "[$scriptName] url            : $register"
 } else {
-	Write-Host "[$scriptName] register       : (not supplied, will just extract the agent software)"
+	Write-Host "[$scriptName] url            : (not supplied, will just extract the agent software)"
 }
 
 if ( $token ) {
