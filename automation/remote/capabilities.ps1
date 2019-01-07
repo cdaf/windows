@@ -237,7 +237,7 @@ $job = Start-Job {
 			}
 		}
 	} else {
-		Write-Host "`n[$scriptName] HKLM:\SOFTWARE\Classes\Installer\Dependencies not found"
+		Write-Host "`n[Capabilities.ps1] HKLM:\SOFTWARE\Classes\Installer\Dependencies not found"
 	}
 } | Wait-Job
 Receive-Job $job
