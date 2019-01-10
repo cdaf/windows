@@ -28,7 +28,7 @@ IF %BRANCH% NEQ master (
 	call powershell -NoProfile -ExecutionPolicy ByPass -command %cd%\TasksLocal\delivery.bat DOCKER
 	set result=%errorlevel%
 	if %result% NEQ 0 (
-		echo [%~nx0] ERROR call powershell -NoProfile -ExecutionPolicy ByPass -command %cd%\TasksLocal\delivery.bat BRANCHBUILD
+		echo [%~nx0] ERROR call powershell -NoProfile -ExecutionPolicy ByPass -command %cd%\TasksLocal\delivery.bat DOCKER
 		echo [%~nx0]   Return LASTEXITCODE %result% 
 		echo.
 	    echo [%~nx0] --- End Emulation Error Handling ---
