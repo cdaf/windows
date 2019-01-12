@@ -216,48 +216,25 @@ if ($skipTest -eq 'yes') {
 	Write-Host "`n[$scriptName] skipTest is ${skipTest}, tests not attempted."
 } else {
 
-	if ( Test-Path automation ) {
-		executeExpression "Remove-Item automation"
-	}	
-	if ( Test-Path readme.md ) {
-		executeExpression "Remove-Item readme.md"
-	}	
-	if ( Test-Path readme.md ) {
-		executeExpression "Remove-Item readme.md"
-	}	
-	if ( Test-Path Vagrantfile ) {
-		executeExpression "Remove-Item Vagrantfile"
-	}	
-
-	if ($boxname -like 'WindowsServer*') {
-		$zipFile = "WU-CDAF.zip"
-		if ( Test-Path $zipFile ) {
-			executeExpression "Remove-Item $zipFile"
-		}
+	if ( $boxname -Match "Windows" ) { # This tells Vagrant to use WinRM instead of SSH
+		executeExpression "(New-Object System.Net.WebClient).DownloadFile(`'https://raw.githubusercontent.com/cdaf/windows/master/samples/vagrant-test/Vagrantfile`', `"$PWD\Vagrantfile`")"
 	} else {
-		$zipFile = "LU-CDAF.zip"
-		if ( Test-Path $zipFile ) {
-			executeExpression "Remove-Item $zipFile"
-		}
+		executeExpression "(New-Object System.Net.WebClient).DownloadFile(`'https://raw.githubusercontent.com/cdaf/linux/master/samples/vagrant-test/Vagrantfile`', `"$PWD\Vagrantfile`")"
 	}
-	$url = "http://cdaf.io/static/app/downloads/$zipFile"
-	executeExpression "(New-Object System.Net.WebClient).DownloadFile('$url', '$PWD\$zipFile')"
-	executeExpression "Add-Type -AssemblyName System.IO.Compression.FileSystem"
-	executeExpression "[System.IO.Compression.ZipFile]::ExtractToDirectory('$PWD\$zipfile', '$PWD')"
-	
+
 	Write-Host "`n[$scriptName] Log vagrant file contents"
 	executeExpression "cat .\Vagrantfile"
-	
+
 	Write-Host "$logFile" "[$scriptName] Set the box to use for testing"
 	execute "`$env:OVERRIDE_IMAGE = `"cdaf/$boxname`""
-	
-	Write-Host "$logFile" "[$scriptName] vagrant up server-1"
-	$proc = Start-Process -FilePath 'vagrant' -ArgumentList 'up server-1' -PassThru -Wait -NoNewWindow
+
+	Write-Host "$logFile" "[$scriptName] vagrant up"
+	$proc = Start-Process -FilePath 'vagrant' -ArgumentList 'up' -PassThru -Wait -NoNewWindow
 	if ( $proc.ExitCode -ne 0 ) {
 		Write-Host "`n[$scriptName] Exit with `$LASTEXITCODE = $($proc.ExitCode)`n"
 	    exit $proc.ExitCode
 	}
-	
+
     Write-Host "`n[$scriptName] vagrant destroy -f"
 	Write-Host "$logFile" "[$scriptName] vagrant destroy -f"
     $proc = Start-Process -FilePath 'vagrant' -ArgumentList 'destroy -f' -PassThru -Wait -NoNewWindow

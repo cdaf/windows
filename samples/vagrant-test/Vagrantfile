@@ -1,0 +1,48 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+# All Vagrant configuration is done below. The "2" in Vagrant.configure
+# configures the configuration version (we support older styles for
+# backwards compatibility). Please don't change it unless you know what
+# you're doing.
+
+# Zip Package creation requires PowerShell v3 or above and .NET 4.5 or above.
+
+# Hyper-V uses SMB, the credentials are those for the user executing vagrant commands, if domain user, use @ format
+# [Environment]::SetEnvironmentVariable('VAGRANT_DEFAULT_PROVIDER', 'hyperv', 'Machine')
+# [Environment]::SetEnvironmentVariable('VAGRANT_SMB_USER', 'username', 'User')
+# [Environment]::SetEnvironmentVariable('VAGRANT_SMB_PASS', 'p4ssWord!', 'User')
+
+# Different VM images can be used by changing this variable, for example to use Windows Server 2016 with GUI
+# $env:OVERRIDE_IMAGE = 'cdaf/WindowsServer'
+if ENV['OVERRIDE_IMAGE']
+  vagrantBox = ENV['OVERRIDE_IMAGE']
+else
+  vagrantBox = 'cdaf/WindowsServerStandard'
+end
+
+Vagrant.configure(2) do |config|
+
+  # Build Server, fills the role of the build agent and delivers to the host above
+  config.vm.define 'test' do |test|
+    test.vm.box = "#{vagrantBox}"
+    override.vm.provision 'shell', inline: 'pwd;dir'
+    
+    # Oracle VirtualBox with private NAT has insecure deployer keys for desktop testing
+    test.vm.provider 'virtualbox' do |virtualbox, override|
+      override.vm.network 'private_network', ip: '172.16.17.100'
+    end
+    
+    # Microsoft Hyper-V does not support NAT or setting hostname. vagrant up build --provider hyperv
+    build.vm.provider 'hyperv' do |hyperv, override|
+      hyperv.vmname = "windows-build"
+      hyperv.memory = "#{vRAM}"
+      hyperv.cpus = "#{vCPU}"
+      hyperv.ip_address_timeout = 480 # 8 minutes, default is 2 minutes (120 seconds)
+      if ENV['VAGRANT_SMB_USER']
+        override.vm.synced_folder ".", "/vagrant", type: "smb", smb_username: "#{ENV['VAGRANT_SMB_USER']}", smb_password: "#{ENV['VAGRANT_SMB_PASS']}"
+      end
+    end
+  end
+
+end

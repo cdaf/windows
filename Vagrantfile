@@ -13,14 +13,6 @@
 # [Environment]::SetEnvironmentVariable('VAGRANT_SMB_USER', 'username', 'User')
 # [Environment]::SetEnvironmentVariable('VAGRANT_SMB_PASS', 'p4ssWord!', 'User')
 
-# Different VM images can be used by changing this variable, for example to use Windows Server 2016 with GUI
-# $env:OVERRIDE_IMAGE = 'cdaf/WindowsServer'
-if ENV['OVERRIDE_IMAGE']
-  vagrantBox = ENV['OVERRIDE_IMAGE']
-else
-  vagrantBox = 'cdaf/WindowsServerStandard'
-end
-
 # If this environment variable is set, RAM and CPU allocations for virtual machines are increase by this factor, so must be an integer
 # [Environment]::SetEnvironmentVariable('SCALE_FACTOR', '2', 'Machine')
 if ENV['SCALE_FACTOR']
@@ -57,7 +49,7 @@ Vagrant.configure(2) do |config|
   # Build Server connects to this host to perform deployment
   (1..MAX_SERVER_TARGETS).each do |i|
     config.vm.define "server-#{i}" do |server|
-      server.vm.box = "#{vagrantBox}"
+      server.vm.box = 'cdaf/WindowsServerStandard'
 
       server.vm.provision 'shell', path: './automation/remote/capabilities.ps1'
       server.vm.provision 'shell', path: './automation/provisioning/mkdir.ps1', args: 'C:\deploy'
@@ -82,7 +74,6 @@ Vagrant.configure(2) do |config|
         hyperv.vmname = "windows-target"
         hyperv.memory = "#{vRAM}"
         hyperv.cpus = "#{vCPU}"
-        hyperv.ip_address_timeout = 480 # 8 minutes, default is 2 minutes (120 seconds)
         if ENV['VAGRANT_SMB_USER']
           override.vm.synced_folder ".", "/vagrant", type: "smb", smb_username: "#{ENV['VAGRANT_SMB_USER']}", smb_password: "#{ENV['VAGRANT_SMB_PASS']}"
         end
@@ -92,7 +83,7 @@ Vagrant.configure(2) do |config|
 
   # Build Server, fills the role of the build agent and delivers to the host above
   config.vm.define 'build' do |build|
-    build.vm.box = "#{vagrantBox}"
+    build.vm.box = 'cdaf/WindowsServerStandard'
     build.vm.provision 'shell', path: './automation/remote/capabilities.ps1'
     
     # Oracle VirtualBox with private NAT has insecure deployer keys for desktop testing
@@ -120,7 +111,6 @@ Vagrant.configure(2) do |config|
       hyperv.vmname = "windows-build"
       hyperv.memory = "#{vRAM}"
       hyperv.cpus = "#{vCPU}"
-      hyperv.ip_address_timeout = 480 # 8 minutes, default is 2 minutes (120 seconds)
       if ENV['VAGRANT_SMB_USER']
         override.vm.synced_folder ".", "/vagrant", type: "smb", smb_username: "#{ENV['VAGRANT_SMB_USER']}", smb_password: "#{ENV['VAGRANT_SMB_PASS']}"
       end
