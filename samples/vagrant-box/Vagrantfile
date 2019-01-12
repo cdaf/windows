@@ -14,4 +14,8 @@ Vagrant.configure(2) do |config|
   config.winrm.retry_limit = 200 # from https://github.com/mitchellh/vagrant/issues/6430
   config.winrm.retry_delay = 10  # from https://github.com/mitchellh/vagrant/issues/6430
   config.vm.graceful_halt_timeout = 600
+  #hyper-v: config.vm.provider 'hyperv' do |hyperv, override|
+  #hyper-v:   hyperv.ip_address_timeout = 600 # 10 minutes
+  #hyper-v:   hyperv.auto_start_action = 'Start'
+  #hyper-v: end
 end
