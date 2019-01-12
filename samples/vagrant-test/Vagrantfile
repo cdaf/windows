@@ -26,7 +26,7 @@ Vagrant.configure(2) do |config|
   # Build Server, fills the role of the build agent and delivers to the host above
   config.vm.define 'test' do |test|
     test.vm.box = "#{vagrantBox}"
-    override.vm.provision 'shell', inline: 'pwd;dir'
+    test.vm.provision 'shell', inline: 'pwd;dir'
     
     # Oracle VirtualBox with private NAT has insecure deployer keys for desktop testing
     test.vm.provider 'virtualbox' do |virtualbox, override|
@@ -34,11 +34,7 @@ Vagrant.configure(2) do |config|
     end
     
     # Microsoft Hyper-V does not support NAT or setting hostname. vagrant up build --provider hyperv
-    build.vm.provider 'hyperv' do |hyperv, override|
-      hyperv.vmname = "windows-build"
-      hyperv.memory = "#{vRAM}"
-      hyperv.cpus = "#{vCPU}"
-      hyperv.ip_address_timeout = 480 # 8 minutes, default is 2 minutes (120 seconds)
+    test.vm.provider 'hyperv' do |hyperv, override|
       if ENV['VAGRANT_SMB_USER']
         override.vm.synced_folder ".", "/vagrant", type: "smb", smb_username: "#{ENV['VAGRANT_SMB_USER']}", smb_password: "#{ENV['VAGRANT_SMB_PASS']}"
       end
