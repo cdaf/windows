@@ -26,7 +26,7 @@ Vagrant.configure(2) do |config|
   # Build Server, fills the role of the build agent and delivers to the host above
   config.vm.define 'test' do |test|
     test.vm.box = "#{vagrantBox}"
-    test.vm.provision 'shell', inline: 'pwd;dir'
+    test.vm.provision 'shell', inline: 'Write-Host "pwd    = $(pwd)";whoami = $(whoami)'
     
     # Oracle VirtualBox with private NAT has insecure deployer keys for desktop testing
     test.vm.provider 'virtualbox' do |virtualbox, override|
