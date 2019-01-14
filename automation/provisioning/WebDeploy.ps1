@@ -121,7 +121,12 @@ if ( $InstallPath ) {
 		    if(!$?) { $installFile = listAndContinue }
 		} catch { $installFile = listAndContinue }
 
-		Write-Host "[$scriptName] Attempt download"
+		if ( $env:http_proxy ) {
+			Write-Host "[$scriptName] Attempt download using proxy"
+			executeExpression "[system.net.webrequest]::defaultwebproxy = new-object system.net.webproxy('$env:http_proxy')"
+		} else {
+			Write-Host "[$scriptName] Attempt download without proxy (set `$env:http_proxy to use)"
+		}
 		executeExpression "(New-Object System.Net.WebClient).DownloadFile('$uri', '$installFile')"
 	}
 	
