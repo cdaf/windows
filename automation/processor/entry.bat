@@ -4,6 +4,7 @@ cmd /c "exit 0"
 rem Too complicated to derive automation root from Batch runner, so hard coded for windows.
 set BUILDNUMBER=%1
 set BRANCH=%2
+set ACTION=%3
 
 echo.
 echo [%~nx0] --------------------
