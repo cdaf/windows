@@ -119,8 +119,9 @@ writeLog "Deployment Image Servicing and Management (DISM.exe) clean-up"
 executeIgnoreExit "Dism.exe /online /Cleanup-Image /StartComponentCleanup /ResetBase /Quiet"
 
 writeLog "Windows Server Update service (WSUS) Clean-up"
-executeExpression "Set-Service wuauserv -StartupType Manual"
+executeExpression "Set-Service wuauserv -StartupType Disabled"
 executeExpression "Stop-Service wuauserv"
+executeExpression "Get-Service wuauserv | select -property name,status,starttype | Format-Table"
 if ( Test-Path $env:systemroot\SoftwareDistribution ) {
     executeExpression "Remove-Item  $env:systemroot\SoftwareDistribution -Recurse -Force"
 }
