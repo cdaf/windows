@@ -6,12 +6,20 @@ name: $(TeamProject)_$(BuildDefinitionName)_$(SourceBranchName)_$(Date:yyyyMMdd)
 
 pool:
   vmImage: 'vs2017-win2016'
-  
+
+# For a private pool, in this example, named Private requiring the capability of PowerShell
+#pool: 
+#  name: Azure
+#  demands: PowerShell
+
+# or pool with no demands
+#pool: Azure
+
 variables:
   buildConfiguration: 'Release'
 
 steps:
 - script: |
-    automation\processor\buildPackage.bat $(Build.BuildId) $(Build.SourceBranchName) staging@$(Build.ArtifactStagingDirectory)
+    automation\processor\entry.bat $(Build.BuildId) $(Build.SourceBranchName) staging@$(Build.ArtifactStagingDirectory)
 
 - task: PublishBuildArtifacts@1
