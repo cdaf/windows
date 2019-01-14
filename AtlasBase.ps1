@@ -142,7 +142,7 @@ if (([adsi]"WinNT://./vagrant,user").path ) {
 }
 
 if ( $skipUpdates -eq 'yes' ) {
-    executeExpression "SC.EXE CONFIG wuauserv start= disabled"
+    executeExpression "Set-Service wuauserv -StartupType Disabled"
     executeExpression "Stop-Service wuauserv"
     executeExpression "Get-Service wuauserv | select -property name,status,starttype | Format-Table"
 	emailProgress "Base image complete (no updates applied), shutdown ..."
