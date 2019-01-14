@@ -41,7 +41,7 @@ ASSIGN $containerID = $(docker ps -aq --filter "ancestor=$env:TEST_TAG")
 & $env:WORK_SPACE\TasksLocal\dockerLog.ps1 $containerID 'Automated Test Execution completed successfully.' 300
 
 Write-Host "`nTear down if not explicit varaible to retain`n"
-if ( $env:PWD_COMPOSE_KEEP ) { docker ps } else { docker-compose down; docker-compose rm -f }
+if ( $env:COMPOSE_KEEP ) { docker ps } else { docker-compose down; docker-compose rm -f }
 
 & $env:WORK_SPACE\TasksLocal\dockerClean.ps1 ${id}_target ${BUILDNUMBER}
 & $env:WORK_SPACE\TasksLocal\dockerClean.ps1 ${id}_test ${BUILDNUMBER}
