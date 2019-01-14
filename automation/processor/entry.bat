@@ -13,10 +13,10 @@ echo [%~nx0] --------------------
 rem Launcher script that overides execution policy
 rem cannot elevate powershell
 
-call powershell -NoProfile -ExecutionPolicy ByPass -command %cd%\automation\processor\buildPackage.bat %BUILDNUMBER% %BRANCH%
+call powershell -NoProfile -ExecutionPolicy ByPass -command %cd%\automation\processor\buildPackage.bat %BUILDNUMBER% %BRANCH% %ACTION%
 set result=%errorlevel%
 if %result% NEQ 0 (
-	echo [%~nx0] ERROR call powershell -NoProfile -ExecutionPolicy ByPass -command %cd%\automation\processor\buildPackage.bat %BUILDNUMBER% %BRANCH%
+	echo [%~nx0] ERROR call powershell -NoProfile -ExecutionPolicy ByPass -command %cd%\automation\processor\buildPackage.bat %BUILDNUMBER% %BRANCH% %ACTION%
 	echo [%~nx0]   Return LASTEXITCODE %result% 
 	echo.
     echo [%~nx0] --- End Emulation Error Handling ---
