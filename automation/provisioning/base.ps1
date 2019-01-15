@@ -21,14 +21,14 @@ function executeExpression ($expression) {
     if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) {
 		Write-Host "[$scriptName] `$LASTEXITCODE = ${LASTEXITCODE}, listing log file contents ..."
 		cat C:\ProgramData\chocolatey\logs\chocolatey.log | findstr 'ERROR'
-		exit $LASTEXITCODE
+		exit 4 # do not use $LASTEXITCODE as it is a negative value 
 	}
 }
 
 Write-Host "[$scriptName] Install components using Chocolatey.`n"
 Write-Host "[$scriptName] ---------- start ----------"
 if ($install) {
-    Write-Host "[$scriptName] install    : $install"
+    Write-Host "[$scriptName] install    : $install (can be space separated list)"
 } else {
     Write-Host "[$scriptName] Package to install not supplied, exiting with LASTEXITCODE 4"; exit 4 
 }
@@ -43,7 +43,12 @@ if ($mediaDir) {
 if ($proxy) {
     Write-Host "[$scriptName] proxy      : $proxy`n"
 } else {
-    Write-Host "[$scriptName] proxy      : (not supplied)"
+	if ( $env:http_proxy ) {
+		$proxy = $env:http_proxy
+	    Write-Host "[$scriptName] proxy      : (not supplied, but defaulted from `$env:http_proxy)"
+    } else {
+	    Write-Host "[$scriptName] proxy      : (not supplied)"
+    }
 }
 
 if ($version) {
@@ -118,10 +123,13 @@ if ($versionTest -like '*not recognized*') {
 	}
 
 }
-Write-Host "[$scriptName] Chocolatey : $versionTest"
+Write-Host "[$scriptName] Chocolatey : $versionTest`n"
 
-Write-Host
-executeExpression "choco install -y $install --no-progress --fail-on-standard-error $checksum $version"
+# if processed as a list and any item other than the last fails, choco will return a false possitive
+Write-Host "[$scriptName] Process each package separately to trap failures`n"
+$install.Split(" ") | ForEach {
+	executeExpression "choco install -y $_ --no-progress --fail-on-standard-error $checksum $version"
+}
 
 Write-Host "`n[$scriptName] Reload the path`n"
 executeExpression '$env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")'
