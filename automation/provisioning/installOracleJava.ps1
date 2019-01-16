@@ -27,8 +27,8 @@ if ( $java_version ) {
 	$java_version,$urlUID = $java_version.split('@')
 	Write-Host "[$scriptName] java_version          : ${java_version}@${urlUID} (must be passed as version@urlUID)"
 } else {
-	$java_version = '8u192'
-	$urlUID = '8u192-b12/750e1c8617c5452694857ad95c3ee230'
+	$java_version = '8u201'
+	$urlUID = '8u201-b09/42970487e3af4f5aa5bca3f542482c60'
 	Write-Host "[$scriptName] java_version          : ${java_version}@${urlUID} (default)"
 }
 
@@ -80,7 +80,6 @@ if (!( Test-Path "$installer" )) {
 	$client.Headers.Add([System.Net.HttpRequestHeader]::Cookie, $cookie) 
 	$uri = "http://download.oracle.com/otn-pub/java/jdk/${urlUID}/jdk-${java_version}-windows-x64.exe"
 	executeExpression "`$client.DownloadFile('$uri', '$sourceInstallDir\$jdkInstallFileName')"
-
 }
 
 $installer = "$sourceInstallDir\$jdkInstallFileName"
