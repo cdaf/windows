@@ -3,7 +3,8 @@ Param (
 	[string]$mediaDir,
 	[string]$proxy,
 	[string]$version,
-	[string]$checksum
+	[string]$checksum,
+	[string]$otherArgs	
 )
 
 cmd /c "exit 0"
@@ -69,13 +70,18 @@ if ($checksum) {
     Write-Host "[$scriptName] checksum   : (not supplied)"
 }
 
+if ($otherArgs) {
+    Write-Host "[$scriptName] otherArgs  : $otherArgs`n"
+} else {
+    Write-Host "[$scriptName] otherArgs  : (not supplied)"
+}
+
 if ($proxy) {
     Write-Host "`n[$scriptName] Load common proxy settings`n"
     executeExpression "[system.net.webrequest]::defaultwebproxy = new-object system.net.webproxy('$proxy')"
     executeExpression "`$env:chocolateyProxyLocation = '$proxy'"
     executeExpression "`$env:http_proxy = '$proxy'"
 }
-
 
 $versionTest = cmd /c choco --version 2`>`&1
 if ($versionTest -like '*not recognized*') {
@@ -128,7 +134,7 @@ Write-Host "[$scriptName] Chocolatey : $versionTest`n"
 # if processed as a list and any item other than the last fails, choco will return a false possitive
 Write-Host "[$scriptName] Process each package separately to trap failures`n"
 $install.Split(" ") | ForEach {
-	executeExpression "choco install -y $_ --no-progress --fail-on-standard-error $checksum $version"
+	executeExpression "choco install -y $_ --no-progress --fail-on-standard-error $checksum $version $otherArgs"
 
 	Write-Host "`n[$scriptName] Reload the path`n"
 	executeExpression '$env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")'
