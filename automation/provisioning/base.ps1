@@ -129,10 +129,10 @@ Write-Host "[$scriptName] Chocolatey : $versionTest`n"
 Write-Host "[$scriptName] Process each package separately to trap failures`n"
 $install.Split(" ") | ForEach {
 	executeExpression "choco install -y $_ --no-progress --fail-on-standard-error $checksum $version"
-}
 
-Write-Host "`n[$scriptName] Reload the path`n"
-executeExpression '$env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")'
+	Write-Host "`n[$scriptName] Reload the path`n"
+	executeExpression '$env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")'
+}
 
 Write-Host "`n[$scriptName] ---------- stop ----------"
 exit 0
