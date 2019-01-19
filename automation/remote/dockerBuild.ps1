@@ -2,7 +2,8 @@ Param (
 	[string]$imageName,
 	[string]$tag,
 	[string]$version,
-	[string]$rebuild
+	[string]$rebuild,
+	[string]$optionalArgs
 )
 
 $scriptName = 'dockerBuild.ps1'
@@ -85,6 +86,10 @@ if ($env:http_proxy) {
 
 if ($rebuild -eq 'yes') {
 	$buildCommand += " --no-cache=true"
+}
+
+if ( $optionalArgs ) {
+	$buildCommand += " $optionalArgs"
 }
 
 if ($env:CONTAINER_IMAGE) {

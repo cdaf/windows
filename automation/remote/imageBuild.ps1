@@ -1,7 +1,8 @@
 Param (
 	[string]$id,
 	[string]$BUILDNUMBER,
-	[string]$containerImage
+	[string]$containerImage,
+	[string]$optionalArgs
 )
 
 $scriptName = 'imageBuild.ps1'
@@ -126,7 +127,11 @@ foreach ($server in (Get-ChildItem -Path "." -directory)) {
 	executeExpression "cp -Recurse ../automation ${persist}\${server}"
 	executeExpression "cd ${persist}\${server}"
 	executeExpression "cat Dockerfile"
-	executeExpression "./dockerBuild.ps1 ${id}_${server} $BUILDNUMBER"
+	if ( $optionalArgs ) {
+		executeExpression "./dockerBuild.ps1 ${id}_${server} $BUILDNUMBER -optionalArgs '${optionalArgs}'"
+	} else {
+		executeExpression "./dockerBuild.ps1 ${id}_${server} $BUILDNUMBER"
+	}
 	executeExpression "cd $workspace"
 }
 
