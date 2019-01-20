@@ -15,6 +15,13 @@ function executeExpression ($expression) {
 
 Write-Host "`n[$scriptName] ---------- start ----------"
 
+if ($env:http_proxy) {
+    Write-Host "[$scriptName] `$env:http_proxy : $env:http_proxy`n"
+    executeExpression "[system.net.webrequest]::defaultwebproxy = new-object system.net.webproxy('$env:http_proxy')"
+} else {
+    Write-Host "[$scriptName] `$env:http_proxy : (not set)`n"
+}
+
 $zipFile = 'WU-CDAF.zip'
 $cdafBase = 'http://cdaf.io/static/app/downloads'
 $url = "${cdafBase}/${zipFile}"
