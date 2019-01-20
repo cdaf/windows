@@ -31,6 +31,19 @@ if ($displayName) {
     Write-Host "[$scriptName] displayName : not supplied, default to Port Number ($displayName)"
 }
 
-executeExpression "New-NetFirewallRule -DisplayName `"$displayName`" -Direction Inbound –Protocol TCP –LocalPort $portNumber -Action allow"
+# if any zone (private|public|domain) is enabled, then apply rule
+try {
+	$firewallProfiles = get-netfirewallprofile -ErrorAction SilentlyContinue
+} catch {
+    Write-Host "[$scriptName] Firewall service not available, so no action attempted."
+}
+$firewallon = $false
+foreach ($zone in $firewallProfiles) { if ( $zone.enabled ) { $firewallon = $zone.enabled }}
+if ( $firewallon ) {
+	executeExpression "New-NetFirewallRule -DisplayName `"$displayName`" -Direction Inbound –Protocol TCP –LocalPort $portNumber -Action allow"
+} else {
+    Write-Host "[$scriptName] Firewall not enabled for private, public or domain so no action attempted."
+}
 
 Write-Host "`n[$scriptName] ---------- stop ----------"
+$error.clear()
