@@ -23,6 +23,10 @@ if ($path) {
     Write-Host "[$scriptName] path not supplied, exit with `$LASTEXITCODE = 1"; exit 1
 }
 
+if ( ! ( Test-Path $path )) {
+	Write-Host "`n[$scriptName] Created directory $(mkdir $path)"
+}
+
 Write-Host "`n[$scriptName] `$acl = Get-Acl $path"
 $acl = Get-Acl $path
 executeExpression "Set-Acl '$path' `$acl"
