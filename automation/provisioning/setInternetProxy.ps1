@@ -25,8 +25,6 @@ if ($httpProxy) {
 	if ($env:http_proxy) {
 		$httpProxy = $env:http_proxy
 	    Write-Host "[$scriptName] httpProxy                     : $httpProxy (not passed, but derived from `$env:http_proxy)"
-	} else {
-	    Write-Host "[$scriptName] httpProxy not passed and unable to derive from `$env:http_proxy, exit without attempting any changes" -ForegroundColor 'Yellow' 
 	}
 }
 
@@ -36,18 +34,25 @@ if ($automaticeConfigurationScript) {
     Write-Host "[$scriptName] automaticeConfigurationScript : (not supplied)"
 }
 
-$protocol,$prefix,$port = $httpProxy.split(':')
-$address = $prefix.Replace('/', '')
-$regKey = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Internet Settings"
-executeExpression "Set-ItemProperty -path '$regKey' ProxyEnable -value 1"
-executeExpression "Set-ItemProperty -path '$regKey' ProxyServer -value '${address}:${port}'"
-
-Write-Host "`n[$scriptName] List current settings before changing`n"
-executeExpression "netsh winhttp show proxy"
-executeExpression "netsh winhttp set proxy '${address}:${port}'"
-
-if ($automaticeConfigurationScript) {
-    executeExpression "Set-ItemProperty -path $regKey AutoConfigURL -Value $automaticeConfigurationScript"
+if ($httpProxy) {
+    Write-Host "[$scriptName] httpProxy                     : $httpProxy (can be space separated list)"
+	executeExpression "[system.net.webrequest]::defaultwebproxy = new-object system.net.webproxy('$httpProxy')"
+	
+	$protocol,$prefix,$port = $httpProxy.split(':')
+	$address = $prefix.Replace('/', '')
+	$regKey = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Internet Settings"
+	executeExpression "Set-ItemProperty -path '$regKey' ProxyEnable -value 1"
+	executeExpression "Set-ItemProperty -path '$regKey' ProxyServer -value '${address}:${port}'"
+	
+	Write-Host "`n[$scriptName] List current settings before changing`n"
+	executeExpression "netsh winhttp show proxy"
+	executeExpression "netsh winhttp set proxy '${address}:${port}'"
+	
+	if ($automaticeConfigurationScript) {
+	    executeExpression "Set-ItemProperty -path $regKey AutoConfigURL -Value $automaticeConfigurationScript"
+	}
+} else {
+    Write-Host "[$scriptName] httpProxy not passed and unable to derive from `$env:http_proxy, exit without attempting any changes" -ForegroundColor 'Yellow' 
 }
 
 Write-Host "`n[$scriptName] ---------- stop ----------"
