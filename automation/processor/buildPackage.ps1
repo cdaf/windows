@@ -14,6 +14,19 @@ function executeExpression ($expression) {
     if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) { Write-Host "[$scriptName] `$LASTEXITCODE = $LASTEXITCODE "; exit $LASTEXITCODE }
 }
 
+# Common expression logging and error handling function, copied, not referenced to ensure atomic process
+function executeReturn ($expression) {
+	$error.clear()
+	Write-Host "[$scriptName] $expression"
+	try {
+		$output = Invoke-Expression $expression
+	    if(!$?) { Write-Host "[$scriptName] `$? = $?"; exit 1 }
+	} catch { Write-Output $_.Exception|format-list -force; exit 2 }
+    if ( $error[0] ) { Write-Host "[$scriptName] `$error[0] = $error"; exit 3 }
+    if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) { Write-Host "[$scriptName] `$LASTEXITCODE = $LASTEXITCODE "; exit $LASTEXITCODE }
+    return $output
+}
+
 # Entry Point for Build Process, child scripts inherit the functions of parent scripts, so these definitions are global for the CI process
 # Primary powershell, returns exitcode to DOS
 function exitWithCode ($message, $exitCode) {
@@ -152,26 +165,6 @@ Write-Host "[$scriptName]   whoami          : $(whoami)"
 $cdafVersion = getProp 'productVersion' "$AUTOMATIONROOT\CDAF.windows"
 Write-Host "[$scriptName]   CDAF Version    : $cdafVersion"
 
-# CDAF 1.6.7 Container Build process
-if ( $ACTION -eq 'containerbuild' ) {
-	Write-Host "`n[$scriptName] `$ACTION = $ACTION, skip detection.`n"
-} else {
-	$containerBuild = getProp 'containerBuild' "$solutionRoot\CDAF.solution"
-	if ( $containerBuild ) {
-		$versionTest = cmd /c docker --version 2`>`&1; cmd /c "exit 0"
-		if ($versionTest -like '*not recognized*') {
-			Write-Host "[$scriptName]   containerBuild  : containerBuild defined in $solutionRoot\CDAF.solution, but Docker not installed, will attempt to execute natively"
-			Clear-Variable -Name 'containerBuild'
-		} else {
-			$array = $versionTest.split(" ")
-			$dockerRun = $($array[2])
-			Write-Host "[$scriptName]   Docker          : $dockerRun"
-		}
-	} else {
-		Write-Host "[$scriptName]   containerBuild  : (not defined in $solutionRoot\CDAF.solution)"
-	}
-}
-
 $containerImage = getProp 'containerImage' "$solutionRoot\CDAF.solution"
 if ( $containerImage ) {
 	if (($env:CONTAINER_IMAGE) -or ($CONTAINER_IMAGE)) {
@@ -185,6 +178,51 @@ if ( $containerImage ) {
 	} else {
 		$env:CONTAINER_IMAGE = $containerImage
 		Write-Host "[$scriptName]   CONTAINER_IMAGE : $env:CONTAINER_IMAGE (set to `$containerImage)"
+	}
+}
+
+# CDAF 1.6.7 Container Build process
+if ( $ACTION -eq 'containerbuild' ) {
+	Write-Host "`n[$scriptName] `$ACTION = $ACTION, skip detection.`n"
+} else {
+	$containerBuild = getProp 'containerBuild' "$solutionRoot\CDAF.solution"
+	if ( $containerBuild ) {
+		$versionTest = cmd /c docker --version 2`>`&1; cmd /c "exit 0"
+		if ($versionTest -like '*not recognized*') {
+			Write-Host "[$scriptName]   containerBuild  : containerBuild defined in $solutionRoot\CDAF.solution, but Docker not installed, will attempt to execute natively"
+			Clear-Variable -Name 'containerBuild'
+		} else {
+			Write-Host "[$scriptName]   containerBuild  : $containerBuild"
+			$array = $versionTest.split(" ")
+			$dockerRun = $($array[2])
+			Write-Host "[$scriptName]   Docker          : $dockerRun"
+			# Test Docker is running
+			If (Get-Service Docker -ErrorAction SilentlyContinue) {
+				$dockerStatus = executeReturn '(Get-Service Docker).Status'
+				$dockerStatus
+				if ( $dockerStatus -ne 'Running' ) {
+					Write-Host "[$scriptName] Docker service not running, `$dockerStatus = $dockerStatus"
+					executeExpression 'Start-Service Docker'
+					Write-Host '$dockerStatus = ' -NoNewline 
+					$dockerStatus = executeReturn '(Get-Service Docker).Status'
+					$dockerStatus
+					if ( $dockerStatus -ne 'Running' ) {
+						Write-Host "[$scriptName] Unable to start Docker, `$dockerStatus = $dockerStatus"
+						exit 8910
+					}
+				}
+			}
+			
+			Write-Host "[$scriptName] List all current images"
+			Write-Host "docker images 2> NULL"
+			docker images 2> NULL
+			if ( $LASTEXITCODE -ne 0 ) {
+				Write-Host "[$scriptName] Docker not responding, will attempt to execute natively"
+				Clear-Variable -Name 'containerBuild'
+			}
+		}
+	} else {
+		Write-Host "[$scriptName]   containerBuild  : (not defined in $solutionRoot\CDAF.solution)"
 	}
 }
 

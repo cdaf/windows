@@ -20,19 +20,6 @@ function executeExpression ($expression) {
     if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) { Write-Host "[$scriptName] `$LASTEXITCODE = $LASTEXITCODE "; exit $LASTEXITCODE }
 }
 
-# Common expression logging and error handling function, copied, not referenced to ensure atomic process
-function executeReturn ($expression) {
-	$error.clear()
-	Write-Host "[$scriptName] $expression"
-	try {
-		$output = Invoke-Expression $expression
-	    if(!$?) { Write-Host "[$scriptName] `$? = $?"; exit 1 }
-	} catch { Write-Output $_.Exception|format-list -force; exit 2 }
-    if ( $error[0] ) { Write-Host "[$scriptName] `$error[0] = $error"; exit 3 }
-    if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) { Write-Host "[$scriptName] `$LASTEXITCODE = $LASTEXITCODE "; exit $LASTEXITCODE }
-    return $output
-}
-
 cmd /c "exit 0"
 # Use the CDAF provisioning helpers
 Write-Host "`n[$scriptName] ---------- start ----------`n"
@@ -77,29 +64,6 @@ Write-Host "[$scriptName]   pwd          : $(Get-Location)"
 Write-Host "[$scriptName]   hostname     : $(hostname)"
 Write-Host "[$scriptName]   whoami       : $(whoami)"
 Write-Host '$dockerStatus = ' -NoNewline 
-
-# Test Docker is running
-If (Get-Service Docker -ErrorAction SilentlyContinue) {
-	$dockerStatus = executeReturn '(Get-Service Docker).Status'
-	$dockerStatus
-	if ( $dockerStatus -ne 'Running' ) {
-		Write-Host "[$scriptName] Docker service not running, `$dockerStatus = $dockerStatus"
-		executeExpression 'Start-Service Docker'
-		Write-Host '$dockerStatus = ' -NoNewline 
-		$dockerStatus = executeReturn '(Get-Service Docker).Status'
-		$dockerStatus
-		if ( $dockerStatus -ne 'Running' ) {
-			Write-Host "[$scriptName] Unable to start Docker, `$dockerStatus = $dockerStatus"
-			exit 8910
-		}
-	}
-} else {
-	Write-Host "service not installed, assuming Windows 10, switch to Windows Containers to proceed."
-	exit 8911
-}
-
-Write-Host "[$scriptName] List all current images"
-executeExpression "docker images"
 
 $imageTag = 0
 foreach ( $imageDetails in docker images --filter label=cdaf.${imageName}.image.version --format "{{.Tag}}" ) {
