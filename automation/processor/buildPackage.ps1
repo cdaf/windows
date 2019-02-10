@@ -214,8 +214,8 @@ if ( $ACTION -eq 'containerbuild' ) {
 			}
 			
 			Write-Host "[$scriptName] List all current images"
-			Write-Host "docker images 2> NULL"
-			docker images 2> NULL
+			Write-Host "docker images 2> `$null"
+			docker images 2> $null
 			if ( $LASTEXITCODE -ne 0 ) {
 				Write-Host "[$scriptName] Docker not responding, will attempt to execute natively"
 				Clear-Variable -Name 'containerBuild'
