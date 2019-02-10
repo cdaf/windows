@@ -30,12 +30,15 @@ if %result% NEQ 0 (
 IF "%BRANCH%" == "master" (
 	echo [%~nx0] Only perform container test in CI for branches, Master execution in CD pipeline
 	exit /b 0
-) ELSE (
-	GOTO :EXITNEST
 )
 
-# REM Do not call from within IF statement or errorlevel is lost
-:EXITNEST
+IF "%BRANCH%" == "refs/heads/master" (
+	echo [%~nx0] Only perform container test in CI for branches, Master execution in CD pipeline
+	exit /b 0
+)
+
+REM Do not call from within IF statement or errorlevel is lost
+echo [%~nx0] Only perform container test in CI for branches, CD for branch %BRANCH%
 call %CD%\TasksLocal\delivery.bat DOCKER
 SET result=%ERRORLEVEL%
 if %result% NEQ 0 (
