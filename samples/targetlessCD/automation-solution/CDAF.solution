@@ -1,0 +1,9 @@
+# Template Solution Properties file
+# If using symantic versioning, append build number at the end of version
+productVersion=0.2.6
+productName=Windows Container Test
+solutionName=selenium
+containerBuild=automation/processor/containerBuild.ps1 $SOLUTION $BUILDNUMBER $REVISION $ACTION
+containerImage=microsoft/windowsservercore@sha256:efd8555802bd74561e0ec7652ca9bfbe8d4846e2ed4bf5b1fcf5d3048767a82a
+# imageBuild=automation-solution/imageBuild.ps1 $SOLUTION $BUILDNUMBER $REVISION $ACTION
+# processSequence=localTasks.ps1 remoteTasks.ps1
