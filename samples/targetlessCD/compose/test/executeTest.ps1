@@ -57,6 +57,17 @@ executeExpression ".\TasksLocal\delivery.bat $ENVIRONMENT"
 
 Write-Host "`n[$scriptName] Automated Test Execution completed successfully."
 
-Write-Host "`n[$scriptName] ---------- stop ----------"
-$error.clear()
-cmd /c "exit 0"
+
+if ( $env:COMPOSE_KEEP -eq 'yes' ) {
+	$logFile = "$env:TEMP\psd.log"
+	Add-Content $logFile '[START] ---------- Watch log to keep container alive ----------'
+	Add-Content $logFile "[START] $(date)"
+	Write-Host "[$scriptName] Get-Content $logFile -Wait -Tail 1000"
+	
+	Get-Content $logFile -Wait -Tail 1000
+
+} else {
+	Write-Host "`n[$scriptName] ---------- stop ----------"
+	$error.clear()
+	cmd /c "exit 0"
+}

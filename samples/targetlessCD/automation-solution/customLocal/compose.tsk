@@ -7,7 +7,7 @@ $env:WORK_SPACE = Split-Path -parent $(pwd)
 Write-host $env:WORK_SPACE
 
 cd compose
-..\imageBuild.ps1 ${id} ${BUILDNUMBER} ${containerImage}
+..\imageBuild.ps1 ${id} ${BUILDNUMBER} ${containerImage} '--build-arg COMPOSE_KEEP=$env:COMPOSE_KEEP'
 cd ..
 
 ASSIGN $composePersist = "${env:TEMP}\${id}"
