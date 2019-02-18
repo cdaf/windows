@@ -1,9 +1,11 @@
 $scriptName = 'Capabilities.ps1'
 
 Write-Host "`n[$scriptName] ---------- start ----------"
-Write-Host "`n[$scriptName] List networking"
-Write-Host "[$scriptName]   Hostname  : $(hostname)"
+Write-Host "[$scriptName]   hostname  : $(hostname)"
+Write-Host "[$scriptName]   pwd       : $(pwd)"
+Write-Host "[$scriptName]   whoami    : $(whoami)" 
 
+Write-Host "`n[$scriptName] List networking"
 if ((gwmi win32_computersystem).partofdomain -eq $true) {
 	Write-Host "[$scriptName]   Domain    : $((gwmi win32_computersystem).domain)"
 } else {
@@ -14,9 +16,7 @@ foreach ($item in Get-WmiObject -Class Win32_NetworkAdapterConfiguration -Filter
 	Write-Host "[$scriptName]          IP : $($item.IPAddress)"
 }
 
-Write-Host
-Write-Host "[$scriptName] List the Computer architecture"
-Write-Host
+Write-Host "`n[$scriptName] List the Computer architecture`n"
 $computer = "."
 $sOS =Get-WmiObject -class Win32_OperatingSystem -computername $computer
 foreach($sProperty in $sOS) {
