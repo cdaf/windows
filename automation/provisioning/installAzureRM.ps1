@@ -13,7 +13,7 @@ function executeRetry ($expression) {
 	while (( $retryCount -le $retryMax ) -and ($exitCode -ne 0)) {
 		$exitCode = 0
 		$error.clear()
-		Write-Host "$expression"
+		Write-Host "[$retryCount] $expression"
 		try {
 			Invoke-Expression $expression
 		    if(!$?) { Write-Host "[$scriptName] `$? = $?" -ForegroundColor Red; $exitCode = 1 }

@@ -31,12 +31,13 @@ $SOLUTIONROOT = $args[4]
 if (-not($SOLUTIONROOT)) { passExitCode "SOLUTIONROOT_NOT_PASSED" 104 }
 Write-Host "[$scriptName]   SOLUTIONROOT      : $SOLUTIONROOT"
 
-$propertiesDriver = "$SOLUTIONROOT\properties.cm"
-Write-Host –NoNewLine "[$scriptName]   Properties Driver : " 
-if (Test-Path "$propertiesDriver") {
-	Write-Host "found ($propertiesDriver)"
+$configManagementList = Get-ChildItem -Path "$SOLUTIONROOT" -Name '*.cm'
+if ( $configManagementList ) {
+	foreach ($item in $configManagementList) {
+		Write-Host "[$scriptName]   Properties Driver : $item"
+	}
 } else {
-	Write-Host "none ($propertiesDriver)"
+		Write-Host "[$scriptName]   Properties Driver : none ($SOLUTIONROOT\*.cm)"
 }
 
 $ACTION = $args[5]
@@ -75,8 +76,8 @@ write-host "`n[$scriptName] Load solution properties ..."
 Write-Host "`n[$scriptName] Clean temp files and folders from workspace" 
 removeTempFiles
 
-# Properties generator (added in release 1.7.8)
-if (Test-Path "$propertiesDriver") {
+# Properties generator (added in release 1.7.8, extended to list in 1.8.11)
+foreach ($propertiesDriver in $configManagementList) {
 	Write-Host "`n[$scriptName] Generating properties files from ${propertiesDriver}"
 	$columns = (-split (Get-Content ${propertiesDriver} -First 1))
 	foreach ($line in (Get-Content ${propertiesDriver}) ) {
