@@ -79,8 +79,8 @@ removeTempFiles
 # Properties generator (added in release 1.7.8, extended to list in 1.8.11)
 foreach ($propertiesDriver in $configManagementList) {
 	Write-Host "`n[$scriptName] Generating properties files from ${propertiesDriver}"
-	$columns = (-split (Get-Content ${propertiesDriver} -First 1))
-	foreach ($line in (Get-Content ${propertiesDriver}) ) {
+	$columns = ( -split (Get-Content $SOLUTIONROOT\$propertiesDriver -First 1 ))
+	foreach ( $line in (Get-Content $SOLUTIONROOT\$propertiesDriver )) {
 		$arr = (-split $line)
 		if ( $arr[0] -ne 'context' ) {
 			if ( $arr[0] -eq 'remote' ) {
