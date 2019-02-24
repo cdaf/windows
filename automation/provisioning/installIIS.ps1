@@ -66,7 +66,7 @@ if ( $management ) {
 if ($aspnet) {
 	executeExpression "Enable-WindowsOptionalFeature -online -FeatureName NetFx4Extended-ASPNET45"
 	executeExpression "Enable-WindowsOptionalFeature -Online -FeatureName IIS-NetFxExtensibility45"
-	executeExpression "Enable-WindowsOptionalFeature -Online -FeatureName IIS-ASPNET45"
+	executeExpression "Enable-WindowsOptionalFeature -Online -FeatureName IIS-ASPNET45 -All"
 }
 
 Write-Host "`n[$scriptName] ---------- stop ----------`n"
