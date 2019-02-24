@@ -9,6 +9,8 @@ Param (
 [string]$projectname,
 [string]$mediaDirectory
 )
+
+cmd /c "exit 0"
 $scriptName = 'installAgent.ps1'
 
 # Common expression logging and error handling function, copied, not referenced to ensure atomic process
