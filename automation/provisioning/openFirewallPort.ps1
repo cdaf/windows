@@ -1,6 +1,7 @@
 Param (
   [string]$portNumber,
-  [string]$displayName
+  [string]$displayName,
+  [string]$protocol
 )
 cmd /c "exit 0"
 $scriptName = 'openFirewallPort.ps1'
@@ -31,6 +32,13 @@ if ($displayName) {
     Write-Host "[$scriptName] displayName : not supplied, default to Port Number ($displayName)"
 }
 
+if ($protocol) {
+    Write-Host "[$scriptName] protocol : $protocol (choices are TCP or UDP)"
+} else {
+	$protocol = 'TCP'
+    Write-Host "[$scriptName] protocol : $protocol (not supplied, set to default, choices are TCP or UDP)"
+}
+
 # if any zone (private|public|domain) is enabled, then apply rule
 try {
 	$firewallProfiles = get-netfirewallprofile -ErrorAction SilentlyContinue
@@ -40,7 +48,7 @@ try {
 $firewallon = $false
 foreach ($zone in $firewallProfiles) { if ( $zone.enabled ) { $firewallon = $zone.enabled }}
 if ( $firewallon ) {
-	executeExpression "New-NetFirewallRule -DisplayName `"$displayName`" -Direction Inbound –Protocol TCP –LocalPort $portNumber -Action allow"
+	executeExpression "New-NetFirewallRule -DisplayName '$displayName' -Direction Inbound –Protocol '$protocol' –LocalPort $portNumber -Action allow"
 } else {
     Write-Host "[$scriptName] Firewall not enabled for private, public or domain so no action attempted."
 }
