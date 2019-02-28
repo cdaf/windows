@@ -162,14 +162,14 @@ if ( $ACTION ) { # Do not list configuration instructions when an action is pass
 if ( $ACTION -eq "cdonly" ) { # Case insensitive
 	Write-Host "[$scriptName] Action is $ACTION so skipping build and package (CI) process"
 } else {
-	& $ciProcess $buildNumber $revision $ACTION
+	& $ciProcess $buildNumber $revision $ACTION $solutionRoot $AUTOMATIONROOT
 	if($LASTEXITCODE -ne 0){
-	    write-host "[$scriptName] CI_NON_ZERO_EXIT $ciProcess $buildNumber $revision $ACTION" -ForegroundColor Magenta
+	    write-host "[$scriptName] CI_NON_ZERO_EXIT $ciProcess $buildNumber $revision $ACTION $solutionRoot $AUTOMATIONROOT" -ForegroundColor Magenta
 	    write-host "[$scriptName]   `$host.SetShouldExit($LASTEXITCODE)" -ForegroundColor Red
 	    $host.SetShouldExit($LASTEXITCODE) # Returning exit code to DOS
 	    exit
 	}
-	if(!$?){ exceptionExit "$ciProcess $buildNumber $revision $ACTION" }
+	if(!$?){ exceptionExit "$ciProcess $buildNumber $revision $ACTION $solutionRoot $AUTOMATIONROOT" }
 }
 	
 if ( $ACTION ) {
