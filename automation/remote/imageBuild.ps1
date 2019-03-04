@@ -2,7 +2,8 @@ Param (
 	[string]$id,
 	[string]$BUILDNUMBER,
 	[string]$containerImage,
-	[string]$optionalArgs
+	[string]$optionalArgs,
+	[string]$persist
 )
 
 $scriptName = 'imageBuild.ps1'
@@ -95,14 +96,24 @@ if ( $containerImage ) {
 	}
 }
 
+if ( $optionalArgs ) {
+	Write-Host "[$scriptName]   optionalArgs    : $optionalArgs"
+} else {
+	Write-Host "[$scriptName]   optionalArgs    : (not supplied)"
+}
+
+if ( $persist ) {
+	Write-Host "[$scriptName]   persist         : $persist"
+} else {
+	$persist = "$env:TEMP\buildImage\${id}"
+	Write-Host "[$scriptName]   persist         : $persist (not supplied, set to default)"
+}
+
 Write-Host "[$scriptName]   pwd             : $(pwd)"
 Write-Host "[$scriptName]   hostname        : $(hostname)"
 Write-Host "[$scriptName]   whoami          : $(whoami)"
 $workspace = $(pwd)
 Write-Host "[$scriptName]   workspace       : $workspace"
-
-$persist = "$env:TEMP\buildImage\${id}"
-Write-Host "[$scriptName]   persist         : $persist"
 
 Write-Host "Create the image file system locally if it does not exist`n"
 if ( Test-Path "${persist}" ) {
