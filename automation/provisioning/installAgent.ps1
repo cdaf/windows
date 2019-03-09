@@ -127,11 +127,11 @@ if ( $url ) {
 	}
 	
 	if ( $serviceAccount ) {
-		$printList = "$argList --token `$pat --pool '$pool' --agent $agentName --replace --runasservice --windowslogonaccount $serviceAccount --windowslogonpassword `$servicePassword"
-		$argList += " --token $pat --pool '$pool' --agent $agentName --replace --runasservice --windowslogonaccount $serviceAccount --windowslogonpassword $servicePassword"
+		$printList = "$argList --token `$pat --pool `"$pool`" --agent $agentName --replace --runasservice --windowslogonaccount $serviceAccount --windowslogonpassword `$servicePassword"
+		$argList += " --token $pat --pool `"$pool`" --agent $agentName --replace --runasservice --windowslogonaccount $serviceAccount --windowslogonpassword $servicePassword"
 	} else {
-		$printList = "$argList --token `$pat --pool '$pool' --agent $agentName --replace"
-		$argList += " --token $pat --pool '$pool' --agent $agentName --replace"
+		$printList = "$argList --token `$pat --pool `"$pool`" --agent $agentName --replace"
+		$argList += " --token $pat --pool `"$pool`" --agent $agentName --replace"
 	}
 	
 	executeExpression "cd C:\agent"
