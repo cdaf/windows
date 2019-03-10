@@ -15,7 +15,13 @@ function executeExpression ($expression) {
 		$output = Invoke-Expression $expression
 	    if(!$?) { Write-Host "[$scriptName] `$? = $?"; exit 1 }
 	} catch { echo $_.Exception|format-list -force; exit 2 }
-    if ( $error[0] ) { Write-Host "[$scriptName] `$error[0] = $error"; exit 3 }
+    if ( $error[0] ) { 
+    	if ( $ignoreWarning -eq 'yes' ) {
+	    	Write-Host "[$scriptName] `$error[0] = $error but `$ignoreWarning is yes so continuing ..."; $error.clear()
+    	} else {
+	    	Write-Host "[$scriptName] `$error[0] = $error"; exit 3
+    	}
+	}
     if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) { Write-Host "[$scriptName] `$LASTEXITCODE = $LASTEXITCODE "; exit $LASTEXITCODE }
     return $output
 }

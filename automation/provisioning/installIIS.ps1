@@ -42,8 +42,12 @@ if ( $proxy ) {
     Write-Host "[$scriptName] proxy      : (not supplied)"
 }
 
-# Create a baseline copy of the DISM log file, to use for logging informatio if there is an exception, note: this log is normally locked, so can't simply delete it
-executeExpression "copy 'c:\windows\logs\dism\dism.log' $env:temp"
+# Create a baseline copy of the DISM log file, to use for logging information if there is an exception, note: this log is normally locked, so can't simply delete it
+if ( Test-Path 'c:\windows\logs\dism\dism.log' ) {
+	executeExpression "copy 'c:\windows\logs\dism\dism.log' $env:temp"
+} else {
+	executeExpression "Add-Content $env:temp\dism.log ' '"
+}
 
 Write-Host "`n[$scriptName] Install default roles`n"
 executeExpression "Enable-WindowsOptionalFeature -Online -FeatureName IIS-WebServerRole"
