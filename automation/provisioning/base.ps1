@@ -139,25 +139,58 @@ if ($versionTest -like '*not recognized*') {
 		} catch { $fullpath = listAndContinue }
 
 		Write-Host "[$scriptName] Attempt download"
-		executeExpression "(New-Object System.Net.WebClient).DownloadFile('$uri', '$fullpath')"
+		executeRetry "(New-Object System.Net.WebClient).DownloadFile('$uri', '$fullpath')"
 	}
 	
-	try {
-		$argList = @("$fullpath")
-		Write-Host "[$scriptName] Start-Process -FilePath 'powershell' -ArgumentList $argList -PassThru -Wait -NoNewWindow"
-		$proc = Start-Process -FilePath 'powershell' -ArgumentList $argList -PassThru -Wait -NoNewWindow
-	} catch {
-		Write-Host "[$scriptName] $file Install Exception : $_" -ForegroundColor Red
-		exit 200
-	}
+	$argList = @("$fullpath")
+	$exitCode = 1
+	$wait = 10
+	$retryMax = 3
+	$retryCount = 0
+	while (( $retryCount -le $retryMax ) -and ($exitCode -ne 0)) {
+		$exitCode = 0
+		$error.clear()
+		Write-Host "[$retryCount] Start-Process -FilePath 'powershell' -ArgumentList $argList -PassThru -Wait -NoNewWindow"
+		try {
+			$proc = Start-Process -FilePath 'powershell' -ArgumentList $argList -PassThru -Wait -NoNewWindow
+			if ( $proc.ExitCode -ne 0 ) {
+				Write-Host "`n[$scriptName] Process failed with exit code $proc.ExitCode`n" -ForegroundColor Red
+			    $exitCode = $proc.ExitCode
+			}
+		} catch {
+			Write-Host "[$scriptName] $file Install Exception : $_" -ForegroundColor Red
+			$exitCode = 2003
+		}
+	    if ( $error[0] ) { Write-Host "[$scriptName] Warning, message in `$error[0] = $error" -ForegroundColor Yellow; $error.clear() } # do not treat messages in error array as failure
+	    if ($exitCode -ne 0) {
+			if ($retryCount -ge $retryMax ) {
+				Write-Host "[$scriptName] Retry maximum ($retryCount) reached, exiting with `$LASTEXITCODE = $exitCode.`n"
+				Write-Host "[$scriptName]   Listing log file contents ...`n"
+				cat C:\ProgramData\chocolatey\logs\chocolatey.log | findstr 'ERROR'
+				exit $exitCode
+			} else {
+				$retryCount += 1
+				Write-Host "[$scriptName] Set TLS to version 1.1 or higher, Wait $wait seconds, then retry $retryCount of $retryMax"
+				Write-Host "`$AllProtocols = [System.Net.SecurityProtocolType]'Tls11,Tls12'"
+				$AllProtocols = [System.Net.SecurityProtocolType]'Tls11,Tls12'
+				executeExpression '[System.Net.ServicePointManager]::SecurityProtocol = $AllProtocols'
+				sleep $wait
+			}
+		}
+    }
 	
 	# Reload the path (without logging off and back on)
 	$env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")
 
 	$versionTest = cmd /c choco --version 2`>`&1
 	if ($versionTest -like '*not recognized*') {
-		Write-Host "[$scriptName] Chocolatey install has failed, exiting!"
-		exit # that should retain the exit code from the version test itself
+		if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) {
+			$exitCode = $LASTEXITCODE
+		} else {
+			$exitCode = 8872
+		} 
+		Write-Host "[$scriptName] Chocolatey install has failed, exiting with `$LASTEXITCODE $exitCode"
+		exit $exitCode
 	}
 
 }
