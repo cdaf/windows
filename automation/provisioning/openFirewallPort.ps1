@@ -33,10 +33,10 @@ if ($displayName) {
 }
 
 if ($protocol) {
-    Write-Host "[$scriptName] protocol : $protocol (choices are TCP or UDP)"
+    Write-Host "[$scriptName] protocol    : $protocol (choices are TCP or UDP)"
 } else {
 	$protocol = 'TCP'
-    Write-Host "[$scriptName] protocol : $protocol (not supplied, set to default, choices are TCP or UDP)"
+    Write-Host "[$scriptName] protocol    : $protocol (not supplied, set to default, choices are TCP or UDP)"
 }
 
 # if any zone (private|public|domain) is enabled, then apply rule
