@@ -1,7 +1,8 @@
 Param (
   [string]$thumbPrint,
   [string]$ip,
-  [string]$port
+  [string]$port,
+  [string]$siteName
 )
 $scriptName = 'IISSSL.ps1'
 
@@ -36,6 +37,12 @@ if ($port) {
 	$port = '443'
     Write-Host "[$scriptName] port       : $port (default)"
 }
+if ($siteName) {
+    Write-Host "[$scriptName] siteName   : $siteName"
+} else {
+	$siteName = 'Default Web Site'
+    Write-Host "[$scriptName] siteName   : $siteName (default)"
+}
 
 Write-Host
 executeExpression 'import-module WebAdministration'
@@ -53,6 +60,11 @@ try {
 } catch { echo $_.Exception|format-list -force; exit 2 }
 if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) { Write-Host "[$scriptName] `$LASTEXITCODE = $LASTEXITCODE "; exit $LASTEXITCODE }
 $value
+
+if ( $ip -eq '0.0.0.0' ) {
+	$ip = '*'
+}
+executeExpression "New-WebBinding -Name $siteName -IP $ip -Port $port -Protocol https"
 
 Write-Host "`n[$scriptName] ---------- stop ----------"
 $error.clear()
