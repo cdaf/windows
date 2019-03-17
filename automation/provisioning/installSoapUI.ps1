@@ -34,7 +34,7 @@ Write-Host "`n[$scriptName] ---------- start ----------"
 if ( $soapui_version ) {
 	Write-Host "[$scriptName] soapui_version        : $soapui_version"
 } else {
-	$soapui_version = '5.2.1'
+	$soapui_version = '5.5.0'
 	Write-Host "[$scriptName] soapui_version        : $soapui_version (default)"
 }
 
@@ -66,7 +66,7 @@ if ($proxy) {
 }
 
 # The installation directory for SoapUI, the script will create this
-$target = 'soapui-' + $soapui_version
+$target = 'SoapUI-' + $soapui_version
 $mediaFileName = $target + "-windows-bin.zip"
 if ( Test-Path $mediaDirectory\$mediaFileName ) {
 	Write-Host "`n[$scriptName] Source media found ($mediaDirectory\$mediaFileName)"
@@ -78,7 +78,7 @@ if ( Test-Path $mediaDirectory\$mediaFileName ) {
 	} catch { $installFile = listAndContinue }
 
 	Write-Host "[$scriptName] Attempt download"
-	$uri = "http://smartbearsoftware.com/distrib/soapui/${soapui_version}/" + $mediaFileName
+	$uri = "https://s3.amazonaws.com/downloads.eviware/soapuios/${soapui_version}/" + $mediaFileName
 	executeExpression "(New-Object System.Net.WebClient).DownloadFile('$uri', '$mediaDirectory\$mediaFileName')"
 }
 
