@@ -11,9 +11,11 @@ function executeExpression ($expression) {
     return $output
 }
 
+# Reset $LASTEXITCODE
+cmd /c exit 0
+
 $scriptName = 'sqlAddUserDB.ps1'
-Write-Host
-Write-Host "[$scriptName] ---------- start ----------"
+Write-Host "`n[$scriptName] ---------- start ----------"
 $dbName = $args[0]
 if ($dbName) {
     Write-Host "[$scriptName] dbName       : $dbName"
@@ -73,5 +75,4 @@ Write-Host "`n[$scriptName] List user and database permissions after update ...`
 executeExpression "`$usr.EnumObjectPermissions()"
 executeExpression "`$db.EnumDatabasePermissions() | select Grantee, PermissionState"
 
-Write-Host
-Write-Host "[$scriptName] ---------- stop ----------"
+Write-Host "`n[$scriptName] ---------- stop ----------"

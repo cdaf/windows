@@ -11,7 +11,10 @@ function executeExpression ($expression) {
     return $output
 }
 
+# Reset $LASTEXITCODE
+cmd /c exit 0
 $scriptName = 'sqlSetLoginRole.ps1'
+
 Write-Host "`n[$scriptName] ---------- start ----------"
 $loginName = $args[0]
 if ($loginName) {
