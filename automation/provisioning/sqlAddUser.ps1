@@ -35,10 +35,10 @@ if ($dbhost) {
 }
 
 if ($loginType) {
-    Write-Host "[$scriptName] loginType   : $loginType"
+    Write-Host "[$scriptName] loginType   : $loginType (choices SqlLogin or WindowsUser)"
 } else {
 	$loginType = 'WindowsUser'
-    Write-Host "[$scriptName] loginType   : $loginType (not supplied, set to default)"
+    Write-Host "[$scriptName] loginType   : $loginType (not supplied, set to default, choices SqlLogin or WindowsUser)"
 }
 
 if ($sqlPassword) {

@@ -9,6 +9,8 @@ Param (
 [string]$projectname,
 [string]$mediaDirectory
 )
+
+cmd /c "exit 0"
 $scriptName = 'installAgent.ps1'
 
 # Common expression logging and error handling function, copied, not referenced to ensure atomic process
@@ -125,11 +127,11 @@ if ( $url ) {
 	}
 	
 	if ( $serviceAccount ) {
-		$printList = "$argList --token `$pat --pool $pool --agent $agentName --replace --runasservice --windowslogonaccount $serviceAccount --windowslogonpassword `$servicePassword"
-		$argList += " --token $pat --pool $pool --agent $agentName --replace --runasservice --windowslogonaccount $serviceAccount --windowslogonpassword $servicePassword"
+		$printList = "$argList --token `$pat --pool `"$pool`" --agent $agentName --replace --runasservice --windowslogonaccount $serviceAccount --windowslogonpassword `$servicePassword"
+		$argList += " --token $pat --pool `"$pool`" --agent $agentName --replace --runasservice --windowslogonaccount $serviceAccount --windowslogonpassword $servicePassword"
 	} else {
-		$printList = "$argList --token `$pat --pool $pool --agent $agentName --replace"
-		$argList += " --token $pat --pool $pool --agent $agentName --replace"
+		$printList = "$argList --token `$pat --pool `"$pool`" --agent $agentName --replace"
+		$argList += " --token $pat --pool `"$pool`" --agent $agentName --replace"
 	}
 	
 	executeExpression "cd C:\agent"
