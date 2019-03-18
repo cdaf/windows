@@ -199,7 +199,7 @@ Write-Host "[$scriptName] Chocolatey : $versionTest`n"
 # if processed as a list and any item other than the last fails, choco will return a false possitive
 Write-Host "[$scriptName] Process each package separately to trap failures`n"
 $install.Split(" ") | ForEach {
-	executeRetry "choco install -y $_ --no-progress --fail-on-standard-error $checksum $version $otherArgs"
+	executeRetry "choco upgrade -y $_ --no-progress --fail-on-standard-error $checksum $version $otherArgs"
 
 	Write-Host "`n[$scriptName] Reload the path`n"
 	executeExpression '$env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")'
