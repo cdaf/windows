@@ -27,6 +27,24 @@ To download and extract this repository
 
 # Desktop Testing
 
+Continuous delivery emulation on a single host can be performed with, or without, windows containers (docker/docker-compose).
+
+## Native (without containers)
+
+This approach uses the local host for both target (CD) and build (CI) execution. Provision the host with both roles
+
+    .\automation\provisioning\mkdir.ps1 C:\deploy
+    .\automation\provisioning\CredSSP.ps1 server
+
+    .\automation\provisioning\trustedHosts.ps1 *
+    .\automation\provisioning\CredSSP.ps1 client
+
+## Native (using containers)
+
+< todo >
+
+# Virtualisation with Vagrant
+
 This approach creates a desktop "build server" which allows the user to perform end-to-end continuous delivery testing.
 
 ## VirtualBox
