@@ -3,6 +3,7 @@ Param (
   [string]$instance
 )
 $scriptName = 'sqlAuthMode.ps1'
+cmd /c "exit 0"
 
 # Common expression logging and error handling function, copied, not referenced to ensure atomic process
 function executeExpression ($expression) {
@@ -17,6 +18,7 @@ function executeExpression ($expression) {
     return $output
 }
 
+Write-Host "`n[$scriptName] Because the instance service has to be restarted, this script only supports execution on the SQL host itself"
 Write-Host "`n[$scriptName] ---------- start ----------"
 if ($mode) {
     Write-Host "[$scriptName] mode     : $mode"
@@ -26,22 +28,28 @@ if ($mode) {
 }
 
 if ($instance) {
-    Write-Host "[$scriptName] instance : $instance"
+	$sqlinstance = 'MSSQL$' + $instance
+    Write-Host "[$scriptName] instance : $sqlinstance"
 } else {
-	$instance = 'MSSQLSERVER'
-    Write-Host "[$scriptName] instance : $instance (default)"
+	$sqlinstance = 'MSSQLSERVER'
+    Write-Host "[$scriptName] instance : $sqlinstance (default)"
 }
 
 # SMO installed as part of Standard, connect to the local default instance
 executeExpression '[reflection.assembly]::LoadWithPartialName("Microsoft.SqlServer.Smo")'
-$srv = executeExpression 'new-Object Microsoft.SqlServer.Management.Smo.Server(".")'
+if ($instance) {
+	$srv = executeExpression 'new-Object Microsoft.SqlServer.Management.Smo.Server(".\$instance")'
+} else {
+	$srv = executeExpression 'new-Object Microsoft.SqlServer.Management.Smo.Server(".")'
+}
+
 executeExpression '$srv.Databases | Select name' # Establish connection
    
 # Change the mode and restart the instance
 executeExpression "`$srv.Settings.LoginMode = [Microsoft.SqlServer.Management.SMO.ServerLoginMode]::$mode"
 executeExpression '$srv.Alter()'
 executeExpression '$srv.Settings.LoginMode'
-executeExpression "Restart-Service $instance"
+executeExpression "Restart-Service '$sqlinstance'"
 
 Write-Host "`n[$scriptName] ---------- stop ----------"
 exit 0
