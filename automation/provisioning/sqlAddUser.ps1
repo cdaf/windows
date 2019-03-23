@@ -4,6 +4,10 @@ Param (
   [string]$loginType,
   [string]$sqlPassword
 )
+
+# Reset $LASTEXITCODE
+cmd /c exit 0
+
 $scriptName = 'sqlAddUser.ps1'
 
 # Common expression logging and error handling function, copied, not referenced to ensure atomic process
@@ -19,8 +23,7 @@ function executeExpression ($expression) {
     return $output
 }
 
-Write-Host
-Write-Host "[$scriptName] ---------- start ----------"
+Write-Host "`n[$scriptName] ---------- start ----------"
 if ($dbUser) {
     Write-Host "[$scriptName] dbUser      : $dbUser"
 } else {
@@ -78,8 +81,7 @@ if ( $sqlPassword ) {
 	executeExpression "`$SqlUser.Create()"
 }
 
-Write-Host; Write-Host "`n[$scriptName] Login $dbUser added to $dbhost, listing all Logins after update ...`n"
+Write-Host "`n[$scriptName] Login $dbUser added to $dbhost, listing all Logins after update ...`n"
 executeExpression "`$srv.Logins | Format-Table -Property Name"
 
-Write-Host
-Write-Host "[$scriptName] ---------- stop ----------"
+Write-Host "`n[$scriptName] ---------- stop ----------"

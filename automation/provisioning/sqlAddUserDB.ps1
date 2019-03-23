@@ -1,3 +1,14 @@
+Param (
+  [string]$dbName,
+  [string]$dbUser,
+  [string]$dbhost
+)
+
+# Reset $LASTEXITCODE
+cmd /c exit 0
+
+$scriptName = 'sqlAddUserDB.ps1'
+
 # Common expression logging and error handling function, copied, not referenced to ensure atomic process
 function executeExpression ($expression) {
 	$error.clear()
@@ -11,26 +22,19 @@ function executeExpression ($expression) {
     return $output
 }
 
-# Reset $LASTEXITCODE
-cmd /c exit 0
-
-$scriptName = 'sqlAddUserDB.ps1'
 Write-Host "`n[$scriptName] ---------- start ----------"
-$dbName = $args[0]
 if ($dbName) {
     Write-Host "[$scriptName] dbName       : $dbName"
 } else {
     Write-Host "[$scriptName] dbName not supplied, exiting with code 100"; exit 100
 }
 
-$dbUser = $args[1]
 if ($dbUser) {
     Write-Host "[$scriptName] dbUser       : $dbUser"
 } else {
     Write-Host "[$scriptName] dbUser not supplied, exiting with code 101"; exit 101
 }
 
-$dbhost = $args[2]
 if ($dbhost) {
     Write-Host "[$scriptName] dbhost       : $dbhost"
 } else {
