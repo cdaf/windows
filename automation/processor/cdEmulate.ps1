@@ -35,7 +35,7 @@ Set-Content "$counterFile" "$buildNumber"
 Write-Host "[$scriptName]   buildNumber         : $buildNumber"
 $revision = 'master'
 Write-Host "[$scriptName]   revision            : $revision"
-$release = 'emulatioon-release' 
+$release = 'emulation-release' 
 Write-Host "[$scriptName]   release             : $release"
 
 # Check for user defined solution folder, i.e. outside of automation root, if found override solution root
@@ -162,14 +162,25 @@ if ( $ACTION ) { # Do not list configuration instructions when an action is pass
 if ( $ACTION -eq "cdonly" ) { # Case insensitive
 	Write-Host "[$scriptName] Action is $ACTION so skipping build and package (CI) process"
 } else {
-	& $ciProcess $buildNumber $revision $ACTION $solutionRoot $AUTOMATIONROOT
-	if($LASTEXITCODE -ne 0){
-	    write-host "[$scriptName] CI_NON_ZERO_EXIT $ciProcess $buildNumber $revision $ACTION $solutionRoot $AUTOMATIONROOT" -ForegroundColor Magenta
-	    write-host "[$scriptName]   `$host.SetShouldExit($LASTEXITCODE)" -ForegroundColor Red
-	    $host.SetShouldExit($LASTEXITCODE) # Returning exit code to DOS
-	    exit
+	if ( $ACTION ) { # $AUTOMATIONROOT can only be passed if $ACTION is also passed, don't try to pass when not set
+		& $ciProcess $buildNumber $revision $ACTION $solutionName $AUTOMATIONROOT
+		if($LASTEXITCODE -ne 0){
+		    write-host "[$scriptName] CI_NON_ZERO_EXIT $ciProcess $buildNumber $revision $ACTION $solutionName $AUTOMATIONROOT" -ForegroundColor Magenta
+		    write-host "[$scriptName]   `$host.SetShouldExit($LASTEXITCODE)" -ForegroundColor Red
+		    $host.SetShouldExit($LASTEXITCODE) # Returning exit code to DOS
+		    exit
+		}
+		if(!$?){ exceptionExit "$ciProcess $buildNumber $revision $ACTION $solutionName $AUTOMATIONROOT" }
+	} else {
+		& $ciProcess $buildNumber $revision
+		if($LASTEXITCODE -ne 0){
+		    write-host "[$scriptName] CI_NON_ZERO_EXIT $ciProcess $buildNumber $revision" -ForegroundColor Magenta
+		    write-host "[$scriptName]   `$host.SetShouldExit($LASTEXITCODE)" -ForegroundColor Red
+		    $host.SetShouldExit($LASTEXITCODE) # Returning exit code to DOS
+		    exit
+		}
+		if(!$?){ exceptionExit "$ciProcess $buildNumber $revision" }
 	}
-	if(!$?){ exceptionExit "$ciProcess $buildNumber $revision $ACTION $solutionRoot $AUTOMATIONROOT" }
 }
 	
 if ( $ACTION ) {

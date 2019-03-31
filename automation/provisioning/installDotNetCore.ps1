@@ -19,31 +19,10 @@ function executeExpression ($expression) {
     return $output
 }
 
-function downloadAndInstall ($url, $installer) {
-	if ( Test-Path $installer ) {
-		Write-Host "[$scriptName] Installer $installer found, download not required`n"
-	} else {
-		Write-Host "[$scriptName] $file does not exist in $mediaDir, listing contents"
-		try {
-			Get-ChildItem $mediaDir | Format-Table name
-		    if(!$?) { $installer = listAndContinue }
-		} catch { $installer = listAndContinue }
-	
-		Write-Host "[$scriptName] Attempt download"
-		executeExpression "(New-Object System.Net.WebClient).DownloadFile('$url', '$installer')"
-	}
-	
-	$proc = executeExpression "Start-Process -FilePath '$installer' -ArgumentList '/INSTALL /QUIET /NORESTART /LOG $installer.log' -PassThru -Wait"
-	if ( $proc.ExitCode -ne 0 ) {
-		Write-Host "`n[$scriptName] Exit with `$LASTEXITCODE = $($proc.ExitCode)`n"
-	    exit $proc.ExitCode
-	}
-}
-
-# As at dotnet 2 install files have changed https://www.microsoft.com/net/download/dotnet-core/2.1
-# ASP.NET Core/.NET Core	dotnet-hosting-2.1.x-win.exe
-# ASP.NET Core Installer	aspnetcore-runtime-2.1.x-win-x64.exe
-# .NET Core Binaries		dotnet-runtime-2.1.x-win-x64.exe
+# As at dotnet 2 runtime files have changed https://www.microsoft.com/net/download/dotnet-core/2.1
+# ASP.NET Core/.NET Core	dotnet-hosting-2.1.x-win.exe         (no)
+# ASP.NET Core Installer	aspnetcore-runtime-2.1.x-win-x64.exe (asp)
+# .NET Core Binaries		dotnet-runtime-2.1.x-win-x64.exe     (not supported)
 
 cmd /c "exit 0"
 Write-Host "`n[$scriptName] ---------- start ----------"
@@ -58,11 +37,18 @@ if ( $version ) {
 	Write-Host "[$scriptName] version  : $version"
 } else {
 	if ( $sdk -eq 'yes' ) {
-		$version = '2.1.302'
-		$sdkRoot = 'https://download.microsoft.com/download/4/0/9/40920432-3302-47a8-b13c-bbc4848ad114'
+		$version = '2.2.105'
+		$file = "dotnet-sdk-${version}-win-x64.exe"
+		$url = "https://download.visualstudio.microsoft.com/download/pr/8148cce0-196d-4634-86df-f3d4550b1a75/89ed68d0ecf6b1c62cc7b0d129fdf600/${file}"
 	} else {
-		$runtimeRoot = 'https://download.microsoft.com/download/1/f/7/1f7755c5-934d-4638-b89f-1f4ffa5afe89'
-		$version = '2.1.2'
+		$version = '2.2.3'
+		if ( $sdk -eq 'asp' ) {
+			$file = "aspnetcore-runtime-${version}-win-x64.exe"
+			$url = "https://download.visualstudio.microsoft.com/download/pr/e00f77e4-e397-438f-a5d2-9a9c221fd2e0/8bac1cc1d685af687fac8072cf19ba58/${file}"
+		} else {
+			$file = "dotnet-hosting-${version}-win.exe"
+			$url = "https://download.visualstudio.microsoft.com/download/pr/a46ea5ce-a13f-47ff-8728-46cb92eb7ae3/1834ef35031f8ab84312bcc0eceb12af/${file}"	
+		}
 	} 
 	Write-Host "[$scriptName] version  : $version (default)"
 }
@@ -75,10 +61,15 @@ if ( $mediaDir ) {
 }
 
 if ($proxy) {
-    Write-Host "[$scriptName] proxy      : $proxy`n"
+    Write-Host "[$scriptName] proxy    : $proxy`n"
     executeExpression "[system.net.webrequest]::defaultwebproxy = new-object system.net.webproxy('$proxy')"
 } else {
-    Write-Host "[$scriptName] proxy      : ( not supplied)"
+	if ( $env:http_proxy ) {
+	    Write-Host "[$scriptName] proxy    : $env:http_proxy (not supplied but derived from `$env:http_proxy)"
+	    executeExpression "[system.net.webrequest]::defaultwebproxy = new-object system.net.webproxy('$env:http_proxy')"
+	} else {
+	    Write-Host "[$scriptName] proxy    : (not supplied)"
+    }
 }
 
 # Create media cache if missing
@@ -88,24 +79,25 @@ if ( Test-Path $mediaDir ) {
 	Write-Host "[$scriptName] Created $(mkdir $mediaDir)"
 }
 
+$installer = "${mediaDir}\${file}"
+if ( Test-Path $installer ) {
+	Write-Host "[$scriptName] Installer $installer found, download not required`n"
+} else {
+	Write-Host "[$scriptName] $file does not exist in $mediaDir, listing contents"
+	try {
+		Get-ChildItem $mediaDir | Format-Table name
+	    if(!$?) { $installer = listAndContinue }
+	} catch { $installer = listAndContinue }
 
-if ( $sdk -eq 'asp' ) {
-	$file = "aspnetcore-runtime-${version}-win-x64.exe"
-	$url = "${runtimeRoot}/${file}"
-	$installer = "${mediaDir}\${file}"
-	downloadAndInstall $url $installer	
+	Write-Host "[$scriptName] Attempt download"
+	executeExpression "(New-Object System.Net.WebClient).DownloadFile('$url', '$installer')"
 }
 
-if ( $sdk -eq 'yes' ) {
-	$file = "dotnet-sdk-${version}-win-x64.exe"
-	$url = "${sdkRoot}/$file"
-} else {
-	$file = "dotnet-hosting-${version}-win.exe"
-	$url = "${runtimeRoot}/${file}"	
-} 
-
-$installer = "${mediaDir}\${file}"
-downloadAndInstall $url $installer
+$proc = executeExpression "Start-Process -FilePath '$installer' -ArgumentList '/INSTALL /QUIET /NORESTART /LOG $installer.log' -PassThru -Wait"
+if ( $proc.ExitCode -ne 0 ) {
+	Write-Host "`n[$scriptName] Exit with `$LASTEXITCODE = $($proc.ExitCode)`n"
+    exit $proc.ExitCode
+}
 
 Write-Host "[$scriptName] Reload path (without logging off and back on) " -ForegroundColor Green
 $env:Path = executeExpression "[System.Environment]::GetEnvironmentVariable('Path','Machine') + ';' + [System.Environment]::GetEnvironmentVariable('Path','User')"
