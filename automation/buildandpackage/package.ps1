@@ -141,12 +141,20 @@ Write-Host "[$scriptName]   REMOTE_WORK_DIR         : $REMOTE_WORK_DIR"
 $ACTION = $args[7]
 Write-Host "[$scriptName]   ACTION                  : $ACTION"
 
-$prepackageTasks = "$SOLUTIONROOT\package.tsk"
+$prepackageTask = "$SOLUTIONROOT\package.tsk"
 Write-Host -NoNewLine "[$scriptName]   Prepackage Tasks        : " 
-if (Test-Path "$prepackageTasks") {
-	Write-Host "found ($prepackageTasks)"
+if (Test-Path "$prepackageTask") {
+	Write-Host "found ($prepackageTask)"
 } else {
-	Write-Host "none ($prepackageTasks)"
+	Write-Host "none ($prepackageTask)"
+}
+
+$prepackageScript = ".\package.ps1"
+Write-Host -NoNewLine "[$scriptName]   Prepackage Script       : " 
+if (Test-Path "$prepackageScript") {
+	Write-Host "found ($prepackageScript)"
+} else {
+	Write-Host "none ($prepackageScript)"
 }
 
 $postpackageTasks = "$SOLUTIONROOT\wrap.tsk"
@@ -204,10 +212,23 @@ if ( $ACTION -eq "clean" ) {
 	}
 
 	# Process optional pre-packaging tasks (Task driver support added in release 0.7.2)
-    if (Test-Path "$prepackageTasks") {
-		Write-Host "`n[$scriptName] Process Pre-Package Tasks ...`n"
-		& .\$AUTOMATIONROOT\remote\execute.ps1 $SOLUTION $BUILDNUMBER "package" "$prepackageTasks" $ACTION
-		if(!$?){ exceptionExit "..\$AUTOMATIONROOT\remote\execute.ps1 $SOLUTION $BUILDNUMBER `"package`" `"$prepackageTasks`" $ACTION" }
+    if (Test-Path "$prepackageTask") {
+		Write-Host "`n[$scriptName] Process Pre-Package Task ...`n"
+		& .\$AUTOMATIONROOT\remote\execute.ps1 $SOLUTION $BUILDNUMBER "package" "$prepackageTask" $ACTION
+		if(!$?){ exceptionExit "..\$AUTOMATIONROOT\remote\execute.ps1 $SOLUTION $BUILDNUMBER `"package`" `"$prepackageTask`" $ACTION" }
+	}
+
+	# Process optional pre-packaging script (Script driver support added in release 1.8.14)
+	if (Test-Path $prepackageScript) {
+		Write-Host "`n[$scriptName] Process Pre-Package Script ...`n"
+	    try {
+		    & $prepackageScript $SOLUTION $BUILDNUMBER $ACTION
+			if($LASTEXITCODE -ne 0){ passExitCode "PACKAGE_SCRIPT_NON_ZERO .\$automationHelper\execute.ps1 $SOLUTION $BUILDNUMBER $ENVIRONMENT build.tsk $ACTION" $LASTEXITCODE }
+		    if(!$?){ taskFailure "SOLUTION_BUILD_${SOLUTION}_${BUILDNUMBER}_${ACTION}" }
+	    } catch {
+		    write-host "[$scriptName] CUSTOM_BUILD_EXCEPTION & $prepackageScript $SOLUTION $BUILDNUMBER $ACTION" -ForegroundColor Magenta
+	    	exceptionExit $_
+	    }
 	}
 
 	# Load Manifest, these properties are used by remote deployment

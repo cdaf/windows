@@ -1,10 +1,13 @@
 
 function removeTempFiles {
-	$itemList = @("projectDirectories.txt", "projectsToBuild.txt", "*.zip", "*.nupkg", "propertiesForLocalTasks", "propertiesForRemoteTasks")
+	$itemList = @("*.zip", "*.nupkg")
 	foreach ($itemName in $itemList) {  
 		itemRemove ".\${itemName}"
     }
 }
+
+$projectDirectories = @()
+$projectsToBuild = @()
 
 $scriptName = $MyInvocation.MyCommand.Name
 Write-Host "`n[$scriptName] +----------------------------+"
@@ -30,15 +33,6 @@ Write-Host "[$scriptName]   AUTOMATIONROOT    : $AUTOMATIONROOT"
 $SOLUTIONROOT = $args[4]
 if (-not($SOLUTIONROOT)) { passExitCode "SOLUTIONROOT_NOT_PASSED" 104 }
 Write-Host "[$scriptName]   SOLUTIONROOT      : $SOLUTIONROOT"
-
-$configManagementList = Get-ChildItem -Path "$SOLUTIONROOT" -Name '*.cm'
-if ( $configManagementList ) {
-	foreach ($item in $configManagementList) {
-		Write-Host "[$scriptName]   Properties Driver : $item"
-	}
-} else {
-		Write-Host "[$scriptName]   Properties Driver : none ($SOLUTIONROOT\*.cm)"
-}
 
 $ACTION = $args[5]
 if ( $ACTION ) {
@@ -76,36 +70,9 @@ write-host "`n[$scriptName] Load solution properties ..."
 Write-Host "`n[$scriptName] Clean temp files and folders from workspace" 
 removeTempFiles
 
-# Properties generator (added in release 1.7.8, extended to list in 1.8.11)
-foreach ($propertiesDriver in $configManagementList) {
-	Write-Host "`n[$scriptName] Generating properties files from ${propertiesDriver}"
-	$columns = ( -split (Get-Content $SOLUTIONROOT\$propertiesDriver -First 1 ))
-	foreach ( $line in (Get-Content $SOLUTIONROOT\$propertiesDriver )) {
-		$arr = (-split $line)
-		if ( $arr[0] -ne 'context' ) {
-			if ( $arr[0] -eq 'remote' ) {
-				$cdafPath="./propertiesForRemoteTasks"
-			} else {
-				$cdafPath="./propertiesForLocalTasks"
-			}
-			if ( ! (Test-Path $cdafPath) ) {
-				Write-Host "[$scriptName]   mkdir $(mkdir $cdafPath)"
-			}
-			Write-Host "[$scriptName]   Generating ${cdafPath}/$($arr[1])"
-			foreach ($field in $columns) {
-				if ( $columns.IndexOf($field) -gt 1 ) { # do not create entries for context and target
-					Add-Content "${cdafPath}/$($arr[1])" "${field}=$($arr[$columns.IndexOf($field)])"
-				}
-			}
-		}
-	}
-}
-
 # If there is a custom task in the solution root, execute this.
 if (Test-Path build.tsk) {
-	Write-Host 
-	Write-Host "[$scriptName] build.tsk found in solution root, executing in $(pwd)" 
-	Write-Host 
+	Write-Host "`n[$scriptName] build.tsk found in solution root, executing in $(pwd)`n" 
     # Because PowerShell variables are global, set the $WORKSPACE before invoking execution
     $WORKSPACE=$(pwd)
     & .\$automationHelper\execute.ps1 $SOLUTION $BUILDNUMBER $ENVIRONMENT "build.tsk" $ACTION
@@ -115,9 +82,7 @@ if (Test-Path build.tsk) {
 
 # If there is a custom build script in the solution root, execute this.
 if (Test-Path build.ps1) {
-	Write-Host 
-	Write-Host "[$scriptName] build.ps1 found in solution root, executing in $(pwd)" 
-	Write-Host 
+	Write-Host "`n[$scriptName] build.ps1 found in solution root, executing in $(pwd)`n" 
     # Legacy build method, note: a .BAT file may exist in the project folder for Dev testing, by is not used by the builder
     try {
 	    & .\build.ps1 $SOLUTION $BUILDNUMBER $REVISION $PROJECT $ENVIRONMENT $ACTION
@@ -130,40 +95,38 @@ if (Test-Path build.ps1) {
 }
 
 # Set the projects to process (default is alphabetic)
-if (-not(Test-Path $projectList)) {
+if (Test-Path $projectList) {
+	$projectDirectories = Get-Content -Path $projectList
+} else {
 	foreach ($item in (Get-ChildItem -Path ".")) {
 		if (Test-Path $item -PathType "Container") {
-			Add-Content projectDirectories.txt $item.Name
+			$projectDirectories += $item.Name
 		}
 	}
-} else {
-	Copy-Item $projectList projectDirectories.txt
-	Set-ItemProperty projectDirectories.txt -name IsReadOnly -value $false
 }
 
 # List the projects to process, i.e. only those with build script entry point
-foreach ($PROJECT in get-content projectDirectories.txt) {
-	if ((Test-Path .\$PROJECT\build.ps1) -or (Test-Path .\$PROJECT\build.tsk)) {
-		Add-Content projectsToBuild.txt $PROJECT
+foreach ($directory in $projectDirectories ) {
+	if ((Test-Path .\$directory\build.ps1) -or (Test-Path .\$directory\build.tsk)) {
+		$projectsToBuild += $directory
 	}
 }
 
-if (-not(Test-Path projectsToBuild.txt)) {
+if (-not($projectsToBuild)) {
 
 	write-host "`n[$scriptName] No project directories found containing build.ps1 or build.tsk, assuming new solution, continuing ... " -ForegroundColor Yellow
 
 } else {
 
 	write-host "`n[$scriptName] Projects to build:`n"
-	Get-Content projectsToBuild.txt
-	write-host
+	$projectsToBuild
 
 	# Process all Tasks
-	foreach ($PROJECT in get-content projectsToBuild.txt) {
+	foreach ($projectName in $projectsToBuild) {
     
-		write-host "`n[$scriptName]   --- Build Project $PROJECT start ---`n" -ForegroundColor Green
+		write-host "`n[$scriptName]   --- Build Project $projectName start ---`n" -ForegroundColor Green
 
-		cd $PROJECT
+		cd $projectName
 
         if (Test-Path build.tsk) {
             # Task driver support added in release 0.6.1
@@ -174,14 +137,14 @@ if (-not(Test-Path projectsToBuild.txt)) {
 
         } else {
             # Legacy build method, note: a .BAT file may exist in the project folder for Dev testing, by is not used by the builder
-		    & .\build.ps1 $SOLUTION $BUILDNUMBER $REVISION $PROJECT $ENVIRONMENT $ACTION
+		    & .\build.ps1 $SOLUTION $BUILDNUMBER $REVISION $projectName $ENVIRONMENT $ACTION
 			if($LASTEXITCODE -ne 0){ passExitCode "PROJECT_EXECUTE_NON_ZERO_EXIT .\$automationHelper\execute.ps1 $SOLUTION $BUILDNUMBER $ENVIRONMENT build.tsk $ACTION" $LASTEXITCODE }
 		    if(!$?){ taskFailure "PROJECT_BUILD_${SOLUTION}_${BUILDNUMBER}_${REVISION}_${PROJECT}_${ENVIRONMENT}_${ACTION}" }
         }
 
         cd ..
 
-		write-host "`n[$scriptName]   --- BUILD project $PROJECT successfull ---" -ForegroundColor Green
+		write-host "`n[$scriptName]   --- BUILD project $projectName successfull ---" -ForegroundColor Green
 	} 
 
 }

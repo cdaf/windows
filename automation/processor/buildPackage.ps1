@@ -181,6 +181,45 @@ if ( $containerImage ) {
 	}
 }
 
+# Properties generator (added in release 1.7.8, extended to list in 1.8.11, moved from build to pre-process 1.8.14)
+$itemList = @("propertiesForLocalTasks", "propertiesForRemoteTasks")
+foreach ($itemName in $itemList) {  
+	itemRemove ".\${itemName}"
+}
+
+$configManagementList = Get-ChildItem -Path "$solutionRoot" -Name '*.cm'
+if ( $configManagementList ) {
+	foreach ($item in $configManagementList) {
+		Write-Host "[$scriptName]   CM Driver       : $item"
+	}
+} else {
+		Write-Host "[$scriptName]   CM Driver       : none ($SOLUTIONROOT\*.cm)"
+}
+
+foreach ($propertiesDriver in $configManagementList) {
+	Write-Host "`n[$scriptName] Generating properties files from ${propertiesDriver}"
+	$columns = ( -split (Get-Content $SOLUTIONROOT\$propertiesDriver -First 1 ))
+	foreach ( $line in (Get-Content $SOLUTIONROOT\$propertiesDriver )) {
+		$arr = (-split $line)
+		if ( $arr[0] -ne 'context' ) {
+			if ( $arr[0] -eq 'remote' ) {
+				$cdafPath="./propertiesForRemoteTasks"
+			} else {
+				$cdafPath="./propertiesForLocalTasks"
+			}
+			if ( ! (Test-Path $cdafPath) ) {
+				Write-Host "[$scriptName]   mkdir $(mkdir $cdafPath)"
+			}
+			Write-Host "[$scriptName]   Generating ${cdafPath}/$($arr[1])"
+			foreach ($field in $columns) {
+				if ( $columns.IndexOf($field) -gt 1 ) { # do not create entries for context and target
+					Add-Content "${cdafPath}/$($arr[1])" "${field}=$($arr[$columns.IndexOf($field)])"
+				}
+			}
+		}
+	}
+}
+
 # CDAF 1.6.7 Container Build process
 if ( $ACTION -eq 'containerbuild' ) {
 	Write-Host "`n[$scriptName] `$ACTION = $ACTION, skip detection.`n"
