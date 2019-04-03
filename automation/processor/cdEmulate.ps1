@@ -10,7 +10,7 @@ function exceptionExit ($taskName) {
 $scriptName = $MyInvocation.MyCommand.Name
 
 $ACTION = $args[0]
-Write-Host "[$scriptName]   ACTION              : $ACTION"
+Write-Host "[$scriptName]   ACTION              : $ACTION (coded options cionly, buildonly, packageonly or cdonly)"
 
 $AUTOMATIONROOT = $args[1]
 if ($AUTOMATIONROOT) {
@@ -120,7 +120,7 @@ $workDirLocal = 'TasksLocal'
 Write-Host "[$scriptName]   workDirLocal        : $workDirLocal (default, see readme for changing this location)"
 
 if ( $ACTION ) { # Do not list configuration instructions when an action is passed
-	write-host "`n[$scriptName] Action is $ACTION"
+	write-host "`n[$scriptName] Action is $ACTION" -ForegroundColor "Blue"
 } else {
 	write-host "`n[$scriptName] ---------- CI Toolset Configuration Guide -------------`n"
     write-host 'For TeamCity ...'

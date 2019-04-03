@@ -198,9 +198,16 @@ if ( $ACTION -eq 'containerbuild' ) {
 			Write-Host "[$scriptName]   Docker          : $dockerRun"
 			# Test Docker is running
 			If (Get-Service Docker -ErrorAction SilentlyContinue) {
-				$dockerStatus = executeReturn '(Get-Service Docker).Status'
-				$dockerStatus
-				if ( $dockerStatus -ne 'Running' ) {
+			    $dockerStatus = executeReturn '(Get-Service Docker).Status'
+			    $dockerStatus
+			    if ( $dockerStatus -ne 'Running' ) {
+			        if ( $dockerdProcess = Get-Process dockerd -ea SilentlyContinue ) {
+			            Write-Host "[$scriptName] Process dockerd is running..."
+			        } else {
+			            Write-Host "[$scriptName] Process dockerd is not running..."
+			        }
+			    }
+			    if (( $dockerStatus -ne 'Running' ) -and ( $dockerdProcess -eq $null )){
 					Write-Host "[$scriptName] Docker service not running, `$dockerStatus = $dockerStatus"
 					executeExpression 'Start-Service Docker'
 					Write-Host '$dockerStatus = ' -NoNewline 
@@ -226,9 +233,9 @@ if ( $ACTION -eq 'containerbuild' ) {
 	}
 }
 
-if ( $containerBuild ) {
+if (( $containerBuild ) -and ( $ACTION -ne 'packageonly' )) {
 
-	Write-Host "`n[$scriptName] Execute Container build, this performs cionly, options packageonly and buildonly are ignored.`n" -ForegroundColor Green
+	Write-Host "`n[$scriptName] Execute Container build, this performs cionly, buildonly is ignored.`n" -ForegroundColor Green
 	executeExpression $containerBuild
 
 	$imageBuild = getProp 'imageBuild' "$solutionRoot\CDAF.solution"
@@ -242,9 +249,12 @@ if ( $containerBuild ) {
 } else { # Native build
 	
 	if ( $ACTION -eq 'packageonly' ) {
-		Write-Host "`n[$scriptName] Action is $ACTION so skipping build process" -ForegroundColor Yellow
+		if ( $containerBuild ) {
+			Write-Host "`n[$scriptName] ACTION is $ACTION so do not use container build process" -ForegroundColor Yellow
+		} else {
+			Write-Host "`n[$scriptName] ACTION is $ACTION so skipping build process" -ForegroundColor Yellow
+		}
 	} else {
-	
 		& .\$AUTOMATIONROOT\buildandpackage\buildProjects.ps1 $SOLUTION $BUILDNUMBER $REVISION $AUTOMATIONROOT $solutionRoot $ACTION
 		if($LASTEXITCODE -ne 0){
 			exitWithCode "BUILD_NON_ZERO_EXIT .\$AUTOMATIONROOT\buildandpackage\buildProjects.ps1 $SOLUTION $BUILDNUMBER $REVISION $AUTOMATIONROOT $solutionRoot $ACTION" $LASTEXITCODE
