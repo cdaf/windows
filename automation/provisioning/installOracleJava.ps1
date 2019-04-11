@@ -75,9 +75,13 @@ if (!( Test-Path "$sourceInstallDir" )) {
 $installer = "$sourceInstallDir\$jdkInstallFileName"
 if (!( Test-Path "$installer" )) {
 	Write-Host "[$scriptName] $installer not found, attempt to download ..."
+	Write-Host "`$AllProtocols = [System.Net.SecurityProtocolType]'Tls11,Tls12'"
+	$AllProtocols = [System.Net.SecurityProtocolType]'Tls11,Tls12'
+	executeExpression '[System.Net.ServicePointManager]::SecurityProtocol = $AllProtocols'
+
 	$client = new-object System.Net.WebClient 
 	$cookie = "oraclelicense=accept-securebackup-cookie"
-	$client.Headers.Add([System.Net.HttpRequestHeader]::Cookie, $cookie) 
+	executeExpression "`$client.Headers.Add([System.Net.HttpRequestHeader]::Cookie, '$cookie')" 
 	$uri = "http://download.oracle.com/otn-pub/java/jdk/${urlUID}/jdk-${java_version}-windows-x64.exe"
 	executeExpression "`$client.DownloadFile('$uri', '$sourceInstallDir\$jdkInstallFileName')"
 }
