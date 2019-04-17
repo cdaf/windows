@@ -19,10 +19,10 @@ IF [%AUTOMATION_ROOT%] == [] (
 rem Launcher script that overides execution policy
 rem cannot elevate powershell
 
-call powershell -NoProfile -ExecutionPolicy ByPass -command %cd%\%automationRoot%\processor\cdEmulate.ps1 %ACTION% %AUTOMATION_ROOT%
+call powershell -NoProfile -NonInteractive -ExecutionPolicy ByPass -command %cd%\%automationRoot%\processor\cdEmulate.ps1 %ACTION% %AUTOMATION_ROOT%
 set result=%errorlevel%
 if %result% NEQ 0 (
-	echo [%~nx0] ERROR call powershell -NoProfile -ExecutionPolicy ByPass -command %cd%\%automationRoot%\processor\cdEmulate.ps1 %ACTION% %AUTOMATION_ROOT%
+	echo [%~nx0] ERROR call powershell -NoProfile -NonInteractive -ExecutionPolicy ByPass -command %cd%\%automationRoot%\processor\cdEmulate.ps1 %ACTION% %AUTOMATION_ROOT%
 	echo [%~nx0]   Return LASTEXITCODE %result% 
 	echo.
     echo [%~nx0] --- End Emulation Error Handling ---
