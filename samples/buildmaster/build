@@ -1,0 +1,21 @@
+##AH:UseTextMode
+
+
+Git::Get-Source
+(
+    Credentials: Bonobo,
+    DiskPath: $WorkingDirectory
+);
+
+Execute-PowerShell >>cd $WorkingDirectory
+.\automation\processor\buildPackage.bat $BuildNumber>>;
+
+Create-Artifact Package
+(
+    Include: *.zip
+);
+
+Create-Artifact TasksLocal
+(
+    Include: "TasksLocal/**"
+);

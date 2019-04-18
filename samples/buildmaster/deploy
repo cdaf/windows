@@ -1,0 +1,10 @@
+##AH:UseTextMode
+
+
+Deploy-Artifact TasksLocal
+(
+    To: $WorkingDirectory
+);
+
+Execute-PowerShell >>cd $WorkingDirectory
+.\TasksLocal\delivery.bat $EnvironmentName >>;
