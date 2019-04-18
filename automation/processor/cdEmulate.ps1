@@ -134,9 +134,9 @@ if ( $ACTION ) { # Do not list configuration instructions when an action is pass
     write-host 'For Jenkins ...'
     write-host "  Command : $ciProcess %BUILD_NUMBER% %SVN_REVISION%"
     write-host
-    write-host 'For BuildMaster ...'
-    write-host "  Executable file     : $ciProcess"
-    write-host "  Arguments           : `${BuildNumber}"
+    write-host 'For BuildMaster ... (use "Get Source from Git Repository" to download to $WorkingDirectory, then "PSExec" as follows)'
+	write-host '  Set workspace       : cd $WorkingDirectory'
+	write-host "  Run CI Process      : $ciProcess `${BuildNumber}"
     write-host
     write-host 'For Team Foundation Server (TFS)/Visual Studio Team Services (VSTS)'
     write-host '  XAML ...'
@@ -225,9 +225,9 @@ if ( $ACTION ) {
 	write-host 'For Jenkins (each environment requires a literal definition) ...'
 	write-host "  Command             : $workDirLocal\$cdInstruction <environment literal> %SVN_REVISION%"
 	write-host
-	write-host 'For BuildMaster ...'
-	write-host "  Executable file     : $workDirLocal\$cdInstruction"
-	write-host "  Arguments           : `${EnvironmentName} `${ReleaseNumber}"
+	write-host 'For BuildMaster ... (Use "Deploy Artifact" to download to $WorkingDirectory, then use "PSExec" as follows)'
+	write-host '  Set workspace       : cd $WorkingDirectory'
+	write-host "  Run Delivery        : $workDirLocal\$cdInstruction `${EnvironmentName} `${ReleaseNumber}"
 	write-host
     write-host 'For Team Foundation Server (TFS)/Visual Studio Team Services (VSTS)'
 	write-host '  Verify the queue for each Environment definition, and ensure Environment names do not contain spaces.'
