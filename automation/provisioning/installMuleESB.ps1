@@ -87,7 +87,7 @@ if ( $agentVersion ) {
 if ( $tomcatHomeDir ) {
 	Write-Host "[$scriptName] tomcatHomeDir         : $tomcatHomeDir"
 } else {
-	$tomcatHomeDir = 'C:\apache\apache-tomcat8-8.5.6'
+	$tomcatHomeDir = 'C:\apache\apache-tomcat8-8.5.40'
 	Write-Host "[$scriptName] tomcatHomeDir         : $tomcatHomeDir (default)"
 }
 
