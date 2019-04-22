@@ -2,7 +2,7 @@ Param (
 	[string]$userName,
 	[string]$userPass,
 	[string]$workspace,
-	[string]$OPT_ARG
+	[string]$action
 )
 $scriptName = 'CDAF.ps1'
 
@@ -48,10 +48,10 @@ if ($workspace) {
     Write-Host "[$scriptName] workspace : $workspace (default)"
 }
 
-if ($OPT_ARG) {
-    Write-Host "[$scriptName] OPT_ARG   : $OPT_ARG"
+if ($action) {
+    Write-Host "[$scriptName] action    : $action"
 } else {
-    Write-Host "[$scriptName] OPT_ARG   : (not supplied)"
+    Write-Host "[$scriptName] action    : (not supplied)"
 }
 
 if ($userName) {
@@ -60,7 +60,7 @@ if ($userName) {
 	# call, if return of LASTEXITCODE is attempted during excution, all standard out is consumed by the result.
 	$securePassword = executeExpression "ConvertTo-SecureString `$userPass -asplaintext -force"
 	$cred = executeExpression "New-Object System.Management.Automation.PSCredential (`"$userName`", `$securePassword)"
-	$script = [scriptblock]::Create("cd $workspace; .\automation\cdEmulate.bat $OPT_ARG; [Environment]::SetEnvironmentVariable(`'PREVIOUS_EXIT_CODE`', `"`$LASTEXITCODE`", `'User`')")
+	$script = [scriptblock]::Create("cd $workspace; .\automation\cdEmulate.bat $action; [Environment]::SetEnvironmentVariable(`'PREVIOUS_EXIT_CODE`', `"`$LASTEXITCODE`", `'User`')")
 	Write-Host "[$scriptName] Invoke-Command -ComputerName localhost -Credential `$cred -ScriptBlock $script"
 	try {
 		Invoke-Command -ComputerName localhost -Credential $cred -ScriptBlock $script
@@ -78,14 +78,14 @@ if ($userName) {
 
 	Write-Host "[$scriptName] Execute as $(whoami) using workspace ($workspace)"
 	executeExpression "cd $workspace"
-	& .\automation\cdEmulate.bat $OPT_ARG
+	& .\automation\cdEmulate.bat $action
 	if($LASTEXITCODE -ne 0){
-	    write-host "[$scriptName] CURRENT_USER_NON_ZERO_EXIT & .\automation\cdEmulate.bat $OPT_ARG" -ForegroundColor Magenta
+	    write-host "[$scriptName] CURRENT_USER_NON_ZERO_EXIT & .\automation\cdEmulate.bat $action" -ForegroundColor Magenta
 	    write-host "[$scriptName]   Exit with `$LASTEXITCODE $LASTEXITCODE" -ForegroundColor Red
 	    exit $LASTEXITCODE
 	}
     if(!$?){ 
-	    write-host "[$scriptName] CURRENT_USER_EXEC_FALSE & .\automation\cdEmulate.bat $OPT_ARG" -ForegroundColor Magenta
+	    write-host "[$scriptName] CURRENT_USER_EXEC_FALSE & .\automation\cdEmulate.bat $action" -ForegroundColor Magenta
 	    write-host "[$scriptName]   Exit with `$LASTEXITCODE 900" -ForegroundColor Red
 	    exit 900
 	}
