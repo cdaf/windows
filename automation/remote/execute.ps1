@@ -222,14 +222,16 @@ $TMPDIR = [Environment]::GetEnvironmentVariable("TEMP","Machine")
 
 $scriptName = $myInvocation.MyCommand.Name 
 
-Write-Host "~~~~~ Starting Execution Engine ~~~~~~"
-Write-Host
+Write-Host "~~~~~ Starting Execution Engine ~~~~~~`n"
 Write-Host "[$scriptName]  SOLUTION    : $SOLUTION"
 Write-Host "[$scriptName]  BUILDNUMBER : $BUILDNUMBER"
 Write-Host "[$scriptName]  TARGET      : $TARGET"
 Write-Host "[$scriptName]  TASK_LIST   : $TASK_LIST"
 Write-Host "[$scriptName]  ACTION      : $ACTION"
 Write-Host "[$scriptName]  TMPDIR      : $TMPDIR"
+if ( $PROJECT ) {
+	Write-Host "[$scriptName]  PROJECT     : $PROJECT"
+}
 Write-Host
 
 # If called from build process, automation root will be set

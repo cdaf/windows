@@ -85,11 +85,11 @@ if (Test-Path build.ps1) {
 	Write-Host "`n[$scriptName] build.ps1 found in solution root, executing in $(pwd)`n" 
     # Legacy build method, note: a .BAT file may exist in the project folder for Dev testing, by is not used by the builder
     try {
-	    & .\build.ps1 $SOLUTION $BUILDNUMBER $REVISION $PROJECT $ENVIRONMENT $ACTION
-		if($LASTEXITCODE -ne 0){ passExitCode "ROOT_LEGACY_NON_ZERO_EXIT .\$automationHelper\execute.ps1 $SOLUTION $BUILDNUMBER $ENVIRONMENT build.tsk $ACTION" $LASTEXITCODE }
-	    if(!$?){ taskFailure "SOLUTION_BUILD_${SOLUTION}_${BUILDNUMBER}_${REVISION}_${PROJECT}_${ENVIRONMENT}_${ACTION}" }
+	    & .\build.ps1 $SOLUTION $BUILDNUMBER $REVISION ROOT $ENVIRONMENT $ACTION
+		if($LASTEXITCODE -ne 0){ passExitCode "ROOT_LEGACY_NON_ZERO_EXIT .\$automationHelper\execute.ps1 $SOLUTION $BUILDNUMBER $REVISION ROOT $ENVIRONMENT $ACTION" $LASTEXITCODE }
+	    if(!$?){ taskFailure "SOLUTION_BUILD_${SOLUTION}_${BUILDNUMBER}_${REVISION}_ROOT_${ENVIRONMENT}_${ACTION}" }
     } catch {
-	    write-host "[$scriptName] CUSTOM_BUILD_EXCEPTION & .\build.ps1 $SOLUTION $BUILDNUMBER $REVISION $PROJECT $ENVIRONMENT $ACTION" -ForegroundColor Magenta
+	    write-host "[$scriptName] CUSTOM_BUILD_EXCEPTION & .\build.ps1 $SOLUTION $BUILDNUMBER $REVISION ROOT $ENVIRONMENT $ACTION" -ForegroundColor Magenta
     	exceptionExit $_
     }
 }
@@ -122,11 +122,11 @@ if (-not($projectsToBuild)) {
 	$projectsToBuild
 
 	# Process all Tasks
-	foreach ($projectName in $projectsToBuild) {
+	foreach (${PROJECT} in $projectsToBuild) {
     
-		write-host "`n[$scriptName]   --- Build Project $projectName start ---`n" -ForegroundColor Green
+		write-host "`n[$scriptName]   --- Build Project ${PROJECT} start ---`n" -ForegroundColor Green
 
-		cd $projectName
+		cd ${PROJECT}
 
         if (Test-Path build.tsk) {
             # Task driver support added in release 0.6.1
@@ -137,14 +137,14 @@ if (-not($projectsToBuild)) {
 
         } else {
             # Legacy build method, note: a .BAT file may exist in the project folder for Dev testing, by is not used by the builder
-		    & .\build.ps1 $SOLUTION $BUILDNUMBER $REVISION $projectName $ENVIRONMENT $ACTION
+		    & .\build.ps1 $SOLUTION $BUILDNUMBER $REVISION ${PROJECT} $ENVIRONMENT $ACTION
 			if($LASTEXITCODE -ne 0){ passExitCode "PROJECT_EXECUTE_NON_ZERO_EXIT .\$automationHelper\execute.ps1 $SOLUTION $BUILDNUMBER $ENVIRONMENT build.tsk $ACTION" $LASTEXITCODE }
 		    if(!$?){ taskFailure "PROJECT_BUILD_${SOLUTION}_${BUILDNUMBER}_${REVISION}_${PROJECT}_${ENVIRONMENT}_${ACTION}" }
         }
 
         cd ..
 
-		write-host "`n[$scriptName]   --- BUILD project $projectName successfull ---" -ForegroundColor Green
+		write-host "`n[$scriptName]   --- BUILD project ${PROJECT} successfull ---" -ForegroundColor Green
 	} 
 
 }
