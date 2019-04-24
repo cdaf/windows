@@ -4,6 +4,9 @@ Param (
   [string]$ENVIRONMENT
 )
 
+cmd /c "exit 0"
+$scriptName = 'customDelivery.ps1'
+
 # Common expression logging and error handling function, copied, not referenced to ensure atomic process
 function executeExpression ($expression) {
 	$error.clear()
@@ -17,7 +20,6 @@ function executeExpression ($expression) {
     return $output
 }
 
-$scriptName = 'customDelivery.ps1'
 Write-Host "`n[$scriptName] ---------- start ----------`n"
 Write-Host "[$scriptName] SOLUTION    : $SOLUTION"
 Write-Host "[$scriptName] BUILD       : $BUILD"
