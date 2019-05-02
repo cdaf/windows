@@ -2,8 +2,8 @@
 project:
   key: YOUREXISTINGPROJECTKEY
   plan:
-    key: YOURNEWPLANKEY
-    name: Plan using CDAF Build and Package
+    key: NEW
+    name: The New Key Must be 3 characters
 stages:
   - jobs:
       - scripts:
