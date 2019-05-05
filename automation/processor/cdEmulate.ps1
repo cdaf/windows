@@ -33,7 +33,11 @@ if ( $ACTION -ne "cdonly" ) { # Do not incriment when just deploying
 }
 Set-Content "$counterFile" "$buildNumber"
 Write-Host "[$scriptName]   buildNumber         : $buildNumber"
-$revision = 'master'
+if ( $env:CDAF_BRANCH_NAME ) {
+	$revision = $env:CDAF_BRANCH_NAME
+} else {
+	$revision = 'dev'
+}
 Write-Host "[$scriptName]   revision            : $revision"
 $release = 'emulation-release' 
 Write-Host "[$scriptName]   release             : $release"
