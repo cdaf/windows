@@ -7,13 +7,18 @@ name: $(TeamProject)_$(BuildDefinitionName)_$(SourceBranchName)_$(Date:yyyyMMdd)
 pool:
   vmImage: 'vs2017-win2016'
 
+trigger:
+  branches:
+    include:
+    - '*'
+
 # For a private pool, in this example, named Private requiring the capability of PowerShell
 #pool: 
 #  name: Azure
 #  demands: PowerShell
 
 # or pool with no demands
-#pool: Azure
+#pool: Default
 
 variables:
   buildConfiguration: 'Release'
