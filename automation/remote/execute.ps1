@@ -391,7 +391,8 @@ Foreach ($line in get-content $TASK_LIST) {
             	
 			    # Do not echo line if it is an echo itself
 			    if (-not (($expression -match 'Write-Host') -or ($expression -match 'echo'))) {
-					Write-Host "$expression"
+			    	$escapeAssign = $expression -replace '^\$', '`$'
+					$ExecutionContext.InvokeCommand.ExpandString($escapeAssign)
 			    }
 				try {
 					Invoke-Expression $expression
