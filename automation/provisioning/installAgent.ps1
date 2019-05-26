@@ -81,7 +81,7 @@ if ( $mediaDirectory ) {
 	Write-Host "[$scriptName] mediaDirectory  : $mediaDirectory (not supplied, set to default)"
 }
 
-$version = '2.136.1'
+$version = '2.150.3'
 Write-Host "[$scriptName] version         : $version"
 
 $fullpath = 'C:\agent\config.cmd'
