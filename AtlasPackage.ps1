@@ -132,14 +132,15 @@ if ($hypervisor -eq 'virtualbox') {
 
 	if ( $boxname -Match "Windows" ) { # This tells Vagrant to use WinRM instead of SSH
 		executeExpression "(New-Object System.Net.WebClient).DownloadFile(`'https://raw.githubusercontent.com/cdaf/windows/master/samples/vagrant-box/Vagrantfile`', `"$PWD\Vagrantfile`")"
-		$filename = "Vagrantfile"
-		$token = '#virtbox: '
-		$value = ''
-		(Get-Content $fileName | ForEach-Object { $_ -replace [regex]::Escape($token), "$value" } ) | Set-Content $fileName
-		
 	} else {
 		executeExpression "(New-Object System.Net.WebClient).DownloadFile(`'https://raw.githubusercontent.com/cdaf/linux/master/samples/vagrant-box/Vagrantfile`', `"$PWD\Vagrantfile`")"
 	}
+	
+	$filename = "Vagrantfile"
+	$token = '#virtbox: '
+	$value = ''
+	(Get-Content $fileName | ForEach-Object { $_ -replace [regex]::Escape($token), "$value" } ) | Set-Content $fileName
+
 	Write-Host "`n[$scriptName] List the contents of the package Vagrantfile"
 	executeExpression "cat Vagrantfile"
 	executeExpression "vagrant package --base $boxName --output $packageFile --vagrantfile Vagrantfile"
