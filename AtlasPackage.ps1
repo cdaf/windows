@@ -100,6 +100,11 @@ if ($skipTest) {
     Write-Host "[$scriptName] skipTest    : $skipTest (default)"
 }
 
+if ( $env:http_proxy ) {
+    Write-Host "[$scriptName] http_proxy  : $env:http_proxy"
+    executeExpression "[system.net.webrequest]::defaultwebproxy = new-object system.net.webproxy('$env:http_proxy')"
+}
+
 $imageLog = "$(pwd)\atlasPackage_${hypervisor}.txt"
 if (Test-Path "$imageLog") {
     Write-Host "`n[$scriptName] Logfile exists ($imageLog), delete for new run."
