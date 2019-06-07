@@ -5,6 +5,8 @@ Param (
 	[string]$ignoreCertificate,
 	[string]$proxy
 )
+
+cmd /c "exit 0"
 $scriptName = 'GetMedia.ps1'
 
 # Retry logic for connection issues, i.e. "Cannot retrieve the dynamic parameters for the cmdlet. PowerShell Gallery is currently unavailable.  Please try again later."
