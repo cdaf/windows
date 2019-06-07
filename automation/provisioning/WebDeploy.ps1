@@ -102,7 +102,11 @@ if ( Test-Path -Path "$key" ) {
 	$InstallPath = (Get-ItemProperty -Path "$key" -Name $name).$name
 }
 if ( $InstallPath ) {
-	Write-Host "[$scriptName] Web Deploy already installed, no action attempted."
+	if ($Installtype -eq 'agent') {
+		Write-Host "[$scriptName] Web Deploy already installed, requested install type is agent, verifying Agent is installed"
+	} else {
+		Write-Host "[$scriptName] Web Deploy already installed, no action attempted."
+	}
 } else {
 	
 	# Prepare Install Media
@@ -178,6 +182,11 @@ if ( $InstallPath ) {
 		Select-String $logFile -Pattern "Installation success or error status"
 		exit 4900
 	}
+}
+
+if ($Installtype -eq 'agent') {
+	$service = executeExpression "Get-Service MsDepSvc"
+	Write-Host "[$scriptName] Web Deploy agent is $($service.Status)"
 }
 
 Write-Host "`n[$scriptName] ---------- stop ----------"

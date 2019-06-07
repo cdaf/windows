@@ -22,7 +22,7 @@ Write-Host "`n[$scriptName] ---------- start ----------"
 if ($url) {
     Write-Host "[$scriptName] url      : $url"
 } else {
-	$url = 'http://cdaf.azurewebsites.net/content/Database.exe'
+	$url = 'http://cdaf.io/static/app/downloads/Database.exe'
     Write-Host "[$scriptName] url      : $url (default)"
 }
 
