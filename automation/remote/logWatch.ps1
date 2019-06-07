@@ -70,7 +70,7 @@ while (( $retryCount -le $retryMax ) -and ($exitCode -ne 0)) {
     }
 		
 	if ( $retryCount -ge $retryMax ) {
-		Write-Host "[$scriptName] Retry maximum ($retryMax) reached, exiting with code 334"; $exitCode = 334
+		Write-Host "[$scriptName] Maximum wait time ($waitTime) reached after $retryMax retries, exiting with code 334"; $exitCode = 334
 	}
 	$retryCount += 1
 }
