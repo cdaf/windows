@@ -36,7 +36,7 @@ Write-Host "[$scriptName]   buildNumber         : $buildNumber"
 if ( $env:CDAF_BRANCH_NAME ) {
 	$revision = $env:CDAF_BRANCH_NAME
 } else {
-	$revision = 'dev'
+	$revision = 'master'
 }
 Write-Host "[$scriptName]   revision            : $revision"
 $release = 'emulation-release' 

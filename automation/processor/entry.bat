@@ -4,14 +4,14 @@ cmd /c "exit 0"
 REM Too complicated to derive automation root from Batch runner, so hard coded for windows.
 SET BUILDNUMBER=%1
 SET BRANCH=%2
-SET ACTION=%3
+SET URL=%3
 
 echo.
 echo [%~nx0] --------------------
 echo [%~nx0] Targetless Branch CD
 echo [%~nx0]   BUILDNUMBER : %BUILDNUMBER%
 echo [%~nx0]   BRANCH      : %BRANCH%
-echo [%~nx0]   ACTION      : %ACTION%
+echo [%~nx0]   URL         : %URL%
 
 REM Launcher script that overides execution policy
 REM cannot elevate powershell
@@ -29,12 +29,12 @@ if %result% NEQ 0 (
 
 IF "%BRANCH%" == "master" (
 	echo [%~nx0] Only perform container test in CI for branches, Master execution in CD pipeline
-	exit /b 0
+	GOTO GitClean
 )
 
 IF "%BRANCH%" == "refs/heads/master" (
 	echo [%~nx0] Only perform container test in CI for branches, Master execution in CD pipeline
-	exit /b 0
+	GOTO GitClean
 )
 
 REM Do not call from within IF statement or errorlevel is lost
@@ -49,3 +49,13 @@ if %result% NEQ 0 (
 	echo.
 	exit /b %result%
 )
+
+:GitClean
+call powershell -NoProfile -NonInteractive -ExecutionPolicy ByPass -command %cd%\%automationRoot%\processor\removeDockerImage.ps1 %URL%
+set result=%errorlevel%
+if %result% NEQ 0 (
+	echo [%~nx0] BUILD_PACKAGE_ERROR call powershell -NoProfile -NonInteractive -ExecutionPolicy ByPass -command %cd%\%automationRoot%\processor\removeDockerImage.ps1 %URL%
+	echo [%~nx0]   Return LASTEXITCODE %result% 
+	exit /b %result%
+)
+exit /b 0
