@@ -1,2 +1,5 @@
-automation
+# Only store provisioning scripts needed, not all
+automation\provisioning\runner.bat
+automation\remote\capabilities.ps1
+
 compose
