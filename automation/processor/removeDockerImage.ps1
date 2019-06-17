@@ -102,7 +102,7 @@ foreach ($i in $dockerImages) {
     if ($i -like "${solutionName}_*") {
     	$remove = $True
         foreach ($b in $remoteBranches) {
-			if ($i -like "${solutionName}_$b*" ) {
+			if (( $i -like "${solutionName}_$b*" ) -or ( $i -like "${solutionName}_container_*" )) {
 				$imagesRetained += $( $b_count++; echo "$b_count. $i"`n )
 				$remove = $False
                 break
