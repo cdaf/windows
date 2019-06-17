@@ -29,12 +29,12 @@ if %result% NEQ 0 (
 
 IF "%BRANCH%" == "master" (
 	echo [%~nx0] Only perform container test in CI for branches, Master execution in CD pipeline
-	GOTO GitClean
+	GOTO BranchImageTest
 )
 
 IF "%BRANCH%" == "refs/heads/master" (
 	echo [%~nx0] Only perform container test in CI for branches, Master execution in CD pipeline
-	GOTO GitClean
+	GOTO BranchImageTest
 )
 
 REM Do not call from within IF statement or errorlevel is lost
@@ -50,6 +50,10 @@ if %result% NEQ 0 (
 	exit /b %result%
 )
 
+:BranchImageTest
+IF "%BRANCH_IMAGE_CLEAN%" == "" GOTO endOfScript
+if NOT %BRANCH_IMAGE_CLEAN% == "yes" GOTO endOfScript
+
 :GitClean
 call powershell -NoProfile -NonInteractive -ExecutionPolicy ByPass -command %cd%\%automationRoot%\processor\removeDockerImage.ps1 %URL%
 set result=%errorlevel%
@@ -58,4 +62,6 @@ if %result% NEQ 0 (
 	echo [%~nx0]   Return LASTEXITCODE %result% 
 	exit /b %result%
 )
+
+:endOfScript
 exit /b 0
