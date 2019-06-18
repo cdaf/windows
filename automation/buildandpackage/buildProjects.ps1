@@ -86,7 +86,7 @@ if (Test-Path build.ps1) {
     # Legacy build method, note: a .BAT file may exist in the project folder for Dev testing, by is not used by the builder
     try {
 	    & .\build.ps1 $SOLUTION $BUILDNUMBER $REVISION ROOT $ENVIRONMENT $ACTION
-		if($LASTEXITCODE -ne 0){ passExitCode "ROOT_LEGACY_NON_ZERO_EXIT .\$automationHelper\execute.ps1 $SOLUTION $BUILDNUMBER $REVISION ROOT $ENVIRONMENT $ACTION" $LASTEXITCODE }
+		if($LASTEXITCODE -ne 0){ passExitCode "ROOT_LEGACY_NON_ZERO_EXIT .\build.ps1 $SOLUTION $BUILDNUMBER $REVISION ROOT $ENVIRONMENT $ACTION" $LASTEXITCODE }
 	    if(!$?){ taskFailure "SOLUTION_BUILD_${SOLUTION}_${BUILDNUMBER}_${REVISION}_ROOT_${ENVIRONMENT}_${ACTION}" }
     } catch {
 	    write-host "[$scriptName] CUSTOM_BUILD_EXCEPTION & .\build.ps1 $SOLUTION $BUILDNUMBER $REVISION ROOT $ENVIRONMENT $ACTION" -ForegroundColor Magenta
