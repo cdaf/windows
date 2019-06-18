@@ -15,12 +15,12 @@ function executeExpression ($expression) {
     if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) { Write-Host "[$scriptName] `$LASTEXITCODE = $LASTEXITCODE "; exit $LASTEXITCODE }
 }
 
-Write-Host "`n[$scriptName] Required for web deploy in microsoft/iis`n"
 Write-Host "`n[$scriptName] ---------- start ----------"
 if ($path) {
     Write-Host "[$scriptName] path : $path"
 } else {
-    Write-Host "[$scriptName] path not supplied, exit with `$LASTEXITCODE = 1"; exit 1
+	$path = 'C:\inetpub\wwwroot\'
+    Write-Host "[$scriptName] path : $path (not passed so set to default)"
 }
 
 if ( ! ( Test-Path $path )) {
