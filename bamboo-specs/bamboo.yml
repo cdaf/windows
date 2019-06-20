@@ -35,7 +35,7 @@ release-naming:
 
 environments:
   - NO_PROP
-  - LINUX
+  - WINDOWS
 
 NO_PROP:
   triggers:
@@ -47,7 +47,7 @@ NO_PROP:
     - script:
         - "${bamboo.build.working.directory}\\TasksLocal\\delivery.bat ${bamboo.deploy.environment} ${bamboo.deploy.release}"
 
-LINUX:
+WINDOWS:
   triggers:
     - environment-success: NO_PROP
   tasks:
