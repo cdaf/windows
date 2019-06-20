@@ -1,0 +1,1 @@
+For current sample, see bamboo-specs in root.
