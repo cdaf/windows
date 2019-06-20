@@ -3,7 +3,7 @@ version: 2
 
 plan:
   project-key: REF
-  key: CDAF
+  key: CDAFW
   name: CDAf Public Contribute
 
 stages:
@@ -28,7 +28,7 @@ version: 2
 
 deployment:
   name: CDAFW
-  source-plan: REF-CDAF
+  source-plan: REF-CDAFW
 
 release-naming:
   next-version-name: ${bamboo.buildNumber}
