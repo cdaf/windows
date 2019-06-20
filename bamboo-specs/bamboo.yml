@@ -45,8 +45,7 @@ NO_PROP:
     - artifact-download:
         destination: ${bamboo.working.directory}
     - script:
-        - '#!/bin/bash'
-        - "./TasksLocal/entry.sh ${bamboo.deploy.environment} ${bamboo.deploy.release}"
+        - "${bamboo.build.working.directory}\\TasksLocal\\delivery.bat ${bamboo.deploy.environment} ${bamboo.deploy.release}"
 
 LINUX:
   triggers:
@@ -56,5 +55,4 @@ LINUX:
     - artifact-download:
         destination: ${bamboo.working.directory}
     - script:
-        - '#!/bin/bash'
-        - "./TasksLocal/delivery.sh ${bamboo.deploy.environment} ${bamboo.deploy.release}"
+        - "${bamboo.build.working.directory}\\TasksLocal\\delivery.bat ${bamboo.deploy.environment} ${bamboo.deploy.release}"
