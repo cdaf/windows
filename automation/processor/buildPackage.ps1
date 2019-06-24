@@ -196,6 +196,16 @@ if ( $configManagementList ) {
 		Write-Host "[$scriptName]   CM Driver       : none ($SOLUTIONROOT\*.cm)"
 }
 
+$pivotList = Get-ChildItem -Path "$solutionRoot" -Name '*.pv'
+if ( $pivotList ) {
+	foreach ($item in $pivotList) {
+		Write-Host "[$scriptName]   CM Driver       : $item"
+	}
+} else {
+		Write-Host "[$scriptName]   CM Driver       : none ($SOLUTIONROOT\*.cm)"
+}
+
+# Process table with properties as fields and environments as rows
 foreach ($propertiesDriver in $configManagementList) {
 	Write-Host "`n[$scriptName] Generating properties files from ${propertiesDriver}"
 	$columns = ( -split (Get-Content $SOLUTIONROOT\$propertiesDriver -First 1 ))
@@ -213,8 +223,37 @@ foreach ($propertiesDriver in $configManagementList) {
 			Write-Host "[$scriptName]   Generating ${cdafPath}/$($arr[1])"
 			foreach ($field in $columns) {
 				if ( $columns.IndexOf($field) -gt 1 ) { # do not create entries for context and target
-					Add-Content "${cdafPath}/$($arr[1])" "${field}=$($arr[$columns.IndexOf($field)])"
+					if ( $($arr[$columns.IndexOf($field)]) ) { # Only write properties that are populated
+						Add-Content "${cdafPath}/$($arr[1])" "${field}=$($arr[$columns.IndexOf($field)])"
+					}
 				}
+			}
+		}
+	}
+}
+
+# Process table with properties as rows and environments as fields
+foreach ($propertiesDriver in $pivotList) {
+	Write-Host "`n[$scriptName] Generating properties files from ${propertiesDriver}"
+	$rows = Get-Content $SOLUTIONROOT\$propertiesDriver
+	$columns = -split $rows[0]
+	$paths = -split $rows[1]
+    for ($i=2; $i -le $rows.Count; $i++) {
+		$arr = (-split $rows[$i])
+		for ($j=1; $j -le $arr.Count; $j++) {
+			if (( $columns[$j] ) -and ( $arr[$j] )) {
+				if ( $paths[$j] -eq 'remote' ) {
+					$cdafPath="./propertiesForRemoteTasks"
+				} else {
+					$cdafPath="./propertiesForLocalTasks"
+				}
+				if ( ! (Test-Path $cdafPath) ) {
+					Write-Host "[$scriptName]   mkdir $(mkdir $cdafPath)"
+				}
+				if ( ! ( Test-Path "${cdafPath}/$($columns[$j])" )) {
+					Write-Host "[$scriptName]   Generating ${cdafPath}/$($columns[$j])"
+				}
+				Add-Content "${cdafPath}/$($columns[$j])" "$($arr[0])=$($arr[$j])"
 			}
 		}
 	}
