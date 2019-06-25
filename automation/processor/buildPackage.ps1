@@ -199,10 +199,10 @@ if ( $configManagementList ) {
 $pivotList = Get-ChildItem -Path "$solutionRoot" -Name '*.pv'
 if ( $pivotList ) {
 	foreach ($item in $pivotList) {
-		Write-Host "[$scriptName]   CM Driver       : $item"
+		Write-Host "[$scriptName]   PV Driver       : $item"
 	}
 } else {
-		Write-Host "[$scriptName]   CM Driver       : none ($SOLUTIONROOT\*.cm)"
+		Write-Host "[$scriptName]   PV Driver       : none ($SOLUTIONROOT\*.pv)"
 }
 
 # Process table with properties as fields and environments as rows
