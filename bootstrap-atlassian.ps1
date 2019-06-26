@@ -23,12 +23,12 @@ Write-Host "`n[$scriptName] ---------- start ----------"
 if ($sqlSA) {
     Write-Host "[$scriptName] sqlSA  : $sqlSA"
 } else {
-    Write-Host "[$scriptName] sqlSA not supplied! Halting with lastexitcode 8832"; exit 8832
+    Write-Host "[$scriptName] sqlSA  : (not supplied, only reverse proxy will be installed)"
 }
 
 if ($port) {
     Write-Host "[$scriptName] port : $port"
-} else {\
+} else {
 	$port = '8080'
     Write-Host "[$scriptName] port : $port (not supplied so set to default)"
 }
@@ -57,9 +57,6 @@ if ( Test-Path "./automation/provisioning" ) {
 }
 Write-Host "[$scriptName] `$atomicPath = $atomicPath"
 
-$msa = $sqlSA + '$'
-Write-Host "[$scriptName] Using managed service account $msa"
-
 executeExpression "$atomicPath\automation\provisioning\InstallIIS.ps1 -management yes"
 
 ## Install Application Request Routing (ARR)
@@ -86,24 +83,29 @@ executeExpression 'Add-Content C:\inetpub\wwwroot\web.config "        </rewrite>
 executeExpression 'Add-Content C:\inetpub\wwwroot\web.config "    </system.webServer>"'
 executeExpression 'Add-Content C:\inetpub\wwwroot\web.config "</configuration>"'
 
-## Mount Install media to D:\ (default for script), NOTE the '$' after the managed service account
-executeExpression "$atomicPath\automation\provisioning\installSQLServer.ps1 '$msa'"
-
-# SMO installed as part of Standard, connect to the local default instance
-executeExpression '[reflection.assembly]::LoadWithPartialName("Microsoft.SqlServer.Smo")'
-executeExpression '[reflection.assembly]::LoadWithPartialName("Microsoft.SqlServer.SqlWmiManagement")'
-$srv = executeExpression 'new-Object Microsoft.SqlServer.Management.Smo.Server(".")'
-
-# Change the mode and restart the instance
-executeExpression '$srv.Settings.LoginMode = [Microsoft.SqlServer.Management.SMO.ServerLoginMode]::Mixed'
-executeExpression '$srv.Alter()'
-executeExpression '$srv.Settings.LoginMode'
-executeExpression "Restart-Service MSSQLSERVER"
-
-# Allow remote access to the Database for SSMS to migrate the database
-executeExpression "$atomicPath\automation\provisioning\openFirewallPort.ps1 1433 SQL"
-
-# Adopt Open JDK (migrating from Oracle JDK)
-executeExpression "$atomicPath\automation\provisioning\base.ps1 adoptopenjdk -version 8.192"
+if ($sqlSA) {
+	$msa = $sqlSA + '$'
+	Write-Host "[$scriptName] Using managed service account $msa"
+	
+	## Mount Install media to D:\ (default for script), NOTE the '$' after the managed service account
+	executeExpression "$atomicPath\automation\provisioning\installSQLServer.ps1 '$msa'"
+	
+	# SMO installed as part of Standard, connect to the local default instance
+	executeExpression '[reflection.assembly]::LoadWithPartialName("Microsoft.SqlServer.Smo")'
+	executeExpression '[reflection.assembly]::LoadWithPartialName("Microsoft.SqlServer.SqlWmiManagement")'
+	$srv = executeExpression 'new-Object Microsoft.SqlServer.Management.Smo.Server(".")'
+	
+	# Change the mode and restart the instance
+	executeExpression '$srv.Settings.LoginMode = [Microsoft.SqlServer.Management.SMO.ServerLoginMode]::Mixed'
+	executeExpression '$srv.Alter()'
+	executeExpression '$srv.Settings.LoginMode'
+	executeExpression "Restart-Service MSSQLSERVER"
+	
+	# Allow remote access to the Database for SSMS to migrate the database
+	executeExpression "$atomicPath\automation\provisioning\openFirewallPort.ps1 1433 SQL"
+	
+	# Adopt Open JDK (migrating from Oracle JDK)
+	executeExpression "$atomicPath\automation\provisioning\base.ps1 adoptopenjdk -version 8.192"
+}
 
 Write-Host "`n[$scriptName] ---------- stop ----------"
