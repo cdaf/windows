@@ -27,4 +27,4 @@ COPY executeTest.ps1 .
 WORKDIR workspace
 
 # Unlike the web server, this container is transient, and does not build the wrapper into the image, instead this relies of the volume mount
-CMD ["C:/solution/automation/provisioning/runner.bat", "../executeTest.ps1", "TARGETLESS"]
+CMD ["C:/solution/automation/provisioning/runner.bat", "../executeTest.ps1", "AUTO_TEST"]

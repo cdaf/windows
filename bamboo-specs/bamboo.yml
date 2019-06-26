@@ -1,0 +1,58 @@
+---
+version: 2
+
+plan:
+  project-key: REF
+  key: CDAFW
+  name: CDAf Public Contribute
+
+stages:
+  - Build Stage:
+    - Build Job
+
+Build Job:
+  tasks:
+    - script:
+        - "automation\\processor\\buildPackage.bat ${bamboo.buildNumber} ${bamboo.repository.branch.name}"
+
+  artifacts:
+    - name: Package
+      pattern: '*.zip'
+      shared: true
+    - name: TasksLocal
+      pattern: 'TasksLocal/**'
+      shared: true
+
+---
+version: 2
+
+deployment:
+  name: CDAFW
+  source-plan: REF-CDAFW
+
+release-naming:
+  next-version-name: 1.9.2.${bamboo.buildNumber}
+
+environments:
+  - NO_PROP
+  - WINDOWS
+
+NO_PROP:
+  triggers:
+    - build-success
+  tasks:
+    - clean
+    - artifact-download:
+        destination: ${bamboo.working.directory}
+    - script:
+        - "${bamboo.build.working.directory}\\TasksLocal\\delivery.bat ${bamboo.deploy.environment} ${bamboo.deploy.release}"
+
+WINDOWS:
+  triggers:
+    - environment-success: NO_PROP
+  tasks:
+    - clean
+    - artifact-download:
+        destination: ${bamboo.working.directory}
+    - script:
+        - "${bamboo.build.working.directory}\\TasksLocal\\delivery.bat ${bamboo.deploy.environment} ${bamboo.deploy.release}"
