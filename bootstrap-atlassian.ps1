@@ -67,6 +67,9 @@ executeExpression "$atomicPath\automation\provisioning\GetMedia.ps1  https://dow
 executeExpression "$atomicPath\automation\provisioning\installMSI.ps1 C:\.provision\rewrite_amd64.msi"
 executeExpression "Start-Service W3SVC"
 
+if ( Test-Path 'C:\inetpub\wwwroot\web.config' ) {
+    executeExpression 'Clear-Content C:\inetpub\wwwroot\web.config'
+}
 executeExpression 'Add-Content C:\inetpub\wwwroot\web.config "<?xml version=`"1.0`" encoding=`"UTF-8`"?>"'
 executeExpression 'Add-Content C:\inetpub\wwwroot\web.config "<configuration>"'
 executeExpression 'Add-Content C:\inetpub\wwwroot\web.config "    <system.webServer>"'
