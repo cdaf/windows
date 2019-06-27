@@ -87,6 +87,12 @@ if ( $mediaDirectory ) {
 	Write-Host "[$scriptName] mediaDirectory : $mediaDirectory (not supplied, set to default)"
 }
 
+if ( $version ) {
+	Write-Host "[$scriptName] version        : $version"
+} else {
+	Write-Host "[$scriptName] version        : (not supplied, will use latest)"
+}
+
 $versionTest = cmd /c gitlab-runner --version 2`>`&1
 if (!($versionTest -like '*not recognized*')) {
 	$versionLine = $(foreach ($line in $versionTest) { Select-String  -InputObject $line -CaseSensitive "Version" })
@@ -101,8 +107,19 @@ if (!($versionTest -like '*not recognized*')) {
 		$env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")
 	}
 	$fullpath = $mediaDirectory + '\gitlab-runner-windows-amd64.exe'
-	if (!( Test-Path $fullpath )) {
-		executeExpression "(New-Object System.Net.WebClient).DownloadFile('https://gitlab-runner-downloads.s3.amazonaws.com/latest/binaries/gitlab-runner-windows-amd64.exe', '$fullpath')"
+	if ( Test-Path $fullpath ) {
+		if ( $version ) {
+			Write-Host "[$scriptName] Version specified, purge cache copy and download version"
+			executeExpression "rm $fullpath"
+			executeExpression "(New-Object System.Net.WebClient).DownloadFile('https://gitlab-runner-downloads.s3.amazonaws.com/v${version}/binaries/gitlab-runner-windows-amd64.exe', '$fullpath')"
+		} else {
+			if ( $version ) {
+				Write-Host "[$scriptName] Download version $version"
+				executeExpression "(New-Object System.Net.WebClient).DownloadFile('https://gitlab-runner-downloads.s3.amazonaws.com/v${version}/binaries/gitlab-runner-windows-amd64.exe', '$fullpath')"
+			} else {
+				executeExpression "(New-Object System.Net.WebClient).DownloadFile('https://gitlab-runner-downloads.s3.amazonaws.com/latest/binaries/gitlab-runner-windows-amd64.exe', '$fullpath')"
+			}
+		}
 	} 
 	executeExpression "Copy-Item $fullpath 'C:\GitLab-Runner\gitlab-runner.exe'"
 
@@ -119,8 +136,8 @@ if (!($versionTest -like '*not recognized*')) {
 
 if ( $uri ) {
 	
-	$printList = "--debug register --non-interactive --uri $uri --registration-token `$token --name $name --tag-list '$tags' --executor $executor --locked=false --shell powershell"
-	$argList = "--debug register --non-interactive --uri $uri --registration-token $token --name $name --tag-list '$tags' --executor $executor --locked=false --shell powershell"
+	$printList = "--debug register --non-interactive --url $uri --registration-token `$token --name $name --tag-list '$tags' --executor $executor --locked=false --shell powershell"
+	$argList = "--debug register --non-interactive --url $uri --registration-token $token --name $name --tag-list '$tags' --executor $executor --locked=false --shell powershell"
 	
 	if ( $tlsCAFile ) {
 		$printList = $printList + " --tls-ca-file $tlsCAFile"
