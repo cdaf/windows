@@ -8,7 +8,7 @@ $scriptName = 'runas.ps1'
 cmd /c "exit 0" # Clear from any previously failed run
 
 # Common expression logging and error handling function, copied, not referenced to ensure atomic process
-function executeExpression ($expression) {
+function executeReturn ($expression) {
 	$error.clear()
 	Write-Host "$expression"
 	try {
@@ -18,6 +18,18 @@ function executeExpression ($expression) {
     if ( $error[0] ) { Write-Host "[$scriptName] `$error[0] = $error"; exit 12 }
     if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) { Write-Host "[$scriptName] `$LASTEXITCODE = $LASTEXITCODE "; exit $LASTEXITCODE }
     return $output
+}
+
+# Common expression logging and error handling function, copied, not referenced to ensure atomic process
+function executeExpression ($expression) {
+	$error.clear()
+	Write-Host "$expression"
+	try {
+		Invoke-Expression $expression
+	    if(!$?) { Write-Host "[$scriptName] `$? = $?"; exit 10 }
+	} catch { echo $_.Exception|format-list -force; exit 11 }
+    if ( $error[0] ) { Write-Host "[$scriptName] `$error[0] = $error"; exit 12 }
+    if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) { Write-Host "[$scriptName] `$LASTEXITCODE = $LASTEXITCODE "; exit $LASTEXITCODE }
 }
 
 Write-Host "`n[$scriptName] ---------- start ----------`n"
@@ -50,8 +62,8 @@ if ($userName) {
 
 	# To capture the exit code of the remote execution, the LASTEXITCODE is stored in an environment variable, and retrieved in a subsequent
 	# call, if return of LASTEXITCODE is attempted during excution, all standard out is consumed by the result.
-	$securePassword = executeExpression "ConvertTo-SecureString `$userPass -asplaintext -force"
-	$cred = executeExpression "New-Object System.Management.Automation.PSCredential (`"$userName`", `$securePassword)"
+	$securePassword = executeReturn "ConvertTo-SecureString `$userPass -asplaintext -force"
+	$cred = executeReturn "New-Object System.Management.Automation.PSCredential (`"$userName`", `$securePassword)"
 	$script = [scriptblock]::Create("cd $workspace; $command; [Environment]::SetEnvironmentVariable(`'PREVIOUS_EXIT_CODE`', `"`$LASTEXITCODE`", `'User`')")
 	Write-Host "[$scriptName] Invoke-Command -ComputerName localhost -Credential `$cred -ScriptBlock $script"
 	try {
@@ -72,12 +84,12 @@ if ($userName) {
 	executeExpression "cd $workspace"
 	executeExpression $command
 	if($LASTEXITCODE -ne 0){
-	    write-host "[$scriptName] CURRENT_USER_NON_ZERO_EXIT & .\automation\cdEmulate.bat $OPT_ARG" -ForegroundColor Magenta
+	    write-host "[$scriptName] CURRENT_USER_NON_ZERO_EXIT $command" -ForegroundColor Magenta
 	    write-host "[$scriptName]   Exit with `$LASTEXITCODE $LASTEXITCODE" -ForegroundColor Red
 	    exit $LASTEXITCODE
 	}
     if(!$?){ 
-	    write-host "[$scriptName] CURRENT_USER_EXEC_FALSE & .\automation\cdEmulate.bat $OPT_ARG" -ForegroundColor Magenta
+	    write-host "[$scriptName] CURRENT_USER_EXEC_FALSE $command" -ForegroundColor Magenta
 	    write-host "[$scriptName]   Exit with `$LASTEXITCODE 900" -ForegroundColor Red
 	    exit 900
 	}
