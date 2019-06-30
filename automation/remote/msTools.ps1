@@ -77,7 +77,14 @@ if ($versionTest -like '*not recognized*') {
 	$versionTest = cmd /c .\nuget.exe 2`>`&1
 	$env:NUGET_PATH = '.\nuget.exe'
 } else {
-	$env:NUGET_PATH = cmd /c "where.exe NuGet"
+	$nugetPaths = cmd /c "where.exe NuGet"
+	$env:NUGET_PATH = $nugetPaths[0]
+	if ( $nugetPaths.Count -gt 1 ) {
+		Write-Host "Using first match only for NuGet path = ${env:NUGET_PATH}. Unused paths:"
+		for ( $i = 1; $i -lt $nugetPaths.Count ; $i++ ) {
+			Write-Host "   $($nugetPaths[$i])"
+		}
+	}
 }
 $array = $versionTest.split(" ")
 Write-Host "`$env:NUGET_PATH = ${env:NUGET_PATH} (version $($array[2]))"
