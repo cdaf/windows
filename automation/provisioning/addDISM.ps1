@@ -16,7 +16,7 @@ function executeSuppress ($expression) {
 		Invoke-Expression $expression
 	    if(!$?) { Write-Host "[$scriptName] `$? = $?"; exit 1 }
 	} catch { echo $_.Exception|format-list -force; exit 2 }
-    if ( $error[0] ) { Write-Host "[$scriptName] `$error[0] = $error"; exit 3 }
+    if ( $error ) { Write-Host "[$scriptName] `$error[0] = $error"; exit 3 }
 	if ( $LASTEXITCODE -eq 3010 ) { if ( ! $halt ) { cmd /c "exit 0" } } # 3010 is a normal exit, use date function to clear LASTEXITCODE, halt on reboot required as been pass
 }
 
