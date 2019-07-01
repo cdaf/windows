@@ -35,7 +35,7 @@ if ($TOKENFILE) {
     if (Test-Path $TOKENFILE) {
         write-host "[$scriptName] TOKENFILE : $TOKENFILE"
         $TOKENFILE = (Get-ChildItem $TOKENFILE).FullName
-        $transformed = Get-Content $TOKENFILE
+        $transformed = @(Get-Content $TOKENFILE)
     } else {
         $exitCode=62
         write-host "[$scriptName] TOKENFILE ($TOKENFILE) not found, returning exit $exitCode"
