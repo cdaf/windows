@@ -86,7 +86,7 @@ foreach ( $localBranch in $localBranches ) {
 	if ($remoteBranches -contains $localBranch) {
 		Write-Host "active branch $localBranch"
 	} else {
-		executeExpression "git branch -d $localBranch"
+		executeExpression "git branch -D $localBranch"
 	}
 }
 
