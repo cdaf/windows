@@ -6,6 +6,16 @@ cmd /c "exit 0"
 $scriptName = 'msTools.ps1'
 
 Write-Host "`n[$scriptName] --- start ---`n"
+Write-Host "[$scriptName] Current `$env:MS_BUILD   : $env:MS_BUILD"
+$env:MS_BUILD = $nul
+Write-Host "[$scriptName] Current `$env:MS_TEST    : $env:MS_TEST"
+$env:MS_TEST = $nul
+Write-Host "[$scriptName] Current `$env:VS_TEST    : $env:VS_TEST"
+$env:VS_TEST = $nul
+Write-Host "[$scriptName] Current `$env:DEV_ENV    : $env:DEV_ENV"
+$env:DEV_ENV = $nul
+Write-Host "[$scriptName] Current `$env:NUGET_PATH : $env:NUGET_PATH"
+$env:NUGET_PATH = $nul
 
 # First try to use vswhere
 $versionTest = cmd /c vswhere -products * 2`>`&1
@@ -18,52 +28,22 @@ if ($versionTest -like '*not recognized*') {
 	$env:MS_BUILD = (($fileList -match 'msbuild.exe')[0]).FullName
 	$env:MS_TEST = (($fileList -match 'mstest.exe')[0]).FullName
 	$env:VS_TEST = (($fileList -match 'vstest.exe')[0]).FullName
+	$env:DEV_ENV = (($fileList -match 'devenv.com')[0]).fullname
 }
 
-# Search for Visual Studio install fist
+# Search for Visual Studio install first
 if (!( $env:MS_BUILD )) {
-	if ( Test-Path 'C:\Program Files (x86)\Microsoft Visual Studio' ) {
-		foreach ( $version in Get-ChildItem 'C:\Program Files (x86)\Microsoft Visual Studio\20*\*' ) {
-			if ( Test-Path "${version}\Common7\IDE\MSTest.exe" ) {
-				$env:MS_TEST = "${version}\Common7\IDE\MSTest.exe"
-			}
-		}
-		
-		foreach ( $version in Get-ChildItem 'C:\Program Files (x86)\Microsoft Visual Studio\20*\*\MSBuild\*\bin' ) {
-			if ( Test-Path "${version}\MSBuild.exe" ) {
-				$env:MS_BUILD = "${version}\MSBuild.exe"
-			}
-		}
-	}
-}
-
-# Then search OS install
-if (!( $env:MS_BUILD )) {
-	$registryKey = 'HKLM:\SOFTWARE\Microsoft\MSBuild\ToolsVersions\'
-	foreach ($version in Get-ChildItem $registryKey) { 
-		$integer = [int][io.path]::GetFileNameWithoutExtension($version)
-		if ( $previous ) {
-			if ( $previous -gt $integer ) {
-				$integer = $previous
-			}
-		}
-		$previous = $integer
-	}
-	$registryKey = $registryKey + $integer + '.0'
-	$env:MS_BUILD = ((Get-ItemProperty ((Get-Item $registryKey).pspath) -PSProperty MSBuildToolsPath).MSBuildToolsPath) + 'msbuild.exe'
-}
-
-if ( $env:MS_BUILD ) {
-	Write-Host "`$env:MS_BUILD = ${env:MS_BUILD}"
-} else {
-	Write-Host "MSBuild not found!`n"
-	exit 4700
-}
-
-# Visual Studio 2015 has a different path to latest
-if (! ($env:MS_TEST) ) {
-	if ( Test-Path 'C:\Program Files (x86)\Microsoft Visual Studio 14.0\Common7\IDE\MSTest.exe' ) {
-		$env:MS_TEST = 'C:\Program Files (x86)\Microsoft Visual Studio 14.0\Common7\IDE\MSTest.exe'
+	$registryKey = 'HKLM:\SOFTWARE\Wow6432Node\Microsoft\VisualStudio\SxS\VS7'
+	$list = Get-ItemProperty $registryKey | Get-Member
+	$installs = @()
+	foreach ($element in $list) { if ($element -match '.0') { $installs += $element.Definition.Split('=')[1] }}
+	$versionTest = $installs[-1] # use latest version of Visual Studio
+	if ( $versionTest ) {
+		$fileList = @(Get-ChildItem $versionTest -Recurse)
+		$env:MS_BUILD = (($fileList -match 'msbuild.exe')[0]).fullname
+		$env:MS_TEST = (($fileList -match 'mstest.exe')[0]).fullname
+		$env:VS_TEST = (($fileList -match 'vstest.exe')[0]).fullname
+		$env:DEV_ENV = (($fileList -match 'devenv.com')[0]).fullname
 	}
 }
 
@@ -82,12 +62,6 @@ if (! ($env:MS_TEST) ) {
 	}
 }
 
-if ( $env:MS_TEST ) {
-	Write-Host "`$env:MS_TEST = ${env:MS_TEST}"
-} else {
-	Write-Host "MSTest not found`n"
-}
-
 $versionTest = cmd /c NuGet 2`>`&1
 if ($versionTest -like '*not recognized*') {
 	(New-Object System.Net.WebClient).DownloadFile('https://dist.nuget.org/win-x86-commandline/latest/nuget.exe', "$PWD\nuget.exe")
@@ -104,6 +78,31 @@ if ($versionTest -like '*not recognized*') {
 	}
 }
 $array = $versionTest.split(" ")
-Write-Host "`$env:NUGET_PATH = ${env:NUGET_PATH} (version $($array[2]))"
+Write-Host "`n`$env:NUGET_PATH = ${env:NUGET_PATH} (version $($array[2]))"
+
+if ( $env:MS_BUILD ) {
+	Write-Host "`$env:MS_BUILD = ${env:MS_BUILD}"
+} else {
+	Write-Host "MSBuild not found!`n"
+	exit 4700
+}
+
+if ( $env:MS_TEST ) {
+	Write-Host "`$env:MS_TEST = ${env:MS_TEST}"
+} else {
+	Write-Host "MSTest not found"
+}
+
+if ( $env:VS_TEST ) {
+	Write-Host "`$env:VS_TEST = ${env:VS_TEST}"
+} else {
+	Write-Host "VSTest not found"
+}
+
+if ( $env:DEV_ENV ) {
+	Write-Host "`$env:DEV_ENV = ${env:DEV_ENV}"
+} else {
+	Write-Host "Visual Studio devenv not found`n"
+}
 
 Write-Host "`n[$scriptName] --- finish---"
