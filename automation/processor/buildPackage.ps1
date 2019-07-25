@@ -228,6 +228,9 @@ foreach ($propertiesDriver in $configManagementList) {
 					}
 				}
 			}
+			if ( ! ( Test-Path ${cdafPath}/$($arr[1]) )) {
+				Write-Host "[$scriptName]   [WARN] Property file ${cdafPath}/$($arr[1]) not created as containers definition contains no properties."
+			}
 		}
 	}
 }
