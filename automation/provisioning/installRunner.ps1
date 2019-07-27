@@ -112,15 +112,15 @@ if (!($versionTest -like '*not recognized*')) {
 			Write-Host "[$scriptName] Version specified, purge cache copy and download version"
 			executeExpression "rm $fullpath"
 			executeExpression "(New-Object System.Net.WebClient).DownloadFile('https://gitlab-runner-downloads.s3.amazonaws.com/v${version}/binaries/gitlab-runner-windows-amd64.exe', '$fullpath')"
+		} 
+	} else {
+		if ( $version ) {
+			Write-Host "[$scriptName] Download version $version"
+			executeExpression "(New-Object System.Net.WebClient).DownloadFile('https://gitlab-runner-downloads.s3.amazonaws.com/v${version}/binaries/gitlab-runner-windows-amd64.exe', '$fullpath')"
 		} else {
-			if ( $version ) {
-				Write-Host "[$scriptName] Download version $version"
-				executeExpression "(New-Object System.Net.WebClient).DownloadFile('https://gitlab-runner-downloads.s3.amazonaws.com/v${version}/binaries/gitlab-runner-windows-amd64.exe', '$fullpath')"
-			} else {
-				executeExpression "(New-Object System.Net.WebClient).DownloadFile('https://gitlab-runner-downloads.s3.amazonaws.com/latest/binaries/gitlab-runner-windows-amd64.exe', '$fullpath')"
-			}
+			executeExpression "(New-Object System.Net.WebClient).DownloadFile('https://gitlab-runner-downloads.s3.amazonaws.com/latest/binaries/gitlab-runner-windows-amd64.exe', '$fullpath')"
 		}
-	} 
+	}
 	executeExpression "Copy-Item $fullpath 'C:\GitLab-Runner\gitlab-runner.exe'"
 
 	$versionTest = cmd /c gitlab-runner --version 2`>`&1
