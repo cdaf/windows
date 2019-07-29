@@ -11,9 +11,12 @@ function executeExpression ($expression) {
     return $output
 }
 
+# Reset $LASTEXITCODE
+cmd /c exit 0
+
 $scriptName = 'sqlCreateDB.ps1'
-Write-Host
-Write-Host "[$scriptName] ---------- start ----------"
+
+Write-Host; Write-Host "[$scriptName] ---------- start ----------"
 $dbName = $args[0]
 if ($dbName) {
     Write-Host "[$scriptName] dbName     : $dbName"
