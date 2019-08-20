@@ -1,3 +1,8 @@
+# Generic argument loading because propfile maybe a string or an array
+$PROPFILE   = $args[0]
+$TOKENFILE  = $args[1]
+$aeskey     = $args[2]
+
 function taskException ($taskName) {
     write-host "[$scriptName] Caught an exception executing $taskName :" -ForegroundColor Red
     write-host "     Exception Type: $($_.Exception.GetType().FullName)" -ForegroundColor Red

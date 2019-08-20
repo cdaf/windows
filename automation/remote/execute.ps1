@@ -146,16 +146,16 @@ function DCMPRS( $packageFile, $packagePath )
 }
 
 # Replace in file
-#  required : file, relative to current workspace
-#  required : name, the token to be replaced
-#  required : value, the replacement value
-function REPLAC( $fileName, $token, $value )
+#  required : file name relative to current workspace
+#  required : the token to be replaced or an array of name/value pairs
+#  optional : the replacement value (not passed if name is array)
+function REPLAC( $fileName, $tokenOrArray, $value )
 {
 	try {
-	(Get-Content $fileName | ForEach-Object { $_ -replace [regex]::Escape($token), "$value" } ) | Set-Content $fileName
+		(Get-Content $fileName | ForEach-Object { $_ -replace [regex]::Escape($tokenOrArray), "$value" } ) | Set-Content $fileName
 	    if(!$?) { taskException "REPLAC_EXIT" }
 	} catch {
-		Write-Host "`n[$scriptName] Exception occured in REPLAC( $fileName, $token, $value )`n" -ForegroundColor Red
+		Write-Host "`n[$scriptName] Exception occured in REPLAC( $fileName, $tokenOrArray, $value )`n" -ForegroundColor Red
 		taskException "REPLAC_TRAP" $_
 	}
 }
@@ -163,18 +163,25 @@ function REPLAC( $fileName, $token, $value )
 # Use the Decryption helper script
 function DECRYP( $encryptedFile, $thumbprint, $location )
 {
-	./decryptKey.ps1 $encryptedFile $thumbprint $location
+	if ( $thumbprint -match '-' ) {	# Processing thumbprint as AES key
+	    $key = @()
+	    $key = $thumbprint.Split('-')
+	    $secureFileInMemory = Get-Content $encryptedFile | ConvertTo-SecureString -Key $key
+	    [Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR($secureFileInMemory))
+	} else {
+		./decryptKey.ps1 $encryptedFile $thumbprint $location
+	}
 }
 
 # Use the the transofrm helper script to perform detokenisation
 #  required : tokenised file, relative to current workspace
 #  option : properties file, if not passed, target will be used
-function DETOKN( $tokenFile, $properties )
+function DETOKN( $tokenFile, $properties, $aeskey )
 {
     if ($properties) {
-        $expression = ".\Transform.ps1 `"$properties`" `"$tokenFile`""
+        $expression = ".\Transform.ps1 '$properties' '$tokenFile' `$aeskey"
     } else {
-        $expression = ".\Transform.ps1 `"$TARGET`" `"$tokenFile`""
+        $expression = ".\Transform.ps1 '$TARGET' '$tokenFile' `$aeskey"
 	}
 	executeExpression $expression
 }
