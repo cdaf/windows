@@ -43,19 +43,13 @@ if (! (Test-Path $encryptedFile) ) {
 if ( $thumbprint ) {
 
 	if ( $thumbprint -match '-' ) {
-		Write-Host "[$scriptName] Processing thumbprint as AES key"
+		# Processing thumbprint as AES key
 	    $key = @()
-	    $key = $stringKeyIn.Split('-')
-	    $secureFileInMemory = Get-Content $PasswordFile | ConvertTo-SecureString -Key $key
-	    if ( $location ) {
-			Write-Host "[$scriptName] Using location for decrypted file"
-			[Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR($secureFileInMemory)) | $location
-	    } else {
-			Write-Host "[$scriptName] Location not passed so overwriting input file"
-		    [Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR($secureFileInMemory)) | $encryptedFile
-	    }
+	    $key = $thumbprint.Split('-')
+	    $secureFileInMemory = Get-Content $encryptedFile | ConvertTo-SecureString -Key $key
+	    [Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR($secureFileInMemory))
 	} else {
-		Write-Host "[$scriptName] Decrypt file using PKI"
+		# Decrypt file using PKI
 		try {
 			# Check for certificate existance
 			if (! $location) {
