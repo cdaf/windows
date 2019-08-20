@@ -32,6 +32,7 @@ if ($inputFile) {
 if ($encryptedFile) {
     Write-Host "[$scriptName] encryptedFile : $encryptedFile"
 } else {
+	$encryptedFile = $inputFile
     Write-Host "[$scriptName] encryptedFile : (not suppplied, existing file will be replaced)"
 }
 
