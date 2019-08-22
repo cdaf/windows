@@ -1,1 +1,22 @@
-echo "User Defined Tasks Here"
+Write-Host "The following is an example of secrets management" -ForegroundColor Green
+
+Write-Host "DO NOT log the AES key, this is supplied by Bamboo as environment variable`n" -ForegroundColor Yellow
+$env:AES_KEY = '29-240-88-121-33-64-150-226-136-160-144-115-127-74-74-30'
+
+Write-Host "DO NOT Decrypt without capturing return value or secrets will be disclosed`n" -ForegroundColor Yellow
+DECRYP .\cryptLocal\WINDOWS $env:AES_KEY
+
+Write-Host "Either capture Decrypt output to a variable`n" -ForegroundColor Cyan
+$secrets = DECRYP .\cryptLocal\WINDOWS $env:AES_KEY
+
+Write-Host "Or stream Decrypt function to reconstruct an encrypted file`n" -ForegroundColor Cyan
+DECRYP .\cryptLocal\WINDOWS $env:AES_KEY > unencypted.yml
+
+Write-Host "DO NOT list the contents of the unencrypted file because bamboo does not know to mask these values`n" -ForegroundColor Yellow
+cat unencypted.yml
+
+Write-Host "Detokenise with masked secrets, only supports encrypted name/value files, in-memory, i.e. unencrypted file is never on disk`n" -ForegroundColor Cyan
+DETOKN crypt-test.yml .\cryptLocal\properties.aes $env:AES_KEY
+
+Write-Host "DO NOT list the contents of the detokenised file because bamboo does not know to mask these values`n" -ForegroundColor Yellow
+cat crypt-test.yml./au	
