@@ -6,19 +6,6 @@ Param (
 
 cmd /c "exit 0"
 
-function exceptionExit { 
-    param ($exitcode)
-    write-host
-    $host.SetShouldExit($exitCode)
-    exit
-}
-
-function taskComplete { param ($taskName)
-    write-host
-    write-host "[$scriptName] Remote Task ($taskName) Successfull " -ForegroundColor Green
-    write-host
-}
-
 $scriptName = 'encrypt.ps1'
 
 Write-Host "`n[$scriptName] Create an encrypted file using AES key "

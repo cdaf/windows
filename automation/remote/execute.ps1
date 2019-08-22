@@ -179,9 +179,17 @@ function DECRYP( $encryptedFile, $thumbprint, $location )
 function DETOKN( $tokenFile, $properties, $aeskey )
 {
     if ($properties) {
-        $expression = ".\Transform.ps1 '$properties' '$tokenFile' `$aeskey"
+    	if ( $aeskey ) {
+	        $expression = ".\Transform.ps1 '$properties' '$tokenFile' `$aeskey"
+        } else {
+	        $expression = ".\Transform.ps1 '$properties' '$tokenFile'"
+        }
     } else {
-        $expression = ".\Transform.ps1 '$TARGET' '$tokenFile' `$aeskey"
+    	if ( $aeskey ) {
+	        $expression = ".\Transform.ps1 '$TARGET' '$tokenFile' `$aeskey"
+	    } else {
+	        $expression = ".\Transform.ps1 '$TARGET' '$tokenFile'"
+	    }
 	}
 	executeExpression $expression
 }
@@ -264,8 +272,8 @@ if ( test-path -path "$TARGET" -pathtype leaf ) {
 	}
 	try {
 		& $transform "$propFile" | ForEach-Object { invoke-expression $_ }
-	    if(!$?) { taskException "PRODLD_TRAP" }
-	} catch { taskException "PRODLD_EXCEPTION" $_ }
+	    if(!$?) { taskException "TARGET_LOAD_TRAP" }
+	} catch { taskException "TARGET_LOAD_EXCEPTION" $_ }
 	Write-Host
 }	
 
@@ -323,8 +331,8 @@ Foreach ($line in get-content $TASK_LIST) {
 					Write-Host
 			        try {
 						& $transform "$propFile" | ForEach-Object { invoke-expression $_ }
-				        if(!$?) { taskException "PRODLD_TRAP" }
-			        } catch { taskException "PRODLD_EXCEPTION" $_ }
+				        if(!$?) { taskException "PROPLD_TRAP" }
+			        } catch { taskException "PROPLD_EXCEPTION" $_ }
 	            }
 
 				# Set a variable, PowerShell format
