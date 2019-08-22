@@ -25,15 +25,22 @@ function throwErrorlevel ($taskName, $trappedExit) {
     }
 }
 
-$PROPFILE   = $args[0]
-$TOKENFILE  = $args[1]
-
 $scriptName = $myInvocation.MyCommand.Name 
 write-host "`n[$scriptName] PROPFILE  : $PROPFILE"
 if (-Not (Test-Path $PROPFILE) ) {
     $exitCode=61
     write-host "[$scriptName] PROPFILE ($PROPFILE) not found, returning exit $exitCode"
     throwErrorlevel "PROPFILE_NOT_FOUND" $exitCode
+} else {
+	if ($aeskey) {
+	    $key = @()
+	    $key = $aeskey.Split('-')
+	    $secureFileInMemory = Get-Content $PROPFILE | ConvertTo-SecureString -Key $key
+	    $unencryptedFileInMemory = [Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR($secureFileInMemory))
+	    $propertiesArray = $unencryptedFileInMemory -Split "\r?\n"
+	} else {
+	    $propertiesArray = @(get-content $PROPFILE)
+	}
 }
 
 if ($TOKENFILE) {
@@ -48,8 +55,11 @@ if ($TOKENFILE) {
     }
 }
 
+if ($aeskey) {
+    write-host "[$scriptName] aeskey    : supplied, replacement values masked"
+}
 # Deleting lines starting with #, blank lines and lines with only spaces
-Foreach ($line in get-content $PROPFILE) {
+Foreach ($line in $propertiesArray) {
 
 #    write-host "[$scriptName] line = $line"
     # Don't process empty line
@@ -79,7 +89,11 @@ Foreach ($line in get-content $PROPFILE) {
                     $token = "%" + $name + "%"
                     foreach ($record in $transformed) {
                         if ($record -match "$token") {
-                            write-host "Found $token, replacing with $value"
+	                        if ($aeskey) {
+    	                        write-host "Found $token, replacing with *****************"
+	                        } else {
+    	                        write-host "Found $token, replacing with $value"
+	                        }
                             $transformed[$i] = ($transformed[$i]).Replace("$token","$value")
                         }
                         $i++
