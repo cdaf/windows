@@ -16,6 +16,7 @@ $scriptName             = $MyInvocation.MyCommand.Name
 $remoteCustomDir        = "$SOLUTIONROOT\customRemote"
 $commonCustomDir        = "$SOLUTIONROOT\custom"
 $remoteCryptDir         = "$SOLUTIONROOT\cryptRemote"
+$cryptDir               = "$SOLUTIONROOT\crypt"
 $remoteArtifactListFile = "$SOLUTIONROOT\storeForRemote"
 $genericArtifactList    = "$SOLUTIONROOT\storeFor"
 
@@ -37,6 +38,8 @@ pathTest $commonCustomDir
 Write-Host –NoNewLine "[$scriptName]   Remote Tasks Encrypted Data  : " 
 pathTest $remoteCryptDir
 
+Write-Host –NoNewLine "[$scriptName]   Common Encrypted Data        : " 
+pathTest $cryptDir
 
 # CDM-101 If Artefacts definition file is not found, do not perform any action, i.e. this solution is local tasks only
 if ( (-not (Test-Path $remoteArtifactListFile)) -and  (-not (Test-Path $genericArtifactList))) {
@@ -71,6 +74,9 @@ if ( (-not (Test-Path $remoteArtifactListFile)) -and  (-not (Test-Path $genericA
 	# Copy encrypted file directory if it exists
 	if ( Test-Path $remoteCryptDir ) {
 		copyDir $remoteCryptDir $WORK_DIR_DEFAULT $true
+	}
+	if ( Test-Path $cryptDir ) {
+		copyDir $cryptDir $WORK_DIR_DEFAULT
 	}
 	
 	# Copy custom scripts directory if it exists

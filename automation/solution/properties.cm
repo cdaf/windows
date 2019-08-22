@@ -1,6 +1,6 @@
 context  target     deployHost        deployLand           remoteUser  remoteCred        decryptThb
 remote   VAGRANT    server-1.sky.net  c:\deploy\vagrant    vagrant     WINDOWS_PASSWORD  1C5A22D1DA540F210122BB63EB8F38ABBBB9009A
-remote   WORKGROUP  localhost         c:\deploy\workgroup
-local    WINDOWS    localhost         c:\deploy\windows
-local    TEST
-local    PROD
+remote   WINDOWS    localhost         c:\deploy\windows
+local    WORKGROUP  localhost
+local    TEST       localhost
+local    PROD       localhost

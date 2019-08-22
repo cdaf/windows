@@ -25,6 +25,7 @@ $localEnvironmentPath  = "$SOLUTIONROOT\propertiesForLocalEnvironment"
 $localCustomDir        = "$SOLUTIONROOT\customLocal"
 $commonCustomDir       = "$SOLUTIONROOT\custom"
 $localCryptDir         = "$SOLUTIONROOT\cryptLocal"
+$cryptDir              = "$SOLUTIONROOT\crypt"
 $remotePropertiesDir   = "$SOLUTIONROOT\propertiesForRemoteTasks"
 $remoteGenPropDir      = "propertiesForRemoteTasks"
 
@@ -49,6 +50,9 @@ pathTest $localEnvironmentPath
 
 Write-Host –NoNewLine "[$scriptName]   Local Tasks Encrypted Data   : " 
 pathTest $localCryptDir
+
+Write-Host –NoNewLine "[$scriptName]   Common Encrypted Data        : " 
+pathTest $cryptDir
 
 Write-Host –NoNewLine "[$scriptName]   Local Tasks Custom Scripts   : " 
 pathTest $localCustomDir
@@ -144,6 +148,10 @@ if ( Test-Path ".\$remoteGenPropDir" ) {
 # Copy encrypted file directory if it exists
 if ( Test-Path $localCryptDir ) {
 	copyDir $localCryptDir $WORK_DIR_DEFAULT
+}
+
+if ( Test-Path $cryptDir ) {
+	copyDir $cryptDir $WORK_DIR_DEFAULT
 }
 
 # Copy custom scripts if custom directory exists, copy to root of workspace 
