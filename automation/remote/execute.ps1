@@ -163,14 +163,7 @@ function REPLAC( $fileName, $tokenOrArray, $value )
 # Use the Decryption helper script
 function DECRYP( $encryptedFile, $thumbprint, $location )
 {
-	if ( $thumbprint -match '-' ) {	# Processing thumbprint as AES key
-	    $key = @()
-	    $key = $thumbprint.Split('-')
-	    $secureFileInMemory = Get-Content $encryptedFile | ConvertTo-SecureString -Key $key
-	    [Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR($secureFileInMemory))
-	} else {
-		./decryptKey.ps1 $encryptedFile $thumbprint $location
-	}
+	./decryptKey.ps1 $encryptedFile $thumbprint $location
 }
 
 # Use the the transofrm helper script to perform detokenisation
