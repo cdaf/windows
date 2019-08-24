@@ -18,6 +18,9 @@ cat unencypted.txt
 Write-Host "By supplying an AES key, a tokenised file can be detokenised without the secrets being written to disk`n" -ForegroundColor Green
 cat crypt-test.yml
 
+Write-Host "Detokenise plain text`n" -ForegroundColor Cyan
+DETOKN crypt-test.yml
+
 Write-Host "Detokenise with masked secrets, only supports encrypted name/value files, in-memory, i.e. unencrypted file is never on disk`n" -ForegroundColor Cyan
 DETOKN crypt-test.yml .\crypt\WINDOWS $env:AES_KEY
 
