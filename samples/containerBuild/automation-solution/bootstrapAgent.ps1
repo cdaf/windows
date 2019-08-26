@@ -38,7 +38,8 @@ if ( Test-Path "./automation/provisioning" ) {
 Write-Host "[$scriptName] `$atomicPath = $atomicPath"
 
 Write-Host "[$scriptName] List components of the base image`n"
-executeExpression "$atomicPath\automation\provisioning\base.ps1 'adoptopenjdk maven'"
+executeExpression "$atomicPath\automation\provisioning\base.ps1 'adoptopenjdk'"
+executeExpression "$atomicPath\automation\provisioning\base.ps1 'maven' -otherArgs '--ignore-dependencies'" # avoid Oracle Java dependency
 executeExpression "$atomicPath\automation\remote\capabilities.ps1"
 
 Write-Host "`n[$scriptName] ---------- stop ----------"

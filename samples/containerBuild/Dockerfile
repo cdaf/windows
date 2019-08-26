@@ -11,7 +11,8 @@ ENV http_proxy=$proxy
 WORKDIR solution
 
 # Provision Build Dependancies
-COPY automation automation
+COPY automation/provisioning/base.ps1 automation/provisioning/base.ps1
+COPY automation/remote/capabilities.ps1 automation/remote/capabilities.ps1
 COPY automation-solution/bootstrapAgent.ps1 .
 COPY automation/provisioning/runner.bat .
 RUN runner.bat bootstrapAgent.ps1
