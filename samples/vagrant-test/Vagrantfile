@@ -21,6 +21,22 @@ else
   vagrantBox = 'cdaf/WindowsServerStandard'
 end
 
+# If this environment variable is set, RAM and CPU allocations for virtual machines are increase by this factor, so must be an integer
+# $env:SCALE_FACTOR = '2'
+if ENV['SCALE_FACTOR']
+  scale = ENV['SCALE_FACTOR'].to_i
+else
+  scale = 1
+end
+if ENV['BASE_MEMORY']
+  baseRAM = ENV['BASE_MEMORY'].to_i
+else
+  baseRAM = 1024
+end
+
+vRAM = baseRAM * scale
+vCPU = scale
+
 Vagrant.configure(2) do |config|
 
   # Build Server, fills the role of the build agent and delivers to the host above
@@ -32,10 +48,14 @@ Vagrant.configure(2) do |config|
     # Oracle VirtualBox with private NAT has insecure deployer keys for desktop testing
     test.vm.provider 'virtualbox' do |virtualbox, override|
       override.vm.network 'private_network', ip: '172.16.17.100'
+      virtualbox.memory = "#{vRAM}"
+      virtualbox.cpus = "#{vCPU}"
     end
 
     # Microsoft Hyper-V does not support NAT or setting hostname. vagrant up build --provider hyperv
     test.vm.provider 'hyperv' do |hyperv, override|
+      hyperv.memory = "#{vRAM}"
+      hyperv.cpus = "#{vCPU}"
       if ENV['VAGRANT_SMB_USER']
         override.vm.synced_folder ".", "/vagrant", type: "smb", smb_username: "#{ENV['VAGRANT_SMB_USER']}", smb_password: "#{ENV['VAGRANT_SMB_PASS']}"
       end

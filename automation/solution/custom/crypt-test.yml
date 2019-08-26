@@ -2,5 +2,6 @@
 application:
   admin-password: "%secret1%"
   database:
-    user: dbreaderwriter
+    target: "%deployHost%"
+    user: "dbreaderwriter"
     password: "%secret2%"

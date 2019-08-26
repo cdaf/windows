@@ -49,10 +49,14 @@ if ( (-not (Test-Path $remoteArtifactListFile)) -and  (-not (Test-Path $genericA
 } else {
 
 	# Create the working directory and a subdiretory for the remote execution helper scripts
-	Write-Host "`n[$scriptName] mkdir $WORK_DIR_DEFAULT" 
-	New-Item $WORK_DIR_DEFAULT -type directory > $null
-	if(!$?){ taskFailure "mkdir $WORK_DIR_DEFAULT"  }
-	
+	if ( Test-Path "$WORK_DIR_DEFAULT" ) {
+		Write-Host "`n[$scriptName] $WORK_DIR_DEFAULT already exists, assume created by package.tsk, no action required" 
+	} else {
+		Write-Host "`n[$scriptName] mkdir $WORK_DIR_DEFAULT" 
+		New-Item $WORK_DIR_DEFAULT -type directory > $null
+		if(!$?){ taskFailure "mkdir $WORK_DIR_DEFAULT"  }
+	}
+
 	# Copy Manifest and CDAF Product Definition
 	copySet "manifest.txt" "." $WORK_DIR_DEFAULT
 	copySet "CDAF.windows" "$AUTOMATIONROOT" $WORK_DIR_DEFAULT\CDAF.properties

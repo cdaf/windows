@@ -38,9 +38,10 @@ To alleviate the burden of argument passing, exception handling and logging, the
 | CMPRSS  | Compress directory to file        | CMPRSS packageName dirName      |
 | DCMPRS  | Decompress package file           | DCMPRS packageName              |
 | DECRYP  | decrypt file using DSAPI          | DECRYP encrypt.dat              |
-|         | decrypt using PKI                 | DECRYP encrypt.dat $thumbPrint  |
-| DETOKN  | Detokenise file with target prop  | DETOKN tokenised.file           |
-|         | Detokenise with specific file     | DETOKN tokenised.file prop.file |
+|         | decrypt using PKI or AES key      | DECRYP encrypt.dat $thumbPrint  |
+| DETOKN  | Detokenise file with target prop  | DETOKN token.yml                |
+|         | Detokenise with specific file     | DETOKN token.yml PROPERTY_FILE  |
+|         | Detokenise with encrypted file    | DETOKN token.yml crypt/FIL $key |
 | EXCREM  | Execute Remote Command            | EXCREM hostname                 |
 |         | Execute Remote script             | EXCREM ./capabilities.ps1       |
 | EXITIF  | Exit normally is argument set     | EXITIF $ACTION -eq clean        |
