@@ -19,7 +19,7 @@ RUN runner.bat bootstrapAgent.ps1
 
 # < Place cache building here, not in the workspace root or the mount may fail due to non-empty directory >
 # COPY tests/pom.xml .
-# RUN mvn --batch-mode clean install
+# RUN mvn --batch-mode clean dependency:resolve dependency:go-offline eclipse:eclipse
 
 # Change workdir to the mapped folder so that the build artefacts are available on the host
 WORKDIR workspace
