@@ -6,7 +6,8 @@ Param (
 	[string]$vstsPackageAccessToken,
 	[string]$vstsPool,
 	[string]$vstsSA,
-	[string]$stable
+	[string]$stable,
+	[string]$docker
 )
 
 # Common expression logging and error handling function, copied, not referenced to ensure atomic process
@@ -77,8 +78,15 @@ if ($vstsSA) {
 if ($stable) {
     Write-Host "[$scriptName] stable                 : $stable"
 } else {
-	$stable = 'no'
+	$stable = 'yes'
     Write-Host "[$scriptName] stable                 : $stable (not supplied, set to default)"
+}
+
+if ($docker) {
+    Write-Host "[$scriptName] docker                 : $docker"
+} else {
+	$docker = 'yes'
+    Write-Host "[$scriptName] docker                 : $docker (not supplied, set to default)"
 }
 
 Write-Host "[$scriptName] pwd                    : $(pwd)"
@@ -132,4 +140,7 @@ if ($vstsPackageAccessToken) {
 	executeExpression "Add-Content /packagePAT `"`$vstsPackageAccessToken`""
 }
 
+if ( $stable -eq 'yes' ) { 
+	executeExpression "./automation/provisioning/InstallDocker.ps1"
+}
 Write-Host "`n[$scriptName] ---------- stop ----------"
