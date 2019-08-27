@@ -51,7 +51,7 @@ if ($personalAccessToken) {
 if ($agentName) {
     Write-Host "[$scriptName] agentName              : $agentName"
 } else {
-	$agentName = 'VSTS-AGENT'
+	$agentName = $env:COMPUTERNAME
     Write-Host "[$scriptName] agentName              : $agentName (default)"
 }
 
