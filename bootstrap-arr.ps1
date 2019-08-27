@@ -21,7 +21,7 @@ cmd /c "exit 0" # ensure LASTEXITCODE is 0
 Write-Host "`n[$scriptName] ---------- start ----------"
 if ($port) {
     Write-Host "[$scriptName] port : $port"
-} else {\
+} else {
 	$port = '8080'
     Write-Host "[$scriptName] port : $port (not supplied so set to default)"
 }
