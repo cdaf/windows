@@ -32,8 +32,8 @@ Write-Host "[$scriptName] whoami = $(whoami)"
 if ( Test-Path "./automation/provisioning" ) {
 	$atomicPath = '.'
 } else {
-	if ( Test-Path "/vagrant" ) {
-		$atomicPath = '/vagrant'
+	if ( Test-Path "C:\vagrant" ) {
+		$atomicPath = 'C:\vagrant'
 	} else {
 	    Write-Host "[$scriptName] Cannot find CDAF directories in workspace or /vagrant, so downloading stable release from http://cdaf.io"
 		Write-Host "[$scriptName] Download Continuous Delivery Automation Framework"
