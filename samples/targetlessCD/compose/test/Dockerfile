@@ -13,7 +13,7 @@ ENV CP_COMPOSE_KEEP=$CP_COMPOSE_KEEP
 # Create root, i.e. C:\solution
 WORKDIR solution
 
-# Copy CDAF from solution (avoid bootStrap downloading)
+# Copy entire directory (rely on storeForLocal to limit to only to required, unlike containerBuild)
 COPY automation automation
 
 # Shared bootstrap between Docker and Vagrant
