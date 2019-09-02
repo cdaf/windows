@@ -289,15 +289,9 @@ if ( $ACTION -eq 'containerbuild' ) {
 			        }
 			    }
 			    if (( $dockerStatus -ne 'Running' ) -and ( $dockerdProcess -eq $null )){
-					Write-Host "[$scriptName] Docker service not running, `$dockerStatus = $dockerStatus"
-					executeExpression 'Start-Service Docker'
-					Write-Host '$dockerStatus = ' -NoNewline 
-					$dockerStatus = executeReturn '(Get-Service Docker).Status'
-					$dockerStatus
-					if ( $dockerStatus -ne 'Running' ) {
-						Write-Host "[$scriptName] Unable to start Docker, `$dockerStatus = $dockerStatus"
-						exit 8910
-					}
+					Write-Host "[$scriptName] Docker installed but not running, will attempt to execute natively"
+					cmd /c "exit 0"
+					Clear-Variable -Name 'containerBuild'
 				}
 			}
 			
@@ -306,6 +300,7 @@ if ( $ACTION -eq 'containerbuild' ) {
 			docker images 2> $null
 			if ( $LASTEXITCODE -ne 0 ) {
 				Write-Host "[$scriptName] Docker not responding, will attempt to execute natively"
+				cmd /c "exit 0"
 				Clear-Variable -Name 'containerBuild'
 			}
 		}
