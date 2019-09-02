@@ -4,8 +4,6 @@ services:
         image: "${TARGET_TAG}"
         volumes:
           - ${WORK_SPACE}:c:/solution/workspace
-        environment:
-          MAVEN_ARTIFACT_TOKEN: ${MAVEN_ARTIFACT_TOKEN}
     test:
         image: "${TEST_TAG}"
         volumes:
@@ -14,6 +12,8 @@ services:
           - target:target
         depends_on:
           - target
+        environment:
+          COMPOSE_KEEP: ${COMPOSE_KEEP}
 
 networks:
   default:

@@ -142,12 +142,8 @@ if ( $ACTION ) { # Do not list configuration instructions when an action is pass
 	write-host '  Set workspace       : cd $WorkingDirectory'
 	write-host "  Run CI Process      : $ciProcess `${BuildNumber}"
     write-host
-    write-host 'For Team Foundation Server (TFS)/Visual Studio Team Services (VSTS)'
-    write-host '  XAML ...'
-    write-host "    Command Filename  : SourcesDirectory + `"$ciProcess`""
-    write-host "    Command arguments : BuildDetail.BuildNumber + revision"
-    write-host
-    write-host '  Team Build (vNext)...'
+    write-host 'For Azure DevOps/Server (formerly Visual Studio Team Services (VSTS)/Team Foundation Server (TFS))'
+    write-host '  Recommend using azure-pipelines (see samples folder)'
     write-host '    Use the visual studio template and delete the nuget and VS tasks.'
 	write-host '    NOTE: The BUILD DEFINITION NAME must not contain spaces in the name as it is the directory.'
 	write-host '          recommend using solution name, then the Release instructions can be used unchanged.'
@@ -210,11 +206,12 @@ if ( $ACTION ) {
 	write-host '  Name    : Package '
 	write-host '  Pattern : *.zip'
 	write-host
-    write-host 'For Team Foundation Server (TFS)/Visual Studio Team Services (VSTS)'
-	write-host '  Use the combination of Copy files and Retain Artefacts from Visual Studio Solution Template'
-	write-host '  Source Folder   : $(Agent.BuildDirectory)\s'
-	write-host '  Copy files task : TasksLocal/**'
-	write-host '                    *.zip'
+    write-host 'For Azure DevOps/Server (formerly Visual Studio Team Services (VSTS)/Team Foundation Server (TFS))'
+    write-host '  Recommend using azure-pipelines (see samples folder), use following if configuring manually'
+	write-host '    Use the combination of Copy files and Retain Artefacts from Visual Studio Solution Template'
+	write-host '    Source Folder   : $(Agent.BuildDirectory)\s'
+	write-host '    Copy files task : TasksLocal/**'
+	write-host '                      *.zip'
 
 	write-host "`n[$scriptName] ---------- CD Toolset Configuration Guide -------------`n"
 	write-host
@@ -233,13 +230,15 @@ if ( $ACTION ) {
 	write-host '  Set workspace       : cd $WorkingDirectory'
 	write-host "  Run Delivery        : $workDirLocal\$cdInstruction `${EnvironmentName} `${ReleaseNumber}"
 	write-host
-    write-host 'For Team Foundation Server (TFS)/Visual Studio Team Services (VSTS)'
+    write-host 'For Azure DevOps/Server (formerly Visual Studio Team Services (VSTS)/Team Foundation Server (TFS))'
 	write-host '  Verify the queue for each Environment definition, and ensure Environment names do not contain spaces.'
-	write-host '  Run an template build initially to load the workspace, which can then be navigated to for following configuration.'
+	write-host '  Run an build with artefacts initially to load the workspace, which can then be navigated to for following configuration.'
 	write-host '  From an empty release configuration, bind to the existing build and within the stage, add a "PowerShell" step.'
-	write-host "    Command Filename  : `$(System.DefaultWorkingDirectory)/$solutionName/drop/$workDirLocal/$cdInstruction"
-	write-host '    Command arguments : -ENVIRONMENT "$(Release.EnvironmentName)" -RELEASE "$(Release.ReleaseName)"'
-	write-host "    Working folder    : `$(System.DefaultWorkingDirectory)/$solutionName/drop"
+	write-host "    Command Filename    : `$(System.DefaultWorkingDirectory)/$solutionName/drop/$workDirLocal/delivery.ps1"
+	write-host '    Command arguments   : "$(Release.EnvironmentName)" "$(Release.ReleaseName)"'
+	write-host "    Working folder      : `$(System.DefaultWorkingDirectory)/$solutionName/drop"
+	write-host "    Release name format : $solutionName-`$(Build.BuildNumber)"
+	write-host "      For re-release    : $solutionName-`$(Build.BuildNumber)-`$(rev:r)"
 	write-host
     write-host 'For GitLab (requires shell runner) ...'
     write-host '  If using the sample .gitlab-ci.yml simply clone and change the Environment literal'
