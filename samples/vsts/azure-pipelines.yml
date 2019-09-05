@@ -26,6 +26,18 @@ variables:
 
 steps:
 - script: |
-    automation\processor\entry.bat $(Build.BuildId) $(Build.SourceBranchName) staging@$(Build.ArtifactStagingDirectory)
+    automation\processor\entry.bat $(Build.BuildNumber) $(Build.SourceBranchName) staging@$(Build.ArtifactStagingDirectory)
+
+#- task: PublishTestResults@2
+#  inputs:
+    #testResultsFormat: 'JUnit' # Options: JUnit, NUnit, VSTest, xUnit, cTest
+    #testResultsFiles: '**/TEST-*.xml' 
+    #searchFolder: '$(System.DefaultWorkingDirectory)' # Optional
+    #mergeTestResults: true # Optional
+    #failTaskOnFailedTests: true # Optional
+    #testRunTitle: # Optional
+    #buildPlatform: # Optional
+    #buildConfiguration: # Optional
+    #publishRunAttachments: true # Optional
 
 - task: PublishBuildArtifacts@1
