@@ -4,6 +4,6 @@ productVersion=0.2.6
 productName=Windows Container Test
 solutionName=selenium
 containerBuild=automation/processor/containerBuild.ps1 $SOLUTION $BUILDNUMBER $REVISION $ACTION
-containerImage=microsoft/windowsservercore@sha256:efd8555802bd74561e0ec7652ca9bfbe8d4846e2ed4bf5b1fcf5d3048767a82a
+containerImage=mcr.microsoft.com/windows/servercore:ltsc2016@sha256:a8bc031f38ad457c3a04fcf72c7773014c6960978299c3dfe3e1c4d133f35190
 # imageBuild=automation-solution/imageBuild.ps1 $SOLUTION $BUILDNUMBER $REVISION $ACTION
 # processSequence=localTasks.ps1 remoteTasks.ps1
