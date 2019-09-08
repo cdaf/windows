@@ -7,7 +7,8 @@ Param (
 	[string]$vstsPool,
 	[string]$vstsSA,
 	[string]$stable,
-	[string]$docker
+	[string]$docker,
+	[string]$restart
 )
 
 # Common expression logging and error handling function, copied, not referenced to ensure atomic process
@@ -89,6 +90,13 @@ if ($docker) {
     Write-Host "[$scriptName] docker                 : $docker (not supplied, set to default)"
 }
 
+if ($restart) {
+    Write-Host "[$scriptName] restart                : $restart (only applies if docker install selected)"
+} else {
+	$restart = 'yes'
+    Write-Host "[$scriptName] restart                : $restart (not supplied, set to default, only applies if docker install selected)"
+}
+
 Write-Host "[$scriptName] pwd                    : $(pwd)"
 Write-Host "[$scriptName] whoami                 : $(whoami)"
 
@@ -141,6 +149,6 @@ if ($vstsPackageAccessToken) {
 }
 
 if ( $stable -eq 'yes' ) { 
-	executeExpression "./automation/provisioning/InstallDocker.ps1"
+	executeExpression "./automation/provisioning/InstallDocker.ps1 -restart $restart"
 }
 Write-Host "`n[$scriptName] ---------- stop ----------"
