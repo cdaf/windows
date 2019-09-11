@@ -5,6 +5,8 @@ ASSIGN $id = $("${SOLUTION}_${REVISION}").ToLower()
 $env:WORK_SPACE = Split-Path -parent $(pwd)
 Write-host $env:WORK_SPACE
 
+# Copy any artefacts needed into specific images here
+
 cd compose
 ..\imageBuild.ps1 ${id} ${BUILDNUMBER} ${containerImage} '--build-arg COMPOSE_KEEP=$env:COMPOSE_KEEP'
 cd ..
