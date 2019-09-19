@@ -31,7 +31,7 @@ if ($versionTest -like '*not recognized*') {
 	$env:DEV_ENV = (($fileList -match 'devenv.com')[0]).fullname
 }
 
-# Search for Visual Studio install first
+# Search for Visual Studio 2017 and above install first
 if (!( $env:MS_BUILD )) {
 	$registryKey = 'HKLM:\SOFTWARE\Wow6432Node\Microsoft\VisualStudio\SxS\VS7'
 	$list = Get-ItemProperty $registryKey | Get-Member
@@ -45,6 +45,11 @@ if (!( $env:MS_BUILD )) {
 		$env:VS_TEST = (($fileList -match 'vstest.exe')[0]).fullname
 		$env:DEV_ENV = (($fileList -match 'devenv.com')[0]).fullname
 	}
+}
+
+# Try Visual Studio 2015 path
+if (!( $env:MS_BUILD )) {
+	$msbuild = ((Get-ItemProperty ((Get-Item 'HKLM:\SOFTWARE\Microsoft\MSBuild\ToolsVersions\14.0').pspath) -PSProperty MSBuildToolsPath).MSBuildToolsPath) + 'msbuild.exe'
 }
 
 # Finally search for VSTS agent install
