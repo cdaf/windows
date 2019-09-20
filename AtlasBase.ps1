@@ -71,8 +71,6 @@ $url = "http://cdaf.io/static/app/downloads/$zipFile"
 executeExpression "(New-Object System.Net.WebClient).DownloadFile('$url', '$PWD\$zipFile')"
 executeExpression "Add-Type -AssemblyName System.IO.Compression.FileSystem"
 executeExpression "[System.IO.Compression.ZipFile]::ExtractToDirectory('$PWD\$zipfile', '$PWD')"
-executeExpression "rm .\readme.md"
-executeExpression "rm .\Vagrantfile"
 executeExpression "rm .\WU-CDAF.zip"
 
 writeLog "Enable Remote Desktop and Open firewall"
