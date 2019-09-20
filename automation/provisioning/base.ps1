@@ -4,7 +4,8 @@ Param (
 	[string]$proxy,
 	[string]$version,
 	[string]$checksum,
-	[string]$otherArgs	
+	[string]$otherArgs,
+	[string]$autoReboot
 )
 
 cmd /c "exit 0"
@@ -29,6 +30,7 @@ function executeRetry ($expression) {
 	$wait = 10
 	$retryMax = 3
 	$retryCount = 0
+	$env:rebootRequired = 'no'
 	while (( $retryCount -le $retryMax ) -and ($exitCode -ne 0)) {
 		$exitCode = 0
 		$error.clear()
@@ -38,7 +40,17 @@ function executeRetry ($expression) {
 		    if(!$?) { Write-Host "[$scriptName] `$? = $?" -ForegroundColor Red; $exitCode = 1 }
 		} catch { Write-Host "[$scriptName] $_" -ForegroundColor Red; $exitCode = 2 }
 	    if ( $error[0] ) { Write-Host "[$scriptName] Warning, message in `$error[0] = $error" -ForegroundColor Yellow; $error.clear() } # do not treat messages in error array as failure
-		if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) { $exitCode = $LASTEXITCODE; Write-Host "[$scriptName] `$LASTEXITCODE = $LASTEXITCODE " -ForegroundColor Red; cmd /c "exit 0" }
+		if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) {
+			if ( $LASTEXITCODE -eq 3010 ) {
+				Write-Host "[$scriptName] `$LASTEXITCODE = ${LASTEXITCODE}, reboot required." -ForegroundColor Yellow
+				$exitCode = 0
+				$env:rebootRequired = 'yes'
+			} else {
+				Write-Host "[$scriptName] `$LASTEXITCODE = $LASTEXITCODE " -ForegroundColor Red
+				$exitCode = $LASTEXITCODE
+			}
+			cmd /c "exit 0"
+		}
 	    if ($exitCode -ne 0) {
 			if ($retryCount -ge $retryMax ) {
 				Write-Host "[$scriptName] Retry maximum ($retryCount) reached, exiting with `$LASTEXITCODE = $exitCode.`n"
@@ -78,7 +90,7 @@ if ($proxy) {
 } else {
 	if ( $env:http_proxy ) {
 		$proxy = $env:http_proxy
-	    Write-Host "[$scriptName] proxy      : (not supplied, but defaulted from `$env:http_proxy)"
+	    Write-Host "[$scriptName] proxy      : $proxy (not supplied, but defaulted from `$env:http_proxy)"
     } else {
 	    Write-Host "[$scriptName] proxy      : (not supplied)"
     }
@@ -106,6 +118,13 @@ if ($otherArgs) {
     Write-Host "[$scriptName] otherArgs  : $otherArgs`n"
 } else {
     Write-Host "[$scriptName] otherArgs  : (not supplied)"
+}
+
+if ($autoReboot) {
+    Write-Host "[$scriptName] autoReboot : $autoReboot`n"
+} else {
+	$autoReboot = 'no'
+    Write-Host "[$scriptName] autoReboot : $autoReboot (not supplied, set to default)"
 }
 
 if ($proxy) {
@@ -200,9 +219,19 @@ Write-Host "[$scriptName] Chocolatey : $versionTest`n"
 Write-Host "[$scriptName] Process each package separately to trap failures`n"
 $install.Split(" ") | ForEach {
 	executeRetry "choco upgrade -y $_ --no-progress --fail-on-standard-error $checksum $version $otherArgs"
-
 	Write-Host "`n[$scriptName] Reload the path`n"
 	executeExpression '$env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")'
+}
+
+if ( $env:rebootRequired -eq 'yes' ) {
+	if ( $autoReboot -eq 'yes') {
+	    Write-Host "[$scriptName] Reboot Required and autoReboot set to yes, rebooting in 2 seconds.`n" -ForegroundColor Green
+	    executeExpression 'shutdown /r /t 2'
+	} else {
+	    Write-Host "[$scriptName] Reboot Required but autoReboot set to no, manual reboot is required.`n" -ForegroundColor Yellow
+	}
+} else {
+    Write-Host "[$scriptName] Install complete, no reboot required.`n" -ForegroundColor Green
 }
 
 Write-Host "`n[$scriptName] ---------- stop ----------"
