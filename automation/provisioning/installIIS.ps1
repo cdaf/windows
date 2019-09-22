@@ -1,7 +1,9 @@
 Param (
 	[string]$management,
 	[string]$aspnet,
-	[string]$proxy
+	[string]$proxy,
+	[string]$iisadmin,
+	[string]$iispasswd
 )
 
 $scriptName = 'installIIS.ps1'
@@ -64,6 +66,21 @@ if ( $management ) {
 		executeExpression "Enable-WindowsOptionalFeature -Online -FeatureName IIS-ManagementConsole"
 	} else {
 		Write-Host "[$scriptName] Management tools selected, but operating system has no GUI so skipping IIS-ManagementConsole"
+        if ($iisadmin) {
+            #Add user for Remote IIS Manager Login
+            $userExists = Get-LocalUser | Where-Object {$_.Name -eq $iisadmin}
+            if ( ! $userExists )
+            {
+                executeExpression "net user $iisadmin $iispasswd /ADD"
+                executeExpression "net localgroup administrators $iisadmin /add"
+                Write-Host "[$scriptName] Install Web Management Service for remote management`n"
+                executeExpression 'Install-WindowsFeature Web-Mgmt-Service'
+                executeExpression 'New-ItemProperty -Path HKLM:\software\microsoft\WebManagement\Server -Name EnableRemoteManagement -Value 1 -Force;'
+                executeExpression 'Set-Service -Name wmsvc -StartupType automatic;'
+                executeExpression 'Restart-Service -Name wmsvc'
+                executeExpression 'Restart-Service -Name w3svc'
+            }
+        }
 	}
 }
 
