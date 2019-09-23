@@ -17,7 +17,7 @@ COPY automation-solution/bootstrapAgent.ps1 .
 COPY automation/provisioning/runner.bat .
 RUN runner.bat bootstrapAgent.ps1
 
-# < Place cache building here, not in the workspace root or the mount may fail due to non-empty directory >
+# < Place cache building here, not in the workspace root or the mount will fail due to non-empty directory >
 # COPY tests/pom.xml .
 # RUN mvn --batch-mode clean dependency:resolve dependency:go-offline eclipse:eclipse
 
