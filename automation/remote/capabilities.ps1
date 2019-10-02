@@ -229,7 +229,10 @@ $job = Start-Job {
 		      "394254|394271" { [Version]"4.6.1" }
 		      "394802|394806" { [Version]"4.6.2" }
 		      "460798|460805" { [Version]"4.7" }
-		      {$_ -gt 394806} { [Version]"Undocumented 4.7 or higher, please update script" }
+		      "461308|461310" { [Version]"4.7.1" }
+		      "461808|461814" { [Version]"4.7.2" }
+		      "528040|528049" { [Version]"4.8" }
+		      {$_ -gt 528049} { [Version]"Undocumented 4.8.x or higher, please update script" }
 		    }
 		  }
 		}
