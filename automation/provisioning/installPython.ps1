@@ -1,3 +1,9 @@
+Param (
+	[string]$version,
+	[string]$install,
+	[string]$mediaDir
+)
+
 # Retry logic for connection issues, i.e. "Cannot retrieve the dynamic parameters for the cmdlet. PowerShell Gallery is currently unavailable.  Please try again later."
 # Includes warning for "Cannot find a variable with the name 'PackageManagementProvider'. Cannot find a variable with the name 'SourceLocation'."
 function executeRetry ($expression) {
@@ -42,12 +48,17 @@ function executeExpression ($expression) {
 
 $scriptName = 'installPython.ps1'
 Write-Host "`n[$scriptName] ---------- start ----------"
-$version = $args[0]
 if ($version) {
     Write-Host "[$scriptName] version  : $version"
 } else {
 	$version = '3'
     Write-Host "[$scriptName] version  : $version (default)"
+}
+
+if ($install) {
+    Write-Host "[$scriptName] install  : $install"
+} else {
+    Write-Host "[$scriptName] install  : (not supplied, no packages will be installed using PiP)"
 }
 
 if ($mediaDir) {
@@ -137,5 +148,9 @@ $env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";"
 
 executeExpression "python --version"
 executeExpression "pip --version"
+
+if ($install) {
+    executeExpression "pip install $install"
+}
 
 Write-Host "`n[$scriptName] ---------- stop ----------`n"
