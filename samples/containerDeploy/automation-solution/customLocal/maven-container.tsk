@@ -1,0 +1,19 @@
+PROPLD manifest.txt
+$env:CONTAINER_IMAGE = $containerImage
+
+.\dockerBuild.ps1 maven-deploy-container $BUILDNUMBER
+
+$env:IMAGE_TAG = "maven-deploy-container:$BUILDNUMBER"
+$env:WORK_SPACE = $(pwd)
+
+$env:MAVEN_DEPLOY_TARGET = $deployTarget
+
+$env:AZURE_SP_APP_ID = Invoke-Expression "`$env:$(${appIDEnvVar})"
+$env:AZURE_SP_TENANT = Invoke-Expression "`$env:$(${tenantEnvVar})"
+$env:AZURE_SP_PASSWD = Invoke-Expression "`$env:$(${passwordEnvVar})"
+
+docker-compose up
+
+.\dockerLog.ps1 DOCKER-COMPOSE '--- Completed Target'
+
+.\dockerClean.ps1 template BUILDNUMBER

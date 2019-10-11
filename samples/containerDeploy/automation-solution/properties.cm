@@ -1,0 +1,5 @@
+context  target       deployTaskOverride           
+local    WINDOWS      maven-deploy.tsk             
+local    WORKGROUP    maven-deploy.tsk             
+local    DEPLOY_TEST  maven-deploy.tsk             
+local    DEPLOY_PROD  maven-deploy.tsk             

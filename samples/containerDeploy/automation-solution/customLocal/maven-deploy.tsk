@@ -1,0 +1,13 @@
+Write-Host "Replace hardcoded developer instance with target config`n"
+REPLAC FunctionApp\pom.xml utzawnnpnuqzrspu      $appName
+REPLAC FunctionApp\pom.xml eastus                $location
+REPLAC FunctionApp\pom.xml d-spring-cloud        $resourcegroup
+
+# Workaround for Service Principal issue, java.io.IOException: clientId is null or empty
+.\maven-deploy-settings.ps1 $env:AZURE_SP_APP_ID $env:AZURE_SP_TENANT $env:AZURE_SP_PASSWD
+
+mv FunctionApp\target\azure-functions\utzawnnpnuqzrspu FunctionApp\target\azure-functions\$appName
+
+Get-Content FunctionApp\pom.xml | select -First 33
+
+mvn --batch-mode --file FunctionApp\pom.xml azure-functions:deploy
