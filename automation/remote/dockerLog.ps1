@@ -68,11 +68,18 @@ while (( $retryCount -le $retryMax ) -and ($exitCode -ne 0)) {
 			$lineCount += 1
 	    }
 	
-	    if ( Select-String -Pattern $stringMatch  -InputObject $output ) {
+	    if ( Select-String -Pattern $stringMatch -InputObject $output ) {
 			Write-Host "[$scriptName] stringMatch ($stringMatch) found."
 		    $exitCode = 0
-	    }
-    } else {
+		}
+		
+	    if ( Select-String -Pattern 'CDAF_DELIVERY_FAILURE.' -InputObject $output ) {
+			Write-Host "[$scriptName] Error Detected (CDAF_DELIVERY_FAILURE.) exit with error code 335"
+			$exitCode = 335
+			$retryCount = $retryMax
+		}
+
+	} else {
 		Write-Host "[$scriptName]   no output ..."
     }
 		

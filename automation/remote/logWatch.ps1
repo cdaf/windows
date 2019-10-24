@@ -62,6 +62,11 @@ while (( $retryCount -le $retryMax ) -and ($exitCode -ne 0)) {
 				Write-Host "[$scriptName] stringMatch ($stringMatch) found."
 			    $exitCode = 0
 		    }
+		    if ( Select-String -Pattern 'CDAF_DELIVERY_FAILURE.' -InputObject $output ) {
+				Write-Host "[$scriptName] Error Detected (CDAF_DELIVERY_FAILURE.) exit with error code 335"
+				$exitCode = 335
+				$retryCount = $retryMax
+			}
 	    } else {
 			Write-Host "[$scriptName]   no output ..."
 	    }

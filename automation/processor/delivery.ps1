@@ -19,15 +19,15 @@ function executeExpression ($expression) {
 	Write-Host "[$scriptName] $expression"
 	try {
 		Invoke-Expression $expression
-	    if(!$?) { Write-Host "[$scriptName] `$? = $?"; exit 1 }
-	} catch { Write-Output $_.Exception|format-list -force; exit 2 }
-    if ( $error ) { Write-Host "[$scriptName] `$error[0] = $error"; exit 3 }
-    if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) { Write-Host "[$scriptName] `$LASTEXITCODE = $LASTEXITCODE "; exit $LASTEXITCODE }
+	    if(!$?) { passExitCode "[$scriptName] `$? = $?" 1101 }
+	} catch { passExitCode "$($_.Exception|format-list -force)" 1102 }
+    if ( $error ) { passExitCode "[$scriptName] `$error[0] = $error" 1103 }
+    if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) { passExitCode "[$scriptName] `$LASTEXITCODE = $LASTEXITCODE " $LASTEXITCODE }
 }
 
 # Primary powershell, returns exitcode to DOS
 function exceptionExit ( $identifier, $exception, $exitCode ) {
-    write-host "`n[delivery.ps1] Exception in ${identifier}, details follow ..." -ForegroundColor Magenta
+    write-host "`n[delivery.ps1] CDAF_DELIVERY_FAILURE.EXCEPTION : Exception in ${identifier}, details follow ..." -ForegroundColor Magenta
     echo $exception.Exception | format-list -force
     if ( $exitCode ) {
 		$host.SetShouldExit($exitCode)
@@ -40,7 +40,7 @@ function exceptionExit ( $identifier, $exception, $exitCode ) {
 
 function passExitCode ( $message, $exitCode ) {
     write-host "[delivery.ps1] $message" -ForegroundColor Red
-    write-host "[delivery.ps1]   Exiting with `$LASTEXITCODE $exitCode" -ForegroundColor Magenta
+    write-host "[delivery.ps1] CDAF_DELIVERY_FAILURE.EXIT : Exiting with `$LASTEXITCODE $exitCode" -ForegroundColor Magenta
     if ( $exitCode ) {
 		$host.SetShouldExit($exitCode)
 		exit $exitCode
@@ -52,7 +52,7 @@ function passExitCode ( $message, $exitCode ) {
 
 function taskFailure ($taskName) {
     write-host "`n[delivery.ps1] $taskName" -ForegroundColor Red
-	write-host "[delivery.ps1]   `$host.SetShouldExit(2051)" -ForegroundColor Red
+	write-host "[delivery.ps1] CDAF_DELIVERY_FAILURE.INTERNAL_TASK : `$host.SetShouldExit(2051)" -ForegroundColor Red
 	$host.SetShouldExit(2052)
 	exit 2052
 }
@@ -79,7 +79,7 @@ function pathTest ($pathToTest) {
 
 function taskError ($taskName) {
     write-host "[delivery.ps1] Error occured when excuting $taskName" -ForegroundColor Red
-    write-host "[delivery.ps1] Exit with `$LASTEXITCODE 70" -ForegroundColor Red
+    write-host "[delivery.ps1] CDAF_DELIVERY_FAILURE.INTERNAL_TASK_ERROR : Exit with `$LASTEXITCODE 70" -ForegroundColor Red
     $host.SetShouldExit(70); exit 70
 }
 
