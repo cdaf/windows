@@ -98,7 +98,7 @@ Vagrant.configure(2) do |config|
       (1..MAX_SERVER_TARGETS).each do |s|
         override.vm.provision 'shell', path: './automation/provisioning/addHOSTS.ps1', args: "172.16.17.10#{s} server-#{s}.sky.net"
       end
-      override.vm.provision 'shell', path: './automation/provisioning/setenv.ps1', args: 'environmentDelivery VAGRANT Machine'
+      override.vm.provision 'shell', path: './automation/provisioning/setenv.ps1', args: 'CDAF_DELIVERY VAGRANT Machine'
       override.vm.provision 'shell', path: './automation/provisioning/trustedHosts.ps1', args: '*'
       override.vm.provision 'shell', path: './automation/provisioning/CredSSP.ps1', args: 'client'
       override.vm.provision 'shell', path: './automation/provisioning/CDAF.ps1'
