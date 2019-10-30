@@ -83,26 +83,26 @@ if (Test-Path "$solutionRoot\delivery.bat") {
 $cdInstruction="delivery.bat"
 
 # If environment variable over-rides all other determinations
-if ($environmentDelivery) { # check for DOS variable and load as PowerShell environment variable
-	$Env:environmentDelivery = "$environmentDelivery"
+if ($CDAF_DELIVERY) { # check for DOS variable and load as PowerShell environment variable
+	$Env:CDAF_DELIVERY = "$CDAF_DELIVERY"
 } else {
-	$environmentDelivery = "$Env:environmentDelivery"
+	$CDAF_DELIVERY = "$Env:CDAF_DELIVERY"
 }
-if ($environmentDelivery ) {
-	Write-Host "[$scriptName]   environmentDelivery : $environmentDelivery (loaded from `$Env:environmentDelivery)"
+if ($CDAF_DELIVERY ) {
+	Write-Host "[$scriptName]   CDAF_DELIVERY : $CDAF_DELIVERY (loaded from `$Env:CDAF_DELIVERY)"
 } else {
 	# Check for customised Delivery environment process
 	if (Test-Path "$solutionRoot\deliveryEnv.ps1") {
-		$environmentDelivery = $(& $solutionRoot\deliveryEnv.ps1 $AUTOMATIONROOT $solutionRoot)
-		Write-Host "[$scriptName]   environmentDelivery : $environmentDelivery (from $solutionRoot\deliveryEnv.ps1)"
+		$CDAF_DELIVERY = $(& $solutionRoot\deliveryEnv.ps1 $AUTOMATIONROOT $solutionRoot)
+		Write-Host "[$scriptName]   CDAF_DELIVERY : $CDAF_DELIVERY (from $solutionRoot\deliveryEnv.ps1)"
 	} else {
 		# Set default depending on domain membership
 		if ((gwmi win32_computersystem).partofdomain -eq $true) {
-			$environmentDelivery = 'WINDOWS'
+			$CDAF_DELIVERY = 'WINDOWS'
 		} else {
-			$environmentDelivery = 'WORKGROUP'
+			$CDAF_DELIVERY = 'WORKGROUP'
 		}
-		Write-Host "[$scriptName]   environmentDelivery : $environmentDelivery (default)"
+		Write-Host "[$scriptName]   CDAF_DELIVERY : $CDAF_DELIVERY (default)"
 	}
 }
 
@@ -251,14 +251,14 @@ if ( $ACTION ) {
 }
 
 if ( $execCD -eq 'yes' ) {
-	& $cdProcess $environmentDelivery $release
+	& $cdProcess $CDAF_DELIVERY $release
 	if($LASTEXITCODE -ne 0){
-	    write-host "[$scriptName] CD_NON_ZERO_EXIT $cdProcess $environmentDelivery $release" -ForegroundColor Magenta
+	    write-host "[$scriptName] CD_NON_ZERO_EXIT $cdProcess $CDAF_DELIVERY $release" -ForegroundColor Magenta
 	    write-host "[$scriptName]   `$host.SetShouldExit($LASTEXITCODE)" -ForegroundColor Red
 	    $host.SetShouldExit($LASTEXITCODE) # Returning exit code to DOS
 	    exit
 	}
-	if(!$?){ exceptionExit "$cdProcess $environmentDelivery $release" }
+	if(!$?){ exceptionExit "$cdProcess $CDAF_DELIVERY $release" }
 }
 
 write-host "`n[$scriptName] ------------------"

@@ -289,9 +289,21 @@ if ( $ACTION -eq 'containerbuild' ) {
 			        }
 			    }
 			    if (( $dockerStatus -ne 'Running' ) -and ( $dockerdProcess -eq $null )){
-					Write-Host "[$scriptName] Docker installed but not running, will attempt to execute natively"
-					cmd /c "exit 0"
-					Clear-Variable -Name 'containerBuild'
+			    	if ( $env:CDAF_DOCKER_REQUIRED ) {
+						Write-Host "[$scriptName] Docker installed but not running, `$env:CDAF_DOCKER_REQUIRED is set so will try and start"
+						executeExpression 'Start-Service Docker'
+						Write-Host '$dockerStatus = ' -NoNewline 
+						$dockerStatus = executeReturn '(Get-Service Docker).Status'
+						$dockerStatus
+						if ( $dockerStatus -ne 'Running' ) {
+							Write-Host "[$scriptName] Unable to start Docker, `$dockerStatus = $dockerStatus"
+							exit 8910
+						}
+					} else {			    
+						Write-Host "[$scriptName] Docker installed but not running, will attempt to execute natively (set `$env:CDAF_DOCKER_REQUIRED if docker is mandatory"
+						cmd /c "exit 0"
+						Clear-Variable -Name 'containerBuild'
+					}
 				}
 			}
 			
