@@ -1,4 +1,6 @@
 Param (
+	[string]$automationRoot,
+	[string]$BUILDNUMBER,
 	[string]$branch,
 	[string]$action
 )
@@ -30,19 +32,66 @@ function executeSuppress ($expression) {
 }
 
 Write-Host "`n[$scriptName] ---------- start ----------"
+if ($automationRoot) {
+    Write-Host "[$scriptName] automationRoot : $automationRoot"
+} else {
+    Write-Host "[$scriptName] automationRoot not supplied, this should only be used with Git workspaces!"; exit 101
+}
+
+if ($BUILDNUMBER) {
+    Write-Host "[$scriptName] BUILDNUMBER    : $BUILDNUMBER"
+} else {
+
+	$counterFile = "$env:USERPROFILE\buildnumber.counter"
+	# Use a simple text file ($counterFile) for incrimental build number, using the same logic as cdEmulate.ps1
+	if ( Test-Path "$counterFile" ) {
+		$buildNumber = Get-Content "$counterFile"
+	} else {
+		$buildNumber = 0
+	}
+	[int]$buildnumber = [convert]::ToInt32($buildNumber)
+	if ( $action -ne "cdonly" ) { # Do not incriment when just deploying
+		$buildNumber += 1
+	}
+	Set-Content "$counterFile" "$BUILDNUMBER"
+    Write-Host "[$scriptName] BUILDNUMBER    : $BUILDNUMBER (not supplied, generated from local counter file)"
+}
+
 if ($branch) {
-    Write-Host "[$scriptName] branch   : $branch"
+    Write-Host "[$scriptName] branch         : $branch"
 } else {
-    Write-Host "[$scriptName] branch not supplied, this should only be used with Git workspaces!"; exit 101
+	if ( $env:CDAF_BRANCH_NAME ) {
+		$branch = $env:CDAF_BRANCH_NAME
+	    Write-Host "[$scriptName] branch         : $branch (not supplied, derived from `$env:CDAF_BRANCH_NAME)"
+	} else {
+		$branch = 'feature'
+	    Write-Host "[$scriptName] branch         : $branch (not supplied, set to default)"
+	}
 }
+
 if ($action) {
-    Write-Host "[$scriptName] action   : $action"
+    Write-Host "[$scriptName] action         : $action"
 } else {
-    Write-Host "[$scriptName] action   : (not set, perform no action)"
+    Write-Host "[$scriptName] action         : (not set, set to remoteURL@ to trigger clean)"
 }
-Write-Host "[$scriptName] pwd      : $(pwd)"
-Write-Host "[$scriptName] hostname : $(hostname)" 
-Write-Host "[$scriptName] whoami   : $(whoami)" 
+Write-Host "[$scriptName] pwd            : $(pwd)"
+Write-Host "[$scriptName] hostname       : $(hostname)" 
+Write-Host "[$scriptName] whoami         : $(whoami)" 
+
+
+if ( $branch -eq 'master' ) {
+	executeExpression "$automationRoot\processor\buildPackage.ps1 $BUILDNUMBER $branch $action"
+} else {
+	Write-Host "[$scriptName] Do not pass ACTION when executing feature branch (non-master)"
+	executeExpression "$automationRoot\processor\buildPackage.ps1 $BUILDNUMBER $branch"
+}
+
+if (( $branch -eq 'master' ) -or ( $branch -eq 'refs/heads/master' )) {
+	Write-Host "[$scriptName] Only perform container test in CI for branches, Master execution in CD pipeline"
+} else {
+	Write-Host "[$scriptName] Only perform container test in CI for feature branches, CD for branch $branch"
+	executeExpression '.\TasksLocal\delivery.ps1 DOCKER'
+}
 
 $prefix,$remoteURL = $action.Split('@')
  
@@ -145,7 +194,7 @@ if ( $prefix -eq 'remoteURL' ) {
 
 }
 
-if ( $branch -ne 'master' ) {
+if ( ! (( $branch -eq 'master' ) -or ( $branch -eq 'refs/heads/master' ))) {
 	Write-Host "[$scriptName] Purge artifacts for feature branches"
 	$zipPackage = (Get-Item '*.zip').Name
 	if ( $zipPackage ) {
