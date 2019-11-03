@@ -13,6 +13,18 @@ function executeExpression ($expression) {
     $error.clear()
     Write-Host "$expression"
     try {
+        Invoke-Expression $expression
+        if(!$?) { Write-Host "[$scriptName] `$? = $?"; exit 1 }
+    } catch { Write-Output $_.Exception|format-list -force; exit 2 }
+    if ( $error ) { Write-Host "[$scriptName] `$error[0] = $error"; exit 3 }
+    if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) { Write-Host "[$scriptName] `$LASTEXITCODE = $LASTEXITCODE "; exit $LASTEXITCODE }
+}
+
+# Capture and return expression output
+function executeReturn ($expression) {
+    $error.clear()
+    Write-Host "$expression"
+    try {
         $result = Invoke-Expression $expression
         if(!$?) { Write-Host "[$scriptName] `$? = $?"; exit 1 }
     } catch { Write-Output $_.Exception|format-list -force; exit 2 }
@@ -20,6 +32,7 @@ function executeExpression ($expression) {
     if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) { Write-Host "[$scriptName] `$LASTEXITCODE = $LASTEXITCODE "; exit $LASTEXITCODE }
     return $result
 }
+
 # Common expression logging and error handling function, copied, not referenced to ensure atomic process
 function executeSuppress ($expression) {
     Write-Host "$expression"
@@ -116,7 +129,7 @@ if ( $prefix -eq 'remoteURL' ) {
 	}
 	
 	Write-Host "`n[$scriptName] Load Local branches`n"
-	$gitBranch = executeExpression 'git branch'
+	$gitBranch = executeReturn 'git branch'
 	
 	Write-Host "`n[$scriptName] Local branches`n"
 	$localBranches = @()
@@ -152,7 +165,7 @@ if ( $prefix -eq 'remoteURL' ) {
 	}
 	
 	Write-Host "`n[$scriptName] Load docker images`n"
-	$dockerImages = executeExpression 'docker images --format "{{.Repository}}:{{.Tag}}:{{.ID}}" 2> $null'
+	$dockerImages = executeReturn 'docker images --format "{{.Repository}}:{{.Tag}}:{{.ID}}" 2> $null'
 	
 	# Numbered lists for summary report
 	$imagesListBeforeHousekeeping = foreach ($i in $dockerImages) { $i_countb++; echo "$i_countb. $($i.split(':')[0]):$($i.split(':')[1])"`n }
