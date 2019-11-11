@@ -1,9 +1,20 @@
 # Override function used in entry points
 function exceptionExit ($taskName) {
-    write-host "`n[$scriptName] --- Emulation Error Handling ---" -ForegroundColor Red
-    write-host "`n[$scriptName] This logging will not appear in toolset" -ForegroundColor Red
-    write-host "`n[$scriptName] $taskName failed!" -ForegroundColor Red
-    write-host "[$scriptName]   Returning errorlevel (-2) to emulation wrapper" -ForegroundColor Magenta
+    write-host "`n[$scriptName] --- exceptionExit ---" -ForegroundColor Red
+    write-host "[$scriptName]   Typically this represents a CDAFramework error, i.e. untrapped exception" -ForegroundColor Red
+    write-host "[$scriptName]   $taskName failed!" -ForegroundColor Red
+    write-host "[$scriptName]   Returning errorlevel (2035) to emulation wrapper" -ForegroundColor Magenta
+    write-host "`n[$scriptName] --- exceptionExit ---" -ForegroundColor Red
+    exit 2035
+}
+
+# Trap Command Failures
+function failureExit ($taskName) {
+    write-host "`n[$scriptName] --- failureExit ---" -ForegroundColor Red
+    write-host "[$scriptName]   This can occur when standard error is not trapped in Server 2019" -ForegroundColor Red
+    write-host "[$scriptName]   $taskName failed!" -ForegroundColor Red
+    write-host "[$scriptName]   Returning errorlevel (2034) to emulation wrapper" -ForegroundColor Magenta
+    write-host "[$scriptName] --- failureExit ---" -ForegroundColor Red
     exit 2034
 }
 
@@ -170,7 +181,7 @@ if ( $ACTION -eq "cdonly" ) { # Case insensitive
 		    $host.SetShouldExit($LASTEXITCODE) # Returning exit code to DOS
 		    exit
 		}
-		if(!$?){ exceptionExit "$ciProcess $buildNumber $revision $ACTION $solutionName $AUTOMATIONROOT" }
+		if(!$?){ failureExit "$ciProcess $buildNumber $revision $ACTION $solutionName $AUTOMATIONROOT" }
 	} else {
 		& $ciProcess $buildNumber $revision
 		if($LASTEXITCODE -ne 0){
@@ -179,7 +190,7 @@ if ( $ACTION -eq "cdonly" ) { # Case insensitive
 		    $host.SetShouldExit($LASTEXITCODE) # Returning exit code to DOS
 		    exit
 		}
-		if(!$?){ exceptionExit "$ciProcess $buildNumber $revision" }
+		if(!$?){ failureExit "$ciProcess $buildNumber $revision" }
 	}
 }
 	
@@ -258,7 +269,7 @@ if ( $execCD -eq 'yes' ) {
 	    $host.SetShouldExit($LASTEXITCODE) # Returning exit code to DOS
 	    exit
 	}
-	if(!$?){ exceptionExit "$cdProcess $CDAF_DELIVERY $release" }
+	if(!$?){ failureExit "$cdProcess $CDAF_DELIVERY $release" }
 }
 
 write-host "`n[$scriptName] ------------------"
