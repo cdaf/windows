@@ -89,12 +89,12 @@ if ($CDAF_DELIVERY) { # check for DOS variable and load as PowerShell environmen
 	$CDAF_DELIVERY = "$Env:CDAF_DELIVERY"
 }
 if ($CDAF_DELIVERY ) {
-	Write-Host "[$scriptName]   CDAF_DELIVERY : $CDAF_DELIVERY (loaded from `$Env:CDAF_DELIVERY)"
+	Write-Host "[$scriptName]   CDAF_DELIVERY       : $CDAF_DELIVERY (loaded from `$Env:CDAF_DELIVERY)"
 } else {
 	# Check for customised Delivery environment process
 	if (Test-Path "$solutionRoot\deliveryEnv.ps1") {
 		$CDAF_DELIVERY = $(& $solutionRoot\deliveryEnv.ps1 $AUTOMATIONROOT $solutionRoot)
-		Write-Host "[$scriptName]   CDAF_DELIVERY : $CDAF_DELIVERY (from $solutionRoot\deliveryEnv.ps1)"
+		Write-Host "[$scriptName]   CDAF_DELIVERY       : $CDAF_DELIVERY (from $solutionRoot\deliveryEnv.ps1)"
 	} else {
 		# Set default depending on domain membership
 		if ((gwmi win32_computersystem).partofdomain -eq $true) {
@@ -102,7 +102,7 @@ if ($CDAF_DELIVERY ) {
 		} else {
 			$CDAF_DELIVERY = 'WORKGROUP'
 		}
-		Write-Host "[$scriptName]   CDAF_DELIVERY : $CDAF_DELIVERY (default)"
+		Write-Host "[$scriptName]   CDAF_DELIVERY       : $CDAF_DELIVERY (default)"
 	}
 }
 
