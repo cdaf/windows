@@ -17,10 +17,10 @@ function executeExpression ($expression) {
 	Write-Host "[$(date)] $expression | Tee-Object -FilePath '$env:temp\InstallAgent.log'"
 	try {
 		Invoke-Expression "$expression | Tee-Object -FilePath '$env:temp\InstallAgent.log'"
-	    if(!$?) { Write-Host "[$scriptName] `$? = $?"; exit 1 }
-	} catch { echo $_.Exception|format-list -force; exit 2 }
-    if ( $error ) { Write-Host "[$scriptName] `$error[0] = $error"; exit 3 }
-    if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) { Write-Host "[$scriptName] `$LASTEXITCODE = $LASTEXITCODE "; exit $LASTEXITCODE }
+	    if(!$?) { Write-Host "[FAILURE][$scriptName] `$? = $?"; Write-Host "[$scriptName] See logs at $env:temp\InstallAgent.log"; exit 1 }
+	} catch { echo $_.Exception|format-list -force; Write-Host "[$scriptName] See logs at $env:temp\InstallAgent.log"; exit 2 }
+    if ( $error ) { Write-Host "[$scriptName] `$error[0] = $error"; Write-Host "[$scriptName] See logs at $env:temp\InstallAgent.log"; exit 3 }
+    if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) { Write-Host "[$scriptName] `$LASTEXITCODE = $LASTEXITCODE "; Write-Host "[$scriptName] See logs at $env:temp\InstallAgent.log"; exit $LASTEXITCODE }
 }
 
 $scriptName = 'bootstrap-vsts.ps1'
@@ -100,6 +100,8 @@ if ($restart) {
 Write-Host "[$scriptName] pwd                    : $(pwd)"
 Write-Host "[$scriptName] whoami                 : $(whoami)"
 
+executeExpression "Get-ScheduledTask -TaskName ServerManager | Disable-ScheduledTask -Verbose"
+
 if ( $stable -eq 'yes' ) { 
 	Write-Host "[$scriptName] Download Continuous Delivery Automation Framework"
 	Write-Host "[$scriptName] `$zipFile = 'WU-CDAF.zip'"
@@ -151,4 +153,7 @@ if ($vstsPackageAccessToken) {
 if ( $stable -eq 'yes' ) { 
 	executeExpression "./automation/provisioning/InstallDocker.ps1 -restart $restart"
 }
+
+Write-Host "[$scriptName] See logs at $env:temp\InstallAgent.log"
+
 Write-Host "`n[$scriptName] ---------- stop ----------"
