@@ -14,9 +14,9 @@ Param (
 # Common expression logging and error handling function, copied, not referenced to ensure atomic process
 function executeExpression ($expression) {
 	$error.clear()
-	Write-Host "[$(date)] $expression"
+	Write-Host "[$(date)] $expression | Tee-Object -FilePath '$env:temp\InstallAgent.log'"
 	try {
-		Invoke-Expression $expression
+		Invoke-Expression "$expression | Tee-Object -FilePath '$env:temp\InstallAgent.log'"
 	    if(!$?) { Write-Host "[$scriptName] `$? = $?"; exit 1 }
 	} catch { echo $_.Exception|format-list -force; exit 2 }
     if ( $error ) { Write-Host "[$scriptName] `$error[0] = $error"; exit 3 }
