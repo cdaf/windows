@@ -100,7 +100,12 @@ if ($restart) {
 Write-Host "[$scriptName] pwd                    : $(pwd)"
 Write-Host "[$scriptName] whoami                 : $(whoami)"
 
-executeExpression "Get-ScheduledTask -TaskName ServerManager | Disable-ScheduledTask -Verbose"
+$server = Get-ScheduledTask -TaskName 'ServerManager' -erroraction 'silentlycontinue'
+if ( $server ) {
+	executeExpression "Get-ScheduledTask -TaskName 'ServerManager' | Disable-ScheduledTask -Verbose"
+} else {
+	Write-Host "[$scriptName] Scheduled task ServerManager not installed, disable not required."
+}
 
 if ( $stable -eq 'yes' ) { 
 	Write-Host "[$scriptName] Download Continuous Delivery Automation Framework"
