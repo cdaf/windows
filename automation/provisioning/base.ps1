@@ -13,14 +13,23 @@ $scriptName = 'base.ps1'
 
 # Common expression logging and error handling function, output not captured to provide live output steam
 function executeExpression ($expression) {
+	$exitCode = 0
 	$error.clear()
 	Write-Host "$expression"
 	try {
 		Invoke-Expression $expression
-	    if(!$?) { Write-Host "[$scriptName] `$? = $?"; exit 1 }
-	} catch { echo $_.Exception|format-list -force; exit 2 }
-    if ( $error ) { Write-Host "[$scriptName] `$error[0] = $error"; exit 3 }
-    if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) { Write-Host "[$scriptName] `$LASTEXITCODE = $LASTEXITCODE "; exit $LASTEXITCODE }
+	    if(!$?) { Write-Host "[$scriptName][FAILURE] `$? = $?"; $exitCode = 1 }
+	} catch { Write-Host "[$scriptName][EXCEPTION] Exception details ..."; Write-Host $_.Exception|format-list -force; $exitCode = 2 }
+    if ( $error ) { Write-Host "[$scriptName][ERROR] `$error[0] = $error"; $exitCode = 3 }
+    if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) { Write-Host "[$scriptName][EXIT] `$LASTEXITCODE = $LASTEXITCODE "; $exitCode = $LASTEXITCODE }
+	if ( $exitCode -ne 0 ) {
+		if ( $logFile ) {
+			Write-Host "`n[$scriptName] Listing contents of $logFile then exit...`n"
+			Get-Content $logFile
+			Write-Host
+		}
+		exit $exitCode
+	}
 }
 
 # Retry logic for connection issues, i.e. "Cannot retrieve the dynamic parameters for the cmdlet. PowerShell Gallery is currently unavailable.  Please try again later."
@@ -219,6 +228,11 @@ if ($versionTest -like '*not recognized*') {
 
 }
 Write-Host "[$scriptName] Chocolatey : $versionTest`n"
+$rollover = Get-Date -Format "yyyyMMdd-HHmmss"
+$logFile = 'C:\ProgramData\chocolatey\logs\chocolatey.log'
+Add-Content $logFile "Rolling over log file to $rollover"
+Copy-Item $logFile "$($logFile.TrimEnd(".log"))-${rollover}.log"
+Clear-Content $logFile
 
 # if processed as a list and any item other than the last fails, choco will return a false possitive
 Write-Host "[$scriptName] Process each package separately to trap failures`n"
