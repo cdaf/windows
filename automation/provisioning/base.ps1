@@ -127,6 +127,11 @@ if ($autoReboot) {
     Write-Host "[$scriptName] autoReboot : $autoReboot (not supplied, set to default)"
 }
 
+Write-Host "`n[$scriptName] Set TLS to version 1.1 or higher"
+Write-Host "`$AllProtocols = [System.Net.SecurityProtocolType]'Tls11,Tls12'"
+$AllProtocols = [System.Net.SecurityProtocolType]'Tls11,Tls12'
+executeExpression '[System.Net.ServicePointManager]::SecurityProtocol = $AllProtocols'
+
 if ($proxy) {
     Write-Host "`n[$scriptName] Load common proxy settings`n"
     executeExpression "[system.net.webrequest]::defaultwebproxy = new-object system.net.webproxy('$proxy')"
@@ -218,7 +223,7 @@ Write-Host "[$scriptName] Chocolatey : $versionTest`n"
 # if processed as a list and any item other than the last fails, choco will return a false possitive
 Write-Host "[$scriptName] Process each package separately to trap failures`n"
 $install.Split(" ") | ForEach {
-	executeRetry "choco upgrade -y $_ --no-progress --fail-on-standard-error $checksum $version $otherArgs"
+	executeExpression "choco upgrade -y $_ --no-progress --fail-on-standard-error $checksum $version $otherArgs"
 	Write-Host "`n[$scriptName] Reload the path`n"
 	executeExpression '$env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")'
 }
