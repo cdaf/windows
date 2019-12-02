@@ -1,2 +1,0 @@
-# Stand-up Docker Compose environment and execute tests
-deployTaskOverride=compose.tsk

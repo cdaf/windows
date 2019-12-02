@@ -2,7 +2,8 @@ Write-Host "`nLoad the branch (REVISION) and container image from the manifest, 
 PROPLD manifest.txt
 
 ASSIGN $id = $("${SOLUTION}_${REVISION}").ToLower()
-$env:WORK_SPACE = Split-Path -parent $(pwd)
+$workspace = $(pwd)
+$env:WORK_SPACE = Split-Path -parent $workspace
 Write-host $env:WORK_SPACE
 
 # Copy any artefacts needed into specific images here
@@ -46,3 +47,5 @@ if ( $env:COMPOSE_KEEP ) { docker ps } else { docker-compose down; docker-compos
 
 & $env:WORK_SPACE\TasksLocal\dockerClean.ps1 ${id}_target ${BUILDNUMBER}
 & $env:WORK_SPACE\TasksLocal\dockerClean.ps1 ${id}_test ${BUILDNUMBER}
+
+cd $workspace
