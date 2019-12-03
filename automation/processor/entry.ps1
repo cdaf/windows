@@ -112,7 +112,7 @@ $prefix,$remoteURL = $action.Split('@')
  
 if ( $prefix -eq 'remoteURL' ) {
 
-	Write-Host "[$scriptName] $env:BRANCH_IMAGE_CLEAN has been set attempt remote branch synchronisation"
+	Write-Host "[$scriptName] ACTION ($action) prefix is remoteURL@, attempt remote branch synchronisation"
 
 	$AUTOMATIONROOT = (Get-Item $MyInvocation.MyCommand.Definition).Directory.Parent.FullName
 	foreach ($item in (Get-ChildItem -Path ".")) {
