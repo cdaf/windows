@@ -27,7 +27,8 @@ $AUTOMATIONROOT = $args[1]
 if ($AUTOMATIONROOT) {
 	Write-Host "[$scriptName]   AUTOMATIONROOT      : $AUTOMATIONROOT"
 } else {
-	$AUTOMATIONROOT = 'automation'
+	$scriptPath = split-path -parent $MyInvocation.MyCommand.Definition
+	$AUTOMATIONROOT = split-path -parent $scriptPath
 	Write-Host "[$scriptName]   AUTOMATIONROOT      : $AUTOMATIONROOT (default)"
 }
 
@@ -119,7 +120,7 @@ if ($CDAF_DELIVERY ) {
 
 # Attempt solution name loading, error is not found
 try {
-	$solutionName=$(& .\$AUTOMATIONROOT\remote\getProperty.ps1 $solutionRoot\CDAF.solution 'solutionName')
+	$solutionName=$(& $AUTOMATIONROOT\remote\getProperty.ps1 $solutionRoot\CDAF.solution 'solutionName')
 	if(!$?){  }
 } catch {  }
 if ( $solutionName ) {

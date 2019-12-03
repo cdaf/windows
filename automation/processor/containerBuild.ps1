@@ -63,6 +63,11 @@ Write-Host "[$scriptName]   DOCKER_HOST  : $env:DOCKER_HOST"
 Write-Host "[$scriptName]   pwd          : $(Get-Location)"
 Write-Host "[$scriptName]   hostname     : $(hostname)"
 Write-Host "[$scriptName]   whoami       : $(whoami)"
+if ( ((Get-Item $env:CDAF_AUTOMATION_ROOT).Parent).FullName -ne $(pwd).Path ) {
+	executeExpression "Copy-Item -Recurse -Force $env:CDAF_AUTOMATION_ROOT ."
+} else {
+	Write-Host "`n[$scriptName] `$env:CDAF_AUTOMATION_ROOT = $env:CDAF_AUTOMATION_ROOT"
+}
 Write-Host '$dockerStatus = ' -NoNewline 
 
 $imageTag = 0
@@ -80,13 +85,13 @@ executeExpression "cat Dockerfile"
 	
 if ( $rebuildImage -eq 'yes') {
 	# Force rebuild, i.e. no-cache
-	executeExpression "automation/remote/dockerBuild.ps1 ${imageName} $($imageTag + 1) -rebuild yes"
+	executeExpression "$env:CDAF_AUTOMATION_ROOT/remote/dockerBuild.ps1 ${imageName} $($imageTag + 1) -rebuild yes"
 } else {
-	executeExpression "automation/remote/dockerBuild.ps1 ${imageName} $($imageTag + 1)"
+	executeExpression "$env:CDAF_AUTOMATION_ROOT/remote/dockerBuild.ps1 ${imageName} $($imageTag + 1)"
 }
 
 # Remove any older images	
-executeExpression "automation/remote/dockerClean.ps1 ${imageName} $($imageTag + 1)"
+executeExpression "$env:CDAF_AUTOMATION_ROOT/remote/dockerClean.ps1 ${imageName} $($imageTag + 1)"
 
 if ( $rebuildImage -ne 'imageonly') {
 	# Retrieve the latest image number

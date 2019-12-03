@@ -40,7 +40,7 @@ Write-Host "`n[$scriptName] ---------- start ----------`n"
 if ( $mule_ee_version ) {
 	Write-Host "[$scriptName] mule_ee_version       : $mule_ee_version"
 } else {
-	$mule_ee_version = '3.8.3'
+	$mule_ee_version = '3.9.3'
 	Write-Host "[$scriptName] mule_ee_version       : $mule_ee_version (default)"
 }
 

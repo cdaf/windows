@@ -12,9 +12,10 @@ SET ACTION=%3
 set AUTOMATION_ROOT=%4
 
 IF [%AUTOMATION_ROOT%] == [] (
-	set automationRoot=.\automation
-) else (
-	set automationRoot=%AUTOMATION_ROOT%
+	REM Set automation root to parent, as this script is in processor subdirectory
+	for %%I in ("%~dp0\..") do set "automationRoot=%%~fI"
+) ELSE (
+	SET "automationRoot=%AUTOMATION_ROOT%"
 )
 
 echo.
@@ -28,10 +29,10 @@ echo [%~nx0]   ACTION          : %ACTION%
 REM Launcher script that overides execution policy
 REM cannot elevate powershell
 
-call powershell -NoProfile -NonInteractive -ExecutionPolicy ByPass -command %cd%\%automationRoot%\processor\entry.ps1 %automationRoot% %BUILDNUMBER% %BRANCH% %ACTION%
+call powershell -NoProfile -NonInteractive -ExecutionPolicy ByPass -command %automationRoot%\processor\entry.ps1 %automationRoot% %BUILDNUMBER% %BRANCH% %ACTION%
 set result=%errorlevel%
 if %result% NEQ 0 (
-	echo [%~nx0] DELIVERY_ERROR call powershell -NoProfile -NonInteractive -ExecutionPolicy ByPass -command %cd%\%automationRoot%\processor\entry.ps1 %automationRoot% %BUILDNUMBER% %BRANCH% %ACTION%
+	echo [%~nx0] DELIVERY_ERROR call powershell -NoProfile -NonInteractive -ExecutionPolicy ByPass -command %automationRoot%\processor\entry.ps1 %automationRoot% %BUILDNUMBER% %BRANCH% %ACTION%
 	echo [%~nx0]   Return LASTEXITCODE %result% 
 	exit /b %result%
 )

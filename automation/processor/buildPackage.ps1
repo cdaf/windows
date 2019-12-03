@@ -1,3 +1,13 @@
+Param (
+	[string]$BUILDNUMBER,
+	[string]$REVISION,
+	[string]$ACTION,
+	[string]$SOLUTION,
+	[string]$AUTOMATIONROOT,
+	[string]$LOCAL_WORK_DIR,
+	[string]$REMOTE_WORK_DIR
+)
+
 # Initialise
 cmd /c "exit 0"
 $scriptName = $MyInvocation.MyCommand.Name
@@ -80,7 +90,7 @@ function pathTest ($pathToTest) {
 
 function getProp ($propName, $propertiesFile) {
 	try {
-		$propValue=$(& .\$AUTOMATIONROOT\remote\getProperty.ps1 $propertiesFile $propName)
+		$propValue=$(& $AUTOMATIONROOT\remote\getProperty.ps1 $propertiesFile $propName)
 		if(!$?){ taskWarning }
 	} catch { exceptionExit $_ }
 	
@@ -88,10 +98,11 @@ function getProp ($propName, $propertiesFile) {
 }
 
 # Load automation root out of sequence as needed for solution root derivation
-$AUTOMATIONROOT = $args[4]
 if (!($AUTOMATIONROOT)) {
-	$AUTOMATIONROOT = 'automation'
+	$scriptPath = split-path -parent $MyInvocation.MyCommand.Definition
+	$AUTOMATIONROOT = split-path -parent $scriptPath
 }
+
 # Check for user defined solution folder, i.e. outside of automation root, if found override solution root
 Write-Host "[$scriptName]   solutionRoot    : " -NoNewline
 foreach ($item in (Get-ChildItem -Path ".")) {
@@ -108,14 +119,12 @@ if ($solutionRoot) {
 	write-host "$solutionRoot (default, project directory containing CDAF.solution not found)"
 }
 
-$BUILDNUMBER = $args[0]
 if ( $BUILDNUMBER ) {
 	Write-Host "[$scriptName]   BUILDNUMBER     : $BUILDNUMBER"
 } else { 
 	exitWithCode "Build Number not supplied!" 21
 }
 
-$REVISION = $args[1]
 if ( $REVISION ) {
 	Write-Host "[$scriptName]   REVISION        : $REVISION"
 } else {
@@ -123,10 +132,8 @@ if ( $REVISION ) {
 	Write-Host "[$scriptName]   REVISION        : $REVISION (default)"
 }
 
-$ACTION = $args[2]
 Write-Host "[$scriptName]   ACTION          : $ACTION"
 
-$SOLUTION = $args[3]
 if ($SOLUTION) {
 	Write-Host "[$scriptName]   SOLUTION        : $SOLUTION"
 } else {
@@ -139,7 +146,6 @@ if ($SOLUTION) {
 }
 
 # Arguments out of order, as automation root processed first
-$LOCAL_WORK_DIR = $args[5]
 if ( $LOCAL_WORK_DIR ) {
 	Write-Host "[$scriptName]   LOCAL_WORK_DIR  : $LOCAL_WORK_DIR"
 } else {
@@ -147,7 +153,6 @@ if ( $LOCAL_WORK_DIR ) {
 	Write-Host "[$scriptName]   LOCAL_WORK_DIR  : $LOCAL_WORK_DIR (default)"
 }
 
-$REMOTE_WORK_DIR = $args[6]
 if ( $REMOTE_WORK_DIR ) {
 	Write-Host "[$scriptName]   REMOTE_WORK_DIR : $REMOTE_WORK_DIR"
 } else {
@@ -155,6 +160,8 @@ if ( $REMOTE_WORK_DIR ) {
 	Write-Host "[$scriptName]   REMOTE_WORK_DIR : $REMOTE_WORK_DIR (default)"
 }
 
+# Load automation root as environment variable
+$env:CDAF_AUTOMATION_ROOT = $AUTOMATIONROOT
 Write-Host "[$scriptName]   AUTOMATIONROOT  : $AUTOMATIONROOT" 
 
 # Runtime information
@@ -343,9 +350,9 @@ if (( $containerBuild ) -and ( $ACTION -ne 'packageonly' )) {
 			Write-Host "`n[$scriptName] ACTION is $ACTION so skipping build process" -ForegroundColor Yellow
 		}
 	} else {
-		& .\$AUTOMATIONROOT\buildandpackage\buildProjects.ps1 $SOLUTION $BUILDNUMBER $REVISION $AUTOMATIONROOT $solutionRoot $ACTION
+		& $AUTOMATIONROOT\buildandpackage\buildProjects.ps1 $SOLUTION $BUILDNUMBER $REVISION $AUTOMATIONROOT $solutionRoot $ACTION
 		if($LASTEXITCODE -ne 0){
-			exitWithCode "BUILD_NON_ZERO_EXIT .\$AUTOMATIONROOT\buildandpackage\buildProjects.ps1 $SOLUTION $BUILDNUMBER $REVISION $AUTOMATIONROOT $solutionRoot $ACTION" $LASTEXITCODE
+			exitWithCode "BUILD_NON_ZERO_EXIT $AUTOMATIONROOT\buildandpackage\buildProjects.ps1 $SOLUTION $BUILDNUMBER $REVISION $AUTOMATIONROOT $solutionRoot $ACTION" $LASTEXITCODE
 		}
 		if(!$?){ taskWarning "buildProjects.ps1" }
 	}
@@ -353,9 +360,9 @@ if (( $containerBuild ) -and ( $ACTION -ne 'packageonly' )) {
 	if ( $ACTION -eq 'buildonly' ) {
 		Write-Host "`n[$scriptName] Action is $ACTION so skipping package process" -ForegroundColor Yellow
 	} else {
-		& .\$AUTOMATIONROOT\buildandpackage\package.ps1 $SOLUTION $BUILDNUMBER $REVISION $AUTOMATIONROOT $solutionRoot $LOCAL_WORK_DIR $REMOTE_WORK_DIR $ACTION
+		& $AUTOMATIONROOT\buildandpackage\package.ps1 $SOLUTION $BUILDNUMBER $REVISION $AUTOMATIONROOT $solutionRoot $LOCAL_WORK_DIR $REMOTE_WORK_DIR $ACTION
 		if($LASTEXITCODE -ne 0){
-			exitWithCode "PACKAGE_NON_ZERO_EXIT .\$AUTOMATIONROOT\buildandpackage\package.ps1 $SOLUTION $BUILDNUMBER $REVISION $AUTOMATIONROOT $solutionRoot $LOCAL_WORK_DIR $REMOTE_WORK_DIR $ACTION" $LASTEXITCODE
+			exitWithCode "PACKAGE_NON_ZERO_EXIT $AUTOMATIONROOT\buildandpackage\package.ps1 $SOLUTION $BUILDNUMBER $REVISION $AUTOMATIONROOT $solutionRoot $LOCAL_WORK_DIR $REMOTE_WORK_DIR $ACTION" $LASTEXITCODE
 		}
 		if(!$?){ taskWarning "package.ps1" }
 	}

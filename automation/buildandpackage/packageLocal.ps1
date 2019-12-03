@@ -89,10 +89,10 @@ if (Test-Path "$solutionRoot\delivery.bat") {
 }
 
 # Copy all local script helpers, flat set to true to copy to root, not sub directory
-copyDir ".\$AUTOMATIONROOT\local" $WORK_DIR_DEFAULT $true
+copyDir "$AUTOMATIONROOT\local" $WORK_DIR_DEFAULT $true
 
 # Copy all remote script helpers, flat set to true to copy to root, not sub directory
-copyDir ".\$AUTOMATIONROOT\remote" $WORK_DIR_DEFAULT $true
+copyDir "$AUTOMATIONROOT\remote" $WORK_DIR_DEFAULT $true
 
 Write-Host "`n[$scriptName] Copy local and remote defintions`n"
 $listOfTaskFile = "tasksRunLocal.tsk", "tasksRunRemote.tsk"
@@ -171,17 +171,17 @@ if ( Test-Path $commonCustomDir ) {
 # Copy artefacts if driver file exists
 if ( Test-Path $localArtifactListFile ) {
 	try {
-		& .\$AUTOMATIONROOT\buildandpackage\packageCopyArtefacts.ps1 $localArtifactListFile $WORK_DIR_DEFAULT 
-		if(!$?){ taskFailure "& .\$AUTOMATIONROOT\buildandpackage\packageCopyArtefacts.ps1 $localArtifactListFile $WORK_DIR_DEFAULT" }
-	} catch { taskFailure "& .\$AUTOMATIONROOT\buildandpackage\packageCopyArtefacts.ps1 $localArtifactListFile $WORK_DIR_DEFAULT" }
+		& $AUTOMATIONROOT\buildandpackage\packageCopyArtefacts.ps1 $localArtifactListFile $WORK_DIR_DEFAULT 
+		if(!$?){ taskFailure "& $AUTOMATIONROOT\buildandpackage\packageCopyArtefacts.ps1 $localArtifactListFile $WORK_DIR_DEFAULT" }
+	} catch { taskFailure "& $AUTOMATIONROOT\buildandpackage\packageCopyArtefacts.ps1 $localArtifactListFile $WORK_DIR_DEFAULT" }
 }
 
 # 1.7.8 Copy generic artefacts if driver file exists
 if ( Test-Path $genericArtifactList ) {
 	try {
-		& .\$AUTOMATIONROOT\buildandpackage\packageCopyArtefacts.ps1 $genericArtifactList $WORK_DIR_DEFAULT 
-		if(!$?){ taskFailure "& .\$AUTOMATIONROOT\buildandpackage\packageCopyArtefacts.ps1 $genericArtifactList $WORK_DIR_DEFAULT" }
-	} catch { taskFailure "& .\$AUTOMATIONROOT\buildandpackage\packageCopyArtefacts.ps1 $genericArtifactList $WORK_DIR_DEFAULT" }
+		& $AUTOMATIONROOT\buildandpackage\packageCopyArtefacts.ps1 $genericArtifactList $WORK_DIR_DEFAULT 
+		if(!$?){ taskFailure "& $AUTOMATIONROOT\buildandpackage\packageCopyArtefacts.ps1 $genericArtifactList $WORK_DIR_DEFAULT" }
+	} catch { taskFailure "& $AUTOMATIONROOT\buildandpackage\packageCopyArtefacts.ps1 $genericArtifactList $WORK_DIR_DEFAULT" }
 }
 
 # Zip the working directory to create the artefact Package, CDAF.solution and build time values
