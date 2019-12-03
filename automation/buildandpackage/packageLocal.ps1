@@ -106,7 +106,7 @@ foreach ($file in $listOfTaskFile) {
 if ( Test-Path "$SOLUTIONROOT\tasksRun.tsk" ) {
 	foreach ($file in $listOfTaskFile) {
 		Write-Host "[$scriptName]   $SOLUTIONROOT\tasksRun.tsk --> $WORK_DIR_DEFAULT\$file"
-		Get-Content ".\$SOLUTIONROOT\tasksRun.tsk" | Add-Content "$WORK_DIR_DEFAULT\$file"
+		Get-Content "$SOLUTIONROOT\tasksRun.tsk" | Add-Content "$WORK_DIR_DEFAULT\$file"
 	}
 }
 

@@ -60,7 +60,7 @@ if (!( $ENVIRONMENT )) {
 $automationHelper="$AUTOMATIONROOT\remote"
 
 # Build a list of projects, based on directory names, unless an override project list file exists
-$projectList = ".\$SOLUTIONROOT\buildProjects"
+$projectList = "$SOLUTIONROOT\buildProjects"
 Write-Host -NoNewLine "[$scriptName]   Project list      : " 
 pathTest $projectList
 

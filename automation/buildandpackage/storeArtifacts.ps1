@@ -72,7 +72,7 @@ if (-not $ARTIFACT_WORKBENCH)
     $ARTIFACT_WORKBENCH = 'artifacts';
 }
 
-$artifactListFile=".\$SOLUTIONROOT\storeForArtifact"
+$artifactListFile="$SOLUTIONROOT\storeForArtifact"
 $DTSTAMP = Get-Date
 $typeDirectory = 'Directory';
 $typeFile = 'File';
