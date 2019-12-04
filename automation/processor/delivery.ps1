@@ -95,7 +95,7 @@ function getProp ($propName) {
 
 function getFilename ($FullPathName) {
 
-	$PIECES=$FullPathName.split(“\”) 
+	$PIECES=$FullPathName.split('\') 
 	$NUMBEROFPIECES=$PIECES.Count 
 	$FILENAME=$PIECES[$NumberOfPieces-1] 
 	$DIRECTORYPATH=$FullPathName.Trim($FILENAME) 
