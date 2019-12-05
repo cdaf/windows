@@ -102,6 +102,7 @@ Vagrant.configure(2) do |config|
       override.vm.provision 'shell', path: './automation/provisioning/trustedHosts.ps1', args: '*'
       override.vm.provision 'shell', path: './automation/provisioning/CredSSP.ps1', args: 'client'
       override.vm.provision 'shell', path: './automation/provisioning/CDAF.ps1'
+      override.vm.provision 'shell', path: './automation/provisioning/CDAF_Desktop_Certificate.ps1'
       override.vm.provision 'shell', path: './automation/provisioning/setenv.ps1', args: 'interactive yes User'
     end
     
