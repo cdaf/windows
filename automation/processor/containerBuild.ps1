@@ -104,7 +104,7 @@ if ( $rebuildImage -ne 'imageonly') {
 	Write-Host "[$scriptName] `$workspace : $workspace"
 	
 	$relativePath = Split-Path $env:CDAF_AUTOMATION_ROOT -Leaf
-	executeExpression "docker run --tty --volume ${workspace}\:C:/solution/workspace ${imageName}:${imageTag} .\${relativePath}\processor\buildPackage.bat $buildNumber $revision $action"
+	executeExpression "docker run --tty --volume ${workspace}\:C:/solution/workspace ${imageName}:${imageTag} ${relativePath}\processor\buildPackage.bat $buildNumber $revision $action"
 	
 	Write-Host "`n[$scriptName] List and remove all stopped containers"
 	executeExpression "docker ps --filter `"status=exited`" -a"
