@@ -63,7 +63,7 @@ if (-not($ENVIRONMENT)) {
 $scriptName = $MyInvocation.MyCommand.Name
 
 # Properties file loader, all properties are instantiated as runtime variables and listed in the logs
-Invoke-Expression ".\$AUTOMATIONROOT\remote\Transform.ps1 $SOLUTIONROOT\propertiesForLocalTasks\$ENVIRONMENT" | ForEach-Object { invoke-expression $_ }
+Invoke-Expression "$AUTOMATIONROOT\remote\Transform.ps1 $SOLUTIONROOT\propertiesForLocalTasks\$ENVIRONMENT" | ForEach-Object { invoke-expression $_ }
 
 if (-not $ARTIFACT_WORKBENCH)
 {
@@ -72,7 +72,7 @@ if (-not $ARTIFACT_WORKBENCH)
     $ARTIFACT_WORKBENCH = 'artifacts';
 }
 
-$artifactListFile=".\$SOLUTIONROOT\storeForArtifact"
+$artifactListFile="$SOLUTIONROOT\storeForArtifact"
 $DTSTAMP = Get-Date
 $typeDirectory = 'Directory';
 $typeFile = 'File';

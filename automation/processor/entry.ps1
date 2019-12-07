@@ -48,7 +48,9 @@ Write-Host "`n[$scriptName] ---------- start ----------"
 if ($automationRoot) {
     Write-Host "[$scriptName] automationRoot : $automationRoot"
 } else {
-    Write-Host "[$scriptName] automationRoot not supplied, this should only be used with Git workspaces!"; exit 101
+	$scriptPath = split-path -parent $MyInvocation.MyCommand.Definition
+	$automationRoot = split-path -parent $scriptPath
+    Write-Host "[$scriptName] automationRoot : $automationRoot (not supplied, derived from invocation)"
 }
 
 if ($BUILDNUMBER) {
@@ -93,10 +95,10 @@ Write-Host "[$scriptName] whoami         : $(whoami)"
 
 
 if ( $branch -eq 'master' ) {
-	executeExpression "$automationRoot\processor\buildPackage.ps1 $BUILDNUMBER $branch $action"
+	executeExpression "$automationRoot\processor\buildPackage.ps1 $BUILDNUMBER $branch $action -AUTOMATIONROOT $automationRoot"
 } else {
 	Write-Host "[$scriptName] Do not pass ACTION when executing feature branch (non-master)"
-	executeExpression "$automationRoot\processor\buildPackage.ps1 $BUILDNUMBER $branch"
+	executeExpression "$automationRoot\processor\buildPackage.ps1 $BUILDNUMBER $branch -AUTOMATIONROOT $automationRoot"
 }
 
 if (( $branch -eq 'master' ) -or ( $branch -eq 'refs/heads/master' )) {
@@ -110,7 +112,7 @@ $prefix,$remoteURL = $action.Split('@')
  
 if ( $prefix -eq 'remoteURL' ) {
 
-	Write-Host "[$scriptName] $env:BRANCH_IMAGE_CLEAN has been set attempt remote branch synchronisation"
+	Write-Host "[$scriptName] ACTION ($action) prefix is remoteURL@, attempt remote branch synchronisation"
 
 	$AUTOMATIONROOT = (Get-Item $MyInvocation.MyCommand.Definition).Directory.Parent.FullName
 	foreach ($item in (Get-ChildItem -Path ".")) {

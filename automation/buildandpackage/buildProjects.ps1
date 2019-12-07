@@ -60,12 +60,12 @@ if (!( $ENVIRONMENT )) {
 $automationHelper="$AUTOMATIONROOT\remote"
 
 # Build a list of projects, based on directory names, unless an override project list file exists
-$projectList = ".\$SOLUTIONROOT\buildProjects"
+$projectList = "$SOLUTIONROOT\buildProjects"
 Write-Host -NoNewLine "[$scriptName]   Project list      : " 
 pathTest $projectList
 
 write-host "`n[$scriptName] Load solution properties ..."
-& .\$automationHelper\Transform.ps1 "$SOLUTIONROOT\CDAF.solution" | ForEach-Object { invoke-expression $_ }
+& $automationHelper\Transform.ps1 "$SOLUTIONROOT\CDAF.solution" | ForEach-Object { invoke-expression $_ }
 
 Write-Host "`n[$scriptName] Clean temp files and folders from workspace" 
 removeTempFiles
@@ -75,8 +75,8 @@ if (Test-Path build.tsk) {
 	Write-Host "`n[$scriptName] build.tsk found in solution root, executing in $(pwd)`n" 
     # Because PowerShell variables are global, set the $WORKSPACE before invoking execution
     $WORKSPACE=$(pwd)
-    & .\$automationHelper\execute.ps1 $SOLUTION $BUILDNUMBER $ENVIRONMENT "build.tsk" $ACTION
-	if($LASTEXITCODE -ne 0){ passExitCode "ROOT_EXECUTE_NON_ZERO_EXIT .\$automationHelper\execute.ps1 $SOLUTION $BUILDNUMBER $ENVIRONMENT build.tsk $ACTION" $LASTEXITCODE }
+    & $automationHelper\execute.ps1 $SOLUTION $BUILDNUMBER $ENVIRONMENT "build.tsk" $ACTION
+	if($LASTEXITCODE -ne 0){ passExitCode "ROOT_EXECUTE_NON_ZERO_EXIT $automationHelper\execute.ps1 $SOLUTION $BUILDNUMBER $ENVIRONMENT build.tsk $ACTION" $LASTEXITCODE }
     if(!$?){ taskFailure "SOLUTION_EXECUTE_${SOLUTION}_${BUILDNUMBER}_${ENVIRONMENT}_build.tsk_${ACTION}" }
 } 
 
@@ -131,8 +131,8 @@ if (-not($projectsToBuild)) {
         if (Test-Path build.tsk) {
             # Task driver support added in release 0.6.1
             $WORKSPACE=$(pwd)
-		    & ..\$automationHelper\execute.ps1 $SOLUTION $BUILDNUMBER $ENVIRONMENT "build.tsk" $ACTION
-			if($LASTEXITCODE -ne 0){ passExitCode "PROJECT_EXECUTE_NON_ZERO_EXIT & ..\$automationHelper\execute.ps1 $SOLUTION $BUILDNUMBER $ENVIRONMENT build.tsk $ACTION" $LASTEXITCODE }
+		    & $automationHelper\execute.ps1 $SOLUTION $BUILDNUMBER $ENVIRONMENT "build.tsk" $ACTION
+			if($LASTEXITCODE -ne 0){ passExitCode "PROJECT_EXECUTE_NON_ZERO_EXIT & $automationHelper\execute.ps1 $SOLUTION $BUILDNUMBER $ENVIRONMENT build.tsk $ACTION" $LASTEXITCODE }
 		    if(!$?){ taskFailure "PROJECT_EXECUTE_${SOLUTION}_${BUILDNUMBER}_${ENVIRONMENT}_build.tsk_${ACTION}" }
 
         } else {

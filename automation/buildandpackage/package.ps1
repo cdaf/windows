@@ -183,7 +183,7 @@ Write-Host "[$scriptName]   whoami                  : $(whoami)"
 $propertiesFile = "$AUTOMATIONROOT\CDAF.windows"
 $propName = "productVersion"
 try {
-	$cdafVersion=$(& .\$AUTOMATIONROOT\remote\getProperty.ps1 $propertiesFile $propName)
+	$cdafVersion=$(& $AUTOMATIONROOT\remote\getProperty.ps1 $propertiesFile $propName)
 	if(!$?){ taskWarning }
 } catch { exceptionExit "PACK_GET_CDAF_VERSION" }
 Write-Host "[$scriptName]   CDAF Version            : $cdafVersion"
@@ -208,14 +208,14 @@ if ( $ACTION -eq "clean" ) {
 	# Process solution properties if defined
 	if (Test-Path "$SOLUTIONROOT\CDAF.solution") {
 		write-host "`n[$scriptName] Load solution properties from $SOLUTIONROOT\CDAF.solution"
-		& .\$AUTOMATIONROOT\remote\Transform.ps1 "$SOLUTIONROOT\CDAF.solution" | ForEach-Object { invoke-expression $_ }
+		& $AUTOMATIONROOT\remote\Transform.ps1 "$SOLUTIONROOT\CDAF.solution" | ForEach-Object { invoke-expression $_ }
 	}
 
 	# Process optional pre-packaging tasks (Task driver support added in release 0.7.2)
     if (Test-Path "$prepackageTask") {
 		Write-Host "`n[$scriptName] Process Pre-Package Task ...`n"
-		& .\$AUTOMATIONROOT\remote\execute.ps1 $SOLUTION $BUILDNUMBER "package" "$prepackageTask" $ACTION
-		if(!$?){ exceptionExit "..\$AUTOMATIONROOT\remote\execute.ps1 $SOLUTION $BUILDNUMBER `"package`" `"$prepackageTask`" $ACTION" }
+		& $AUTOMATIONROOT\remote\execute.ps1 $SOLUTION $BUILDNUMBER "package" "$prepackageTask" $ACTION
+		if(!$?){ exceptionExit ".$AUTOMATIONROOT\remote\execute.ps1 $SOLUTION $BUILDNUMBER `"package`" `"$prepackageTask`" $ACTION" }
 	}
 
 	# Process optional pre-packaging script (Script driver support added in release 1.8.14)
@@ -244,14 +244,14 @@ if ( $ACTION -eq "clean" ) {
 	Get-Content manifest.txt
 	write-host "`n[$scriptName] Always create local working artefacts, even if all tasks are remote" -ForegroundColor Blue
 	try {
-		& .\$AUTOMATIONROOT\buildandpackage\packageLocal.ps1 $SOLUTION $BUILDNUMBER $REVISION $LOCAL_WORK_DIR $SOLUTIONROOT $AUTOMATIONROOT
+		& $AUTOMATIONROOT\buildandpackage\packageLocal.ps1 $SOLUTION $BUILDNUMBER $REVISION $LOCAL_WORK_DIR $SOLUTIONROOT $AUTOMATIONROOT
 		if(!$?){ taskWarning }
 	} catch { exceptionExit("packageLocal.ps1") }
 
 	if (( Test-Path "$remotePropertiesDir" -pathtype container) -or ( Test-Path "$SOLUTIONROOT\storeForRemote" -pathtype leaf) -or ( Test-Path "$SOLUTIONROOT\storeFor" -pathtype leaf)) {
 
 		try {
-			& .\$AUTOMATIONROOT\buildandpackage\packageRemote.ps1 $SOLUTION $BUILDNUMBER $REVISION $LOCAL_WORK_DIR $REMOTE_WORK_DIR $SOLUTIONROOT $AUTOMATIONROOT
+			& $AUTOMATIONROOT\buildandpackage\packageRemote.ps1 $SOLUTION $BUILDNUMBER $REVISION $LOCAL_WORK_DIR $REMOTE_WORK_DIR $SOLUTIONROOT $AUTOMATIONROOT
 			if(!$?){ taskWarning }
 		} catch { exceptionExit("packageRemote.ps1") }
 
@@ -262,8 +262,8 @@ if ( $ACTION -eq "clean" ) {
 	# Process optional post-packaging tasks (wrap.tsk added in release 0.8.2)
     if (Test-Path "$postpackageTasks") {
 		Write-Host "`n[$scriptName] Process Post-Package Tasks ...`n"
-		& .\$AUTOMATIONROOT\remote\execute.ps1 $SOLUTION $BUILDNUMBER "package" "$postpackageTasks" $ACTION
-		if(!$?){ exceptionExit "..\$AUTOMATIONROOT\remote\execute.ps1 $SOLUTION $BUILDNUMBER `"package`" `"$postpackageTasks`" $ACTION" }
+		& $AUTOMATIONROOT\remote\execute.ps1 $SOLUTION $BUILDNUMBER "package" "$postpackageTasks" $ACTION
+		if(!$?){ exceptionExit ".$AUTOMATIONROOT\remote\execute.ps1 $SOLUTION $BUILDNUMBER `"package`" `"$postpackageTasks`" $ACTION" }
 	}
 
 }
