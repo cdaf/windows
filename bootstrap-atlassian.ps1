@@ -108,7 +108,7 @@ if ($sqlSA) {
 	executeExpression "$atomicPath\automation\provisioning\openFirewallPort.ps1 1433 SQL"
 	
 	# Adopt Open JDK (migrating from Oracle JDK)
-	executeExpression "$atomicPath\automation\provisioning\base.ps1 adoptopenjdk -version 8.192"
+	executeExpression "$atomicPath\automation\provisioning\base.ps1 adoptopenjdk8"
 }
 
 Write-Host "`n[$scriptName] ---------- stop ----------"
