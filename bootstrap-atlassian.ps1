@@ -86,6 +86,8 @@ executeExpression 'Add-Content C:\inetpub\wwwroot\web.config "        </rewrite>
 executeExpression 'Add-Content C:\inetpub\wwwroot\web.config "    </system.webServer>"'
 executeExpression 'Add-Content C:\inetpub\wwwroot\web.config "</configuration>"'
 
+executeExpression "Set-WebConfigurationProperty -PSPath 'MACHINE/WEBROOT/APPHOST' -Name 'enabled' -Filter 'system.webServer/proxy' -Value 'True'"
+
 if ($sqlSA) {
 	$msa = $sqlSA + '$'
 	Write-Host "[$scriptName] Using managed service account $msa"
