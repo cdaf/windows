@@ -109,8 +109,8 @@ if ($sqlSA) {
 	# Allow remote access to the Database for SSMS to migrate the database
 	executeExpression "$atomicPath\automation\provisioning\openFirewallPort.ps1 1433 SQL"
 	
-	# Adopt Open JDK (migrating from Oracle JDK)
-	executeExpression "$atomicPath\automation\provisioning\base.ps1 adoptopenjdk8"
+	# Adopt Open JDK and Non Sucky Service Manager
+	executeExpression "$atomicPath\automation\provisioning\base.ps1 'adoptopenjdk8 nssm'"
 }
 
 Write-Host "`n[$scriptName] ---------- stop ----------"
