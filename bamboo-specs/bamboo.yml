@@ -13,6 +13,10 @@ stages:
 Build Job:
   tasks:
     - script:
+        - "echo automation> automation\\solution\\storeForLocal"
+        - "echo REMOVE ~/.cdaf>automation\\solution\\tasksRunLocal.tsk"
+        - "echo VECOPY automation ~/.cdaf>>automation\\solution\\tasksRunLocal.tsk"
+        - "echo local    CDAF       localhost>>automation\\solution\\properties.cm"
         - "automation\\processor\\entry.bat ${bamboo.buildNumber} ${bamboo.repository.branch.name}"
 
   artifacts:
@@ -36,7 +40,7 @@ release-naming:
 environments:
   - NO_PROP
   - WINDOWS
-  - CDAF_DEPLOY
+  - CDAF
 
 NO_PROP:
   triggers:
@@ -58,19 +62,12 @@ WINDOWS:
     - script:
         - "${bamboo.build.working.directory}\\TasksLocal\\delivery.bat ${bamboo.deploy.environment} ${bamboo.deploy.release}"
 
-CDAF_DEPLOY:
+CDAF:
   triggers:
     - environment-success: WINDOWS
   tasks:
     - clean
     - artifact-download:
         destination: ${bamboo.working.directory}
-    - scripts:
-        - 'Remove-Item -Force -Recurse ~/.cdaf -ErrorAction SilentlyContinue'
-        - '[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12'
-        - '(New-Object System.Net.WebClient).DownloadFile("https://codeload.github.com/cdaf/windows/zip/master", "$PWD\cdaf.zip")'
-        - 'Add-Type -AssemblyName System.IO.Compression.FileSystem'
-        - '[System.IO.Compression.ZipFile]::ExtractToDirectory("$PWD\cdaf.zip", "$PWD")'
-        - 'Move-Item .\windows-master\automation\ ~/.cdaf'
-        - '~/.cdaf/remote/capabilities.ps1'
-      interpreter: powershell        
+    - script:
+        - "${bamboo.build.working.directory}\\TasksLocal\\delivery.bat ${bamboo.deploy.environment} ${bamboo.deploy.release}"
