@@ -15,9 +15,9 @@ Build Job:
     - script:
         - "echo automation> automation\\solution\\storeForLocal"
         - "type automation\\solution\\storeForLocal"
-        - "echo REMOVE ~/.cdaf>automation\\solution\\customLocal\\cdaf-deploy.tsk"
-        - "echo VECOPY automation ~/.cdaf>>automation\\solution\\customLocal\\cdaf-deploy.tsk"
-        - "type automation\\solution\\customLocal\\cdaf-deploy.tsk"
+        - "echo REMOVE ~/.cdaf>automation\\solution\\custom\\cdaf-deploy.tsk"
+        - "echo VECOPY automation ~/.cdaf>>automation\\solution\\custom\\cdaf-deploy.tsk"
+        - "type automation\\solution\\custom\\cdaf-deploy.tsk"
         - "echo context  target     deployTaskOverride>automation\\solution\\cdaf.cm"
         - "echo local    CDAF       cdaf-deploy.tsk>>automation\\solution\\cdaf.cm"
         - "type automation\\solution\\cdaf.cm"

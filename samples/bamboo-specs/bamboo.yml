@@ -3,8 +3,8 @@ version: 2
 
 plan:
   project-key: REF
-  key: CDAFW
-  name: CDAf Public Contribute
+  key: WUC
+  name: CDAf Windows Publication
 
 stages:
   - Build Stage:
@@ -27,17 +27,18 @@ Build Job:
 version: 2
 
 deployment:
-  name: CDAFW
-  source-plan: REF-CDAFW
+  name: WU-CDM
+  source-plan: REF-WUC
 
 release-naming:
   next-version-name: ${bamboo.buildNumber}
 
 environments:
-  - NO_PROP
-  - WINDOWS
+  - TEST
+  - UAT
+  - PROD
 
-NO_PROP:
+TEST:
   triggers:
     - build-success
   tasks:
@@ -47,9 +48,18 @@ NO_PROP:
     - script:
         - "${bamboo.build.working.directory}\\TasksLocal\\delivery.bat ${bamboo.deploy.environment} ${bamboo.deploy.release}"
 
-WINDOWS:
+UAT:
   triggers:
-    - environment-success: NO_PROP
+    - environment-success: TEST
+  tasks:
+    - clean
+    - artifact-download:
+        destination: ${bamboo.working.directory}
+    - script:
+        - "${bamboo.build.working.directory}\\TasksLocal\\delivery.bat ${bamboo.deploy.environment} ${bamboo.deploy.release}"
+
+
+PROD:
   tasks:
     - clean
     - artifact-download:
