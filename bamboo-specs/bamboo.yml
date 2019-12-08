@@ -14,9 +14,13 @@ Build Job:
   tasks:
     - script:
         - "echo automation> automation\\solution\\storeForLocal"
-        - "echo REMOVE ~/.cdaf>automation\\solution\\tasksRunLocal.tsk"
-        - "echo VECOPY automation ~/.cdaf>>automation\\solution\\tasksRunLocal.tsk"
-        - "echo local    CDAF       localhost>>automation\\solution\\properties.cm"
+        - "echo cat automation\\solution\\storeForLocal"
+        - "echo REMOVE ~/.cdaf>automation\\solution\\customLocal\\cdaf-deploy.tsk"
+        - "echo VECOPY automation ~/.cdaf>>automation\\solution\\customLocal\\cdaf-deploy.tsk"
+        - "echo cat automation\\solution\\customLocal\\cdaf-deploy.tsk"
+        - "echo context  target     deployTaskOverride>automation\\solution\\cdaf.cm"
+        - "echo local    CDAF       cdaf-deploy.tsk>>automation\\solution\\cdaf.cm"
+        - "echo cat automation\\solution\\cdaf.cm"
         - "automation\\processor\\entry.bat ${bamboo.buildNumber} ${bamboo.repository.branch.name}"
 
   artifacts:
