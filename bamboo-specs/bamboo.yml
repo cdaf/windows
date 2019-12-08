@@ -14,13 +14,13 @@ Build Job:
   tasks:
     - script:
         - "echo automation> automation\\solution\\storeForLocal"
-        - "cat automation\\solution\\storeForLocal"
+        - "type automation\\solution\\storeForLocal"
         - "echo REMOVE ~/.cdaf>automation\\solution\\customLocal\\cdaf-deploy.tsk"
         - "echo VECOPY automation ~/.cdaf>>automation\\solution\\customLocal\\cdaf-deploy.tsk"
-        - "cat automation\\solution\\customLocal\\cdaf-deploy.tsk"
+        - "type automation\\solution\\customLocal\\cdaf-deploy.tsk"
         - "echo context  target     deployTaskOverride>automation\\solution\\cdaf.cm"
         - "echo local    CDAF       cdaf-deploy.tsk>>automation\\solution\\cdaf.cm"
-        - "cat automation\\solution\\cdaf.cm"
+        - "type automation\\solution\\cdaf.cm"
         - "automation\\processor\\entry.bat ${bamboo.buildNumber} ${bamboo.repository.branch.name}"
 
   artifacts:
