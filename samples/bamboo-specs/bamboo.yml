@@ -13,14 +13,6 @@ stages:
 Build Job:
   tasks:
     - script:
-        - "echo automation> automation\\solution\\storeForLocal"
-        - "cat automation\\solution\\storeForLocal"
-        - "echo REMOVE ~/.cdaf>automation\\solution\\customLocal\\cdaf-deploy.tsk"
-        - "echo VECOPY automation ~/.cdaf>>automation\\solution\\customLocal\\cdaf-deploy.tsk"
-        - "cat automation\\solution\\customLocal\\cdaf-deploy.tsk"
-        - "echo context  target     deployTaskOverride>automation\\solution\\cdaf.cm"
-        - "echo local    CDAF       cdaf-deploy.tsk>>automation\\solution\\cdaf.cm"
-        - "cat automation\\solution\\cdaf.cm"
         - "automation\\processor\\entry.bat ${bamboo.buildNumber} ${bamboo.repository.branch.name}"
 
   artifacts:
@@ -39,12 +31,11 @@ deployment:
   source-plan: REF-CDAFW
 
 release-naming:
-  next-version-name: 2.0.1.${bamboo.buildNumber}
+  next-version-name: ${bamboo.buildNumber}
 
 environments:
   - NO_PROP
   - WINDOWS
-  - CDAF
 
 NO_PROP:
   triggers:
@@ -59,16 +50,6 @@ NO_PROP:
 WINDOWS:
   triggers:
     - environment-success: NO_PROP
-  tasks:
-    - clean
-    - artifact-download:
-        destination: ${bamboo.working.directory}
-    - script:
-        - "${bamboo.build.working.directory}\\TasksLocal\\delivery.bat ${bamboo.deploy.environment} ${bamboo.deploy.release}"
-
-CDAF:
-  triggers:
-    - environment-success: WINDOWS
   tasks:
     - clean
     - artifact-download:
