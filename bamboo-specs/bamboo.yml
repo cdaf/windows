@@ -66,4 +66,5 @@ CDAF_DEPLOY:
     - artifact-download:
         destination: ${bamboo.working.directory}
     - script:
-        - "${bamboo.build.working.directory}\\TasksLocal\\delivery.bat ${bamboo.deploy.environment} ${bamboo.deploy.release}"
+        - "Remove-Item -Force -Recurse ~/.cdaf -ErrorAction SilentlyContinue"
+      interpreter: powershell        
