@@ -36,6 +36,7 @@ release-naming:
 environments:
   - NO_PROP
   - WINDOWS
+  - CDAF_DEPLOY
 
 NO_PROP:
   triggers:
@@ -50,6 +51,16 @@ NO_PROP:
 WINDOWS:
   triggers:
     - environment-success: NO_PROP
+  tasks:
+    - clean
+    - artifact-download:
+        destination: ${bamboo.working.directory}
+    - script:
+        - "${bamboo.build.working.directory}\\TasksLocal\\delivery.bat ${bamboo.deploy.environment} ${bamboo.deploy.release}"
+
+CDAF_DEPLOY:
+  triggers:
+    - environment-success: WINDOWS
   tasks:
     - clean
     - artifact-download:
