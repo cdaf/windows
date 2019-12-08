@@ -67,4 +67,3 @@ CDAF_DEPLOY:
         destination: ${bamboo.working.directory}
     - script:
         - Remove-Item -Force -Recurse ~/.cdaf -ErrorAction SilentlyContinue
-      interpreter: powershell        
