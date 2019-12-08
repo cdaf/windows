@@ -66,6 +66,7 @@ CDAF_DEPLOY:
     - artifact-download:
         destination: ${bamboo.working.directory}
     - script:
+      interpreter: powershell        
         - 'Remove-Item -Force -Recurse ~/.cdaf -ErrorAction SilentlyContinue'
         - '[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12'
         - '(New-Object System.Net.WebClient).DownloadFile("https://codeload.github.com/cdaf/windows/zip/master", "$PWD\cdaf.zip")'
@@ -73,4 +74,3 @@ CDAF_DEPLOY:
         - '[System.IO.Compression.ZipFile]::ExtractToDirectory("$PWD\cdaf.zip", "$PWD")'
         - 'Move-Item .\windows-master\automation\ ~/.cdaf'
         - '~/.cdaf/remote/capabilities.ps1'
-      interpreter: powershell        
