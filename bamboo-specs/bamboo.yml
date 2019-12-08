@@ -36,7 +36,6 @@ release-naming:
 environments:
   - NO_PROP
   - WINDOWS
-  - CDAF_DEPLOY
 
 NO_PROP:
   triggers:
@@ -57,20 +56,3 @@ WINDOWS:
         destination: ${bamboo.working.directory}
     - script:
         - "${bamboo.build.working.directory}\\TasksLocal\\delivery.bat ${bamboo.deploy.environment} ${bamboo.deploy.release}"
-
-CDAF_DEPLOY:
-  triggers:
-    - environment-success: WINDOWS
-  tasks:
-    - clean
-    - artifact-download:
-        destination: ${bamboo.working.directory}
-    - script:
-        - 'Remove-Item -Force -Recurse ~/.cdaf -ErrorAction SilentlyContinue'
-        - '[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12'
-        - '(New-Object System.Net.WebClient).DownloadFile("https://codeload.github.com/cdaf/windows/zip/master", "$PWD\cdaf.zip")'
-        - 'Add-Type -AssemblyName System.IO.Compression.FileSystem'
-        - '[System.IO.Compression.ZipFile]::ExtractToDirectory("$PWD\cdaf.zip", "$PWD")'
-        - 'Move-Item .\windows-master\automation\ ~/.cdaf'
-        - '~/.cdaf/remote/capabilities.ps1'
-      interpreter: powershell        
