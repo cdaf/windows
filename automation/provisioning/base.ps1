@@ -15,7 +15,7 @@ $scriptName = 'base.ps1'
 function executeExpression ($expression) {
 	$exitCode = 0
 	$error.clear()
-	Write-Host "$expression"
+	Write-Host "[$(date)] $expression"
 	try {
 		Invoke-Expression $expression
 	    if(!$?) { Write-Host "[$scriptName][FAILURE] `$? = $?"; $exitCode = 1 }
@@ -136,8 +136,8 @@ if ($autoReboot) {
     Write-Host "[$scriptName] autoReboot : $autoReboot (not supplied, set to default)"
 }
 
-Write-Host "`n[$scriptName] Set TLS to version 1.1 or higher"
-Write-Host "`$AllProtocols = [System.Net.SecurityProtocolType]'Tls11,Tls12'"
+Write-Host "`n[$scriptName] Set TLS to version 1.2 or higher"
+Write-Host '[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12'
 $AllProtocols = [System.Net.SecurityProtocolType]'Tls11,Tls12'
 executeExpression '[System.Net.ServicePointManager]::SecurityProtocol = $AllProtocols'
 
