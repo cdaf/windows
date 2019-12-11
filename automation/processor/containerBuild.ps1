@@ -24,36 +24,36 @@ cmd /c "exit 0"
 # Use the CDAF provisioning helpers
 Write-Host "`n[$scriptName] ---------- start ----------`n"
 if ( $imageName ) {
-	Write-Host "[$scriptName]   imageName    : ${imageName} (passed, to be used in docker)"
+	Write-Host "[$scriptName]   imageName      : ${imageName} (passed, to be used in docker)"
 } else {
 	Write-Host "[$scriptName]   imageName not supplied, exit with code 99"; exit 99
 }
 
 if ( $buildNumber ) { 
-	Write-Host "[$scriptName]   buildNumber  : $buildNumber"
+	Write-Host "[$scriptName]   buildNumber    : $buildNumber"
 } else {
-	Write-Host "[$scriptName]   buildNumber  : (not supplied)"
+	Write-Host "[$scriptName]   buildNumber    : (not supplied)"
 }
 
 if ( $revision ) { 
-	Write-Host "[$scriptName]   revision     : $revision"
+	Write-Host "[$scriptName]   revision       : $revision"
 } else {
 	$revision = 'container_build'
-	Write-Host "[$scriptName]   revision     : $revision (not supplied, set to default)"
+	Write-Host "[$scriptName]   revision       : $revision (not supplied, set to default)"
 }
 
 if ( $action ) { 
-	Write-Host "[$scriptName]   action       : $action"
+	Write-Host "[$scriptName]   action         : $action"
 } else {
 	$action = 'containerbuild'
-	Write-Host "[$scriptName]   action       : $action (not supplied, set to default)"
+	Write-Host "[$scriptName]   action         : $action (not supplied, set to default)"
 }
 
 if ( $rebuildImage ) {
-	Write-Host "[$scriptName]   rebuildImage : $rebuildImage (choices are yes, no or imageonly)"
+	Write-Host "[$scriptName]   rebuildImage   : $rebuildImage (choices are yes, no or imageonly)"
 } else {
 	$rebuildImage = 'no'
-	Write-Host "[$scriptName]   rebuildImage : $rebuildImage (not supplied, so set to default)"
+	Write-Host "[$scriptName]   rebuildImage   : $rebuildImage (not supplied, so set to default)"
 }
 
 $imageName = "${imageName}_$($revision.ToLower())"
