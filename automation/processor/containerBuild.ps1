@@ -64,7 +64,13 @@ Write-Host "[$scriptName]   hostname       : $(hostname)"
 Write-Host "[$scriptName]   whoami         : $(whoami)"
 
 if ( Test-Path ".\automation" ) {
-	Write-Host "[$scriptName]   automationroot : .\automation`n"
+	if ( (Get-Item $env:CDAF_AUTOMATION_ROOT).FullName -ne "$($(pwd).Path)\automation" ) {
+		executeExpression "Remove-Item -Recurse .\automation"
+		executeExpression "Copy-Item -Recurse -Force $env:CDAF_AUTOMATION_ROOT .\automation"
+		$cleanupCDAF = 'yes'
+	} else {
+		Write-Host "[$scriptName]   automationroot : .\automation`n"
+	}
 } else {
 	if ( ((Get-Item $env:CDAF_AUTOMATION_ROOT).Parent).FullName -ne $(pwd).Path ) {
 		Write-Host "[$scriptName]   automationroot : ${env:CDAF_AUTOMATION_ROOT} (copy to .\automation in workspace for docker)`n"
