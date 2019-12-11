@@ -54,13 +54,20 @@ if ($action) {
     Write-Host "[$scriptName] action    : (not supplied)"
 }
 
+if ($env:CDAF_PATH) {
+	Write-Host "[$scriptName] CDAF_PATH : $env:CDAF_PATH"
+} else {
+	$env:CDAF_PATH = '.\automation'
+	Write-Host "[$scriptName] CDAF_PATH : $env:CDAF_PATH (default)"
+}
+
 if ($userName) {
 
 	# To capture the exit code of the remote execution, the LASTEXITCODE is stored in an environment variable, and retrieved in a subsequent
 	# call, if return of LASTEXITCODE is attempted during excution, all standard out is consumed by the result.
 	$securePassword = executeExpression "ConvertTo-SecureString `$userPass -asplaintext -force"
 	$cred = executeExpression "New-Object System.Management.Automation.PSCredential (`"$userName`", `$securePassword)"
-	$script = [scriptblock]::Create("cd $workspace; .\automation\cdEmulate.bat $action; [Environment]::SetEnvironmentVariable(`'PREVIOUS_EXIT_CODE`', `"`$LASTEXITCODE`", `'User`')")
+	$script = [scriptblock]::Create("cd $workspace; $env:CDAF_PATH\cdEmulate.bat $action; [Environment]::SetEnvironmentVariable(`'PREVIOUS_EXIT_CODE`', `"`$LASTEXITCODE`", `'User`')")
 	Write-Host "[$scriptName] Invoke-Command -ComputerName localhost -Credential `$cred -ScriptBlock $script"
 	try {
 		Invoke-Command -ComputerName localhost -Credential $cred -ScriptBlock $script
@@ -78,17 +85,7 @@ if ($userName) {
 
 	Write-Host "[$scriptName] Execute as $(whoami) using workspace ($workspace)"
 	executeExpression "cd $workspace"
-	& .\automation\cdEmulate.bat $action
-	if($LASTEXITCODE -ne 0){
-	    write-host "[$scriptName] CURRENT_USER_NON_ZERO_EXIT & .\automation\cdEmulate.bat $action" -ForegroundColor Magenta
-	    write-host "[$scriptName]   Exit with `$LASTEXITCODE $LASTEXITCODE" -ForegroundColor Red
-	    exit $LASTEXITCODE
-	}
-    if(!$?){ 
-	    write-host "[$scriptName] CURRENT_USER_EXEC_FALSE & .\automation\cdEmulate.bat $action" -ForegroundColor Magenta
-	    write-host "[$scriptName]   Exit with `$LASTEXITCODE 900" -ForegroundColor Red
-	    exit 900
-	}
+	executeExpression "& $env:CDAF_PATH\cdEmulate.bat $action"
 }
 
 Write-Host "`n[$scriptName] ---------- stop -----------"
