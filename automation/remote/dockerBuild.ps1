@@ -84,11 +84,6 @@ if ($env:http_proxy) {
 	$buildCommand += " --build-arg proxy=$env:http_proxy"
 }
 
-if ($env:CDAF_AUTOMATION_ROOT) {
-	Write-Host "`n[$scriptName] `$env:CDAF_AUTOMATION_ROOT is set ($env:CDAF_AUTOMATION_ROOT), pass as `$proxy to build`n"
-	$buildCommand += " --build-arg CDAF_AUTOMATION_ROOT=$env:CDAF_AUTOMATION_ROOT"
-}
-
 if ($rebuild -eq 'yes') {
 	$buildCommand += " --no-cache=true"
 }

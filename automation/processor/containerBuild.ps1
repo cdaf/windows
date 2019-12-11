@@ -57,16 +57,24 @@ if ( $rebuildImage ) {
 }
 
 $imageName = "${imageName}_$($revision.ToLower())"
-Write-Host "[$scriptName]   imageName    : $imageName"
-Write-Host "[$scriptName]   DOCKER_HOST  : $env:DOCKER_HOST"
-Write-Host "[$scriptName]   pwd          : $(Get-Location)"
-Write-Host "[$scriptName]   hostname     : $(hostname)"
-Write-Host "[$scriptName]   whoami       : $(whoami)"
-if ( ((Get-Item $env:CDAF_AUTOMATION_ROOT).Parent).FullName -ne $(pwd).Path ) {
-	executeExpression "Copy-Item -Recurse -Force $env:CDAF_AUTOMATION_ROOT ."
+Write-Host "[$scriptName]   imageName      : $imageName"
+Write-Host "[$scriptName]   DOCKER_HOST    : $env:DOCKER_HOST"
+Write-Host "[$scriptName]   pwd            : $(Get-Location)"
+Write-Host "[$scriptName]   hostname       : $(hostname)"
+Write-Host "[$scriptName]   whoami         : $(whoami)"
+
+if ( Test-Path ".\automation" ) {
+	Write-Host "[$scriptName]   automationroot : .\automation`n"
 } else {
-	Write-Host "`n[$scriptName] `$env:CDAF_AUTOMATION_ROOT = ${env:CDAF_AUTOMATION_ROOT}`n"
+	if ( ((Get-Item $env:CDAF_AUTOMATION_ROOT).Parent).FullName -ne $(pwd).Path ) {
+		Write-Host "[$scriptName]   automationroot : ${env:CDAF_AUTOMATION_ROOT} (copy to .\automation in workspace for docker)`n"
+		executeExpression "Copy-Item -Recurse -Force $env:CDAF_AUTOMATION_ROOT .\automation"
+		$cleanupCDAF = 'yes'
+	} else {
+		Write-Host "[$scriptName]   automationroot : ${env:CDAF_AUTOMATION_ROOT}`n"
+	}
 }
+
 Write-Host '$dockerStatus = ' -NoNewline 
 
 $imageTag = 0
@@ -112,6 +120,10 @@ if ( $rebuildImage -ne 'imageonly') {
 	if ( $stopped ) { 
 		executeExpression "docker rm $stopped"
 	}
+}
+
+if ( $cleanupCDAF ) {
+	executeExpression "Remove-Item -Recurse .\automation"
 }
 
 Write-Host "`n[$scriptName] ---------- stop ----------"
