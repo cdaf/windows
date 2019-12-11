@@ -52,7 +52,7 @@ if ($automationRoot) {
 	$automationRoot = split-path -parent $scriptPath
     Write-Host "[$scriptName] automationRoot : $automationRoot (not supplied, derived from invocation)"
 }
-$env:CDAF_PATH = $automationRoot
+$env:CDAF_AUTOMATION_ROOT = $automationRoot
 
 if ($BUILDNUMBER) {
     Write-Host "[$scriptName] BUILDNUMBER    : $BUILDNUMBER"

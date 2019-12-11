@@ -54,11 +54,11 @@ if ($action) {
     Write-Host "[$scriptName] action    : (not supplied)"
 }
 
-if ($env:CDAF_PATH) {
-	Write-Host "[$scriptName] CDAF_PATH : $env:CDAF_PATH"
+if ($env:CDAF_AUTOMATION_ROOT) {
+	Write-Host "[$scriptName] CDAF_AUTOMATION_ROOT : $env:CDAF_AUTOMATION_ROOT"
 } else {
-	$env:CDAF_PATH = '.\automation'
-	Write-Host "[$scriptName] CDAF_PATH : $env:CDAF_PATH (default)"
+	$env:CDAF_AUTOMATION_ROOT = '.\automation'
+	Write-Host "[$scriptName] CDAF_AUTOMATION_ROOT : $env:CDAF_AUTOMATION_ROOT (default)"
 }
 
 if ($userName) {
@@ -67,7 +67,7 @@ if ($userName) {
 	# call, if return of LASTEXITCODE is attempted during excution, all standard out is consumed by the result.
 	$securePassword = executeExpression "ConvertTo-SecureString `$userPass -asplaintext -force"
 	$cred = executeExpression "New-Object System.Management.Automation.PSCredential (`"$userName`", `$securePassword)"
-	$script = [scriptblock]::Create("cd $workspace; $env:CDAF_PATH\cdEmulate.bat $action; [Environment]::SetEnvironmentVariable(`'PREVIOUS_EXIT_CODE`', `"`$LASTEXITCODE`", `'User`')")
+	$script = [scriptblock]::Create("cd $workspace; $env:CDAF_AUTOMATION_ROOT\cdEmulate.bat $action; [Environment]::SetEnvironmentVariable(`'PREVIOUS_EXIT_CODE`', `"`$LASTEXITCODE`", `'User`')")
 	Write-Host "[$scriptName] Invoke-Command -ComputerName localhost -Credential `$cred -ScriptBlock $script"
 	try {
 		Invoke-Command -ComputerName localhost -Credential $cred -ScriptBlock $script
@@ -85,7 +85,7 @@ if ($userName) {
 
 	Write-Host "[$scriptName] Execute as $(whoami) using workspace ($workspace)"
 	executeExpression "cd $workspace"
-	executeExpression "& $env:CDAF_PATH\cdEmulate.bat $action"
+	executeExpression "& $env:CDAF_AUTOMATION_ROOT\cdEmulate.bat $action"
 }
 
 Write-Host "`n[$scriptName] ---------- stop -----------"
