@@ -102,6 +102,7 @@ if (!($AUTOMATIONROOT)) {
 	$scriptPath = split-path -parent $MyInvocation.MyCommand.Definition
 	$AUTOMATIONROOT = split-path -parent $scriptPath
 }
+$env:CDAF_PATH = $AUTOMATIONROOT
 
 # Check for user defined solution folder, i.e. outside of automation root, if found override solution root
 Write-Host "[$scriptName]   solutionRoot    : " -NoNewline

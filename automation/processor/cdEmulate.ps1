@@ -31,6 +31,7 @@ if ($AUTOMATIONROOT) {
 	$AUTOMATIONROOT = split-path -parent $scriptPath
 	Write-Host "[$scriptName]   AUTOMATIONROOT      : $AUTOMATIONROOT (default)"
 }
+$env:CDAF_PATH = $AUTOMATIONROOT
 
 $counterFile = "$env:USERPROFILE\buildnumber.counter"
 # Use a simple text file ($counterFile) for incrimental build number, using the same logic as entry.ps1
