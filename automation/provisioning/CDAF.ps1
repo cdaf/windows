@@ -9,7 +9,18 @@ $scriptName = 'CDAF.ps1'
 # Common expression logging and error handling function, copied, not referenced to ensure atomic process
 function executeExpression ($expression) {
 	$error.clear()
-	Write-Host "$expression"
+	Write-Host "[executeExpression][$(date)] $expression"
+	try {
+		Invoke-Expression $expression
+	    if(!$?) { Write-Host "[$scriptName] `$? = $?"; exit 10 }
+	} catch { echo $_.Exception|format-list -force; exit 11 }
+    if ( $error[0] ) { Write-Host "[$scriptName] `$error[0] = $error"; exit 12 }
+    if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) { Write-Host "[$scriptName] `$LASTEXITCODE = $LASTEXITCODE "; exit $LASTEXITCODE }
+}
+
+function executeReturn ($expression) {
+	$error.clear()
+	Write-Host "[executeReturn][$(date)] $expression"
 	try {
 		$output = Invoke-Expression $expression
 	    if(!$?) { Write-Host "[$scriptName] `$? = $?"; exit 10 }
@@ -18,6 +29,7 @@ function executeExpression ($expression) {
     if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) { Write-Host "[$scriptName] `$LASTEXITCODE = $LASTEXITCODE "; exit $LASTEXITCODE }
     return $output
 }
+
 
 cmd /c "exit 0" # Clear from any previously failed run
 
@@ -65,8 +77,8 @@ if ($userName) {
 
 	# To capture the exit code of the remote execution, the LASTEXITCODE is stored in an environment variable, and retrieved in a subsequent
 	# call, if return of LASTEXITCODE is attempted during excution, all standard out is consumed by the result.
-	$securePassword = executeExpression "ConvertTo-SecureString `$userPass -asplaintext -force"
-	$cred = executeExpression "New-Object System.Management.Automation.PSCredential (`"$userName`", `$securePassword)"
+	$securePassword = executeReturn "ConvertTo-SecureString `$userPass -asplaintext -force"
+	$cred = executeReturn "New-Object System.Management.Automation.PSCredential (`"$userName`", `$securePassword)"
 	$script = [scriptblock]::Create("cd $workspace; $env:CDAF_AUTOMATION_ROOT\cdEmulate.bat $action; [Environment]::SetEnvironmentVariable(`'PREVIOUS_EXIT_CODE`', `"`$LASTEXITCODE`", `'User`')")
 	Write-Host "[$scriptName] Invoke-Command -ComputerName localhost -Credential `$cred -ScriptBlock $script"
 	try {
