@@ -26,6 +26,9 @@ function main ($installPath) {
 		$installPath = '~/.cdaf'
 	    Write-Host "[$scriptName] installPath : $installPath (default)"
 	}
+	if ( Test-Path $installPath ) { 
+		executeExpression "RemoveItem -Recurse '$installPath'"
+	}
 	if ( $env:http_proxy ) {
 		executeExpression "[system.net.webrequest]::defaultwebproxy = New-Object system.net.webproxy('$env:http_proxy')"
 	}
