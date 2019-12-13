@@ -146,6 +146,11 @@ if ($enableTCP) {
 	} catch { echo $_.Exception|format-list -force; exit 478 }
 }
 
+Write-Host "`n[$scriptName] Add user to docker execution (without elevated admin session)"
+executeExpression "Install-Module -Name dockeraccesshelper -Confirm:`$False -Verbose -Force $proxyParameter"
+executeExpression 'Import-Module dockeraccesshelper'
+executeExpression "Add-AccountToDockerAccess '$(whoami)'"
+
 Write-Host "`n[$scriptName] Install docker-compose as per https://docs.docker.com/compose/install/"
 
 executeExpression '[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12'
