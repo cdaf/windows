@@ -26,6 +26,12 @@ function main ($installPath) {
 		$installPath = '~/.cdaf'
 	    Write-Host "[$scriptName] installPath : $installPath (default)"
 	}
+	if ( Test-Path "$env:temp\windows-master" ) { 
+		executeExpression "RemoveItem -Recurse '$env:temp\windows-master'"
+	}
+	if ( Test-Path "$env:temp\cdaf.zip" ) { 
+		executeExpression "RemoveItem -Recurse '$env:temp\cdaf.zip'"
+	}
 	if ( Test-Path $installPath ) { 
 		executeExpression "RemoveItem -Recurse '$installPath'"
 	}
