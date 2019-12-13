@@ -27,13 +27,13 @@ function main ($installPath) {
 	    Write-Host "[$scriptName] installPath : $installPath (default)"
 	}
 	if ( Test-Path "$env:temp\windows-master" ) { 
-		executeExpression "RemoveItem -Recurse '$env:temp\windows-master'"
+		executeExpression "Remove-Item -Recurse '$env:temp\windows-master'"
 	}
 	if ( Test-Path "$env:temp\cdaf.zip" ) { 
-		executeExpression "RemoveItem -Recurse '$env:temp\cdaf.zip'"
+		executeExpression "Remove-Item -Recurse '$env:temp\cdaf.zip'"
 	}
 	if ( Test-Path $installPath ) { 
-		executeExpression "RemoveItem -Recurse '$installPath'"
+		executeExpression "Remove-Item -Recurse '$installPath'"
 	}
 	if ( $env:http_proxy ) {
 		executeExpression "[system.net.webrequest]::defaultwebproxy = New-Object system.net.webproxy('$env:http_proxy')"
