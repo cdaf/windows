@@ -19,6 +19,13 @@ function executeExpression ($expression) {
 }
 
 function main ($installPath) {
+	Write-Host "`n[$scriptName] --- start ---"
+	if ($installPath) {
+	    Write-Host "[$scriptName] installPath : $installPath"
+	} else {
+		$installPath = '~/.cdaf'
+	    Write-Host "[$scriptName] installPath : $installPath (default)"
+	}
 	if ( $env:http_proxy ) {
 		executeExpression "[system.net.webrequest]::defaultwebproxy = New-Object system.net.webproxy('$env:http_proxy')"
 	}
@@ -30,18 +37,9 @@ function main ($installPath) {
 	executeExpression "$installPath/remote/capabilities.ps1"
 	executeExpression "Remove-Item -Recurse '$env:temp\windows-master'"
 	executeExpression "Remove-Item '$env:temp\cdaf.zip'"
-}
 
-Write-Host "`n[$scriptName] --- start ---"
-if ($installPath) {
-    Write-Host "[$scriptName] installPath : $installPath"
-} else {
-	$installPath = '~/.cdaf'
-    Write-Host "[$scriptName] installPath : $installPath (default)"
+	Write-Host "`n[$scriptName] Installed to $installPath"
+	Write-Host "`n[$scriptName] --- end ---"
 }
 
 main $installPath
-
-Write-Host "`n[$scriptName] --- end ---"
-$error.clear()
-exit 0
