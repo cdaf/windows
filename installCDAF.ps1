@@ -1,9 +1,4 @@
-Param (
-	[string]$installPath
-)
-
 $scriptName = 'installCDAF.ps1'
-
 cmd /c "exit 0"
 
 # Common expression logging and error handling function, copied, not referenced to ensure atomic process
@@ -18,10 +13,11 @@ function executeExpression ($expression) {
     if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) { Write-Host "[$scriptName] `$LASTEXITCODE = $LASTEXITCODE "; exit $LASTEXITCODE }
 }
 
-function main ($installPath) {
+function main () {
 	Write-Host "`n[$scriptName] --- start ---"
-	if ($installPath) {
-	    Write-Host "[$scriptName] installPath : $installPath"
+	if ($env:CDAF_PATH) {
+		$installPath = $env:CDAF_PATH
+	    Write-Host "[$scriptName] installPath : $installPath (from `$env:CDAF_PATH)"
 	} else {
 		$installPath = '~/.cdaf'
 	    Write-Host "[$scriptName] installPath : $installPath (default)"
@@ -51,4 +47,4 @@ function main ($installPath) {
 	Write-Host "`n[$scriptName] --- end ---"
 }
 
-main $installPath
+main
