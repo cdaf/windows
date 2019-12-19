@@ -3,7 +3,8 @@ Param (
 	[string]$restart,
 	[string]$httpProxy,
 	[string]$version,
-	[string]$provider
+	[string]$provider,
+	[string]$dockerUser
 )
 
 $scriptName = 'installDocker.ps1'
@@ -110,6 +111,12 @@ if ($provider) {
     Write-Host "[$scriptName]  provider  : $provider (set to default, choices DockerMsftProviderInsider or DockerMsftProvider)"
 }
 
+if ($dockerUser) {
+    Write-Host "[$scriptName]  dockerUser  : $dockerUser"
+} else {
+    Write-Host "[$scriptName]  dockerUser  : (not set)"
+}
+
 executeExpression "Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.201 -Verbose -Force $proxyParameter"
 
 # Found these repositories unreliable so included retry logic
@@ -146,15 +153,17 @@ if ($enableTCP) {
 	} catch { echo $_.Exception|format-list -force; exit 478 }
 }
 
-Write-Host "`n[$scriptName] Add user to docker execution (without elevated admin session)"
-executeExpression "Install-Module -Name dockeraccesshelper -Confirm:`$False -Verbose -Force $proxyParameter"
-executeExpression 'Import-Module dockeraccesshelper'
-executeExpression "Add-AccountToDockerAccess '$(whoami)'"
-
 Write-Host "`n[$scriptName] Install docker-compose as per https://docs.docker.com/compose/install/"
 
 executeExpression '[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12'
 executeExpression "Invoke-WebRequest 'https://github.com/docker/compose/releases/download/1.25.0/docker-compose-Windows-x86_64.exe' -UseBasicParsing -OutFile `$Env:ProgramFiles\docker\docker-compose.exe"
+
+if ($dockerUser) {
+	Write-Host "`n[$scriptName] Add user to docker execution (without elevated admin session)"
+	executeExpression "Install-Module -Name dockeraccesshelper -Confirm:`$False -Verbose -Force $proxyParameter"
+	executeExpression 'Import-Module dockeraccesshelper'
+	executeExpression "Add-AccountToDockerAccess '$dockerUser'"
+}
 
 if ($restart -eq 'yes') {
 	executeExpression "shutdown /r /t 10"
