@@ -101,7 +101,9 @@ if ( $env:MS_TEST ) {
 if ( $env:VS_TEST ) {
 	Write-Host "`$env:VS_TEST = ${env:VS_TEST}"
 } else {
-	Write-Host "VSTest not found"
+	Write-Host "VSTest not found, defaulting to `$env:MS_TEST"
+	$env:MS_BUILD = $env:MS_TEST
+	Write-Host "`$env:VS_TEST = ${env:VS_TEST}"
 }
 
 if ( $env:DEV_ENV ) {
