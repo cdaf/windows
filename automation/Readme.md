@@ -36,6 +36,7 @@ To alleviate the burden of argument passing, exception handling and logging, the
 | --------|-----------------------------------|---------------------------------|
 | ASSIGN  | set a variable                    | ASSIGN $test="Hello World"      |
 | CMPRSS  | Compress directory to file        | CMPRSS packageName dirName      |
+| CMPRSS  | Compress directory to file        | CMPRSS packageName              |
 | DCMPRS  | Decompress package file           | DCMPRS packageName              |
 | DECRYP  | decrypt file using DSAPI          | DECRYP encrypt.dat              |
 |         | decrypt using PKI or AES key      | DECRYP encrypt.dat $thumbPrint  |

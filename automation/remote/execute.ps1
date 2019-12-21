@@ -108,6 +108,9 @@ function VECOPY ($from, $to, $notFirstRun) {
 function CMPRSS( $zipfilename, $sourcedir )
 {
 	$currentDir = $(pwd)
+	if (!( $sourcedir )) {
+		$sourcedir = $zipfilename
+	}
 	$zipfilename += '.zip'
 	if ($zipfilename -like '*:*') { # Only resolve full path if a full path has not been supplied
 		$targetFile = "$zipfilename"

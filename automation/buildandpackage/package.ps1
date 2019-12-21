@@ -193,7 +193,7 @@ write-host "`n[$scriptName]   --- Start Package Process ---`n" -ForegroundColor 
 itemRemove ".\manifest.txt"
 itemRemove ".\storeForRemote_manifest.txt"
 itemRemove ".\storeForLocal_manifest.txt"
-itemRemove ".\*.zip"
+itemRemove ".\$SOLUTION*.zip"
 itemRemove ".\*.nupkg"
 itemRemove "$LOCAL_WORK_DIR"
 itemRemove "$REMOTE_WORK_DIR"
