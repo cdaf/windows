@@ -28,7 +28,7 @@ function main () {
 	if ( Test-Path "$env:temp\cdaf.zip" ) { 
 		executeExpression "Remove-Item -Recurse '$env:temp\cdaf.zip'"
 	}
-	if ( Test-Path $installPath ) { 
+	if ( Test-Path "$installPath" ) { 
 		executeExpression "Remove-Item -Recurse '$installPath'"
 	}
 	if ( $env:http_proxy ) {
