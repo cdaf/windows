@@ -22,8 +22,7 @@ Write-Host "`n[$scriptName] ---------- start ----------"
 if ($port) {
     Write-Host "[$scriptName] port : $port"
 } else {
-	$port = '8080'
-    Write-Host "[$scriptName] port : $port (not supplied so set to default)"
+    Write-Host "[$scriptName] port : (not supplied, reverse proxy will not be configured)"
 }
 
 Write-Host "[$scriptName] pwd    = $(pwd)"
@@ -52,7 +51,7 @@ Write-Host "[$scriptName] `$atomicPath = $atomicPath"
 
 executeExpression "$atomicPath\automation\provisioning\InstallIIS.ps1 -management yes"
 
-## Install Application Request Routing (ARR)
+Write-Host "[$scriptName] Install Application Request Routing (ARR)"
 executeExpression "Stop-Service W3SVC"
 executeExpression "$atomicPath\automation\provisioning\GetMedia.ps1 http://download.microsoft.com/download/E/9/8/E9849D6A-020E-47E4-9FD0-A023E99B54EB/requestRouter_amd64.msi"
 executeExpression "$atomicPath\automation\provisioning\installMSI.ps1 C:\.provision\requestRouter_amd64.msi"
@@ -60,20 +59,25 @@ executeExpression "$atomicPath\automation\provisioning\GetMedia.ps1  https://dow
 executeExpression "$atomicPath\automation\provisioning\installMSI.ps1 C:\.provision\rewrite_amd64.msi"
 executeExpression "Start-Service W3SVC"
 
-executeExpression 'Add-Content C:\inetpub\wwwroot\web.config "<?xml version=`"1.0`" encoding=`"UTF-8`"?>"'
-executeExpression 'Add-Content C:\inetpub\wwwroot\web.config "<configuration>"'
-executeExpression 'Add-Content C:\inetpub\wwwroot\web.config "    <system.webServer>"'
-executeExpression 'Add-Content C:\inetpub\wwwroot\web.config "        <rewrite>"'
-executeExpression 'Add-Content C:\inetpub\wwwroot\web.config "            <rules>"'
-executeExpression 'Add-Content C:\inetpub\wwwroot\web.config "                <clear />"'
-executeExpression 'Add-Content C:\inetpub\wwwroot\web.config "                <rule name=`"ReverseProxyInboundRule1`" stopProcessing=`"true`">"'
-executeExpression 'Add-Content C:\inetpub\wwwroot\web.config "                    <match url=`"(.*)`" />"'
-executeExpression 'Add-Content C:\inetpub\wwwroot\web.config "                    <conditions logicalGrouping=`"MatchAll`" trackAllCaptures=`"false`" />"'
-executeExpression 'Add-Content C:\inetpub\wwwroot\web.config "                    <action type=`"Rewrite`" url=`"http://localhost:$port/{R:1}`" />"'
-executeExpression 'Add-Content C:\inetpub\wwwroot\web.config "                </rule>"'
-executeExpression 'Add-Content C:\inetpub\wwwroot\web.config "            </rules>"'
-executeExpression 'Add-Content C:\inetpub\wwwroot\web.config "        </rewrite>"'
-executeExpression 'Add-Content C:\inetpub\wwwroot\web.config "    </system.webServer>"'
-executeExpression 'Add-Content C:\inetpub\wwwroot\web.config "</configuration>"'
+if ($port) {
+	
+	Write-Host "[$scriptName] Enable and Configure Reverse Proxy"
+	executeExpression "Set-WebConfigurationProperty -PSPath 'MACHINE/WEBROOT/APPHOST' -Name 'enabled' -Filter 'system.webServer/proxy' -Value 'True'"
 
+	executeExpression 'Add-Content C:\inetpub\wwwroot\web.config "<?xml version=`"1.0`" encoding=`"UTF-8`"?>"'
+	executeExpression 'Add-Content C:\inetpub\wwwroot\web.config "<configuration>"'
+	executeExpression 'Add-Content C:\inetpub\wwwroot\web.config "    <system.webServer>"'
+	executeExpression 'Add-Content C:\inetpub\wwwroot\web.config "        <rewrite>"'
+	executeExpression 'Add-Content C:\inetpub\wwwroot\web.config "            <rules>"'
+	executeExpression 'Add-Content C:\inetpub\wwwroot\web.config "                <clear />"'
+	executeExpression 'Add-Content C:\inetpub\wwwroot\web.config "                <rule name=`"ReverseProxyInboundRule1`" stopProcessing=`"true`">"'
+	executeExpression 'Add-Content C:\inetpub\wwwroot\web.config "                    <match url=`"(.*)`" />"'
+	executeExpression 'Add-Content C:\inetpub\wwwroot\web.config "                    <conditions logicalGrouping=`"MatchAll`" trackAllCaptures=`"false`" />"'
+	executeExpression 'Add-Content C:\inetpub\wwwroot\web.config "                    <action type=`"Rewrite`" url=`"http://localhost:$port/{R:1}`" />"'
+	executeExpression 'Add-Content C:\inetpub\wwwroot\web.config "                </rule>"'
+	executeExpression 'Add-Content C:\inetpub\wwwroot\web.config "            </rules>"'
+	executeExpression 'Add-Content C:\inetpub\wwwroot\web.config "        </rewrite>"'
+	executeExpression 'Add-Content C:\inetpub\wwwroot\web.config "    </system.webServer>"'
+	executeExpression 'Add-Content C:\inetpub\wwwroot\web.config "</configuration>"'
+}
 Write-Host "`n[$scriptName] ---------- stop ----------"
