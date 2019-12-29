@@ -237,7 +237,7 @@ if ( $ACTION ) {
 	write-host "                  Artifacts rules    : TasksLocal => TasksLocal"
 	write-host
 	write-host "  Command Executable  : $workDirLocal/$cdInstruction"
-	write-host "  Command parameters  : %teamcity.build.step.name% %build.counter%"
+	write-host "  Command parameters  : %env.TEAMCITY_BUILDCONF_NAME% %build.number%"
 	write-host
 	write-host 'For Bamboo ...'
 	write-host "  Script file         : `${bamboo.build.working.directory}\$workDirLocal\$cdInstruction"
