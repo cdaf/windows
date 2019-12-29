@@ -142,7 +142,7 @@ if ( $ACTION ) { # Do not list configuration instructions when an action is pass
 	write-host "`n[$scriptName] ---------- CI Toolset Configuration Guide -------------`n"
     write-host 'For TeamCity ...'
     write-host "  Command Executable  : $ciInstruction"
-    write-host "  Command parameters  : %build.number% %build.vcs.number%"
+    write-host "  Command parameters  : %build.counter% %build.vcs.number%"
     write-host
     write-host 'For Bamboo ...'
     write-host "  Script file         : $ciProcess"
@@ -207,7 +207,11 @@ if ( $ACTION ) {
 	$execCD = 'yes'
 	write-host "`n[$scriptName] ---------- Artefact Configuration Guide -------------`n"
 	write-host 'Configure artefact retention patterns to retain package and local tasks'
-	write-host
+    write-host
+    write-host 'For TeamCity ...'
+    write-host "  Artifact paths : TasksLocal => TasksLocal"
+    write-host "                 : *.zip"
+    write-host
     write-host 'For Go ...'
     write-host '  Source        | Destination | Type'
 	write-host '  *.gz          | package     | Build Artifact'
@@ -228,9 +232,12 @@ if ( $ACTION ) {
 
 	write-host "`n[$scriptName] ---------- CD Toolset Configuration Guide -------------`n"
 	write-host
-	write-host 'For TeamCity (each environment requires a literal definiion) ...'
+	write-host 'For TeamCity ...'
+	write-host "  Dependencies -> Get artifacts from : 'build from the same chain'"
+	write-host "                  Artifacts rules    : TasksLocal => TasksLocal"
+	write-host
 	write-host "  Command Executable  : $workDirLocal/$cdInstruction"
-	write-host "  Command parameters  : <environment literal> %build.vcs.number%"
+	write-host "  Command parameters  : %teamcity.build.step.name% %build.counter%"
 	write-host
 	write-host 'For Bamboo ...'
 	write-host "  Script file         : `${bamboo.build.working.directory}\$workDirLocal\$cdInstruction"
