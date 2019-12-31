@@ -162,9 +162,8 @@ if ( $ACTION ) { # Do not list configuration instructions when an action is pass
 	write-host '          recommend using solution name, then the Release instructions can be used unchanged.'
 	write-host '          Set the build number $(rev:r)'
 	write-host '    Recommend using the navigation UI to find the entry script.'
-	write-host '    Cannot use %BUILD_SOURCEVERSION% with external Git'
     write-host "    Command Filename  : $ciProcess"
-    write-host "    Command arguments : %BUILD_BUILDNUMBER% %BUILD_SOURCEVERSION%"
+    write-host "    Command arguments : %BUILD_BUILDNUMBER% %BUILD_SOURCEBRANCHNAME%"
     write-host
     write-host 'For GitLab (requires shell runner) ...'
     write-host '  In .gitlab-ci.yml (in the root of the repository) add the following hook into the CI job, see example in sample folder'
