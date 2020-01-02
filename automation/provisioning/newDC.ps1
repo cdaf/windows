@@ -138,7 +138,7 @@ if ( Test-Path $media ) {
 # Not using powershell commandlets for provisioning as they do not support /LimitAccess
 
 Write-Host "`n[$scriptName]   Source required for Directory Services`n"
-$featureList = @('ActiveDirectory-PowerShell', 'DirectoryServices-DomainController', 'RSAT-ADDS-Tools-Feature', 'DirectoryServices-DomainController-Tools', 'DNS-Server-Full-Role', 'DNS-Server-Tools', 'DirectoryServices-AdministrativeCenter')
+$featureList = @('ActiveDirectory-PowerShell', 'DirectoryServices-DomainController', 'RSAT-ADDS-Tools-Feature', 'DirectoryServices-DomainController-Tools', 'DNS-Server-Tools', 'DirectoryServices-AdministrativeCenter')
 foreach ($feature in $featureList) {
 	executeSuppress "dism /online /NoRestart /enable-feature /all /featurename:$feature $sourceOption"
 	if ( $lastExitCode -ne 0 ) {
@@ -156,7 +156,7 @@ if ( Test-Path "$defaultMount\windows" ) {
 #   If using -NoRebootOnCompletion do not use reload module in Vagrant or it will fail (raise_if_auth_error)
 
 Write-Host "`n[$scriptName] Install Active Directory Domain Roles and Services"
-executeSuppress "Install-WindowsFeature -Name `'AD-Domain-Services`' $sourceOption"
+executeSuppress "Install-WindowsFeature -Name `'AD-Domain-Services`'"
 
 $securePassword = ConvertTo-SecureString $password -asplaintext -force
 
@@ -166,19 +166,24 @@ $securePassword = ConvertTo-SecureString $password -asplaintext -force
 # Test-ADDSDomainControllerInstallation -DomainName $forest -SafeModeAdministratorPassword $securePassword
 
 Write-Host "[$scriptName] Convert this host into a member domain controller in the forest"
-Import-Module ADDSDeployment
-Install-ADDSDomainController `
-	-NoGlobalCatalog:$false `
-	-InstallDns:$false `
-	-CreateDnsDelegation:$false `
-	-CriticalReplicationOnly:$false `
-	-DatabasePath "C:\Windows\NTDS" `
-	-LogPath "C:\Windows\NTDS" `
-	-SysvolPath "C:\Windows\SYSVOL" `
-	-DomainName $forest `
-	-NoRebootOnCompletion:$false `
-	-SiteName 'vagrant' `
-	-Force:$true `
-	-SafeModeAdministratorPassword $securePassword
+executeSuppress "Import-Module ADDSDeployment"
+$promoteOptions = @("Install-ADDSDomainController")
+$promoteOptions += '-NoGlobalCatalog:$false'
+$promoteOptions += '-NoGlobalCatalog:$false'
+$promoteOptions += '-InstallDns:$true'
+$promoteOptions += '-CreateDnsDelegation:$false'
+$promoteOptions += '-CriticalReplicationOnly:$false'
+$promoteOptions += '-DatabasePath "C:\Windows\NTDS"'
+$promoteOptions += '-LogPath "C:\Windows\NTDS"'
+$promoteOptions += '-SysvolPath "C:\Windows\SYSVOL"'
+$promoteOptions += "-DomainName '$forest'"
+$promoteOptions += '-NoRebootOnCompletion:$false'
+$promoteOptions += '-Force:$true'
+$promoteOptions += '-SafeModeAdministratorPassword $securePassword'
+if ( $env:CDAF_DELIVERY -eq 'VAGRANT' ) {
+	$promoteOptions += "-SiteName "vagrant"'
+}
+
+executeSuppress $promoteOptions
 
 Write-Host "`n[$scriptName] ---------- stop ----------"
