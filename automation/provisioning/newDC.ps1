@@ -155,9 +155,6 @@ if ( Test-Path "$defaultMount\windows" ) {
 # https://github.com/rgl/windows-domain-controller-vagrant/blob/master/provision/domain-controller.ps1
 #   If using -NoRebootOnCompletion do not use reload module in Vagrant or it will fail (raise_if_auth_error)
 
-Write-Host "`n[$scriptName] Install Active Directory Domain Roles and Services"
-executeSuppress "Install-WindowsFeature -Name `'AD-Domain-Services`'"
-
 $securePassword = ConvertTo-SecureString $password -asplaintext -force
 
 # Diagnostic helpers
@@ -183,6 +180,7 @@ if ( $env:CDAF_DELIVERY -eq 'VAGRANT' ) {
 	$promoteOptions += '-SiteName "vagrant"'
 }
 
-executeSuppress $promoteOptions
+$asString = $promoteOptions -join " "
+executeSuppress $asString
 
 Write-Host "`n[$scriptName] ---------- stop ----------"
