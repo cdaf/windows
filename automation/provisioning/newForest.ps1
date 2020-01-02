@@ -150,20 +150,20 @@ Write-Host "`n[$scriptName] Install Active Directory Domain Roles and Services u
 Write-Host "`n[$scriptName]   Remote Server Administration Tools (RSAT)`n"
 $featureList = @('ServerManager-Core-RSAT', 'ServerManager-Core-RSAT-Role-Tools', 'RSAT-AD-Tools-Feature')
 foreach ($feature in $featureList) {
-	executeSuppress "dism /online /NoRestart /enable-feature /featurename:$feature $sourceOption"
+	executeSuppress "dism /online /NoRestart /enable-feature /all /featurename:$feature $sourceOption"
 	if ( $lastExitCode -ne 0 ) {
 		Write-Host "[$scriptName] DISM failed with `$lastExitCode = $lastExitCode, retry from WSUS/Internet"
-		executeRetry "dism /online /NoRestart /enable-feature /featurename:$feature /Quiet"
+		executeRetry "dism /online /NoRestart /enable-feature /all /featurename:$feature /Quiet"
 	}
 }
 
 Write-Host "`n[$scriptName]   Source required for Directory Services`n"
 $featureList = @('ActiveDirectory-PowerShell', 'DirectoryServices-DomainController', 'RSAT-ADDS-Tools-Feature', 'DirectoryServices-DomainController-Tools', 'DNS-Server-Full-Role', 'DNS-Server-Tools', 'DirectoryServices-AdministrativeCenter')
 foreach ($feature in $featureList) {
-	executeSuppress "dism /online /NoRestart /enable-feature /featurename:$feature $sourceOption"
+	executeSuppress "dism /online /NoRestart /enable-feature /all /featurename:$feature $sourceOption"
 	if ( $lastExitCode -ne 0 ) {
 		Write-Host "[$scriptName] DISM failed with `$lastExitCode = $lastExitCode, retry from WSUS/Internet"
-		executeRetry "dism /online /NoRestart /enable-feature /featurename:$feature /Quiet"
+		executeRetry "dism /online /NoRestart /enable-feature /all /featurename:$feature /Quiet"
 	}
 }
 
