@@ -169,7 +169,6 @@ Write-Host "[$scriptName] Convert this host into a member domain controller in t
 executeSuppress "Import-Module ADDSDeployment"
 $promoteOptions = @("Install-ADDSDomainController")
 $promoteOptions += '-NoGlobalCatalog:$false'
-$promoteOptions += '-NoGlobalCatalog:$false'
 $promoteOptions += '-InstallDns:$true'
 $promoteOptions += '-CreateDnsDelegation:$false'
 $promoteOptions += '-CriticalReplicationOnly:$false'
