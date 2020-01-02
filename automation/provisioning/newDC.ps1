@@ -180,7 +180,7 @@ $promoteOptions += '-NoRebootOnCompletion:$false'
 $promoteOptions += '-Force:$true'
 $promoteOptions += '-SafeModeAdministratorPassword $securePassword'
 if ( $env:CDAF_DELIVERY -eq 'VAGRANT' ) {
-	$promoteOptions += "-SiteName "vagrant"'
+	$promoteOptions += '-SiteName "vagrant"'
 }
 
 executeSuppress $promoteOptions
