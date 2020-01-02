@@ -58,10 +58,10 @@ $scriptName = 'newDC.ps1'
 Write-Host "`n[$scriptName] New Domain Controller to existing Forest, Windows Server 2012 and above"
 Write-Host "`n[$scriptName] ---------- start ----------"
 if ($forest) {
-    Write-Host "[$scriptName] forest : $forest"
+    Write-Host "[$scriptName] forest   : $forest"
 } else {
 	$forest = 'sky.net'
-    Write-Host "[$scriptName] forest : $forest (default)"
+    Write-Host "[$scriptName] forest   : $forest (default)"
 }
 
 if ($password) {
@@ -97,9 +97,11 @@ if ((gwmi win32_computersystem).partofdomain -eq $true) {
 	$currentDomain = $((gwmi win32_computersystem).domain)
 	if ($forest -eq $currentDomain) {
 	    write-host "`nHost $(hostname) verified domain member of $currentDomain"
-	    write-host "This is normal in Vagrant run after reboot for the provisioner to re-run."
-		Write-Host "`n[$scriptName] ---------- stop ----------`n"
-		exit 0
+	    if ( $env:CDAF_DELIVERY = 'VAGRANT' ) {
+		    write-host "This is normal in Vagrant run after reboot for the provisioner to re-run."
+			Write-Host "`n[$scriptName] ---------- stop ----------`n"
+			exit 0
+		}
 	} else {
 	    write-host -fore Red "Host $(hostname) already a domain member of a different domain $currentDomain"
 		exit 99
