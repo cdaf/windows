@@ -97,7 +97,7 @@ if ((gwmi win32_computersystem).partofdomain -eq $true) {
 	$currentDomain = $((gwmi win32_computersystem).domain)
 	if ($forest -eq $currentDomain) {
 	    write-host "`nHost $(hostname) verified domain member of $currentDomain"
-	    if ( $env:CDAF_DELIVERY = 'VAGRANT' ) {
+	    if ( $env:CDAF_DELIVERY -eq 'VAGRANT' ) {
 		    write-host "This is normal in Vagrant run after reboot for the provisioner to re-run."
 			Write-Host "`n[$scriptName] ---------- stop ----------`n"
 			exit 0
