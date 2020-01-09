@@ -11,28 +11,41 @@ function executeExpression ($expression) {
     return $output
 }
 
+function removeLocal ($userName) {
+	Write-Host "`n[$scriptName] Workgroup Host, delete local user ($userName).`n"
+	$ADSIComp = executeExpression "[ADSI]`"WinNT://$Env:COMPUTERNAME,Computer`""
+	executeExpression "`$ADSIComp.Delete('User', `"$userName`")"
+	executeExpression "net user"
+}
+
 $scriptName = 'removeUser.ps1'
 Write-Host "`n[$scriptName] Remove User from Domain or Workgroup, Windows Server 2012 and above`n"
 Write-Host "`n[$scriptName] ---------- start ----------"
 $userName = $args[0]
 if ($userName) {
-    Write-Host "[$scriptName] userName             : $userName"
+    Write-Host "[$scriptName] userName : $userName"
 } else {
 	$userName = 'vagrant'
-    Write-Host "[$scriptName] userName             : $userName (default)"
+    Write-Host "[$scriptName] userName : $userName (default)"
 }
 
-if ((gwmi win32_computersystem).partofdomain -eq $true) {
+if ( $userName.StartsWith('.\')) { 
 
-	Write-Host "`n[$scriptName] Remove the new user`n"
-	executeExpression  "Remove-ADUser -Name $userName"
+	$prefix, $userName = userName.Split('\')
+	removeLocal $userName
 
 } else {
 
-	Write-Host "`n[$scriptName] Workgroup Host, delete local user ($userName).`n"
-	$ADSIComp = executeExpression "[ADSI]`"WinNT://$Env:COMPUTERNAME,Computer`""
-	executeExpression "`$ADSIComp.Delete('User', `"$userName`")"
-
+	if ((gwmi win32_computersystem).partofdomain -eq $true) {
+	
+		Write-Host "`n[$scriptName] Remove the new user`n"
+		executeExpression  "Remove-ADUser -Name $userName"
+	
+	} else {
+	
+		removeLocal $userName
+	
+	}
 }
 
 Write-Host "`n[$scriptName] ---------- stop ----------`n"
