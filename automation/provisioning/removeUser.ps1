@@ -31,7 +31,7 @@ if ($userName) {
 
 if ( $userName.StartsWith('.\')) { 
 
-	$prefix, $userName = userName.Split('\')
+	$prefix, $userName = $userName.Split('\')
 	removeLocal $userName
 
 } else {
