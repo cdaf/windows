@@ -1,3 +1,7 @@
+Import-Module Microsoft.PowerShell.Utility
+Import-Module Microsoft.PowerShell.Management
+Import-Module Microsoft.PowerShell.Security
+
 # Override function used in entry points
 function exceptionExit ($taskName) {
     write-host "`n[$scriptName] --- exceptionExit ---" -ForegroundColor Red

@@ -8,6 +8,10 @@ Param (
 	[string]$BUILDNUMBER
 )
 
+Import-Module Microsoft.PowerShell.Utility
+Import-Module Microsoft.PowerShell.Management
+Import-Module Microsoft.PowerShell.Security
+
 # Initialise
 cmd /c "exit 0"
 $exitStatus = 0

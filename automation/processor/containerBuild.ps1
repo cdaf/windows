@@ -6,6 +6,10 @@ Param (
 	[string]$rebuildImage
 )
 
+Import-Module Microsoft.PowerShell.Utility
+Import-Module Microsoft.PowerShell.Management
+Import-Module Microsoft.PowerShell.Security
+
 $scriptName = 'containerBuild.ps1'
 
 # Common expression logging and error handling function, copied, not referenced to ensure atomic process

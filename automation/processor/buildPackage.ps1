@@ -8,6 +8,10 @@ Param (
 	[string]$REMOTE_WORK_DIR
 )
 
+Import-Module Microsoft.PowerShell.Utility
+Import-Module Microsoft.PowerShell.Management
+Import-Module Microsoft.PowerShell.Security
+
 # Initialise
 cmd /c "exit 0"
 $scriptName = $MyInvocation.MyCommand.Name

@@ -1,3 +1,13 @@
+Param (
+  [string]$dbName,
+  [string]$dbUser,
+  [string]$dbPermissions,
+  [string]$dbhost
+)
+
+# Reset $LASTEXITCODE
+cmd /c exit 0
+
 # Common expression logging and error handling function, copied, not referenced to ensure atomic process
 function executeExpression ($expression) {
 	$error.clear()
@@ -12,31 +22,25 @@ function executeExpression ($expression) {
 }
 
 $scriptName = 'sqlPermit.ps1'
-Write-Host
-Write-Host "[$scriptName] ---------- start ----------"
-$dbName = $args[0]
+Write-Host "`n [$scriptName] ---------- start ----------"
 if ($dbName) {
     Write-Host "[$scriptName] dbName       : $dbName"
 } else {
     Write-Host "[$scriptName] dbName not supplied, exiting with code 100"; exit 100
 }
 
-$dbUser = $args[1]
 if ($dbUser) {
     Write-Host "[$scriptName] dbUser       : $dbUser"
 } else {
     Write-Host "[$scriptName] dbUser not supplied, exiting with code 101"; exit 101
 }
 
-$dbPermission = $args[2]
-if ($dbPermission) {
-    Write-Host "[$scriptName] dbPermission : $dbPermission"
+if ($dbPermissions) {
+    Write-Host "[$scriptName] dbPermissions : $dbPermissions"
 } else {
-    Write-Host "[$scriptName] dbPermission not supplied, exiting with code 102"
-	exit 102
+    Write-Host "[$scriptName] dbPermissions not supplied, available permissions will be listed"
 }
 
-$dbhost = $args[3]
 if ($dbhost) {
     Write-Host "[$scriptName] dbhost       : $dbhost"
 } else {
@@ -65,27 +69,34 @@ if ( $db ) {
     Write-Host "[$scriptName] Database $dbName not found!, Exit with code 104"; exit 104
 }
 
-Write-Host "`n[$scriptName] List the current user roles ...`n"
-$usr = executeExpression "New-Object ('Microsoft.SqlServer.Management.Smo.User') (`$db, `"$dbUser`")"
-executeExpression "`$usr.EnumRoles()"
+if ($dbPermissions) {
+	Write-Host "`n[$scriptName] List the current user roles ...`n"
+	$usr = executeExpression "New-Object ('Microsoft.SqlServer.Management.Smo.User') (`$db, `"$dbUser`")"
+	executeExpression "`$usr.EnumRoles()"
 
-Write-Host "`n[$scriptName] List all users currently with this role ...`n"
-$dbRole = executeExpression "`$db.Roles[`"$dbPermission`"]"
-if ( $dbRole ) {
-	executeExpression "`$dbRole | select Urn"
-	executeExpression "`$dbRole.EnumMembers()"
+	foreach ($permissionName in $dbPermissions) {
+		
+		Write-Host "`n[$scriptName] List all users currently with this role ...`n"
+		$dbRole = executeExpression "`$db.Roles[`"$permissionName`"]"
+		if ( $dbRole ) {
+			executeExpression "`$dbRole | select Urn"
+			executeExpression "`$dbRole.EnumMembers()"
+		} else {
+		    Write-Host "[$scriptName] Database Role $dbPermissions not found!, Exit with code 105"; exit 105
+		}
+		
+		executeExpression "`$dbRole.AddMember(`"$dbUser`")"
+		executeExpression "`$dbRole.Alter()"
+		
+		Write-Host "`n[$scriptName] List all users with this role after update ...`n"
+		executeExpression "`$dbrole.EnumMembers()"
+		
+		Write-Host "`n[$scriptName] List the user roles after update ...`n"
+		executeExpression "`$usr.EnumRoles()"
+	}
 } else {
-    Write-Host "[$scriptName] Database Role $dbPermission not found!, Exit with code 105"; exit 105
+	Write-Host "`n[$scriptName] dbPermissions not passed, listing available permissions ...`n"
+	foreach ($permission in $db.Roles) { $permission.Name }
 }
 
-executeExpression "`$dbRole.AddMember(`"$dbUser`")"
-executeExpression "`$dbRole.Alter()"
-
-Write-Host "`n[$scriptName] List all users with this role after update ...`n"
-executeExpression "`$dbrole.EnumMembers()"
-
-Write-Host "`n[$scriptName] List the user roles after update ...`n"
-executeExpression "`$usr.EnumRoles()"
-
-Write-Host
-Write-Host "[$scriptName] ---------- stop ----------"
+Write-Host "`n[$scriptName] ---------- stop ----------"
