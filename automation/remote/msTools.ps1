@@ -74,7 +74,7 @@ if (!( $env:MS_BUILD )) {
 
 # Try Visual Studio 2015 path
 if (!( $env:MS_BUILD )) {
-	$msbuild = ((Get-ItemProperty ((Get-Item 'HKLM:\SOFTWARE\Microsoft\MSBuild\ToolsVersions\14.0').pspath) -PSProperty MSBuildToolsPath).MSBuildToolsPath) + 'msbuild.exe'
+	$env:MS_BUILD = ((Get-ItemProperty ((Get-Item 'HKLM:\SOFTWARE\Microsoft\MSBuild\ToolsVersions\14.0').pspath) -PSProperty MSBuildToolsPath).MSBuildToolsPath) + 'msbuild.exe'
 }
 
 # Finally search for VSTS agent install
