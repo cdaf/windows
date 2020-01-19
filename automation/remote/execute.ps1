@@ -219,6 +219,11 @@ function ELEVAT ($command) {
     Start-DscConfiguration -Wait -Path ./elevated -Verbose -Force
 }
 
+# Requires vswhere
+function MSTOOL ($command) { 
+	executeExpression "$automationHelper\msTools.ps1"
+}
+
 $SOLUTION    = $args[0]
 $BUILDNUMBER = $args[1]
 $TARGET      = $args[2]
@@ -246,7 +251,7 @@ if ( $PROJECT ) {
 Write-Host
 
 # If called from build process, automation root will be set
-$automationHelper="$AUTOMATIONROOT\remote"
+$automationHelper = "$AUTOMATIONROOT\remote"
 
 # Initialise termination variable
 $terminate = "no"
