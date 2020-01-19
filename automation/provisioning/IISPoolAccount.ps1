@@ -25,7 +25,7 @@ $poolPassword = $args[1]
 if ($poolPassword) {
     Write-Host "[$scriptName] poolPassword : *********************"
 } else {
-    Write-Host "[$scriptName] pool ID password not supplied! Exit with code 101"; exit 101
+    Write-Host "[$scriptName] poolPassword : not supplied (assuming Managed Service Account)"
 }
 
 $poolName = $args[2]
