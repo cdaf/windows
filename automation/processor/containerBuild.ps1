@@ -11,6 +11,7 @@ Import-Module Microsoft.PowerShell.Management
 Import-Module Microsoft.PowerShell.Security
 
 $scriptName = 'containerBuild.ps1'
+cmd /c "exit 0"
 
 # Common expression logging and error handling function, copied, not referenced to ensure atomic process
 function executeExpression ($expression) {
@@ -24,48 +25,47 @@ function executeExpression ($expression) {
     if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) { Write-Host "[$scriptName] `$LASTEXITCODE = $LASTEXITCODE "; exit $LASTEXITCODE }
 }
 
-cmd /c "exit 0"
-# Use the CDAF provisioning helpers
 Write-Host "`n[$scriptName] ---------- start ----------`n"
 if ( $imageName ) {
 	Write-Host "[$scriptName]   imageName      : ${imageName} (passed, to be used in docker)"
-} else {
-	Write-Host "[$scriptName]   imageName not supplied, exit with code 99"; exit 99
-}
 
-if ( $buildNumber ) { 
-	Write-Host "[$scriptName]   buildNumber    : $buildNumber"
-} else {
-	Write-Host "[$scriptName]   buildNumber    : (not supplied)"
-}
+	if ( $buildNumber ) { 
+		Write-Host "[$scriptName]   buildNumber    : $buildNumber"
+	} else {
+		Write-Host "[$scriptName]   buildNumber    : (not supplied)"
+	}
+	
+	if ( $revision ) { 
+		Write-Host "[$scriptName]   revision       : $revision"
+	} else {
+		$revision = 'container_build'
+		Write-Host "[$scriptName]   revision       : $revision (not supplied, set to default)"
+	}
+	
+	if ( $action ) { 
+		Write-Host "[$scriptName]   action         : $action"
+	} else {
+		$action = 'containerbuild'
+		Write-Host "[$scriptName]   action         : $action (not supplied, set to default)"
+	}
+	
+	if ( $rebuildImage ) {
+		Write-Host "[$scriptName]   rebuildImage   : $rebuildImage (choices are yes, no or imageonly)"
+	} else {
+		$rebuildImage = 'no'
+		Write-Host "[$scriptName]   rebuildImage   : $rebuildImage (not supplied, so set to default)"
+	}
+	
+	$imageName = "${imageName}_$($revision.ToLower())"
+	Write-Host "[$scriptName]   imageName      : $imageName"
+	Write-Host "[$scriptName]   DOCKER_HOST    : $env:DOCKER_HOST"
+	Write-Host "[$scriptName]   pwd            : $(Get-Location)"
+	Write-Host "[$scriptName]   hostname       : $(hostname)"
+	Write-Host "[$scriptName]   whoami         : $(whoami)"
 
-if ( $revision ) { 
-	Write-Host "[$scriptName]   revision       : $revision"
 } else {
-	$revision = 'container_build'
-	Write-Host "[$scriptName]   revision       : $revision (not supplied, set to default)"
+	Write-Host "[$scriptName]   imageName      : (not supplied, only process CDAF automation load)"
 }
-
-if ( $action ) { 
-	Write-Host "[$scriptName]   action         : $action"
-} else {
-	$action = 'containerbuild'
-	Write-Host "[$scriptName]   action         : $action (not supplied, set to default)"
-}
-
-if ( $rebuildImage ) {
-	Write-Host "[$scriptName]   rebuildImage   : $rebuildImage (choices are yes, no or imageonly)"
-} else {
-	$rebuildImage = 'no'
-	Write-Host "[$scriptName]   rebuildImage   : $rebuildImage (not supplied, so set to default)"
-}
-
-$imageName = "${imageName}_$($revision.ToLower())"
-Write-Host "[$scriptName]   imageName      : $imageName"
-Write-Host "[$scriptName]   DOCKER_HOST    : $env:DOCKER_HOST"
-Write-Host "[$scriptName]   pwd            : $(Get-Location)"
-Write-Host "[$scriptName]   hostname       : $(hostname)"
-Write-Host "[$scriptName]   whoami         : $(whoami)"
 
 if ( Test-Path ".\automation" ) {
 	if ( (Get-Item $env:CDAF_AUTOMATION_ROOT).FullName -ne "$($(pwd).Path)\automation" ) {
@@ -85,54 +85,56 @@ if ( Test-Path ".\automation" ) {
 	}
 }
 
-Write-Host '$dockerStatus = ' -NoNewline 
-
-$imageTag = 0
-foreach ( $imageDetails in docker images --filter label=cdaf.${imageName}.image.version --format "{{.Tag}}" ) {
-	if ($imageTag -lt [INT]$imageDetails ) { $imageTag = [INT]$imageDetails }
-}
-if ( $imageTag ) {
-	Write-Host "[$scriptName] Last image tag is $imageTag, new image will be $($imageTag + 1)"
-} else {
-	$imageTag = 0
-	Write-Host "[$scriptName] No existing images, new image will be $($imageTag + 1)"
-}
-
-executeExpression "cat Dockerfile"
+if ( $imageName ) {
+	Write-Host '$dockerStatus = ' -NoNewline 
 	
-if ( $rebuildImage -eq 'yes') {
-	# Force rebuild, i.e. no-cache
-	executeExpression "$env:CDAF_AUTOMATION_ROOT/remote/dockerBuild.ps1 ${imageName} $($imageTag + 1) -rebuild yes"
-} else {
-	executeExpression "$env:CDAF_AUTOMATION_ROOT/remote/dockerBuild.ps1 ${imageName} $($imageTag + 1)"
-}
-
-# Remove any older images	
-executeExpression "$env:CDAF_AUTOMATION_ROOT/remote/dockerClean.ps1 ${imageName} $($imageTag + 1)"
-
-if ( $rebuildImage -ne 'imageonly') {
-	# Retrieve the latest image number
 	$imageTag = 0
 	foreach ( $imageDetails in docker images --filter label=cdaf.${imageName}.image.version --format "{{.Tag}}" ) {
 		if ($imageTag -lt [INT]$imageDetails ) { $imageTag = [INT]$imageDetails }
 	}
-
-	$workspace = (Get-Location).Path
-	Write-Host "[$scriptName] `$imageTag  : $imageTag"
-	Write-Host "[$scriptName] `$workspace : $workspace"
-	
-	executeExpression "docker run --tty --volume ${workspace}\:C:/solution/workspace ${imageName}:${imageTag} automation\processor\buildPackage.bat $buildNumber $revision $action"
-	
-	Write-Host "`n[$scriptName] List and remove all stopped containers"
-	executeExpression "docker ps --filter `"status=exited`" -a"
-	$stopped = docker ps --filter "status=exited" -aq
-	if ( $stopped ) { 
-		executeExpression "docker rm $stopped"
+	if ( $imageTag ) {
+		Write-Host "[$scriptName] Last image tag is $imageTag, new image will be $($imageTag + 1)"
+	} else {
+		$imageTag = 0
+		Write-Host "[$scriptName] No existing images, new image will be $($imageTag + 1)"
 	}
-}
-
-if ( $cleanupCDAF ) {
-	executeExpression "Remove-Item -Recurse .\automation"
+	
+	executeExpression "cat Dockerfile"
+		
+	if ( $rebuildImage -eq 'yes') {
+		# Force rebuild, i.e. no-cache
+		executeExpression "$env:CDAF_AUTOMATION_ROOT/remote/dockerBuild.ps1 ${imageName} $($imageTag + 1) -rebuild yes"
+	} else {
+		executeExpression "$env:CDAF_AUTOMATION_ROOT/remote/dockerBuild.ps1 ${imageName} $($imageTag + 1)"
+	}
+	
+	# Remove any older images	
+	executeExpression "$env:CDAF_AUTOMATION_ROOT/remote/dockerClean.ps1 ${imageName} $($imageTag + 1)"
+	
+	if ( $rebuildImage -ne 'imageonly') {
+		# Retrieve the latest image number
+		$imageTag = 0
+		foreach ( $imageDetails in docker images --filter label=cdaf.${imageName}.image.version --format "{{.Tag}}" ) {
+			if ($imageTag -lt [INT]$imageDetails ) { $imageTag = [INT]$imageDetails }
+		}
+	
+		$workspace = (Get-Location).Path
+		Write-Host "[$scriptName] `$imageTag  : $imageTag"
+		Write-Host "[$scriptName] `$workspace : $workspace"
+		
+		executeExpression "docker run --tty --volume ${workspace}\:C:/solution/workspace ${imageName}:${imageTag} automation\processor\buildPackage.bat $buildNumber $revision $action"
+		
+		Write-Host "`n[$scriptName] List and remove all stopped containers"
+		executeExpression "docker ps --filter `"status=exited`" -a"
+		$stopped = docker ps --filter "status=exited" -aq
+		if ( $stopped ) { 
+			executeExpression "docker rm $stopped"
+		}
+	}
+	
+	if ( $cleanupCDAF ) {
+		executeExpression "Remove-Item -Recurse .\automation"
+	}
 }
 
 Write-Host "`n[$scriptName] ---------- stop ----------"
