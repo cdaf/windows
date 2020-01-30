@@ -155,7 +155,7 @@ if ($vstsPackageAccessToken) {
 	executeExpression "Add-Content /packagePAT `"`$vstsPackageAccessToken`""
 }
 
-if ( $stable -eq 'yes' ) { 
+if ( $docker -eq 'yes' ) { 
 	executeExpression "./automation/provisioning/InstallDocker.ps1 -restart $restart"
 }
 
