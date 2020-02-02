@@ -21,9 +21,9 @@ cd:
   variables:
     ENV: "CD"
   script: "TasksLocal/delivery.bat %ENV% %CI_PIPELINE_ID%"
-  environment: cd
+  environment: "${CI_JOB_STAGE}"
   dependencies:
-  - cdaf-ci
+    - cdaf-ci
 
 test:
   stage: manual test
@@ -32,9 +32,9 @@ test:
   variables:
     ENV: "TEST"
   script: "TasksLocal/delivery.bat %ENV% %CI_PIPELINE_ID%"
-  environment: test
+  environment: "${CI_JOB_STAGE}"
   dependencies:
-  - cdaf-ci
+    - cdaf-ci
   only:
     - master
 
@@ -46,8 +46,8 @@ production:
     ENV: "PROD"
   script: "TasksLocal/delivery.bat %ENV% %CI_PIPELINE_ID%"
   when: manual
-  environment: production
+  environment: "${CI_JOB_STAGE}"
   dependencies:
-  - cdaf-ci
+    - cdaf-ci
   only:
     - master
