@@ -19,7 +19,7 @@ cd:
   tags:
     - batch
   script: "TasksLocal/delivery.bat %CI_JOB_NAME% %CI_PIPELINE_ID%"
-  environment: "${CI_JOB_NAME}"
+  environment: "${CI_JOB_STAGE}"
   dependencies:
     - cdaf-ci
 
@@ -28,7 +28,7 @@ test:
   tags:
     - batch
   script: "TasksLocal/delivery.bat %CI_JOB_NAME% %CI_PIPELINE_ID%"
-  environment: "${CI_JOB_NAME}"
+  environment: "${CI_JOB_STAGE}"
   dependencies:
     - cdaf-ci
   only:
@@ -39,7 +39,7 @@ production:
   tags:
     - batch
   script: "TasksLocal/delivery.bat %CI_JOB_NAME% %CI_PIPELINE_ID%"
-  environment: "${CI_JOB_NAME}"
+  environment: "${CI_JOB_STAGE}"
   dependencies:
     - cdaf-ci
   only:
