@@ -141,7 +141,7 @@ if ( $url ) {
 	}
 	
 	executeExpression "cd C:\agent"
-	Write-Host "[$scriptName] Start-Process $fullpath -ArgumentList $printList -PassThru -Wait"
+	Write-Host "[$scriptName] Start-Process $fullpath -ArgumentList $printList -PassThru -Wait -NoNewWindow"
 	$proc = Start-Process $fullpath -ArgumentList $argList -PassThru -Wait -NoNewWindow
 	if ( $proc.ExitCode -ne 0 ) {
 		Write-Host "`n[$scriptName] Error occured, listing last 40 lines of log $((Get-ChildItem C:\agent\_diag)[0].FullName)`n"
