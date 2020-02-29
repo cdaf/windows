@@ -1,11 +1,11 @@
 Param (
-	[string]$agentSAPassword,
 	[string]$vstsURL,
 	[string]$personalAccessToken,
+	[string]$vstsSA,
+	[string]$vstsPool,
+	[string]$agentSAPassword,
 	[string]$agentName,
 	[string]$vstsPackageAccessToken,
-	[string]$vstsPool,
-	[string]$vstsSA,
 	[string]$stable,
 	[string]$docker,
 	[string]$restart
@@ -27,12 +27,6 @@ $scriptName = 'bootstrap-vsts.ps1'
 cmd /c "exit 0" # ensure LASTEXITCODE is 0
 
 Write-Host "`n[$scriptName] ---------- start ----------"
-if ($agentSAPassword) {
-    Write-Host "[$scriptName] agentSAPassword        : `$agentSAPassword"
-} else {
-    Write-Host "[$scriptName] agentSAPassword        : (not supplied, will install as inbuilt acocunt)"
-}
-
 if ($vstsURL) {
     Write-Host "[$scriptName] vstsURL                : $vstsURL"
 } else {
@@ -49,6 +43,32 @@ if ($personalAccessToken) {
     Write-Host "[$scriptName] personalAccessToken    : (not supplied, will install VSTS agent but not attempt to register)"
 }
 
+if ($vstsSA) {
+    Write-Host "[$scriptName] vstsSA                 : $vstsSA"
+} else {
+	$vstsSA = '.\vsts-agent-sa'
+    Write-Host "[$scriptName] vstsSA                 : $vstsSA (not supplied, set to default)"
+}
+
+if ($vstsPool) {
+    Write-Host "[$scriptName] vstsPool               : $vstsPool"
+} else {
+	$vstsPool = 'Default'
+    Write-Host "[$scriptName] vstsPool               : $vstsPool (not supplied, set to default)"
+}
+
+if ($agentSAPassword) {
+    Write-Host "[$scriptName] agentSAPassword        : `$agentSAPassword"
+} else {
+	if ($vstsSA) {
+	    Write-Host "[$scriptName] agentSAPassword        : (not supplied and vstsSA, will install as inbuilt account)"
+	} else {
+		$env:AGENT_SA_PASSWORD = -join ((65..90) + (97..122) + (33) + (35) + (43) + (45..46) + 58..64) | Get-Random -Count 30 | % {[char]$_})
+		$agentSAPassword = $env:AGENT_SA_PASSWORD
+	    Write-Host "[$scriptName] agentSAPassword        : `$env:AGENT_SA_PASSWORD (not supplied but vstsSA set, so randomly generated)"
+	}
+}
+
 if ($agentName) {
     Write-Host "[$scriptName] agentName              : $agentName"
 } else {
@@ -60,20 +80,6 @@ if ($vstsPackageAccessToken) {
     Write-Host "[$scriptName] vstsPackageAccessToken : `$vstsPackageAccessToken"
 } else {
     Write-Host "[$scriptName] vstsPackageAccessToken : (not supplied)"
-}
-
-if ($vstsPool) {
-    Write-Host "[$scriptName] vstsPool               : $vstsPool"
-} else {
-	$vstsPool = 'Default'
-    Write-Host "[$scriptName] vstsPool               : $vstsPool (not supplied, set to default)"
-}
-
-if ($vstsSA) {
-    Write-Host "[$scriptName] vstsSA                 : $vstsSA"
-} else {
-	$vstsSA = '.\vsts-agent-sa'
-    Write-Host "[$scriptName] vstsSA                 : $vstsSA (not supplied, set to default)"
 }
 
 if ($stable) {
