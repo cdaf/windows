@@ -63,7 +63,7 @@ if ($agentSAPassword) {
 	if ($vstsSA) {
 	    Write-Host "[$scriptName] agentSAPassword        : (not supplied and vstsSA, will install as inbuilt account)"
 	} else {
-		$env:AGENT_SA_PASSWORD = -join ((65..90) + (97..122) + (33) + (35) + (43) + (45..46) + 58..64) | Get-Random -Count 30 | % {[char]$_})
+		$env:AGENT_SA_PASSWORD = -join ((65..90) + (97..122) + (33) + (35) + (43) + (45..46) + (58..64) | Get-Random -Count 30 | % {[char]$_})
 		$agentSAPassword = $env:AGENT_SA_PASSWORD
 	    Write-Host "[$scriptName] agentSAPassword        : `$env:AGENT_SA_PASSWORD (not supplied but vstsSA set, so randomly generated)"
 	}
