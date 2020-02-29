@@ -127,17 +127,11 @@ if ( $url ) {
 	}
 	
 	if ( $serviceAccount ) {
-		if ( $servicePassword ) {
-			$printList = "$argList --token `$pat --pool `"$pool`" --agent $agentName --replace --runasservice --windowslogonaccount $serviceAccount --windowslogonpassword `$servicePassword"
-			$argList += " --token $pat --pool `"$pool`" --agent $agentName --replace --runasservice --windowslogonaccount $serviceAccount --windowslogonpassword $servicePassword"
-		} else {
-			Write-Host "[$scriptName] Start-Process $fullpath -ArgumentList $printList -PassThru -Wait"
-			$printList = "$argList --token `$pat --pool `"$pool`" --agent $agentName --replace --runasservice --windowslogonaccount $serviceAccount"
-			$argList += " --token $pat --pool `"$pool`" --agent $agentName --replace --runasservice --windowslogonaccount $serviceAccount"
-		}
+		$printList = "$argList --token `"`$pat`" --pool `"$pool`" --agent `"$agentName`" --replace --runasservice --windowslogonaccount `"$serviceAccount`" --windowslogonpassword `"`$servicePassword`""
+		$argList += " --token `"$pat`" --pool `"$pool`" --agent `"$agentName`" --replace --runasservice --windowslogonaccount `"$serviceAccount`" --windowslogonpassword `"$servicePassword`""
 	} else {
-		$printList = "$argList --token `$pat --pool `"$pool`" --agent $agentName --replace"
-		$argList += " --token $pat --pool `"$pool`" --agent $agentName --replace"
+		$printList = "$argList --token `"`$pat`" --pool `"$pool`" --agent `"$agentName`" --replace"
+		$argList += " --token `"$pat`" --pool `"$pool`" --agent `"$agentName`" --replace"
 	}
 	
 	executeExpression "cd C:\agent"
