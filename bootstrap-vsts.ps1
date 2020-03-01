@@ -14,13 +14,13 @@ Param (
 # Common expression logging and error handling function, copied, not referenced to ensure atomic process
 function executeExpression ($expression) {
 	$error.clear()
-	Write-Host "[$(date)] $expression
+	Write-Host "[$(Get-date)] $expression"
 	try {
-		Invoke-Expression "$expression
-	    if(!$?) { Write-Host "[FAILURE][$scriptName] `$? = $?"; Write-Host "[$scriptName] See logs at $env:temp\InstallAgent.log"; exit 1 }
-	} catch { echo $_.Exception|format-list -force; Write-Host "[$scriptName] See logs at $env:temp\InstallAgent.log"; exit 2 }
-    if ( $error ) { Write-Host "[$scriptName] `$error[0] = $error"; Write-Host "[$scriptName] See logs at $env:temp\InstallAgent.log"; exit 3 }
-    if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) { Write-Host "[$scriptName] `$LASTEXITCODE = $LASTEXITCODE "; Write-Host "[$scriptName] See logs at $env:temp\InstallAgent.log"; exit $LASTEXITCODE }
+		Invoke-Expression "$expression"
+	    if(!$?) { Write-Host "[FAILURE][$scriptName] `$? = $?"; exit 1 }
+	} catch { Write-Host "[EXCEPTION][$scriptName] ..."; Write-Output $_.Exception|format-list -force; exit 2 }
+    if ( $error ) { Write-Host "[$scriptName][ERROR] `$error[0] = $error"; exit 3 }
+    if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) { Write-Host "[$scriptName][EXIT] `$LASTEXITCODE = $LASTEXITCODE "; exit $LASTEXITCODE }
 }
 
 $scriptName = 'bootstrap-vsts.ps1'
