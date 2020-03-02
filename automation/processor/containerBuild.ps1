@@ -113,7 +113,7 @@ if ( $imageName ) {
 	}
 
 	if ( $buildArgs ) {
-		$otherOptions += " -optionalArgs $buildArgs"
+		$otherOptions += " -optionalArgs '$buildArgs'"
 	}
 
 	executeExpression "$env:CDAF_AUTOMATION_ROOT/remote/dockerBuild.ps1 ${imageName} $($imageTag + 1) $otherOptions"
