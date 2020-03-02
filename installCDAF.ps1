@@ -34,8 +34,7 @@ function main () {
 	if ( $env:http_proxy ) {
 		executeExpression "[system.net.webrequest]::defaultwebproxy = New-Object system.net.webproxy('$env:http_proxy')"
 	} else {
-		$browser = New-Object System.Net.WebClient
-		executeExpression '$browser.Proxy.Credentials =[System.Net.CredentialCache]::DefaultNetworkCredentials' 
+		executeExpression '(New-Object System.Net.WebClient).Proxy.Credentials =[System.Net.CredentialCache]::DefaultNetworkCredentials' 
 	}
 	executeExpression '[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12'
 	executeExpression "(New-Object System.Net.WebClient).DownloadFile('https://codeload.github.com/cdaf/windows/zip/master', '$env:temp\cdaf.zip')"
