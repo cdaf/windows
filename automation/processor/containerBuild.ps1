@@ -3,7 +3,8 @@ Param (
 	[string]$buildNumber,
 	[string]$revision,
 	[string]$action,
-	[string]$rebuildImage
+	[string]$rebuildImage,
+	[string]$buildArgs
 )
 
 Import-Module Microsoft.PowerShell.Utility
@@ -56,6 +57,12 @@ if ( $imageName ) {
 		Write-Host "[$scriptName]   rebuildImage   : $rebuildImage (not supplied, so set to default)"
 	}
 	
+	if ( $buildArgs ) {
+		Write-Host "[$scriptName]   buildArgs      : $buildArgs"
+	} else {
+		Write-Host "[$scriptName]   buildArgs      : (not supplied)"
+	}
+	
 	$imageName = "${imageName}_$($revision.ToLower())"
 	Write-Host "[$scriptName]   imageName      : $imageName"
 	Write-Host "[$scriptName]   DOCKER_HOST    : $env:DOCKER_HOST"
@@ -102,11 +109,14 @@ if ( $imageName ) {
 	executeExpression "cat Dockerfile"
 		
 	if ( $rebuildImage -eq 'yes') {
-		# Force rebuild, i.e. no-cache
-		executeExpression "$env:CDAF_AUTOMATION_ROOT/remote/dockerBuild.ps1 ${imageName} $($imageTag + 1) -rebuild yes"
-	} else {
-		executeExpression "$env:CDAF_AUTOMATION_ROOT/remote/dockerBuild.ps1 ${imageName} $($imageTag + 1)"
+		$otherOptions = " -rebuild $rebuildImage"
 	}
+
+	if ( $buildArgs ) {
+		$otherOptions += " -optionalArgs $buildArgs"
+	}
+
+	executeExpression "$env:CDAF_AUTOMATION_ROOT/remote/dockerBuild.ps1 ${imageName} $($imageTag + 1) $otherOptions"
 	
 	# Remove any older images	
 	executeExpression "$env:CDAF_AUTOMATION_ROOT/remote/dockerClean.ps1 ${imageName} $($imageTag + 1)"
