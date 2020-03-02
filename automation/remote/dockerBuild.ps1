@@ -37,29 +37,38 @@ Write-Host "`n[$scriptName] ---------- start ----------"
 Write-Host "`n[$scriptName] Build docker image, resulting image tag will be ${imageName}:${tag}"
 if ($imageName) {
 	$imageName = $imageName.ToLower()
-    Write-Host "[$scriptName] imageName : $imageName"
+    Write-Host "[$scriptName] imageName    : $imageName"
 } else {
     Write-Host "[$scriptName] imageName not supplied, exit with `$LASTEXITCODE = 1"; exit 1
 }
+
 if ($tag) {
-    Write-Host "[$scriptName] tag       : $tag"
+    Write-Host "[$scriptName] tag          : $tag"
 } else {
-    Write-Host "[$scriptName] tag       : not supplied"
+    Write-Host "[$scriptName] tag          : not supplied"
 }
+
 if ($version) {
-    Write-Host "[$scriptName] version   : $version"
+    Write-Host "[$scriptName] version      : $version"
 } else {
 	if ( $tag ) {
 		$version = $tag
 	} else {
 		$version = '0.0.0'
 	}
-    Write-Host "[$scriptName] version   : $version (not supplied, defaulted to tag if passed, else set to 0.0.0)"
+    Write-Host "[$scriptName] version      : $version (not supplied, defaulted to tag if passed, else set to 0.0.0)"
 }
+
 if ($rebuild) {
-    Write-Host "[$scriptName] rebuild   : $rebuild"
+    Write-Host "[$scriptName] rebuild      : $rebuild"
 } else {
-    Write-Host "[$scriptName] rebuild   : (not supplied, docker will use cache where possible)"
+    Write-Host "[$scriptName] rebuild      : (not supplied, docker will use cache where possible)"
+}
+
+if ($optionalArgs) {
+    Write-Host "[$scriptName] optionalArgs : $optionalArgs"
+} else {
+    Write-Host "[$scriptName] optionalArgs : (not supplied)"
 }
 
 Write-Host "`n[$scriptName] List existing images ...`n"
