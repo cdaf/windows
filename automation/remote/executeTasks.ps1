@@ -14,7 +14,7 @@ function passExitCode ($message, $exitCode) {
 
 function exceptionExit ($exception) {
     write-host "[$scriptName]   Exception details follow ..." -ForegroundColor Red
-    echo $exception.Exception|format-list -force
+    Write-Output $exception.Exception|format-list -force
     write-host "[$scriptName] Returning errorlevel (500) to DOS" -ForegroundColor Magenta
     $host.SetShouldExit(500); exit
 }
@@ -53,7 +53,7 @@ write-host "[$scriptName]   TARGET               : $TARGET"
 if ($WORKSPACE ) {
     write-host "[$scriptName]   WORKSPACE            : $WORKSPACE (passed as argument)"
 } else {
-    write-host "[$scriptName]   WORKSPACE            : $(pwd)"
+    write-host "[$scriptName]   WORKSPACE            : $(Get-Location)"
 }
 
 if ($OPT_ARG ) {

@@ -40,7 +40,7 @@ while (( $retryCount -le $retryMax ) -and ($exitCode -ne 0)) {
 		} else {
 			$retryCount += 1
 			Write-Host "[$scriptName] Wait $wait seconds, then retry $retryCount of $retryMax"
-			sleep $wait
+			Start-Sleep $wait
 		}
 	}
 }

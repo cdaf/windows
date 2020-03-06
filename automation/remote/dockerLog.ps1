@@ -52,7 +52,7 @@ $retryCount = 0
 $lastLineNumber = 0
 $exitCode = 4365
 while (( $retryCount -le $retryMax ) -and ($exitCode -ne 0)) {
-	sleep $wait
+	Start-Sleep $wait
 	if ( $container -eq 'DOCKER-COMPOSE' ) {
 		$output = $(docker-compose logs)
 	} else {
