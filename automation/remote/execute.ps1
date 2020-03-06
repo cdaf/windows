@@ -32,16 +32,6 @@ function executeExpression ($expression) {
     return $output
 }
 
-# Controlled User Exit
-function EXITIF ($command) { 
-
-	$result = Invoke-Expression 'if ($condition) { Write-Host "Controlled exit due to ($($condition)) returning true." ; return $True} else { return $False }'
-	if ( $result ) {
-		Write-Host "`n~~~~~ Shutdown Execution Engine ~~~~~~"
-		exit 0
-	}
-}
-
 function MAKDIR ($itemPath) { 
 # If directory already exists, just report, otherwise create the directory and report
 	if ( Test-Path $itemPath ) {
@@ -319,6 +309,12 @@ Foreach ($line in get-content $TASK_LIST) {
 
 				# Check for cross platform key words, first 6 characters, by convention uppercase but either supported
 				$feature=$expression.substring(0,7).ToUpper()
+
+				# Exit (normally) if argument set
+	            if ( $feature -eq 'EXITIF ' ) {
+		            $exitVar = $expression.Substring(7)
+		            Write-Host "$expression ==> if ( $exitVar ) then exit" -NoNewline
+		            $expression = "if ( $exitVar ) { Write-Host `"`n`n ... controlled exit due to criteria met.`"; Write-Host `"`n~~~~~ Shutdown Execution Engine ~~~~~~`"; exit 0}" }
 					
 				# Load Properties from file as variables
 	            if ( $feature -eq 'PROPLD ' ) {
