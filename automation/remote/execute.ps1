@@ -14,7 +14,7 @@ function executeExpression ($expression) {
 	try {
 		$output = Invoke-Expression $expression
 	    if(!$?) { Write-Host "[$scriptName] `$? = $?"; exit 1 }
-	} catch { echo $_.Exception|format-list -force; exit 2 }
+	} catch { Write-Output $_.Exception|format-list -force; exit 2 }
     if ( $error[0] ) { 
     	if ( $ignoreWarning -eq 'yes' ) {
 	    	Write-Host "[$scriptName] `$error[0] = $error but `$ignoreWarning is yes so continuing ..."; $error.clear()
@@ -110,7 +110,7 @@ function VECOPY ($from, $to, $notFirstRun) {
 #  required : source directory, relative to current workspace
 function CMPRSS( $zipfilename, $sourcedir )
 {
-	$currentDir = $(pwd)
+	$currentDir = $(Get-Location)
 	if (!( $sourcedir )) {
 		$sourcedir = $zipfilename
 	}
@@ -121,11 +121,11 @@ function CMPRSS( $zipfilename, $sourcedir )
 		$targetFile = "$currentDir\$zipfilename"
 	}
 	if (Test-Path "$sourcedir") {
-		cd $sourcedir
+		Set-Location $sourcedir
 		$compressionLevel = [System.IO.Compression.CompressionLevel]::Optimal
-		Write-Host "`n[$scriptName] Create zip package $targetFile from $(pwd)"
-		[System.IO.Compression.ZipFile]::CreateFromDirectory("$(pwd)", "$targetFile", $compressionLevel, $false)
-		cd $currentDir
+		Write-Host "`n[$scriptName] Create zip package $targetFile from $(Get-Location)"
+		[System.IO.Compression.ZipFile]::CreateFromDirectory("$(Get-Location)", "$targetFile", $compressionLevel, $false)
+		Set-Location $currentDir
 		foreach ($item in (Get-ChildItem -Path "$sourcedir")) {
 			Write-Host "[$scriptName (CMPRSS)]   --> $item"
 		}
@@ -142,8 +142,8 @@ function DCMPRS( $packageFile, $packagePath )
     if (!( $packagePath )) {
 		$packagePath = $pwd
 	}
-	$currentDir = $(pwd)
-	if ($packagePath -eq '.') { $packagePath = $(pwd) }
+	$currentDir = $(Get-Location)
+	if ($packagePath -eq '.') { $packagePath = $(Get-Location) }
 	Write-Host "`n[$scriptName] Extract zip package $packageFile.zip to $packagePath"
 	[System.IO.Compression.ZipFile]::ExtractToDirectory("$currentDir/$packageFile.zip", "$packagePath/$packageFile")
 	foreach ($item in (Get-ChildItem -Path $packagePath/$packageFile)) {
@@ -255,9 +255,6 @@ Write-Host
 
 # If called from build process, automation root will be set
 $automationHelper = "$AUTOMATIONROOT\remote"
-
-# Initialise termination variable
-$terminate = "no"
 
 # Load the target properties (although these are global in powershell, load again as a diagnostic tool
 $propFile = "$TARGET"
@@ -417,7 +414,7 @@ Foreach ($line in get-content $TASK_LIST) {
 				try {
 					Invoke-Expression $expression
 				    if(!$?) { Write-Host "[$scriptName] `$? = $?"; exit 11 }
-				} catch { echo $_.Exception|format-list -force; exit 12 }
+				} catch { Write-Output $_.Exception|format-list -force; exit 12 }
 			    if ( $error[0] ) {
 			    	if ( $ignoreWarning -eq 'yes' ) {
 				    	Write-Host "[$scriptName] `$error[0] = $error but `$ignoreWarning is yes so continuing ..."; $error.clear()
