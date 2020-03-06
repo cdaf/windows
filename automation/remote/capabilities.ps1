@@ -2,14 +2,14 @@ $scriptName = 'Capabilities.ps1'
 
 Write-Host "`n[$scriptName] ---------- start ----------"
 Write-Host "[$scriptName]   hostname  : $(hostname)"
-Write-Host "[$scriptName]   pwd       : $(pwd)"
+Write-Host "[$scriptName]   pwd       : $(Get-Location)"
 Write-Host "[$scriptName]   whoami    : $(whoami)" 
 
 Write-Host "`n[$scriptName] List networking"
-if ((gwmi win32_computersystem).partofdomain -eq $true) {
-	Write-Host "[$scriptName]   Domain    : $((gwmi win32_computersystem).domain)"
+if ((Get-WmiObject win32_computersystem).partofdomain -eq $true) {
+	Write-Host "[$scriptName]   Domain    : $((Get-WmiObject win32_computersystem).domain)"
 } else {
-	Write-Host "[$scriptName]   Workgroup : $((gwmi win32_computersystem).domain)"
+	Write-Host "[$scriptName]   Workgroup : $((Get-WmiObject win32_computersystem).domain)"
 }
 
 foreach ($item in Get-WmiObject -Class Win32_NetworkAdapterConfiguration -Filter IPEnabled=TRUE -ComputerName .) {
@@ -38,7 +38,7 @@ write-host "  PSVersion.Major         : $($PSVersionTable.PSVersion.Major)"
 #Remove-Item -Path $tempFile 
 
 if ( Test-Path "C:\windows-master\automation\CDAF.windows" ) {
-	$nameValue = $(cat "C:\windows-master\automation\CDAF.windows" | findstr "productVersion")
+	$nameValue = $(Get-Content "C:\windows-master\automation\CDAF.windows" | findstr "productVersion")
 	$name, $value = $nameValue -split '=', 2
 	write-host "  CDAF Box Version        : $value"
 }
@@ -217,8 +217,8 @@ $job = Start-Job {
 	$dotnet = $(
 		Get-ChildItem 'HKLM:\SOFTWARE\Microsoft\NET Framework Setup\NDP' -recurse |
 		Get-ItemProperty -name Version,Release -EA 0 |
-		Where { $_.PSChildName -match '^(?!S)\p{L}'} |
-		Select PSChildName, Version, Release, @{
+		Where-Object { $_.PSChildName -match '^(?!S)\p{L}'} |
+		Select-Object PSChildName, Version, Release, @{
 		  name="Product"
 		  expression={
 		    switch -regex ($_.Release) {
