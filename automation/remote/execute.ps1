@@ -5,7 +5,7 @@ function taskException ($taskName, $exception) {
     write-host "[$scriptName (taskException)] Caught an exception excuting $taskName :" -ForegroundColor Red
     write-host "     Exception Type: $($exception.Exception.GetType().FullName)" -ForegroundColor Red
     write-host "     Exception Message: $($exception.Exception.Message)" -ForegroundColor Red
-	exit -3
+	exit 3
 }
 
 function executeExpression ($expression) {
@@ -22,16 +22,24 @@ function executeExpression ($expression) {
 	    	Write-Host "[$scriptName] `$error[0] = $error"; exit 3
     	}
 	}
-    if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) { Write-Host "[$scriptName] `$LASTEXITCODE = $LASTEXITCODE "; exit $LASTEXITCODE }
+    if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) {
+		Write-Host "[$scriptName] `$LASTEXITCODE = $LASTEXITCODE " -ForegroundColor Red
+    	Write-Host "[$scriptName] Listing recent events ..."
+		Get-Eventlog -LogName Application -Newest 10
+		Get-Eventlog -LogName System -Newest 10
+		exit $LASTEXITCODE
+	}
     return $output
 }
 
 # Controlled User Exit
 function EXITIF ($command) { 
 
-	Invoke-Expression 'if ($condition) { Write-Host "Controlled exit due to ($($condition)) returning true." }'
-	Write-Host "`n~~~~~ Shutdown Execution Engine ~~~~~~"
-	exit 0
+	$result = Invoke-Expression 'if ($condition) { Write-Host "Controlled exit due to ($($condition)) returning true." ; return $True} else { return $False }'
+	if ( $result ) {
+		Write-Host "`n~~~~~ Shutdown Execution Engine ~~~~~~"
+		exit 0
+	}
 }
 
 function MAKDIR ($itemPath) { 
@@ -424,7 +432,13 @@ Foreach ($line in get-content $TASK_LIST) {
 				    	Write-Host "[$scriptName] `$error[0] = $error"; exit 13
 			    	}
 				}
-			    if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) { Write-Host "[$scriptName] `$LASTEXITCODE = $LASTEXITCODE "; exit $LASTEXITCODE }
+			    if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) {
+					Write-Host "[$scriptName] `$LASTEXITCODE = $LASTEXITCODE " -ForegroundColor Red
+			    	Write-Host "[$scriptName] Listing recent events ..."
+					Get-Eventlog -LogName Application -Newest 10
+					Get-Eventlog -LogName System -Newest 10
+					exit $LASTEXITCODE
+				}
 		    }
         }
     }
