@@ -18,9 +18,9 @@ Write-Host "[$scriptName] Current `$env:NUGET_PATH : $env:NUGET_PATH"
 $env:NUGET_PATH = $nul
 $versionTest = cmd /c vswhere 2`>`&1
 if ($versionTest -like '*not recognized*') {
-	Write-Host "[$scriptName] VSWhere                  : not installed"
+	Write-Host "[$scriptName] VSWhere                 : not installed"
 } else {
-	Write-Host "[$scriptName] VSWhere                  : $($versionTest[0].Replace('Visual Studio Locator version ', ''))"
+	Write-Host "[$scriptName] VSWhere                 : $($versionTest[0].Replace('Visual Studio Locator version ', ''))"
 }
 
 # First try to use vswhere
