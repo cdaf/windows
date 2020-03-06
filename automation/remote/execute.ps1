@@ -24,9 +24,6 @@ function executeExpression ($expression) {
 	}
     if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) {
 		Write-Host "[$scriptName] `$LASTEXITCODE = $LASTEXITCODE " -ForegroundColor Red
-    	Write-Host "[$scriptName] Listing recent events ..."
-		Get-Eventlog -LogName Application -Newest 10
-		Get-Eventlog -LogName System -Newest 10
 		exit $LASTEXITCODE
 	}
     return $output
@@ -430,9 +427,6 @@ Foreach ($line in get-content $TASK_LIST) {
 				}
 			    if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) {
 					Write-Host "[$scriptName] `$LASTEXITCODE = $LASTEXITCODE " -ForegroundColor Red
-			    	Write-Host "[$scriptName] Listing recent events ..."
-					Get-Eventlog -LogName Application -Newest 10
-					Get-Eventlog -LogName System -Newest 10
 					exit $LASTEXITCODE
 				}
 		    }
