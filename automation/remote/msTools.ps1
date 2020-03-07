@@ -92,6 +92,20 @@ if (! ($env:MS_TEST) ) {
 	}
 }
 
+if (! ($env:MS_TEST) ) {
+	$testlookup = Get-ChildItem -Recurse "C:\Program Files (x86)\Microsoft Visual Studio" -Filter "MSTest.exe"
+	if ( $testlookup ) {
+		$env:MS_TEST = $testlookup[0].FullName
+	}
+}
+
+if (! ($env:VS_TEST) ) {
+	$testlookup = Get-ChildItem -Recurse "C:\Program Files (x86)\Microsoft Visual Studio" -Filter "vstest.console.exe"
+	if ( $testlookup ) {
+		$env:VS_TEST = $testlookup[0].FullName
+	}
+}
+
 $versionTest = cmd /c NuGet 2`>`&1
 if ($versionTest -like '*not recognized*') {
 	(New-Object System.Net.WebClient).DownloadFile('https://dist.nuget.org/win-x86-commandline/latest/nuget.exe', "$PWD\nuget.exe")
@@ -127,7 +141,7 @@ if ( $env:VS_TEST ) {
 	Write-Host "`$env:VS_TEST = ${env:VS_TEST}"
 } else {
 	Write-Host "VSTest not found, defaulting to `$env:MS_TEST"
-	$env:MS_BUILD = $env:MS_TEST
+	$env:VS_TEST = $env:MS_TEST
 	Write-Host "`$env:VS_TEST = ${env:VS_TEST}"
 }
 

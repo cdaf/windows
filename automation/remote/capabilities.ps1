@@ -167,20 +167,23 @@ $versionTest = cmd /c vswhere 2`>`&1
 if ($versionTest -like '*not recognized*') {
 	Write-Host "  VSWhere                 : not installed"
 } else {
-	Write-Host "  VSWhere                 : $($versionTest[0].Replace('Visual Studio Locator version ', ''))"
-}
-
-Write-Host "`n[$scriptName] List the build tools`n"
-$regkey = 'HKLM:\Software\Microsoft\MSBuild\ToolsVersions'
-if (!($versionTest -like '*not recognized*') ) {
-	Write-Host "  $((vswhere -products * | findstr productId:).replace('productId: ', ''))"
-}
-if ( Test-Path $regkey ) { 
-	foreach($buildTool in Get-ChildItem $regkey) {
-		Write-Host "  $buildTool"
+	if ( $versionTest ) { 
+		Write-Host "  VSWhere                 : $($versionTest[0].Replace('Visual Studio Locator version ', '')) "
+		Write-Host "`n[$scriptName] List the build tools`n"
+		$regkey = 'HKLM:\Software\Microsoft\MSBuild\ToolsVersions'
+		if (!($versionTest -like '*not recognized*') ) {
+			Write-Host "  $((vswhere -products * | findstr productId:).replace('productId: ', ''))"
+		}
+		if ( Test-Path $regkey ) { 
+			foreach($buildTool in Get-ChildItem $regkey) {
+				Write-Host "  $buildTool"
+			}
+		} else {
+			Write-Host "  Build tools not found ($regkey)"
+		}
+	} else {
+		Write-Host "VSWhere is not returning results, known bug in 4.7.2 Microsoft image https://github.com/microsoft/vswhere/issues/182"
 	}
-} else {
-	Write-Host "  Build tools not found ($regkey)"
 }
 
 Write-Host "`n[$scriptName] List the WIF Installed Versions`n"
