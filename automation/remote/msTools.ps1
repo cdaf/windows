@@ -29,7 +29,7 @@ if ($versionTest -like '*not recognized*') {
 			
 			$env:MS_BUILD = vswhere -latest -requires Microsoft.Component.MSBuild -find MSBuild\**\Bin\MSBuild.exe
 			if (!( $env:MS_BUILD )) {
-				$tempObj = dir $obj.installationPath -Recurse -Filter 'msbuild.exe'
+				$tempObj = Get-ChildItem $obj.installationPath -Recurse -Filter 'msbuild.exe'
 				if ( $tempObj ) {
 					$env:MS_BUILD = $tempObj[0].FullName
 				}
@@ -39,12 +39,12 @@ if ($versionTest -like '*not recognized*') {
 				$env:VS_TEST = join-path $testPath 'Common7\IDE\CommonExtensions\Microsoft\TestWindow\vstest.console.exe'
 			}
 			if (!( $env:VS_TEST )) {
-				$tempObj = dir $obj.installationPath -Recurse -Filter 'vstest.console.exe'
+				$tempObj = Get-ChildItem $obj.installationPath -Recurse -Filter 'vstest.console.exe'
 				if ( $tempObj ) {
 					$env:VS_TEST = $tempObj[0].FullName
 				}
 			}
-			$tempObj = dir $obj.installationPath -Recurse -Filter 'mstest.exe'
+			$tempObj = Get-ChildItem $obj.installationPath -Recurse -Filter 'mstest.exe'
 			if ( $tempObj ) {
 				$env:MS_TEST = $tempObj[0].FullName
 			}
