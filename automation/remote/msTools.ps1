@@ -56,7 +56,7 @@ if ($versionTest -like '*not recognized*') {
 
 if (!( $env:MS_BUILD )) {
 	$registryKey = 'HKLM:\SOFTWARE\Wow6432Node\Microsoft\VisualStudio\SxS\VS7'
-	if ( Test-Path $reg ) {
+	if ( Test-Path $registryKey ) {
 		Write-Host "`n[$scriptName] Search for tools in Visual Studio 2017 and above install first"
 		$list = Get-ItemProperty $registryKey | Get-Member
 		$installs = @()
@@ -95,17 +95,17 @@ if (! ($env:MS_TEST) ) {
 
 if (! ($env:MS_TEST) ) {
 	Write-Host "`n[$scriptName] ... not found, try Visual Studio 2017 path ..."
-	$reg = 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Installer\UserData\S-1-5-18\Components\196D6C5077EC79D56863FE52B7080EF6'
-	if ( Test-Path $reg ) {
-		$env:MS_TEST = (Get-ItemProperty ((Get-Item $reg).pspath)).'06F460ED2256013369565B3E7EB86383'
+	$registryKey = 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Installer\UserData\S-1-5-18\Components\196D6C5077EC79D56863FE52B7080EF6'
+	if ( Test-Path $registryKey ) {
+		$env:MS_TEST = (Get-ItemProperty ((Get-Item $registryKey).pspath)).'06F460ED2256013369565B3E7EB86383'
 	}
 }
 
 if (! ($env:MS_TEST) ) {
 	Write-Host "`n[$scriptName] ... not found, try Visual Studio 2015 path ..."
-	$reg = 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Installer\UserData\S-1-5-18\Components\196D6C5077EC79D56863FE52B7080EF6'
-	if ( Test-Path $reg ) {
-		$env:MS_TEST = (Get-ItemProperty ((Get-Item $reg).pspath)).'4EEF88CE629328E30A83748F4CABD953'
+	$registryKey = 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Installer\UserData\S-1-5-18\Components\196D6C5077EC79D56863FE52B7080EF6'
+	if ( Test-Path $registryKey ) {
+		$env:MS_TEST = (Get-ItemProperty ((Get-Item $registryKey).pspath)).'4EEF88CE629328E30A83748F4CABD953'
 	}
 }
 
