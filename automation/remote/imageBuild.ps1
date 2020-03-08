@@ -99,7 +99,7 @@ if ( $containerImage ) {
 if ( $optionalArgs ) {
 	Write-Host "[$scriptName]   optionalArgs    : $optionalArgs"
 } else {
-	Write-Host "[$scriptName]   optionalArgs    : (not supplied)"
+	Write-Host "[$scriptName]   optionalArgs    : (not supplied, example '--memory 4g')"
 }
 
 if ( $persist ) {
@@ -109,10 +109,10 @@ if ( $persist ) {
 	Write-Host "[$scriptName]   persist         : $persist (not supplied, set to default)"
 }
 
-Write-Host "[$scriptName]   pwd             : $(pwd)"
+Write-Host "[$scriptName]   pwd             : $(Get-Location)"
 Write-Host "[$scriptName]   hostname        : $(hostname)"
 Write-Host "[$scriptName]   whoami          : $(whoami)"
-$workspace = $(pwd)
+$workspace = $(Get-Location)
 Write-Host "[$scriptName]   workspace       : $workspace"
 
 Write-Host "Create the image file system locally if it does not exist`n"
