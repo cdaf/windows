@@ -81,7 +81,7 @@ if (! ($env:MS_BUILD) ) {
 }
 
 if (!( $env:MS_BUILD )) {
-	Write-Host "`n[$scriptName] ... not found, try Visual Studio 2017 path ..."
+	Write-Host "`n[$scriptName] ... MSBuild not found, try Visual Studio 2017 path ..."
 	$registryKey = 'HKLM:\SOFTWARE\Microsoft\MSBuild\ToolsVersions\14.0'
 	if ( Test-Path $registryKey ) {
 		$env:MS_BUILD = ((Get-ItemProperty ((Get-Item $registryKey).pspath) -PSProperty MSBuildToolsPath).MSBuildToolsPath) + 'msbuild.exe'
@@ -97,7 +97,7 @@ if (! ($env:MS_TEST) ) {
 }
 
 if (! ($env:MS_TEST) ) {
-	Write-Host "`n[$scriptName] ... not found, try Visual Studio 2017 path ..."
+	Write-Host "`n[$scriptName] ... MSTest not found, try Visual Studio 2017 path ..."
 	$registryKey = 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Installer\UserData\S-1-5-18\Components\196D6C5077EC79D56863FE52B7080EF6'
 	if ( Test-Path $registryKey ) {
 		$env:MS_TEST = (Get-ItemProperty ((Get-Item $registryKey).pspath)).'06F460ED2256013369565B3E7EB86383'
@@ -105,7 +105,7 @@ if (! ($env:MS_TEST) ) {
 }
 
 if (! ($env:MS_TEST) ) {
-	Write-Host "`n[$scriptName] ... not found, try Visual Studio 2015 path ..."
+	Write-Host "`n[$scriptName] ... MSTest not found, try Visual Studio 2015 path ..."
 	$registryKey = 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Installer\UserData\S-1-5-18\Components\196D6C5077EC79D56863FE52B7080EF6'
 	if ( Test-Path $registryKey ) {
 		$env:MS_TEST = (Get-ItemProperty ((Get-Item $registryKey).pspath)).'4EEF88CE629328E30A83748F4CABD953'
