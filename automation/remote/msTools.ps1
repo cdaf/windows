@@ -20,39 +20,37 @@ $versionTest = cmd /c vswhere 2`>`&1
 if ($versionTest -like '*not recognized*') {
 	Write-Host "[$scriptName] VSWhere                 : not installed"
 } else {
-	Write-Host "[$scriptName] VSWhere                 : $($versionTest[0].Replace('Visual Studio Locator version ', ''))"
-}
-
-# First try to use vswhere
-if ($versionTest -like '*not recognized*') {
-	Write-Host "[$scriptName] VSWhere not installed, so using legacy determination rules ..."
-} else {
-	$obj = vswhere -latest -products * -format json | ConvertFrom-Json
-	if ( $obj ) {
-		Write-Host "[$scriptName] Latest Visual Studio install is $($obj.displayName)"
-		$env:DEV_ENV = $obj.productPath
-		
-		$env:MS_BUILD = vswhere -latest -requires Microsoft.Component.MSBuild -find MSBuild\**\Bin\MSBuild.exe
-		if (!( $env:MS_BUILD )) {
-			$tempObj = dir $obj.installationPath -Recurse -Filter 'msbuild.exe'
+	if ( $versionTest ) {
+		Write-Host "[$scriptName] VSWhere                 : $($versionTest[0].Replace('Visual Studio Locator version ', ''))"
+		$obj = vswhere -latest -products * -format json | ConvertFrom-Json
+		if ( $obj ) {
+			Write-Host "[$scriptName] Latest Visual Studio install is $($obj.displayName)"
+			$env:DEV_ENV = $obj.productPath
+			
+			$env:MS_BUILD = vswhere -latest -requires Microsoft.Component.MSBuild -find MSBuild\**\Bin\MSBuild.exe
+			if (!( $env:MS_BUILD )) {
+				$tempObj = dir $obj.installationPath -Recurse -Filter 'msbuild.exe'
+				if ( $tempObj ) {
+					$env:MS_BUILD = $tempObj[0].FullName
+				}
+			}
+			$testPath = vswhere -latest -products * -requires Microsoft.VisualStudio.Workload.ManagedDesktop Microsoft.VisualStudio.Workload.Web -requiresAny -property installationPath
+			if ( $testPath ) {
+				$env:VS_TEST = join-path $testPath 'Common7\IDE\CommonExtensions\Microsoft\TestWindow\vstest.console.exe'
+			}
+			if (!( $env:VS_TEST )) {
+				$tempObj = dir $obj.installationPath -Recurse -Filter 'vstest.console.exe'
+				if ( $tempObj ) {
+					$env:VS_TEST = $tempObj[0].FullName
+				}
+			}
+			$tempObj = dir $obj.installationPath -Recurse -Filter 'mstest.exe'
 			if ( $tempObj ) {
-				$env:MS_BUILD = $tempObj[0].FullName
+				$env:MS_TEST = $tempObj[0].FullName
 			}
 		}
-		$testPath = vswhere -latest -products * -requires Microsoft.VisualStudio.Workload.ManagedDesktop Microsoft.VisualStudio.Workload.Web -requiresAny -property installationPath
-		if ( $testPath ) {
-			$env:VS_TEST = join-path $testPath 'Common7\IDE\CommonExtensions\Microsoft\TestWindow\vstest.console.exe'
-		}
-		if (!( $env:VS_TEST )) {
-			$tempObj = dir $obj.installationPath -Recurse -Filter 'vstest.console.exe'
-			if ( $tempObj ) {
-				$env:VS_TEST = $tempObj[0].FullName
-			}
-		}
-		$tempObj = dir $obj.installationPath -Recurse -Filter 'mstest.exe'
-		if ( $tempObj ) {
-			$env:MS_TEST = $tempObj[0].FullName
-		}
+	} else {
+		Write-Host "`n[$scriptName] VSWhere installed, but not returning an data, fall back to letacy detection..."
 	}
 }
 
@@ -75,6 +73,14 @@ if (!( $env:MS_BUILD )) {
 # Try Visual Studio 2015 path
 if (!( $env:MS_BUILD )) {
 	$env:MS_BUILD = ((Get-ItemProperty ((Get-Item 'HKLM:\SOFTWARE\Microsoft\MSBuild\ToolsVersions\14.0').pspath) -PSProperty MSBuildToolsPath).MSBuildToolsPath) + 'msbuild.exe'
+}
+
+# Brute force search
+if (! ($env:MS_BUILD) ) {
+	$testlookup = Get-ChildItem -Recurse "C:\Program Files (x86)\Microsoft Visual Studio" -Filter "MSBuild.exe"
+	if ( $testlookup ) {
+		$env:MS_BUILD = $testlookup[0].FullName
+	}
 }
 
 # Finally search for VSTS agent install
