@@ -61,7 +61,7 @@ if ($agentSAPassword) {
     Write-Host "[$scriptName] agentSAPassword        : `$agentSAPassword"
 } else {
 	if ($vstsSA) {
-		$env:AGENT_SA_PASSWORD = -join ((65..90) + (97..122) + (33) + (35) + (43) + (45..46) + (58..64) | Get-Random -Count 30 | % {[char]$_})
+		$env:AGENT_SA_PASSWORD = -join ((65..90) + (97..122) + (33) + (35) + (43) + (45..46) + (58..64) | Get-Random -Count 30 | ForEach-Object {[char]$_})
 		$agentSAPassword = $env:AGENT_SA_PASSWORD
 	    Write-Host "[$scriptName] agentSAPassword        : `$env:AGENT_SA_PASSWORD (not supplied but vstsSA set, so randomly generated)"
 	} else {
@@ -103,7 +103,7 @@ if ($restart) {
     Write-Host "[$scriptName] restart                : $restart (not supplied, set to default, only applies if docker install selected)"
 }
 
-Write-Host "[$scriptName] pwd                    : $(pwd)"
+Write-Host "[$scriptName] pwd                    : $(Get-Location)"
 Write-Host "[$scriptName] whoami                 : $(whoami)"
 
 $server = Get-ScheduledTask -TaskName 'ServerManager' -erroraction 'silentlycontinue'
