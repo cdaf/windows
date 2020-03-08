@@ -82,7 +82,10 @@ if (! ($env:MS_BUILD) ) {
 
 if (!( $env:MS_BUILD )) {
 	Write-Host "`n[$scriptName] ... not found, try Visual Studio 2017 path ..."
-	$env:MS_BUILD = ((Get-ItemProperty ((Get-Item 'HKLM:\SOFTWARE\Microsoft\MSBuild\ToolsVersions\14.0').pspath) -PSProperty MSBuildToolsPath).MSBuildToolsPath) + 'msbuild.exe'
+	$registryKey = 'HKLM:\SOFTWARE\Microsoft\MSBuild\ToolsVersions\14.0'
+	if ( Test-Path $registryKey ) {
+		$env:MS_BUILD = ((Get-ItemProperty ((Get-Item $registryKey).pspath) -PSProperty MSBuildToolsPath).MSBuildToolsPath) + 'msbuild.exe'
+	}
 }
 
 if (! ($env:MS_TEST) ) {
