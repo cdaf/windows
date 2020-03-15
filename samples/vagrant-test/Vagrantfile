@@ -54,6 +54,7 @@ Vagrant.configure(2) do |config|
 
     # Microsoft Hyper-V does not support NAT or setting hostname. vagrant up build --provider hyperv
     test.vm.provider 'hyperv' do |hyperv, override|
+      hyperv.vmname = "windows-test"
       hyperv.memory = "#{vRAM}"
       hyperv.cpus = "#{vCPU}"
       if ENV['VAGRANT_SMB_USER']
