@@ -153,5 +153,8 @@ if ( $skipUpdates -eq 'yes' ) {
 	executeExpression "shutdown /r /t 60"
 }
 
+executeExpression "cd c:\windows-master"
+executeExpression "(New-Object System.Net.WebClient).DownloadFile('https://raw.githubusercontent.com/cdaf/windows/master/AtlasImage.ps1', '$PWD\AtlasImage.ps1')"
+
 writeLog "---------- stop ----------"
 exit 0
