@@ -49,6 +49,23 @@ function emailProgress ($subject) {
 	}
 }
 
+function MAKDIR ($itemPath) { 
+	# If directory already exists, just report, otherwise create the directory and report
+		if ( Test-Path $itemPath ) {
+			if (Test-Path $itemPath -PathType "Container") {
+				write-host "[$scriptName (MAKDIR)] $itemPath exists"
+			} else {
+				Remove-Item $itemPath -Recurse -Force
+				if(!$?) { taskFailure "[$scriptName (MAKDIR)] Remove-Item $itemPath -Recurse -Force" }
+				mkdir $itemPath > $null
+				if(!$?) { taskFailure "[$scriptName (MAKDIR)] (replace) $itemPath Creation failed" }
+			}	
+		} else {
+			mkdir $itemPath > $null
+			if(!$?) { taskFailure "[$scriptName (MAKDIR)] $itemPath Creation failed" }
+		}
+	}
+	
 Write-Host "`n[$scriptName] ---------- start ----------"
 if ($boxname) {
     Write-Host "[$scriptName] boxname     : $boxname"
@@ -127,11 +144,12 @@ executeExpression "cd $buildDir"
 if ($hypervisor -eq 'virtualbox') {
 
 	$diskPath = "${diskDir}\${boxName}.vdi"
-	Write-Host "`n[$scriptName] Export VirtualBox VM"
 	if (Test-Path "$diskPath") {
+		Write-Host "`n[$scriptName] Export VirtualBox VM"
 		executeExpression "& `"C:\Program Files\Oracle\VirtualBox\VBoxManage.exe`" modifyhd `"$diskPath`" --compact"
 	} else {
-		Write-Host "`n[$scriptName] Disk ($diskPath) not, assuming new image and attempt conversion ..."
+		Write-Host "`n[$scriptName] Disk ($diskPath) not found, Import VirtualBox Disk image from Hyper-V ..."
+		MAKDIR ${diskDir}
 		$clonedhd = "D:\Hyper-V\$boxName.vhdx"
 		executeExpression "& 'C:\Program Files\Oracle\Virtualbox\VBoxmanage.exe' clonehd '$clonedhd' '$diskDir\$boxName.vdi' --format vdi"
 		emailAndExit 0
