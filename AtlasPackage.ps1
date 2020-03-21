@@ -37,7 +37,7 @@ function executeIgnoreExit ($expression) {
 # Exception Handling email sending
 function emailAndExit ($exitCode) {
 	if ($smtpServer) {
-		Send-MailMessage -To "$emailTo" -From "$emailFrom" -Subject "[$scriptName][$hypervisor] ERROR $exitCode" -SmtpServer "$smtpServer"
+		Send-MailMessage -To "$emailTo" -From "$emailFrom" -Subject "[$scriptName][$hypervisor] Exit Code $exitCode" -SmtpServer "$smtpServer"
 	}
 	exit $exitCode
 }
@@ -131,8 +131,10 @@ if ($hypervisor -eq 'virtualbox') {
 	if (Test-Path "$diskPath") {
 		executeExpression "& `"C:\Program Files\Oracle\VirtualBox\VBoxManage.exe`" modifyhd `"$diskPath`" --compact"
 	} else {
-		Write-Host "`n[$scriptName] Disk ($diskPath) not found! Exiting with lastExitCode 200"
-		emailAndExit 200
+		Write-Host "`n[$scriptName] Disk ($diskPath) not, assuming new image and attempt conversion ..."
+		$clonedhd = "D:\Hyper-V\$boxName.vhdx"
+		executeExpression "& 'C:\Program Files\Oracle\Virtualbox\VBoxmanage.exe' clonehd '$clonedhd' '$diskDir\$boxName.vdi' --format vdi"
+		emailAndExit 0
 	}
 
 	if ( $boxname -Match "Windows" ) { # This tells Vagrant to use WinRM instead of SSH
