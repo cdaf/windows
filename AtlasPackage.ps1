@@ -1,4 +1,5 @@
 Param (
+	[string]$action,
 	[string]$boxname,
 	[string]$hypervisor,
 	[string]$diskDir,
@@ -67,6 +68,13 @@ function MAKDIR ($itemPath) {
 	}
 	
 Write-Host "`n[$scriptName] ---------- start ----------"
+if ($action) {
+    Write-Host "[$scriptName] action      : $action"
+} else {
+	$action = 'Package'
+    Write-Host "[$scriptName] action      : (not specified, defaulted to $action)"
+}
+
 if ($boxname) {
     Write-Host "[$scriptName] boxname     : $boxname"
 } else {
@@ -128,167 +136,181 @@ if (Test-Path "$imageLog") {
 	Remove-Item "$imageLog"
 }
 
-Write-Host "`n[$scriptName] Prepare Temporary build directory"
-$buildDir = "${boxName}_${hypervisor}"
-if (Test-Path "$buildDir") {
-	executeExpression "Remove-Item $buildDir -Recurse -Force"
-}
-
-$packageFile = "${buildDir}.box"
-emailProgress "packaging ${packageFile}, logging to ${imageLog}."
-Write-Host "packaging ${packageFile}, logging to ${imageLog}."
-
-executeExpression "Write-Host 'Create working directory $(mkdir $buildDir)'"
-executeExpression "cd $buildDir"
-
-if ($hypervisor -eq 'virtualbox') {
-
-	$diskPath = "${diskDir}\${boxName}.vdi"
-	if (Test-Path "$diskPath") {
-		Write-Host "`n[$scriptName] Export VirtualBox VM"
-		executeExpression "& `"C:\Program Files\Oracle\VirtualBox\VBoxManage.exe`" modifyhd `"$diskPath`" --compact"
-	} else {
-		Write-Host "`n[$scriptName] Disk ($diskPath) not found, Import VirtualBox Disk image from Hyper-V ..."
+if ($action -eq 'Clone') {
+	if ($hypervisor -eq 'virtualbox') {
+		Write-Host "`n[$scriptName] Disk ($diskPath) Import VirtualBox Disk image from Hyper-V ..."
 		MAKDIR ${diskDir}
 		$clonedhd = "D:\Hyper-V\$boxName.vhdx"
 		executeExpression "& 'C:\Program Files\Oracle\Virtualbox\VBoxmanage.exe' clonehd '$clonedhd' '$diskDir\$boxName.vdi' --format vdi"
-		emailAndExit 0
-	}
-
-	if ( $boxname -Match "Windows" ) { # This tells Vagrant to use WinRM instead of SSH
-		executeExpression "(New-Object System.Net.WebClient).DownloadFile(`'https://raw.githubusercontent.com/cdaf/windows/master/samples/vagrant-box/Vagrantfile`', `"$PWD\Vagrantfile`")"
+		emailProgress "VirtualBox Dick Clone Complete"
 	} else {
-		executeExpression "(New-Object System.Net.WebClient).DownloadFile(`'https://raw.githubusercontent.com/cdaf/linux/master/samples/vagrant-box/Vagrantfile`', `"$PWD\Vagrantfile`")"
+		Write-Host "`n[$scriptName] Copy Hyper-V disk to VirtualBox..."
+		executeExpression "Copy-Item D:\Hyper-V\$boxName.vhdx \\VAG1\Hyper-V\$boxName.vhdx"
+		(New-Object System.Net.WebClient).DownloadFile('https://raw.githubusercontent.com/cdaf/windows/master/AtlasPackage.ps1', "$PWD\AtlasPackage.ps1")
+		emailProgress "Copy Hyper-V disk to VirtualBox complete"
+	}
+		
+else {
+	
+	Write-Host "`n[$scriptName] Prepare Temporary build directory"
+	$buildDir = "${boxName}_${hypervisor}"
+	if (Test-Path "$buildDir") {
+		executeExpression "Remove-Item $buildDir -Recurse -Force"
 	}
 	
-	$filename = "Vagrantfile"
-	$token = '#virtbox: '
-	$value = ''
-	(Get-Content $fileName | ForEach-Object { $_ -replace [regex]::Escape($token), "$value" } ) | Set-Content $fileName
-
-	Write-Host "`n[$scriptName] List the contents of the package Vagrantfile"
-	executeExpression "cat Vagrantfile"
-	executeExpression "vagrant package --base $boxName --output $packageFile --vagrantfile Vagrantfile"
-
-} else {
-
-	Write-Host "`n[$scriptName] Export Hyper-V VM"
-	executeExpression "Export-VM -Name $boxName -Path ."
+	$packageFile = "${buildDir}.box"
+	emailProgress "packaging ${packageFile}, logging to ${imageLog}."
+	Write-Host "packaging ${packageFile}, logging to ${imageLog}."
 	
-	if (Test-Path $packageFile) {
-		executeExpression "Remove-Item $packageFile"
-	}
-	Write-Host "`n[$scriptName] Compress VM into .box format"
-	executeExpression "cd $boxName"
-	executeExpression "Remove-Item Snapshots -Force -Recurse"
-	if (Test-Path metadata.json ) {
-		executeExpression "Remove-Item metadata.json"
-	} 
-	Add-Content metadata.json "{`n  ""provider"": ""hyperv""`n}"
-	executeExpression "cat metadata.json"
-
-	if ( $boxname -Match "Windows" ) { # This tells Vagrant to use WinRM instead of SSH
-		executeExpression "(New-Object System.Net.WebClient).DownloadFile(`'https://raw.githubusercontent.com/cdaf/windows/master/samples/vagrant-box/Vagrantfile`', `"$PWD\Vagrantfile`")"
+	executeExpression "Write-Host 'Create working directory $(mkdir $buildDir)'"
+	executeExpression "cd $buildDir"
+	
+	if ($hypervisor -eq 'virtualbox') {
+	
+		$diskPath = "${diskDir}\${boxName}.vdi"
+		if (Test-Path "$diskPath") {
+			Write-Host "`n[$scriptName] Export VirtualBox VM"
+			executeExpression "& `"C:\Program Files\Oracle\VirtualBox\VBoxManage.exe`" modifyhd `"$diskPath`" --compact"
+		} else {
+			Write-Host "`n[$scriptName] Disk ($diskPath) not found!"
+			emailAndExit 200
+		}
+	
+		if ( $boxname -Match "Windows" ) { # This tells Vagrant to use WinRM instead of SSH
+			executeExpression "(New-Object System.Net.WebClient).DownloadFile(`'https://raw.githubusercontent.com/cdaf/windows/master/samples/vagrant-box/Vagrantfile`', `"$PWD\Vagrantfile`")"
+		} else {
+			executeExpression "(New-Object System.Net.WebClient).DownloadFile(`'https://raw.githubusercontent.com/cdaf/linux/master/samples/vagrant-box/Vagrantfile`', `"$PWD\Vagrantfile`")"
+		}
+		
+		$filename = "Vagrantfile"
+		$token = '#virtbox: '
+		$value = ''
+		(Get-Content $fileName | ForEach-Object { $_ -replace [regex]::Escape($token), "$value" } ) | Set-Content $fileName
+	
+		Write-Host "`n[$scriptName] List the contents of the package Vagrantfile"
+		executeExpression "cat Vagrantfile"
+		executeExpression "vagrant package --base $boxName --output $packageFile --vagrantfile Vagrantfile"
+	
 	} else {
-		executeExpression "(New-Object System.Net.WebClient).DownloadFile(`'https://raw.githubusercontent.com/cdaf/linux/master/samples/vagrant-box/Vagrantfile`', `"$PWD\Vagrantfile`")"
+	
+		Write-Host "`n[$scriptName] Export Hyper-V VM"
+		executeExpression "Export-VM -Name $boxName -Path ."
+		
+		if (Test-Path $packageFile) {
+			executeExpression "Remove-Item $packageFile"
+		}
+		Write-Host "`n[$scriptName] Compress VM into .box format"
+		executeExpression "cd $boxName"
+		executeExpression "Remove-Item Snapshots -Force -Recurse"
+		if (Test-Path metadata.json ) {
+			executeExpression "Remove-Item metadata.json"
+		} 
+		Add-Content metadata.json "{`n  ""provider"": ""hyperv""`n}"
+		executeExpression "cat metadata.json"
+	
+		if ( $boxname -Match "Windows" ) { # This tells Vagrant to use WinRM instead of SSH
+			executeExpression "(New-Object System.Net.WebClient).DownloadFile(`'https://raw.githubusercontent.com/cdaf/windows/master/samples/vagrant-box/Vagrantfile`', `"$PWD\Vagrantfile`")"
+		} else {
+			executeExpression "(New-Object System.Net.WebClient).DownloadFile(`'https://raw.githubusercontent.com/cdaf/linux/master/samples/vagrant-box/Vagrantfile`', `"$PWD\Vagrantfile`")"
+		}
+		$filename = "Vagrantfile"
+		$token = '#hyper-v: '
+		$value = ''
+		(Get-Content $fileName | ForEach-Object { $_ -replace [regex]::Escape($token), "$value" } ) | Set-Content $fileName
+		Write-Host "`n[$scriptName] List the contents of the package Vagrantfile"
+		executeExpression "cat Vagrantfile"
+	
+		$versionTest = cmd /c bsdtar --version 2`>`&1 ; cmd /c "exit 0" # Reset LASTEXITCODE
+		if ($versionTest -like '*not recognized*') {
+			Write-Host "`n[$scriptName] BSD Tar not installed, compress with tar"
+			Write-Host "`n[$scriptName]   tar cvzf ../$packageFile ./*"
+			$versionTest = cmd /c tar --version 2`>`&1
+			if ($versionTest -like '*not recognized*') {
+				Write-Host "`n[$scriptName]   TAR not installed, (this is included in bash tools, see Git for Windows) exit with LASTEXITCODE $LASTEXITCODE"; exit $LASTEXITCODE
+			}
+			Write-Host "$logFile" "[$scriptName] tar cvzf ../$packageFile ./*"
+			$proc = Start-Process -FilePath 'tar' -ArgumentList "cvzf ../$packageFile ./*" -PassThru -Wait -NoNewWindow
+			if ( $proc.ExitCode -ne 0 ) {
+				Write-Host "`n[$scriptName] Exit with `$LASTEXITCODE = $($proc.ExitCode)`n"
+				exit $proc.ExitCode
+			}
+		} else {
+			Write-Host "`n[$scriptName] Use BSD Tar ($versionTest) with maximum compression (lzma)"
+			Write-Host "`n[$scriptName]   bsdtar --lzma -cvf ../$packageFile *"
+			Write-Host "$logFile" "[$scriptName] bsdtar --lzma -cvf ../$packageFile *"
+			$proc = Start-Process -FilePath 'bsdtar' -ArgumentList "--lzma -cvf ../$packageFile *" -PassThru -Wait -NoNewWindow
+			if ( $proc.ExitCode -ne 0 ) {
+				Write-Host "`n[$scriptName] Exit with `$LASTEXITCODE = $($proc.ExitCode)`n"
+				exit $proc.ExitCode
+			}
+		}
+		
+		Write-Host "`n[$scriptName] Remove VM export files"
+		executeExpression "cd.."
+		executeExpression "Remove-Item $boxname -Force -Recurse"
 	}
-	$filename = "Vagrantfile"
-	$token = '#hyper-v: '
-	$value = ''
-	(Get-Content $fileName | ForEach-Object { $_ -replace [regex]::Escape($token), "$value" } ) | Set-Content $fileName
-	Write-Host "`n[$scriptName] List the contents of the package Vagrantfile"
-	executeExpression "cat Vagrantfile"
-
-    $versionTest = cmd /c bsdtar --version 2`>`&1 ; cmd /c "exit 0" # Reset LASTEXITCODE
-    if ($versionTest -like '*not recognized*') {
-    	Write-Host "`n[$scriptName] BSD Tar not installed, compress with tar"
-    	Write-Host "`n[$scriptName]   tar cvzf ../$packageFile ./*"
-	    $versionTest = cmd /c tar --version 2`>`&1
-	    if ($versionTest -like '*not recognized*') {
-	    	Write-Host "`n[$scriptName]   TAR not installed, (this is included in bash tools, see Git for Windows) exit with LASTEXITCODE $LASTEXITCODE"; exit $LASTEXITCODE
-	    }
-		Write-Host "$logFile" "[$scriptName] tar cvzf ../$packageFile ./*"
-        $proc = Start-Process -FilePath 'tar' -ArgumentList "cvzf ../$packageFile ./*" -PassThru -Wait -NoNewWindow
-        if ( $proc.ExitCode -ne 0 ) {
-	        Write-Host "`n[$scriptName] Exit with `$LASTEXITCODE = $($proc.ExitCode)`n"
-            exit $proc.ExitCode
-        }
-    } else {
-    	Write-Host "`n[$scriptName] Use BSD Tar ($versionTest) with maximum compression (lzma)"
-    	Write-Host "`n[$scriptName]   bsdtar --lzma -cvf ../$packageFile *"
-		Write-Host "$logFile" "[$scriptName] bsdtar --lzma -cvf ../$packageFile *"
-        $proc = Start-Process -FilePath 'bsdtar' -ArgumentList "--lzma -cvf ../$packageFile *" -PassThru -Wait -NoNewWindow
-        if ( $proc.ExitCode -ne 0 ) {
-	        Write-Host "`n[$scriptName] Exit with `$LASTEXITCODE = $($proc.ExitCode)`n"
-            exit $proc.ExitCode
-        }
-    }
-    
-	Write-Host "`n[$scriptName] Remove VM export files"
-	executeExpression "cd.."
-	executeExpression "Remove-Item $boxname -Force -Recurse"
-}
-
-Write-Host "`n[$scriptName] Add the box to the local cache"
-$testDir = 'packageTest'
-if (Test-Path "$testDir ") {
-	executeExpression "Remove-Item $testDir -Recurse -Force"
-}
-executeIgnoreExit "vagrant box remove cdaf/$boxName --all --force" # ignore error if none exist
-
-Write-Host "`n[$scriptName] vagrant box add cdaf/$boxName $packageFile --force"
-Write-Host "$logFile" "[$scriptName] vagrant box add cdaf/$boxName $packageFile --force"
-$proc = Start-Process -FilePath 'vagrant' -ArgumentList "box add cdaf/$boxName $packageFile --force" -PassThru -Wait -NoNewWindow
-if ( $proc.ExitCode -ne 0 ) {
-	Write-Host "`n[$scriptName] Exit with `$LASTEXITCODE = $($proc.ExitCode)`n"
-    exit $proc.ExitCode
-}
-
-Write-Host "$logFile" "[$scriptName] Return to workspace"
-executeExpression "cd .."
-
-if ($skipTest -eq 'yes') {
-	Write-Host "`n[$scriptName] skipTest is ${skipTest}, tests not attempted."
-} else {
-
-	if ( $boxname -Match "Windows" ) { # This tells Vagrant to use WinRM instead of SSH
-		executeExpression "(New-Object System.Net.WebClient).DownloadFile(`'https://raw.githubusercontent.com/cdaf/windows/master/samples/vagrant-test/Vagrantfile`', `"$PWD\Vagrantfile`")"
-	} else {
-		executeExpression "(New-Object System.Net.WebClient).DownloadFile(`'https://raw.githubusercontent.com/cdaf/linux/master/samples/vagrant-test/Vagrantfile`', `"$PWD\Vagrantfile`")"
+	
+	Write-Host "`n[$scriptName] Add the box to the local cache"
+	$testDir = 'packageTest'
+	if (Test-Path "$testDir ") {
+		executeExpression "Remove-Item $testDir -Recurse -Force"
 	}
-
-	Write-Host "`n[$scriptName] Log vagrant file contents"
-	executeExpression "cat .\Vagrantfile"
-
-	Write-Host "$logFile" "[$scriptName] Set the box to use for testing"
-	execute "`$env:OVERRIDE_IMAGE = `"cdaf/$boxname`""
-
-	Write-Host "$logFile" "[$scriptName] vagrant up"
-	$proc = Start-Process -FilePath 'vagrant' -ArgumentList 'up' -PassThru -Wait -NoNewWindow
+	executeIgnoreExit "vagrant box remove cdaf/$boxName --all --force" # ignore error if none exist
+	
+	Write-Host "`n[$scriptName] vagrant box add cdaf/$boxName $packageFile --force"
+	Write-Host "$logFile" "[$scriptName] vagrant box add cdaf/$boxName $packageFile --force"
+	$proc = Start-Process -FilePath 'vagrant' -ArgumentList "box add cdaf/$boxName $packageFile --force" -PassThru -Wait -NoNewWindow
 	if ( $proc.ExitCode -ne 0 ) {
 		Write-Host "`n[$scriptName] Exit with `$LASTEXITCODE = $($proc.ExitCode)`n"
-	    exit $proc.ExitCode
+		exit $proc.ExitCode
 	}
-
-    Write-Host "`n[$scriptName] vagrant destroy -f"
-	Write-Host "$logFile" "[$scriptName] vagrant destroy -f"
-    $proc = Start-Process -FilePath 'vagrant' -ArgumentList 'destroy -f' -PassThru -Wait -NoNewWindow
-    if ( $proc.ExitCode -ne 0 ) {
-	    Write-Host "`n[$scriptName] WARNING Laster `$LASTEXITCODE = $($proc.ExitCode)`n"
-        cmd /c "exit 0"
-    }
-
-    Write-Host "`n[$scriptName] Clean-up Vagrant Temporary files"
-    executeExpression "Remove-Item -Recurse $env:USERPROFILE\.vagrant.d\tmp\*"
+	
+	Write-Host "$logFile" "[$scriptName] Return to workspace"
+	executeExpression "cd .."
+	
+	if ($skipTest -eq 'yes') {
+		Write-Host "`n[$scriptName] skipTest is ${skipTest}, tests not attempted."
+	} else {
+	
+		if ( $boxname -Match "Windows" ) { # This tells Vagrant to use WinRM instead of SSH
+			executeExpression "(New-Object System.Net.WebClient).DownloadFile(`'https://raw.githubusercontent.com/cdaf/windows/master/samples/vagrant-test/Vagrantfile`', `"$PWD\Vagrantfile`")"
+		} else {
+			executeExpression "(New-Object System.Net.WebClient).DownloadFile(`'https://raw.githubusercontent.com/cdaf/linux/master/samples/vagrant-test/Vagrantfile`', `"$PWD\Vagrantfile`")"
+		}
+	
+		Write-Host "`n[$scriptName] Log vagrant file contents"
+		executeExpression "cat .\Vagrantfile"
+	
+		Write-Host "$logFile" "[$scriptName] Set the box to use for testing"
+		execute "`$env:OVERRIDE_IMAGE = `"cdaf/$boxname`""
+	
+		Write-Host "$logFile" "[$scriptName] vagrant up"
+		$proc = Start-Process -FilePath 'vagrant' -ArgumentList 'up' -PassThru -Wait -NoNewWindow
+		if ( $proc.ExitCode -ne 0 ) {
+			Write-Host "`n[$scriptName] Exit with `$LASTEXITCODE = $($proc.ExitCode)`n"
+			exit $proc.ExitCode
+		}
+	
+		Write-Host "`n[$scriptName] vagrant destroy -f"
+		Write-Host "$logFile" "[$scriptName] vagrant destroy -f"
+		$proc = Start-Process -FilePath 'vagrant' -ArgumentList 'destroy -f' -PassThru -Wait -NoNewWindow
+		if ( $proc.ExitCode -ne 0 ) {
+			Write-Host "`n[$scriptName] WARNING Laster `$LASTEXITCODE = $($proc.ExitCode)`n"
+			cmd /c "exit 0"
+		}
+	
+		Write-Host "`n[$scriptName] Clean-up Vagrant Temporary files"
+		executeExpression "Remove-Item -Recurse $env:USERPROFILE\.vagrant.d\tmp\*"
+	}
+	
+	Write-Host "$logFile" "[$scriptName] vagrant box list"
+	$proc = Start-Process -FilePath 'vagrant' -ArgumentList 'box list' -PassThru -Wait -NoNewWindow
+	if ( $proc.ExitCode -ne 0 ) {
+		Write-Host "`n[$scriptName] Exit with `$LASTEXITCODE = $($proc.ExitCode)`n"
+		exit $proc.ExitCode
+	}
+	
+	emailProgress "Final notifcation, package of ${packageFile} complete"
 }
-
-Write-Host "$logFile" "[$scriptName] vagrant box list"
-$proc = Start-Process -FilePath 'vagrant' -ArgumentList 'box list' -PassThru -Wait -NoNewWindow
-if ( $proc.ExitCode -ne 0 ) {
-	Write-Host "`n[$scriptName] Exit with `$LASTEXITCODE = $($proc.ExitCode)`n"
-    exit $proc.ExitCode
-}
-
-emailProgress "Final notifcation, package of ${packageFile} complete"
 
 Write-Host "`n[$scriptName] ---------- stop ----------"
