@@ -13,11 +13,11 @@ cmd /c "exit 0"
 # Use executeIgnoreExit to only trap powershell errors, use executeExpression to trap all errors, including $LASTEXITCODE
 function execute ($expression) {
 	$error.clear()
-	Write-Host "[$(date)] $expression"
+	Write-Host "[$(Get-date)] $expression"
 	try {
 		Invoke-Expression $expression
 	    if(!$?) { Write-Host "`$? = $?"; emailAndExit 1050 }
-	} catch { echo $_.Exception|format-list -force; emailAndExit 1051 }
+	} catch { Write-Output $_.Exception|format-list -force; emailAndExit 1051 }
     if ( $error[0] ) { Write-Host "`$error[0] = $error"; emailAndExit 1052 }
 }
 
@@ -105,7 +105,7 @@ if ( $env:http_proxy ) {
     executeExpression "[system.net.webrequest]::defaultwebproxy = new-object system.net.webproxy('$env:http_proxy')"
 }
 
-$imageLog = "$(pwd)\atlasPackage_${hypervisor}.txt"
+$imageLog = "$(Get-Location)\atlasPackage_${hypervisor}.txt"
 if (Test-Path "$imageLog") {
     Write-Host "`n[$scriptName] Logfile exists ($imageLog), delete for new run."
 	Remove-Item "$imageLog"
