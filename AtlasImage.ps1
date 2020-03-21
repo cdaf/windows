@@ -93,7 +93,10 @@ if ($stripDISM) {
 	$stripDISM = 'no'
     writeLog "stripDISM  : $stripDISM (default)"
 }
-	
+
+executeExpression "cd $(split-path -parent $MyInvocation.MyCommand.Definition)"
+executeExpression "pwd"
+
 if ( $hypervisor -eq 'virtualbox' ) {
 	$vbadd = '5.2.22'
 	executeExpression ".\automation\provisioning\mountImage.ps1 $env:userprofile\VBoxGuestAdditions_${vbadd}.iso http://download.virtualbox.org/virtualbox/${vbadd}/VBoxGuestAdditions_${vbadd}.iso"
