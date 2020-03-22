@@ -91,7 +91,8 @@ if ($diskDir) {
 } else {
 	if ( $hypervisor -eq 'virtualbox' ) {
 		$diskDir = "D:\VMs\$boxName"
-	    Write-Host "[$scriptName] diskDir     : $diskDir (default)"
+		$diskPath = "${diskDir}\${boxName}.vdi"
+		Write-Host "[$scriptName] diskDir     : $diskDir (default)"
 	} else {
 	    Write-Host "[$scriptName] diskDir     : (not specified, only required if VirtualBox)"
     }
@@ -135,16 +136,19 @@ if (Test-Path "$imageLog") {
 
 if ($action -eq 'Clone') {
 	if ($hypervisor -eq 'virtualbox') {
-		Write-Host "`n[$scriptName] Disk ($diskPath) Import VirtualBox Disk image from Hyper-V, create ${diskDir} ..."
+		Write-Host "`n[$scriptName] Ensure ${diskDir} exists ..."
 		MAKDIR ${diskDir}
+
 		$clonedhd = "D:\Hyper-V\$boxName.vhdx"
+		Write-Host "`n[$scriptName] Copy Hyper-V disk to VirtualBox..."
+		executeExpression "Copy-Item Z:\vHDD\$boxName.vhdx $clonedhd"
+
+		Write-Host "`n[$scriptName] Disk ($diskPath) Import VirtualBox Disk image from Hyper-V, ..."
 		executeExpression "& 'C:\Program Files\Oracle\Virtualbox\VBoxmanage.exe' clonehd '$clonedhd' '$diskDir\$boxName.vdi' --format vdi"
 		emailProgress "VirtualBox Dick Clone Complete"
 	} else {
-		Write-Host "`n[$scriptName] Copy Hyper-V disk to VirtualBox..."
-		executeExpression "Copy-Item D:\Hyper-V\$boxName.vhdx Z:\$boxName.vhdx"
-		(New-Object System.Net.WebClient).DownloadFile('https://raw.githubusercontent.com/cdaf/windows/master/AtlasPackage.ps1', "$PWD\AtlasPackage.ps1")
-		emailProgress "Copy Hyper-V disk to VirtualBox complete"
+		Write-Host "`n[$scriptName] Perform all actions on VirtualBox Host!"
+		emailAndExit 200
 	}
 		
 } else {
@@ -172,7 +176,6 @@ if ($action -eq 'Clone') {
 	
 	if ($hypervisor -eq 'virtualbox') {
 	
-		$diskPath = "${diskDir}\${boxName}.vdi"
 		if (Test-Path "$diskPath") {
 			Write-Host "`n[$scriptName] Export VirtualBox VM"
 			executeExpression "& `"C:\Program Files\Oracle\VirtualBox\VBoxManage.exe`" modifyhd `"$diskPath`" --compact"
