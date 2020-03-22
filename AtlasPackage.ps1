@@ -150,7 +150,7 @@ if ($action -eq 'Clone') {
 		emailProgress "Copy Hyper-V disk to VirtualBox complete"
 	}
 		
-else {
+} else {
 	
 	Write-Host "`n[$scriptName] Prepare Temporary build directory"
 	executeExpression "cd ~"
