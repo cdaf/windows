@@ -71,22 +71,19 @@ Write-Host "`n[$scriptName] ---------- start ----------"
 if ($action) {
     Write-Host "[$scriptName] action      : $action"
 } else {
-	$action = 'Package'
-    Write-Host "[$scriptName] action      : (not specified, defaulted to $action)"
+    Write-Host "[$scriptName] action not specified, Select Package or Clone"; exit 1101
 }
 
 if ($boxname) {
     Write-Host "[$scriptName] boxname     : $boxname"
 } else {
-	$boxname = 'WindowsServerStandard'
-    Write-Host "[$scriptName] boxname     : (not specified, defaulted to $boxname)"
+    Write-Host "[$scriptName] boxname not specified!"; exit 1102
 }
 
 if ($hypervisor) {
     Write-Host "[$scriptName] hypervisor  : $hypervisor"
 } else {
-	$hypervisor = 'virtualbox'
-    Write-Host "[$scriptName] hypervisor  : (not specified, defaulted to $hypervisor)"
+    Write-Host "[$scriptName] hypervisor, select hyperv or virtualbox"; exit 1103
 }
 
 if ($diskDir) {
@@ -145,7 +142,7 @@ if ($action -eq 'Clone') {
 		emailProgress "VirtualBox Dick Clone Complete"
 	} else {
 		Write-Host "`n[$scriptName] Copy Hyper-V disk to VirtualBox..."
-		executeExpression "Copy-Item D:\Hyper-V\$boxName.vhdx \\VAG1\Hyper-V\$boxName.vhdx"
+		executeExpression "Copy-Item D:\Hyper-V\$boxName.vhdx Z:\$boxName.vhdx"
 		(New-Object System.Net.WebClient).DownloadFile('https://raw.githubusercontent.com/cdaf/windows/master/AtlasPackage.ps1', "$PWD\AtlasPackage.ps1")
 		emailProgress "Copy Hyper-V disk to VirtualBox complete"
 	}
