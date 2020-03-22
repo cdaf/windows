@@ -19,11 +19,11 @@ function writeLog ($message) {
 # Use executeIgnoreExit to only trap exceptions, use executeExpression to trap all errors ($LASTEXITCODE is global)
 function execute ($expression) {
 	$error.clear()
-	writeLog "[$(date)] $expression"
+	writeLog "[$(Get-date)] $expression"
 	try {
 		Invoke-Expression $expression
 	    if(!$?) { writeLog "`$? = $?"; exit 1 }
-	} catch { echo $_.Exception|format-list -force; exit 2 }
+	} catch { Write-Output $_.Exception|format-list -force; exit 2 }
     if ( $error[0] ) { writeLog "`$error[0] = $error"; exit 3 }
 }
 
@@ -131,7 +131,7 @@ if ( Test-Path $env:systemroot\SoftwareDistribution ) {
 
 writeLog "Enable permissions to discard page file"
 writeLog "`$System = GWMI Win32_ComputerSystem -EnableAllPrivileges"
-$System = GWMI Win32_ComputerSystem -EnableAllPrivileges
+$System = Get-WmiObject Win32_ComputerSystem -EnableAllPrivileges
 executeExpression "`$System.AutomaticManagedPagefile = `$False"
 writeLog "`$System.Put()"
 $output = $System.Put()
@@ -139,7 +139,7 @@ writeLog "$output"
 
 writeLog "Discard page file (is rebuilt at start-up)"
 writeLog "`$CurrentPageFile = gwmi -query `"select * from Win32_PageFileSetting where name=`'c:\\pagefile.sys`'`""
-$CurrentPageFile = gwmi -query "select * from Win32_PageFileSetting where name='c:\\pagefile.sys'"
+$CurrentPageFile = Get-WmiObject -query "select * from Win32_PageFileSetting where name='c:\\pagefile.sys'"
 executeExpression "`$CurrentPageFile.InitialSize = 512"
 executeExpression "`$CurrentPageFile.MaximumSize = 512"
 writeLog "`$CurrentPageFile.Put()"
