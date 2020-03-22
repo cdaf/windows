@@ -16,11 +16,11 @@ function writeLog ($message) {
 # Common expression logging and error handling function, copied, not referenced to ensure atomic process
 function executeExpression ($expression) {
 	$error.clear()
-	writeLog "[$(date)] $expression"
+	writeLog "[$(Get-date)] $expression"
 	try {
 		Invoke-Expression $expression
 	    if(!$?) { writeLog "`$? = $?"; exit 1 }
-	} catch { echo $_.Exception|format-list -force; exit 2 }
+	} catch { Write-Output $_.Exception|format-list -force; exit 2 }
     if ( $error[0] ) { writeLog "`$error[0] = $error"; exit 3 }
     if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) { writeLog "`$LASTEXITCODE = $LASTEXITCODE "; exit $LASTEXITCODE }
 }
