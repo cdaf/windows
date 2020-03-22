@@ -138,7 +138,7 @@ if (Test-Path "$imageLog") {
 
 if ($action -eq 'Clone') {
 	if ($hypervisor -eq 'virtualbox') {
-		Write-Host "`n[$scriptName] Disk ($diskPath) Import VirtualBox Disk image from Hyper-V ..."
+		Write-Host "`n[$scriptName] Disk ($diskPath) Import VirtualBox Disk image from Hyper-V, create ${diskDir} ..."
 		MAKDIR ${diskDir}
 		$clonedhd = "D:\Hyper-V\$boxName.vhdx"
 		executeExpression "& 'C:\Program Files\Oracle\Virtualbox\VBoxmanage.exe' clonehd '$clonedhd' '$diskDir\$boxName.vdi' --format vdi"
@@ -153,6 +153,14 @@ if ($action -eq 'Clone') {
 else {
 	
 	Write-Host "`n[$scriptName] Prepare Temporary build directory"
+	executeExpression "cd ~"
+	if (Test-Path "boxbuilder") {
+		executeExpression "Remove-Item boxbuilder -Recurse -Force"
+	}
+	Write-Host "`n[$scriptName] Create boxbuilder directory ..."
+	MAKDIR "boxbuilder"
+	executeExpression "cd boxbuilder"
+
 	$buildDir = "${boxName}_${hypervisor}"
 	if (Test-Path "$buildDir") {
 		executeExpression "Remove-Item $buildDir -Recurse -Force"
