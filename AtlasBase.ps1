@@ -78,9 +78,6 @@ $obj = executeExpression "Get-WmiObject -Class `"Win32_TerminalServiceSetting`" 
 executeExpression "`$obj.SetAllowTsConnections(1,1)"
 executeExpression "Set-NetFirewallRule -Name RemoteDesktop-UserMode-In-TCP -Enabled True"
 
-writeLog "Disable Server Manager GUI or ..."
-executeExpression 'Get-ScheduledTask -TaskName ServerManager | Disable-ScheduledTask -Verbose'
-
 writeLog "Disable User Account Controls (UAC)"
 executeExpression "reg add HKEY_LOCAL_MACHINE\Software\Microsoft\Windows\CurrentVersion\Policies\System /v EnableLUA /d 0 /t REG_DWORD /f /reg:64"
 
