@@ -1,6 +1,14 @@
 $scriptName = 'Capabilities.ps1'
 
 Write-Host "`n[$scriptName] ---------- start ----------"
+
+$scriptPath = split-path -parent $MyInvocation.MyCommand.Definition
+$AUTOMATIONROOT = split-path -parent $scriptPath
+if ( Test-Path "$AUTOMATIONROOT\CDAF.windows" ) {
+	$cdafVersion = (Select-String -Path "$AUTOMATIONROOT\CDAF.windows" -Pattern 'productVersion=').ToString().Split('=')[-1]
+	Write-Host "[$scriptName]   CDAF      : $cdafVersion"
+}
+
 Write-Host "[$scriptName]   hostname  : $(hostname)"
 Write-Host "[$scriptName]   pwd       : $(Get-Location)"
 Write-Host "[$scriptName]   whoami    : $(whoami)" 
