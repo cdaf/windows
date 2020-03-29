@@ -35,6 +35,7 @@ To alleviate the burden of argument passing, exception handling and logging, the
 | Keyword | Description                       | Example                         |
 | --------|-----------------------------------|---------------------------------|
 | ASSIGN  | set a variable                    | ASSIGN $test="Hello World"      |
+| CMDTST  | Returns true if command exists    | CMDTST vagrant                  |
 | CMPRSS  | Compress directory to file        | CMPRSS packageName dirName      |
 | CMPRSS  | Compress directory to file        | CMPRSS packageName              |
 | DCMPRS  | Decompress package file           | DCMPRS packageName              |

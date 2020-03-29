@@ -227,6 +227,18 @@ function MSTOOL ($command) {
 	executeExpression "$automationHelper\msTools.ps1"
 }
 
+function CMDTST ($command) {
+	$oldPreference = $ErrorActionPreference
+	$ErrorActionPreference = 'SilentlyContinue'
+	try {
+		if ( Get-Command $command ) { return $true }
+	} catch {
+		return $false
+	} finally {
+		$ErrorActionPreference = $oldPreference
+	}
+}
+
 $SOLUTION    = $args[0]
 $BUILDNUMBER = $args[1]
 $TARGET      = $args[2]
