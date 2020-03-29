@@ -21,7 +21,16 @@ function executeExpression ($expression) {
 	    if(!$?) { Write-Host "[$scriptName][FAILURE] `$? = $?"; $exitCode = 1 }
 	} catch { Write-Host "[$scriptName][EXCEPTION] Exception details ..."; Write-Host $_.Exception|format-list -force; $exitCode = 2 }
     if ( $error ) { Write-Host "[$scriptName][ERROR] `$error[0] = $error"; $exitCode = 3 }
-    if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) { Write-Host "[$scriptName][EXIT] `$LASTEXITCODE = $LASTEXITCODE "; $exitCode = $LASTEXITCODE }
+    if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) {
+		if ( $LASTEXITCODE -eq 3010 ) {
+			Write-Host "[$scriptName] `$LASTEXITCODE = ${LASTEXITCODE}, reboot required." -ForegroundColor Yellow
+			$exitCode = 0
+			$env:rebootRequired = 'yes'
+		} else {
+			Write-Host "[$scriptName][EXIT] `$LASTEXITCODE = $LASTEXITCODE "
+			$exitCode = $LASTEXITCODE
+		}
+	}
 	if ( $exitCode -ne 0 ) {
 		if ( $logFile ) {
 			Write-Host "`n[$scriptName] Listing contents of $logFile then exit...`n"
@@ -50,14 +59,8 @@ function executeRetry ($expression) {
 		} catch { Write-Host "[$scriptName] $_" -ForegroundColor Red; $exitCode = 2 }
 	    if ( $error[0] ) { Write-Host "[$scriptName] Warning, message in `$error[0] = $error" -ForegroundColor Yellow; $error.clear() } # do not treat messages in error array as failure
 		if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) {
-			if ( $LASTEXITCODE -eq 3010 ) {
-				Write-Host "[$scriptName] `$LASTEXITCODE = ${LASTEXITCODE}, reboot required." -ForegroundColor Yellow
-				$exitCode = 0
-				$env:rebootRequired = 'yes'
-			} else {
-				Write-Host "[$scriptName] `$LASTEXITCODE = $LASTEXITCODE " -ForegroundColor Red
-				$exitCode = $LASTEXITCODE
-			}
+			Write-Host "[$scriptName] `$LASTEXITCODE = $LASTEXITCODE " -ForegroundColor Red
+			$exitCode = $LASTEXITCODE
 			cmd /c "exit 0"
 		}
 	    if ($exitCode -ne 0) {
