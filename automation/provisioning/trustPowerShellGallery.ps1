@@ -61,6 +61,7 @@ function executeRetry ($expression) {
 
 Write-Host "`n[$scriptName] ---------- start ----------`n"
 
+executeExpression "[System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]'Tls11,Tls12'"
 executeReinstall "Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.201 -Force"
 
 executeRetry "Set-PSRepository -Name PSGallery -InstallationPolicy Trusted"

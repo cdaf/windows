@@ -117,6 +117,8 @@ if ($dockerUser) {
     Write-Host "[$scriptName]  dockerUser  : (not set)"
 }
 
+$AllProtocols = [System.Net.SecurityProtocolType]'Tls11,Tls12'
+executeExpression '[System.Net.ServicePointManager]::SecurityProtocol = $AllProtocols'
 executeExpression "Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.201 -Verbose -Force $proxyParameter"
 
 # Found these repositories unreliable so included retry logic
