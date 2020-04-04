@@ -93,6 +93,15 @@ if ($env:http_proxy) {
 }
 
 executeExpression "[System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]'Tls11,Tls12'"
+
+# Found these repositories unreliable so included retry logic
+$galleryAvailable = Get-PSRepository -Name PSGallery*
+if ($galleryAvailable) {
+	Write-Host "[$scriptName] $((Get-PSRepository -Name PSGallery).Name) is already available"
+} else {
+	executeRetry "Register-PSRepository -Default"
+}
+
 executeReinstall "Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.201 -Force"
 
 executeRetry "Set-PSRepository -Name PSGallery -InstallationPolicy Trusted"
