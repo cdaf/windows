@@ -4,6 +4,7 @@ Param (
   [string]$ENVIRONMENT
 )
 
+$Error.Clear()
 cmd /c "exit 0"
 $scriptName = 'customDelivery.ps1'
 
