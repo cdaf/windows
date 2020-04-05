@@ -39,7 +39,7 @@ deployment:
   source-plan: REF-CDAFW
 
 release-naming:
-  next-version-name: 2.0.3.${bamboo.buildNumber}
+  next-version-name: ${bamboo.buildNumber}
 
 environments:
   - NO_PROP
