@@ -1,6 +1,8 @@
 Add-Type -AssemblyName System.IO.Compression.FileSystem
 
-# Convert exceptions and errors into generic exit code.
+cmd /c "exit 0"
+$error.clear()
+
 function taskException ($taskName, $exception) {
     write-host "[$scriptName (taskException)] Caught an exception excuting $taskName :" -ForegroundColor Red
     write-host "     Exception Type: $($exception.Exception.GetType().FullName)" -ForegroundColor Red
@@ -9,22 +11,21 @@ function taskException ($taskName, $exception) {
 }
 
 function executeExpression ($expression) {
-	$error.clear()
 	Write-Host "[$scriptName] $expression"
 	try {
 		$output = Invoke-Expression $expression
-	    if(!$?) { Write-Host "[$scriptName] `$? = $?"; exit 1 }
-	} catch { Write-Output $_.Exception|format-list -force; exit 2 }
-    if ( $error[0] ) { 
-    	if ( $ignoreWarning -eq 'yes' ) {
-	    	Write-Host "[$scriptName] `$error[0] = $error but `$ignoreWarning is yes so continuing ..."; $error.clear()
+	    if(!$?) { Write-Host "[$scriptName] `$? = $?"; if ( $error ) { $error } ; exit 1 }
+	} catch { Write-Output $_.Exception|format-list -force; if ( $error ) { $error } ; exit 2 }
+    if ( $error ) {
+    	if ( $env:CDAF_IGNORE_WARNING -eq 'yes' ) {
+	    	Write-Host "[$scriptName] `$error[0] = $error but `$env:CDAF_IGNORE_WARNING is yes so continuing ..."; $error.clear()
     	} else {
 	    	Write-Host "[$scriptName] `$error[0] = $error"; exit 3
     	}
 	}
     if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) {
 		Write-Host "[$scriptName] `$LASTEXITCODE = $LASTEXITCODE " -ForegroundColor Red
-		exit $LASTEXITCODE
+		if ( $error ) { $error } ; exit $LASTEXITCODE
 	}
     return $output
 }
@@ -245,9 +246,6 @@ $TARGET      = $args[2]
 $TASK_LIST   = $args[3]
 $ACTION      = $args[4]
 
-cmd /c "exit 0"
-$error.clear()
-
 # Set the temporary directory (system wide)
 $TMPDIR = [Environment]::GetEnvironmentVariable("TEMP","Machine")
 
@@ -428,8 +426,8 @@ Foreach ($line in get-content $TASK_LIST) {
 				    if(!$?) { Write-Host "[$scriptName] `$? = $?"; exit 11 }
 				} catch { Write-Output $_.Exception|format-list -force; exit 12 }
 			    if ( $error[0] ) {
-			    	if ( $ignoreWarning -eq 'yes' ) {
-				    	Write-Host "[$scriptName] `$error[0] = $error but `$ignoreWarning is yes so continuing ..."; $error.clear()
+			    	if ( $env:CDAF_IGNORE_WARNING -eq 'yes' ) {
+				    	Write-Host "[$scriptName] `$error[0] = $error but `$env:CDAF_IGNORE_WARNING is yes so continuing ..."; $error.clear()
 			    	} else {
 				    	Write-Host "[$scriptName] `$error[0] = $error"; exit 13
 			    	}
