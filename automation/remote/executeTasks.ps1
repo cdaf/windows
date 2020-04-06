@@ -14,7 +14,7 @@ function passExitCode ($message, $exitCode) {
 
 function exceptionExit ($exception) {
     write-host "[$scriptName]   Exception details follow ..." -ForegroundColor Red
-    Write-Output $exception.Exception|format-list -force
+    echo $exception.Exception|format-list -force
     write-host "[$scriptName] Returning errorlevel (500) to DOS" -ForegroundColor Magenta
     $host.SetShouldExit(500); exit
 }
@@ -49,22 +49,22 @@ $OPT_ARG   = $args[2]
 # $myInvocation.MyCommand.Name not working when processing DOS
 $scriptName = "executeTasks.ps1"
 
-write-host "[$scriptName]   TARGET               : $TARGET"
-if ($WORKSPACE ) {
-    write-host "[$scriptName]   WORKSPACE            : $WORKSPACE (passed as argument)"
+write-host "[$scriptName]   TARGET    : $TARGET"
+if ( $WORKSPACE ) {
+    write-host "[$scriptName]   WORKSPACE : $WORKSPACE (passed as argument)"
 } else {
-    write-host "[$scriptName]   WORKSPACE            : $(Get-Location)"
+    $WORKSPACE = $(Get-Location)
+    write-host "[$scriptName]   WORKSPACE : $WORKSPACE (pwd)"
 }
 
 if ($OPT_ARG ) {
-    write-host "[$scriptName]   OPT_ARG            : $OPT_ARG"
+    write-host "[$scriptName]   OPT_ARG   : $OPT_ARG"
 } else {
-    write-host "[$scriptName]   OPT_ARG            : (not supplied)"
+    write-host "[$scriptName]   OPT_ARG   : (not supplied)"
 }
 
-
-write-host "[$scriptName]   hostname             : $(hostname)"
-write-host "[$scriptName]   whoami               : $(whoami)"
+write-host "[$scriptName]   hostname  : $(hostname)"
+write-host "[$scriptName]   whoami    : $(whoami)"
 
 write-host "`n[$scriptName] Load SOLUTION and BUILDNUMBER from manifest.txt"
 & .\Transform.ps1 ".\manifest.txt" | ForEach-Object { invoke-expression $_ }
