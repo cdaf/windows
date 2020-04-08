@@ -1,6 +1,6 @@
-context  target     deployHost        deployLand           remoteUser  remoteCred  decryptThb
-remote   VAGRANT    server-1.sky.net  c:\deploy\vagrant    vagrant     WINDOWS     29-240-88-121-33-64-150-226-136-160-144-115-127-74-74-30
-remote   WINDOWS    localhost         c:\deploy\windows
+context  target     deployHost  deployLand           remoteUser  remoteCred  decryptThb
+remote   VAGRANT    target-1    c:\deploy\vagrant    vagrant     WINDOWS     29-240-88-121-33-64-150-226-136-160-144-115-127-74-74-30
+remote   WINDOWS    localhost   c:\deploy\windows
 local    WORKGROUP  localhost
 local    TEST       localhost
 local    PROD       localhost
