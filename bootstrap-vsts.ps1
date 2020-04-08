@@ -13,7 +13,6 @@ Param (
 
 # Common expression logging and error handling function, copied, not referenced to ensure atomic process
 function executeExpression ($expression) {
-	$error.clear()
 	Write-Host "[$(Get-date)] $expression"
 	try {
 		Invoke-Expression "$expression"
@@ -25,6 +24,7 @@ function executeExpression ($expression) {
 
 $scriptName = 'bootstrap-vsts.ps1'
 cmd /c "exit 0" # ensure LASTEXITCODE is 0
+$error.clear()
 
 Write-Host "`n[$scriptName] ---------- start ----------"
 if ($vstsURL) {
