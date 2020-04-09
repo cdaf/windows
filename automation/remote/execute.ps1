@@ -14,18 +14,25 @@ function executeExpression ($expression) {
 	Write-Host "[$scriptName] $expression"
 	try {
 		$output = Invoke-Expression $expression
-	    if(!$?) { Write-Host "[$scriptName] `$? = $?"; if ( $error ) { $error } ; exit 1 }
-	} catch { Write-Output $_.Exception|format-list -force; if ( $error ) { $error } ; exit 2 }
-    if ( $error ) {
-    	if ( $env:CDAF_IGNORE_WARNING -eq 'yes' ) {
-	    	Write-Host "[$scriptName] `$error[0] = $error but `$env:CDAF_IGNORE_WARNING is yes so continuing ..."; $error.clear()
-    	} else {
-	    	Write-Host "[$scriptName] `$error[0] = $error"; exit 3
-    	}
-	}
-    if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) {
-		Write-Host "[$scriptName] `$LASTEXITCODE = $LASTEXITCODE " -ForegroundColor Red
-		if ( $error ) { $error } ; exit $LASTEXITCODE
+	    if(!$?) { Write-Host "[$scriptName] `$? = $?"; $error ; exit 1111 }
+	} catch { Write-Output $_.Exception|format-list -force; $error ; exit 1112 }
+    if ( $LASTEXITCODE ) {
+    	if ( $LASTEXITCODE -ne 0 ) {
+			Write-Host "[$scriptName] `$LASTEXITCODE = $LASTEXITCODE " -ForegroundColor Red ; $error ; exit $LASTEXITCODE
+		} else {
+			if ( $error ) {
+				Write-Host "[$scriptName][WARN] $Error array populated by `$LASTEXITCODE = $LASTEXITCODE error follows...`n" -ForegroundColor Yellow
+				$error
+			}
+		} 
+	} else {
+	    if ( $error ) {
+	    	if ( $env:CDAF_IGNORE_WARNING -eq 'yes' ) {
+		    	Write-Host "[$scriptName] `$error[0] = $error but `$env:CDAF_IGNORE_WARNING is yes so continuing ..."; $error.clear()
+	    	} else {
+		    	Write-Host "[$scriptName] `$error[0] = $error"; exit 1113
+	    	}
+		}
 	}
     return $output
 }
@@ -421,21 +428,30 @@ Foreach ($line in get-content $TASK_LIST) {
 #					$ExecutionContext.InvokeCommand.ExpandString($escapeAssign)
 					Write-Host "$expression"
 			    }
+
 				try {
 					Invoke-Expression $expression
-				    if(!$?) { Write-Host "[$scriptName] `$? = $?"; exit 11 }
-				} catch { Write-Output $_.Exception|format-list -force; exit 12 }
-			    if ( $error[0] ) {
-			    	if ( $env:CDAF_IGNORE_WARNING -eq 'yes' ) {
-				    	Write-Host "[$scriptName] `$error[0] = $error but `$env:CDAF_IGNORE_WARNING is yes so continuing ..."; $error.clear()
-			    	} else {
-				    	Write-Host "[$scriptName] `$error[0] = $error"; exit 13
-			    	}
+				    if(!$?) { Write-Host "[$scriptName] `$? = $?"; $error ; exit 1011 }
+				} catch { Write-Output $_.Exception|format-list -force; $error ; exit 1012 }
+			    if ( $LASTEXITCODE ) {
+			    	if ( $LASTEXITCODE -ne 0 ) {
+						Write-Host "[$scriptName] `$LASTEXITCODE = $LASTEXITCODE " -ForegroundColor Red ; $error ; exit $LASTEXITCODE
+					} else {
+						if ( $error ) {
+							Write-Host "[$scriptName][WARN] $Error array populated by `$LASTEXITCODE = $LASTEXITCODE error follows...`n" -ForegroundColor Yellow
+							$error
+						}
+					} 
+				} else {
+				    if ( $error ) {
+				    	if ( $env:CDAF_IGNORE_WARNING -eq 'yes' ) {
+					    	Write-Host "[$scriptName] `$error[0] = $error but `$env:CDAF_IGNORE_WARNING is yes so continuing ..."; $error.clear()
+				    	} else {
+					    	Write-Host "[$scriptName] `$error[0] = $error"; exit 1013
+				    	}
+					}
 				}
-			    if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) {
-					Write-Host "[$scriptName] `$LASTEXITCODE = $LASTEXITCODE " -ForegroundColor Red
-					exit $LASTEXITCODE
-				}
+
 		    }
         }
     }
