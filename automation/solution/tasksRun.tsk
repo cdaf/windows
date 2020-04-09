@@ -4,13 +4,13 @@ Write-Host "DO NOT log the AES key, this is supplied by CD tool as environment v
 $env:AES_KEY = '29-240-88-121-33-64-150-226-136-160-144-115-127-74-74-30'
 
 Write-Host "DO NOT Decrypt without capturing return value or secrets will be disclosed`n" -ForegroundColor Yellow
-DECRYP .\crypt\WINDOWS $env:AES_KEY
+DECRYP .\crypt\AES_CRYPT $env:AES_KEY
 
 Write-Host "Either capture Decrypt output to a variable`n" -ForegroundColor Cyan
-$secrets = DECRYP .\crypt\WINDOWS $env:AES_KEY
+$secrets = DECRYP .\crypt\AES_CRYPT $env:AES_KEY
 
 Write-Host "Or stream Decrypt function to reconstruct an encrypted file`n" -ForegroundColor Cyan
-DECRYP .\crypt\WINDOWS $env:AES_KEY > unencypted.txt
+DECRYP .\crypt\AES_CRYPT $env:AES_KEY > unencypted.txt
 
 Write-Host "DO NOT list the contents of the unencrypted file because CD tool does not know to mask these values`n" -ForegroundColor Yellow
 cat unencypted.txt
@@ -22,7 +22,7 @@ Write-Host "Detokenise plain text`n" -ForegroundColor Cyan
 DETOKN crypt-test.yml
 
 Write-Host "Detokenise with masked secrets, only supports encrypted name/value files, in-memory, i.e. unencrypted file is never on disk`n" -ForegroundColor Cyan
-DETOKN crypt-test.yml .\crypt\WINDOWS $env:AES_KEY
+DETOKN crypt-test.yml .\crypt\AES_CRYPT $env:AES_KEY
 
 Write-Host "DO NOT list the contents of the detokenised file because CD tool does not know to mask these values`n" -ForegroundColor Yellow
 cat crypt-test.yml
