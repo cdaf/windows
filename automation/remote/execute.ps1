@@ -113,6 +113,25 @@ function VECOPY ($from, $to, $notFirstRun) {
 	} catch { taskException "VECOPY_TRAP" $_ }
 }
 
+
+# Refresh Directory, function arguments differ depending on number passed
+function REFRSH ( $arg1, $arg2 )
+{
+	if ( $arg2 ) {
+		$destination = $arg2
+		$source = $arg1
+	} else {
+		$destination = $arg1
+	}
+
+	# Ensure the destination exists and is empty
+	MAKDIR $destination
+	Remove-Item "$destination/*" -Recurse -Force
+	if ( $source ) {
+		VECOPY $source $destination
+	}
+}
+
 # Compress to file (Requires PowerShell v3 or above)
 #  required : file, relative to current workspace
 #  required : source directory, relative to current workspace
