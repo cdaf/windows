@@ -101,6 +101,17 @@ function getProp ($propName, $propertiesFile) {
     return $propValue
 }
 
+function dockerStart {
+	Write-Host "[$scriptName] Docker installed but not running, `$env:CDAF_DOCKER_REQUIRED is set so will try and start"
+	executeExpression 'Start-Service Docker'
+	Write-Host '$dockerStatus = ' -NoNewline 
+	$dockerStatus = executeReturn '(Get-Service Docker).Status'
+	$dockerStatus
+	if ( $dockerStatus -ne 'Running' ) {
+		Write-Host "[$scriptName] Unable to start Docker, `$dockerStatus = $dockerStatus"
+		exit 8910
+	}
+}
 # Load automation root out of sequence as needed for solution root derivation
 if (!($AUTOMATIONROOT)) {
 	$scriptPath = split-path -parent $MyInvocation.MyCommand.Definition
@@ -301,17 +312,9 @@ if ( $ACTION -eq 'containerbuild' ) {
 			    }
 			    if (( $dockerStatus -ne 'Running' ) -and ( $dockerdProcess -eq $null )){
 			    	if ( $env:CDAF_DOCKER_REQUIRED ) {
-						Write-Host "[$scriptName] Docker installed but not running, `$env:CDAF_DOCKER_REQUIRED is set so will try and start"
-						executeExpression 'Start-Service Docker'
-						Write-Host '$dockerStatus = ' -NoNewline 
-						$dockerStatus = executeReturn '(Get-Service Docker).Status'
-						$dockerStatus
-						if ( $dockerStatus -ne 'Running' ) {
-							Write-Host "[$scriptName] Unable to start Docker, `$dockerStatus = $dockerStatus"
-							exit 8910
-						}
+						dockerStart
 					} else {			    
-						Write-Host "[$scriptName] Docker installed but not running, will attempt to execute natively (set `$env:CDAF_DOCKER_REQUIRED if docker is mandatory"
+						Write-Host "[$scriptName] Docker installed but not running, will attempt to execute natively (set `$env:CDAF_DOCKER_REQUIRED if docker is mandatory)"
 						cmd /c "exit 0"
 						Clear-Variable -Name 'containerBuild'
 					}
@@ -322,9 +325,14 @@ if ( $ACTION -eq 'containerbuild' ) {
 			Write-Host "docker images 2> `$null"
 			docker images 2> $null
 			if ( $LASTEXITCODE -ne 0 ) {
-				Write-Host "[$scriptName] Docker not responding, will attempt to execute natively"
-				cmd /c "exit 0"
-				Clear-Variable -Name 'containerBuild'
+				Write-Host "[$scriptName] Docker not responding, will attempt to execute natively (set `$env:CDAF_DOCKER_REQUIRED if docker is mandatory)"
+				if ( $env:CDAF_DOCKER_REQUIRED ) {
+					dockerStart
+				} else {			    
+					Write-Host "[$scriptName] Docker installed but not running, will attempt to execute natively (set `$env:CDAF_DOCKER_REQUIRED if docker is mandatory)"
+					cmd /c "exit 0"
+					Clear-Variable -Name 'containerBuild'
+				}
 			}
 		}
 	} else {
