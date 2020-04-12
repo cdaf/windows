@@ -11,7 +11,7 @@ echo [%~nx0] Initialise Emulation
 echo [%~nx0] --------------------
 
 IF [%AUTOMATION_ROOT%] == [] (
-	set "automationRoot=%~dp0"
+	for %%Q in ("%~dp0\.") DO set "automationRoot=%%~fQ"
 ) else (
 	set "automationRoot=%AUTOMATION_ROOT%"
 )

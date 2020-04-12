@@ -12,7 +12,7 @@ SET ACTION=%3
 set AUTOMATION_ROOT=%4
 
 IF [%AUTOMATION_ROOT%] == [] (
-	set "automationRoot=%~dp0"
+	for %%Q in ("%~dp0\.") DO set "automationRoot=%%~fQ"
 ) else (
 	set "automationRoot=%AUTOMATION_ROOT%"
 )
