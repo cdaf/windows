@@ -23,19 +23,24 @@ foreach ($item in Get-WmiObject -Class Win32_NetworkAdapterConfiguration -Filter
 	Write-Host "[$scriptName]          IP : $($item.IPAddress)"
 }
 
-Write-Host "`n[$scriptName] List the Computer architecture`n"
+Write-Host "`n[$scriptName] Computer OS & Architecture`n"
+write-host "  Version                 : $([Environment]::OSVersion.VersionString)"
+$ReleaseId = (Get-ItemProperty -Path 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion' -Name 'ReleaseId').ReleaseId
+write-host "  ReleaseId               : $ReleaseId"
+$EditionId = (Get-ItemProperty -Path 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion' -Name 'EditionID').EditionId
+write-host "  EditionId               : $EditionId"
+$CurrentBuild = (Get-ItemProperty -Path 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion' -Name 'CurrentBuild').CurrentBuild
+write-host "  CurrentBuild            : $CurrentBuild"
+
 $computer = "."
 $sOS =Get-WmiObject -class Win32_OperatingSystem -computername $computer
 foreach($sProperty in $sOS) {
 	write-host "  Caption                 : $($sProperty.Caption)"
-	write-host "  Description             : $($sProperty.Description)"
 	write-host "  OSArchitecture          : $($sProperty.OSArchitecture)"
 	write-host "  ServicePackMajorVersion : $($sProperty.ServicePackMajorVersion)"
 }
 
-$EditionId = (Get-ItemProperty -Path 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion' -Name 'EditionID').EditionId
-write-host "  EditionId               : $EditionId"
-write-host "  PSVersion.Major         : $($PSVersionTable.PSVersion.Major)"
+write-host "  PowerShell              : $($PSVersionTable.PSVersion.Major).$($PSVersionTable.PSVersion.Minor)"
 
 #Write-Host "`n[$scriptName] List the enabled roles`n"
 #$tempFile = "$env:temp\tempName.log"
