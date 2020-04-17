@@ -39,6 +39,8 @@ Vagrant.configure(2) do |allhosts|
 
       # Microsoft Hyper-V
       server.vm.provider 'hyperv' do |hyperv, override|
+        hyperv.memory = "#{vRAM}"
+        hyperv.cpus = "#{vCPU}"
         override.vm.hostname = "target-#{i}"
         override.vm.synced_folder ".", "/vagrant", type: "smb", smb_username: "#{ENV['VAGRANT_SMB_USER']}", smb_password: "#{ENV['VAGRANT_SMB_PASS']}"
       end
@@ -72,6 +74,8 @@ Vagrant.configure(2) do |allhosts|
 
     # Hyper-V
     build.vm.provider 'hyperv' do |hyperv, override|
+      hyperv.memory = "#{vRAM}"
+      hyperv.cpus = "#{vCPU}"
       override.vm.synced_folder ".", "/vagrant", type: "smb", smb_username: "#{ENV['VAGRANT_SMB_USER']}", smb_password: "#{ENV['VAGRANT_SMB_PASS']}"
       override.vm.provision 'shell', path: '.\automation\provisioning\CDAF.ps1'
     end

@@ -69,7 +69,6 @@ Once the environment is running access the build server an execute the CD emulat
     vagrant powershell buildserver
     cd C:\vagrant
     .\automation\cdEmulate.bat
-   
 
 ## Direct PowerShell Access
 
