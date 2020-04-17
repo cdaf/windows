@@ -6,8 +6,55 @@ Param (
 	[string]$proxy
 )
 
-cmd /c "exit 0"
 $scriptName = 'GetMedia.ps1'
+cmd /c "exit 0"
+$error.clear()
+
+# Common expression logging and error handling function, copied, not referenced to ensure atomic process
+function executeExpression ($expression) {
+	Write-Host "[$(Get-Date)] $expression"
+	try {
+		Invoke-Expression $expression
+	    if(!$?) { Write-Host "[$scriptName] `$? = $?"; $error ; exit 1011 }
+	} catch { Write-Output $_.Exception|format-list -force; $error ; exit 1012 }
+    if ( $LASTEXITCODE ) {
+    	if ( $LASTEXITCODE -ne 0 ) {
+			Write-Host "[$scriptName] `$LASTEXITCODE = $LASTEXITCODE " -ForegroundColor Red ; $error ; exit $LASTEXITCODE
+		} else {
+			if ( $error ) {
+				Write-Host "[$scriptName][WARN] $Error array populated by `$LASTEXITCODE = $LASTEXITCODE error follows...`n" -ForegroundColor Yellow
+				$error
+			}
+		} 
+	} else {
+	    if ( $error ) {
+			Write-Host "[$scriptName] `$error = $error"; exit 1013
+		}
+	}
+}
+
+function executeReturn ($expression) {
+	Write-Host "[$(Get-Date)] $expression"
+	try {
+		$output = Invoke-Expression $expression
+	    if(!$?) { Write-Host "[$scriptName] `$? = $?"; $error ; exit 1111 }
+	} catch { Write-Output $_.Exception|format-list -force; $error ; exit 1112 }
+    if ( $LASTEXITCODE ) {
+    	if ( $LASTEXITCODE -ne 0 ) {
+			Write-Host "[$scriptName] `$LASTEXITCODE = $LASTEXITCODE " -ForegroundColor Red ; $error ; exit $LASTEXITCODE
+		} else {
+			if ( $error ) {
+				Write-Host "[$scriptName][WARN] $Error array populated by `$LASTEXITCODE = $LASTEXITCODE error follows...`n" -ForegroundColor Yellow
+				$error
+			}
+		} 
+	} else {
+	    if ( $error ) {
+			Write-Host "[$scriptName] `$error = $error"; exit 1113
+		}
+	}
+    return $output
+}
 
 # Retry logic for connection issues, i.e. "Cannot retrieve the dynamic parameters for the cmdlet. PowerShell Gallery is currently unavailable.  Please try again later."
 # Includes warning for "Cannot find a variable with the name 'PackageManagementProvider'. Cannot find a variable with the name 'SourceLocation'."
@@ -18,13 +65,12 @@ function executeRetry ($expression) {
 	$retryCount = 0
 	while (( $retryCount -le $retryMax ) -and ($exitCode -ne 0)) {
 		$exitCode = 0
-		$error.clear()
-		Write-Host "[$retryCount] $expression"
+		Write-Host "[$retryCount][$(Get-Date)] $expression"
 		try {
 			Invoke-Expression $expression
-		    if(!$?) { Write-Host "[$scriptName] `$? = $?" -ForegroundColor Red; $exitCode = 1 }
-		} catch { Write-Host "[$scriptName] $_" -ForegroundColor Red; $exitCode = 2 }
-	    if ( $error[0] ) { Write-Host "[$scriptName] Warning, message in `$error[0] = $error" -ForegroundColor Yellow; $error.clear() } # do not treat messages in error array as failure
+		    if(!$?) { Write-Host "[$scriptName] `$? = $?" -ForegroundColor Red; $error ; $exitCode = 1 }
+		} catch { Write-Host "[$scriptName] $_" -ForegroundColor Red; $error ; $exitCode = 2 }
+	    if ( $error ) { Write-Host "[$scriptName] Warning, message in `$error = $error" -ForegroundColor Yellow; $error.clear() } # do not treat messages in error array as failure
 		if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) { $exitCode = $LASTEXITCODE; Write-Host "[$scriptName] `$LASTEXITCODE = $LASTEXITCODE " -ForegroundColor Red; cmd /c "exit 0" }
 	    if ($exitCode -ne 0) {
 			if ($retryCount -ge $retryMax ) {
@@ -36,24 +82,11 @@ function executeRetry ($expression) {
 				Write-Host "`$AllProtocols = [System.Net.SecurityProtocolType]'Tls11,Tls12'"
 				$AllProtocols = [System.Net.SecurityProtocolType]'Tls11,Tls12'
 				executeExpression '[System.Net.ServicePointManager]::SecurityProtocol = $AllProtocols'
-				sleep $wait
+				Start-Sleep $wait
 				$wait = $wait + $wait
 			}
 		}
     }
-}
-
-# Common expression logging and error handling function, copied, not referenced to ensure atomic process
-function executeExpression ($expression) {
-	$error.clear()
-	Write-Host "$expression"
-	try {
-		$output = Invoke-Expression $expression
-	    if(!$?) { Write-Host "[$scriptName] `$? = $?"; exit 1 }
-	} catch { echo $_.Exception|format-list -force; exit 2 }
-    if ( $error ) { Write-Host "[$scriptName] `$error[0] = $error"; exit 3 }
-    if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) { Write-Host "[$scriptName] `$LASTEXITCODE = $LASTEXITCODE "; exit $LASTEXITCODE }
-    return $output
 }
 
 function listAndContinue {
@@ -115,7 +148,27 @@ if ( Test-Path $mediaDir ) {
 $file = $uri.Substring($uri.LastIndexOf("/") + 1)
 $fullpath = $mediaDir + '\' + $file
 if ( Test-Path $fullpath ) {
-	Write-Host "[$scriptName] $fullpath exists, download not required"
+	if ( $md5 ) {
+		$hashValue = executeReturn "(Get-FileHash '$fullpath' -Algorithm MD5).Hash"
+		if ($hashValue -eq $md5) {
+			Write-Host "[$scriptName] $fullpath exists and MD5 hash matches, download not required"
+		} else {
+			Write-Host "`n[$scriptName] $fullpath exists, but does not match MD5 hash, delete and download...`n"
+			executeExpression "Remove-Item $fullpath"
+			executeRetry "(New-Object System.Net.WebClient).DownloadFile('$uri', '$fullpath')"
+			if ( $md5 ) {
+				Write-Host
+				$hashValue = executeReturn "(Get-FileHash '$fullpath' -Algorithm MD5).Hash"
+				if ($hashValue -eq $md5) {
+					Write-Host "[$scriptName] MD5 check successful"
+				} else {
+					Write-Host "[$scriptName] MD5 check failed! Required $md5, found $hashValue. Halting with `$lastexitcode 65"; exit 65
+				}
+			}
+		}
+	} else {
+		Write-Host "[$scriptName] $fullpath exists, download not required"
+	}
 } else {
 	Write-Host "[$scriptName] $file does not exist in $mediaDir, listing possible matches ..."
 	try {
@@ -126,15 +179,14 @@ if ( Test-Path $fullpath ) {
 
 	Write-Host "`n[$scriptName] Attempt download`n"
 	executeRetry "(New-Object System.Net.WebClient).DownloadFile('$uri', '$fullpath')"
-}
-
-if ( $md5 ) {
-	Write-Host
-	$hashValue = executeExpression "Get-FileHash '$fullpath' -Algorithm MD5"
-	if ($hashValue = $md5) {
-		Write-Host "[$scriptName] MD5 check successful"
-	} else {
-		Write-Host "[$scriptName] MD5 check failed! Halting with `$lastexitcode 65"; exit 65
+	if ( $md5 ) {
+		Write-Host
+		$hashValue = executeReturn "(Get-FileHash '$fullpath' -Algorithm MD5).Hash"
+		if ($hashValue -eq $md5) {
+			Write-Host "[$scriptName] MD5 check successful"
+		} else {
+			Write-Host "[$scriptName] MD5 check failed! Required $md5, found $hashValue. Halting with `$lastexitcode 65"; exit 65
+		}
 	}
 }
 
