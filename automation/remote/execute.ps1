@@ -128,7 +128,11 @@ function REFRSH ( $arg1, $arg2 )
 	MAKDIR $destination
 	Remove-Item "$destination/*" -Recurse -Force
 	if ( $source ) {
-		VECOPY $source $destination
+		if ( Test-Path -Path $source -PathType Container ) {
+			VECOPY "$source/*" $destination
+		} else {
+			VECOPY $source $destination
+		}
 	}
 }
 
