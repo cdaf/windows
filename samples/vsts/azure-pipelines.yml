@@ -27,6 +27,8 @@ variables:
 steps:
 - script: |
     automation\processor\entry.bat $(Build.BuildNumber) $(Build.SourceBranchName) staging@$(Build.ArtifactStagingDirectory)
+#  env:
+#    MAVEN_ARTIFACT_TOKEN: $(MAVEN_ARTIFACT_TOKEN)
 
 #- task: PublishTestResults@2
 #  inputs:
