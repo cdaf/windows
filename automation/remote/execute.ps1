@@ -11,9 +11,9 @@ function taskException ($taskName, $exception) {
 }
 
 function executeExpression ($expression) {
-	Write-Host "[$scriptName] $expression"
+	Write-Host "[$(Get-Date)] $expression"
 	try {
-		$output = Invoke-Expression $expression
+		Invoke-Expression $expression
 	    if(!$?) { Write-Host "[$scriptName] `$? = $?"; $error ; exit 1111 }
 	} catch { Write-Output $_.Exception|format-list -force; $error ; exit 1112 }
     if ( $LASTEXITCODE ) {
@@ -34,7 +34,6 @@ function executeExpression ($expression) {
 	    	}
 		}
 	}
-    return $output
 }
 
 function MAKDIR ($itemPath) { 
