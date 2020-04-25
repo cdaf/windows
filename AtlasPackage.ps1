@@ -296,6 +296,7 @@ if ($action -eq 'Clone') {
 		$proc = Start-Process -FilePath 'vagrant' -ArgumentList 'up' -PassThru -Wait -NoNewWindow
 		if ( $proc.ExitCode -ne 0 ) {
 			Write-Host "`n[$scriptName] Exit with `$LASTEXITCODE = $($proc.ExitCode)`n"
+			emailAndExit ($proc.ExitCode)
 			exit $proc.ExitCode
 		}
 	
@@ -315,6 +316,7 @@ if ($action -eq 'Clone') {
 	$proc = Start-Process -FilePath 'vagrant' -ArgumentList 'box list' -PassThru -Wait -NoNewWindow
 	if ( $proc.ExitCode -ne 0 ) {
 		Write-Host "`n[$scriptName] Exit with `$LASTEXITCODE = $($proc.ExitCode)`n"
+		emailAndExit ($proc.ExitCode)
 		exit $proc.ExitCode
 	}
 	
