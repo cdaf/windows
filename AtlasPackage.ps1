@@ -320,7 +320,7 @@ if ($action -eq 'Clone') {
 		exit $proc.ExitCode
 	}
 	
-	emailProgress "Final notifcation, package of ${packageFile} complete"
+	emailProgress "Final notification, package of ${packageFile} complete"
 }
 
 Write-Host "`n[$scriptName] ---------- stop ----------"
