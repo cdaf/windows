@@ -297,7 +297,6 @@ if ($action -eq 'Clone') {
 		if ( $proc.ExitCode -ne 0 ) {
 			Write-Host "`n[$scriptName] Exit with `$LASTEXITCODE = $($proc.ExitCode)`n"
 			emailAndExit ($proc.ExitCode)
-			exit $proc.ExitCode
 		}
 	
 		Write-Host "`n[$scriptName] vagrant destroy -f"
@@ -317,7 +316,6 @@ if ($action -eq 'Clone') {
 	if ( $proc.ExitCode -ne 0 ) {
 		Write-Host "`n[$scriptName] Exit with `$LASTEXITCODE = $($proc.ExitCode)`n"
 		emailAndExit ($proc.ExitCode)
-		exit $proc.ExitCode
 	}
 	
 	emailProgress "Final notification, package of ${packageFile} complete"
