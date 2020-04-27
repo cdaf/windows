@@ -222,7 +222,7 @@ if ( ! (( $branch -eq 'master' ) -or ( $branch -eq 'refs/heads/master' ))) {
 	}
 	$dirPackage = (Get-Item 'TasksLocal').Name
 	if ( $dirPackage ) {
-		executeExpression "Remove-Item -Recurse -Force '${dirPackage}\*"
+		executeExpression "Remove-Item -Recurse -Force '${dirPackage}\*'"
 		executeExpression "Add-Content ${dirPackage}\readme.md 'Dummy artifact created by entry.ps1 for feature branch $branch'"
 	}
 }
