@@ -90,7 +90,8 @@ if ($action) {
 } else {
     Write-Host "[$scriptName] action         : (not set, set to remoteURL@ to trigger clean)"
 }
-Write-Host "[$scriptName] pwd            : $(pwd)"
+$workspace = $(Get-Location)
+Write-Host "[$scriptName] pwd            : $workspace"
 Write-Host "[$scriptName] hostname       : $(hostname)" 
 Write-Host "[$scriptName] whoami         : $(whoami)" 
 
@@ -212,15 +213,14 @@ if ( $prefix -eq 'remoteURL' ) {
 
 if ( ! (( $branch -eq 'master' ) -or ( $branch -eq 'refs/heads/master' ))) {
 	Write-Host "[$scriptName] Purge artifacts for feature branches"
-	$zipPackage = (Get-Item '*.zip').Name
+	$zipPackage = (Get-Item "${workspace}\*.zip").FullName
 	if ( $zipPackage ) {
 		executeExpression "Remove-Item -Force $zipPackage"
 		executeExpression "New-Item -Name $zipPackage -ItemType File"
 	}
-	$dirPackage = (Get-Item 'TasksLocal').Name
+	$dirPackage = (Get-Item "${workspace}\TasksLocal").FullName
 	if ( $dirPackage ) {
-		executeExpression "Remove-Item -Recurse -Force $dirPackage"
-		executeExpression "New-Item -Name $dirPackage -ItemType Directory"
+		executeExpression "Remove-Item -Recurse -Force '${dirPackage}/*'"
 		executeExpression "Add-Content ${dirPackage}\readme.md 'Dummy artifact created by entry.ps1 for feature branch $branch'"
 	}
 }
