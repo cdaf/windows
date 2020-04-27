@@ -211,16 +211,18 @@ if ( $prefix -eq 'remoteURL' ) {
 
 }
 
+executeExpression "cd $workspace"
+
 if ( ! (( $branch -eq 'master' ) -or ( $branch -eq 'refs/heads/master' ))) {
 	Write-Host "[$scriptName] Purge artifacts for feature branches"
-	$zipPackage = (Get-Item "${workspace}\*.zip").FullName
+	$zipPackage = (Get-Item '*.zip').Name
 	if ( $zipPackage ) {
 		executeExpression "Remove-Item -Force $zipPackage"
 		executeExpression "New-Item -Name $zipPackage -ItemType File"
 	}
-	$dirPackage = (Get-Item "${workspace}\TasksLocal").FullName
+	$dirPackage = (Get-Item 'TasksLocal').Name
 	if ( $dirPackage ) {
-		executeExpression "Remove-Item -Recurse -Force '${dirPackage}/*'"
+		executeExpression "Remove-Item -Recurse -Force '${dirPackage}\*"
 		executeExpression "Add-Content ${dirPackage}\readme.md 'Dummy artifact created by entry.ps1 for feature branch $branch'"
 	}
 }
