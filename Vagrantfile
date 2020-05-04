@@ -1,6 +1,14 @@
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
 
+if ENV['OVERRIDE_IMAGE']
+  OVERRIDE_IMAGE = ENV['OVERRIDE_IMAGE']
+  puts "OVERRIDE_IMAGE specified, using box #{OVERRIDE_IMAGE}" 
+else
+  OVERRIDE_IMAGE = 'cdaf/WindowsServerStandard' # Server 2019 Core
+  puts "OVERRIDE_IMAGE not specified, box is #{OVERRIDE_IMAGE}" 
+end
+
 if ENV['MAX_SERVER_TARGETS']
   MAX_SERVER_TARGETS = ENV['MAX_SERVER_TARGETS']
 else
@@ -19,7 +27,7 @@ Vagrant.configure(2) do |allhosts|
 
   (1..MAX_SERVER_TARGETS).each do |i|
     allhosts.vm.define "server-#{i}" do |server|
-      server.vm.box = 'cdaf/WindowsServerCore'
+      server.vm.box = "#{OVERRIDE_IMAGE}"
       
       # Align with Docker for remaining provisioning
       server.vm.provision 'shell', path: '.\automation\provisioning\mkdir.ps1', args: 'C:\deploy'
@@ -48,7 +56,7 @@ Vagrant.configure(2) do |allhosts|
   end
 
   allhosts.vm.define 'build' do |build|
-    build.vm.box = 'cdaf/WindowsServerCore'
+    build.vm.box = "#{OVERRIDE_IMAGE}"
 
     build.vm.provision 'shell', path: '.\automation\remote\capabilities.ps1'
 
