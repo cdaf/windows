@@ -6,7 +6,8 @@ name: $(Rev:r)
 # name: $(TeamProject)_$(BuildDefinitionName)_$(SourceBranchName)_$(Date:yyyyMMdd)$(Rev:.r)
 
 pool:
-  vmImage: 'vs2017-win2016'
+  vmImage: 'windows-2019' # Latest
+#  vmImage: 'vs2017-win2016'
 
 trigger:
   branches:
