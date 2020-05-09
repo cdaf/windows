@@ -2,7 +2,7 @@
 productVersion=2.0.6
 productName=My Product Name
 solutionName=myproduct
-# containerBuild=$AUTOMATIONROOT/processor/containerBuild.ps1 $SOLUTION $BUILDNUMBER $REVISION $ACTION
+# containerBuild=& $AUTOMATIONROOT/processor/containerBuild.ps1 $SOLUTION $BUILDNUMBER $REVISION $ACTION
 # containerImage=microsoft/windowsservercore@sha256:05de0a0ac13d3652bd1f2281b8589459ebb611092e3fe4d8f1be91f1f6984266
-# imageBuild=$SOLUTIONROOT/imageBuild.ps1 $SOLUTION $BUILDNUMBER $REVISION $ACTION
+# imageBuild=& $SOLUTIONROOT/imageBuild.ps1 $SOLUTION $BUILDNUMBER $REVISION $ACTION
 # processSequence=localTasks.ps1 remoteTasks.ps1
