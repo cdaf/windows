@@ -172,7 +172,12 @@ if ( $ACTION ) { # Do not list configuration instructions when an action is pass
     write-host 'For GitLab (requires shell runner) ...'
     write-host '  In .gitlab-ci.yml (in the root of the repository) add the following hook into the CI job, see example in sample folder'
     write-host "    script: `"automation/processor/buildPackage.bat %CI_BUILD_ID% %CI_BUILD_REF_NAME%`""
-	write-host "`n[$scriptName] -------------------------------------------------------"
+    write-host
+    write-host 'For GitHub Actions ...'
+    write-host '  Copy the sample coded pipeline file from GitHub'
+    write-host '  https://github.com/cdaf/windows/tree/master/samples/github-actions'
+    write-host
+	write-host "[$scriptName] -------------------------------------------------------"
 }
 # Process Build and Package
 if ( $ACTION -eq "cdonly" ) { # Case insensitive
