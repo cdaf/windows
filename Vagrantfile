@@ -39,10 +39,10 @@ Vagrant.configure(2) do |allhosts|
         virtualbox.memory = "#{vRAM}"
         virtualbox.cpus = "#{vCPU}"
         override.vm.network 'private_network', ip: '172.16.17.101'
+        override.vm.network 'forwarded_port', guest: 80, host: 80, auto_correct: true
         if ENV['SYNCED_FOLDER']
           override.vm.synced_folder "#{ENV['SYNCED_FOLDER']}", "/.provision" # equates to C:\.provision
         end
-        override.vm.network 'forwarded_port', guest: 80, host: 80, auto_correct: true
       end
 
       # Microsoft Hyper-V
