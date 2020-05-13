@@ -42,7 +42,7 @@ Vagrant.configure(2) do |allhosts|
         if ENV['SYNCED_FOLDER']
           override.vm.synced_folder "#{ENV['SYNCED_FOLDER']}", "/.provision" # equates to C:\.provision
         end
-        override.vm.network 'forwarded_port', guest: 5000, host: 35000, auto_correct: true
+        override.vm.network 'forwarded_port', guest: 80, host: 80, auto_correct: true
       end
 
       # Microsoft Hyper-V
@@ -76,7 +76,9 @@ Vagrant.configure(2) do |allhosts|
       if ENV['SYNCED_FOLDER']
         override.vm.synced_folder "#{ENV['SYNCED_FOLDER']}", "/.provision" # equates to C:\.provision
       end
-      override.vm.provision 'shell', path: '.\automation\provisioning\addHOSTS.ps1', args: '172.16.17.101 server-1'
+      (1..MAX_SERVER_TARGETS).each do |s|
+        override.vm.provision 'shell', path: '.\automation\provisioning\addHOSTS.ps1', args: "172.16.17.10#{s} server-#{s}"
+      end
       override.vm.provision 'shell', path: '.\automation\provisioning\CDAF.ps1'
     end
 
