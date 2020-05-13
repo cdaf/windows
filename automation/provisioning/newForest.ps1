@@ -86,11 +86,12 @@ if ($wimIndex) {
 }
 
 if ($controlReboot) {
-    Write-Host "[$scriptName] controlReboot : $controlReboot"
+    Write-Host "[$scriptName] controlReboot : $controlReboot (yes, no or none)"
 } else {
 	$controlReboot = 'yes'
-    Write-Host "[$scriptName] controlReboot : $controlReboot (default)"
+    Write-Host "[$scriptName] controlReboot : $controlReboot (default, choices yes, no or none)"
 }
+
 if ($controlReboot -eq 'no') {
     Write-Host "`n[$scriptName] controlReboot is $controlReboot, allow Active Directory feature to reboot"
 } else {
