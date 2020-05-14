@@ -6,6 +6,9 @@ Param (
 	[string]$controlReboot
 )
 
+cmd /c "exit 0"
+$Error.Clear()
+
 # Custom expression execution for DISM exit codes and not failing on LASTEXITCODE (to allow subsequent fall-back/retry processing
 function executeSuppress ($expression) {
 	$error.clear()
@@ -86,10 +89,10 @@ if ($wimIndex) {
 }
 
 if ($controlReboot) {
-    Write-Host "[$scriptName] controlReboot : $controlReboot (yes, no or none)"
+    Write-Host "[$scriptName] controlReboot : $controlReboot (yes, manual, no or none)"
 } else {
 	$controlReboot = 'yes'
-    Write-Host "[$scriptName] controlReboot : $controlReboot (default, choices yes, no or none)"
+    Write-Host "[$scriptName] controlReboot : $controlReboot (default, choices yes, manual, no or none)"
 }
 
 if ($controlReboot -eq 'no') {

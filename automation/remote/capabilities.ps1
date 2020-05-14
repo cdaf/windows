@@ -52,7 +52,7 @@ write-host "  PowerShell              : $($PSVersionTable.PSVersion.Major).$($PS
 if ( Test-Path "C:\windows-master\automation\CDAF.windows" ) {
 	$nameValue = $(Get-Content "C:\windows-master\automation\CDAF.windows" | findstr "productVersion")
 	$name, $value = $nameValue -split '=', 2
-	write-host "  CDAF Box Version        : $value"
+	write-host "  CDAF in-box Version     : $value"
 }
 
 Write-Host "`n[$scriptName] List 3rd party components`n"

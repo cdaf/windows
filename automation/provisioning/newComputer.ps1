@@ -4,6 +4,10 @@ Param (
   [string]$domainAdminUser,
   [string]$domainAdminPass
 )
+
+cmd /c "exit 0"
+$Error.Clear()
+
 $scriptName = 'newComputer.ps1'
 
 Write-Host "`n[$scriptName] New Computer on Domain, Windows Server 2012 and above"
@@ -18,7 +22,7 @@ if ($forest) {
 if ($newComputerName) {
     Write-Host "[$scriptName] newComputerName : $newComputerName"
 } else {
-    Write-Host "[$scriptName] newComputerName : (not supplied, will add as $newComputerName)"
+    Write-Host "[$scriptName] newComputerName : (not supplied, will add as ${env:COMPUTERNAME})"
 }
 
 if ($domainAdminUser) {
