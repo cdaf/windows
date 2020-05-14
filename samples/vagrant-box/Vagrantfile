@@ -21,5 +21,6 @@ Vagrant.configure(2) do |config|
   #hyper-v: end
   #virtbox: config.vm.provider 'virtualbox' do |virtualbox, override|
   #virtbox:   virtualbox.linked_clone = true
+  #virtbox:   virtualbox.gui = false
   #virtbox: end
 end
