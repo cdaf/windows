@@ -30,7 +30,9 @@ if (!(($ipList -like '*,*') -or ($ipList -like '* *'))) {
 }
 
 Write-Host "[$scriptName] DNS List Before"
-foreach ($interface in (Get-DnsClient -InterfaceAlias 'Ethernet*')) { (Get-DnsClientServerAddress -InterfaceIndex $interface.InterfaceIndex).ServerAddresses }
+foreach ($interface in (Get-DnsClient -InterfaceAlias 'Ethernet*')) {
+	Write-Host "$($interface.InterfaceAlias)[$($interface.InterfaceIndex)] $((Get-DnsClientServerAddress -InterfaceIndex $interface.InterfaceIndex).ServerAddresses)"
+}
 
 Write-Host "[$scriptName] Update and list the interface setttings"
 foreach ($interface in (Get-DnsClient -InterfaceAlias 'Ethernet*')) {
@@ -47,6 +49,8 @@ foreach ($interface in (Get-DnsClient -InterfaceAlias 'Ethernet*')) {
 }
 
 Write-Host "[$scriptName] DNS List After"
-foreach ($interface in (Get-DnsClient -InterfaceAlias 'Ethernet*')) { (Get-DnsClientServerAddress -InterfaceIndex $interface.InterfaceIndex).ServerAddresses }
+foreach ($interface in (Get-DnsClient -InterfaceAlias 'Ethernet*')) {
+	Write-Host "$($interface.InterfaceAlias)[$($interface.InterfaceIndex)] $((Get-DnsClientServerAddress -InterfaceIndex $interface.InterfaceIndex).ServerAddresses)"
+}
 
 Write-Host "`n[$scriptName] ---------- stop ----------"
