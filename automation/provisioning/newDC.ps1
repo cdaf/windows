@@ -60,7 +60,7 @@ Write-Host "`n[$scriptName] ---------- start ----------"
 if ($forest) {
     Write-Host "[$scriptName] forest   : $forest"
 } else {
-	$forest = 'sky.net'
+	$forest = 'mshome.net'
     Write-Host "[$scriptName] forest   : $forest (default)"
 }
 
@@ -159,7 +159,7 @@ $securePassword = ConvertTo-SecureString $password -asplaintext -force
 
 # Diagnostic helpers
 # Test-ADDSForestInstallation -DomainName $forest -SafeModeAdministratorPassword $securePassword
-# Test-ADDSDomainInstallation -NewDomainName $forest -ParentDomainName 'sky.net' -SafeModeAdministratorPassword $securePassword
+# Test-ADDSDomainInstallation -NewDomainName $forest -ParentDomainName 'mshome.net' -SafeModeAdministratorPassword $securePassword
 # Test-ADDSDomainControllerInstallation -DomainName $forest -SafeModeAdministratorPassword $securePassword
 
 Write-Host "[$scriptName] Convert this host into a member domain controller in the forest"

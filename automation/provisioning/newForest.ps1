@@ -64,7 +64,7 @@ Write-Host "`n[$scriptName] New Active Directory Forest, requires Windows Server
 if ($forest) {
     Write-Host "[$scriptName] forest        : $forest"
 } else {
-	$forest = 'sky.net'
+	$forest = 'mshome.net'
     Write-Host "[$scriptName] forest        : $forest (default)"
 }
 

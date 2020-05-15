@@ -15,7 +15,7 @@ Write-Host "`n[$scriptName] ---------- start ----------"
 if ($forest) {
     Write-Host "[$scriptName] forest          : $forest"
 } else {
-	$forest = 'sky.net'
+	$forest = 'mshome.net'
     Write-Host "[$scriptName] forest          : $forest (default)"
 }
 
@@ -43,7 +43,7 @@ $securePassword = ConvertTo-SecureString $domainAdminPass -asplaintext -force
 $cred = New-Object System.Management.Automation.PSCredential ($domainAdminUser, $securePassword)
 
 # The following intermitant issue can occur, to overcome it, the machine is removed and reapplied until successful
-# Computer 'WIN-2G2EARIF1B0' was successfully joined to the new domain 'sky.net', but renaming it to 'app' failed with the following error message: The directory service is busy.
+# Computer 'WIN-2G2EARIF1B0' was successfully joined to the new domain 'mshome.net', but renaming it to 'app' failed with the following error message: The directory service is busy.
 $exitCode = 1 # any non-zero value to enter the loop
 $wait = 10
 $retryMax = 5

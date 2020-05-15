@@ -39,7 +39,7 @@ Write-Host "`n[$scriptName] ---------- start ----------"
 if ($forest) {
     Write-Host "[$scriptName] forest           : $forest"
 } else {
-	$forest = 'sky.net'
+	$forest = 'mshome.net'
     Write-Host "[$scriptName] forest           : $forest (default)"
 }
 
@@ -60,7 +60,7 @@ if ($domainAdminPass) {
 if ($domainController) {
     Write-Host "[$scriptName] domainController : $domainController"
 } else {
-	$domainController = '172.16.17.102'
+	$domainController = '172.16.17.98'
     Write-Host "[$scriptName] domainController : $domainController (default)"
 }
 
