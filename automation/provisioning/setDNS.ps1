@@ -36,8 +36,8 @@ Write-Host "[$scriptName] Update and list the interface setttings"
 foreach ($interface in (Get-DnsClient -InterfaceAlias 'Ethernet*')) {
 
 	if ($prepend) {
-		$ipList = "${ipList},$((Get-DnsClientServerAddress -InterfaceIndex $interface.InterfaceIndex).ServerAddresses)"
-		Write-Host "[$scriptName] Prepended list $ipList"
+		$ipList = "${ipList},$((Get-DnsClientServerAddress -AddressFamily 'IPv4' -InterfaceIndex $interface.InterfaceIndex).ServerAddresses)"
+		Write-Host "[$scriptName] Prepended list $ipList (excludes IPv6)"
 	}
 
 	Set-DnsClientServerAddress -InterfaceIndex $interface.InterfaceIndex -ServerAddresses ($ipList)
