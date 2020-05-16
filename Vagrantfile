@@ -57,7 +57,7 @@ Vagrant.configure(2) do |allhosts|
 
   allhosts.vm.define 'build' do |build|
     build.vm.box = "#{OVERRIDE_IMAGE}"
-
+    build.vm.provision 'shell', inline: 'Get-ScheduledTask -TaskName ServerManager | Disable-ScheduledTask -Verbose'
     build.vm.provision 'shell', path: '.\automation\remote\capabilities.ps1'
 
     # Vagrant specific for WinRM
@@ -65,7 +65,8 @@ Vagrant.configure(2) do |allhosts|
     build.vm.provision 'shell', path: '.\automation\provisioning\trustedHosts.ps1', args: '*'
     build.vm.provision 'shell', path: '.\automation\provisioning\setenv.ps1', args: 'interactive yes User'
     build.vm.provision 'shell', path: '.\automation\provisioning\setenv.ps1', args: 'CDAF_DELIVERY VAGRANT Machine'
-    build.vm.provision 'shell', path: '.\automation\provisioning\CDAF_Desktop_Certificate.ps1'
+    build.vm.provision 'shell', path: '.\automation\provisioning\setenv.ps1', args: 'CDAF_PS_USERNAME vagrant'
+    build.vm.provision 'shell', path: '.\automation\provisioning\setenv.ps1', args: 'CDAF_PS_USERPASS vagrant'
 
     # Oracle VirtualBox, relaxed configuration for Desktop environment
     build.vm.provider 'virtualbox' do |virtualbox, override|
@@ -86,6 +87,7 @@ Vagrant.configure(2) do |allhosts|
     build.vm.provider 'hyperv' do |hyperv, override|
       hyperv.memory = "#{vRAM}"
       hyperv.cpus = "#{vCPU}"
+      override.vm.hostname = 'build'
       override.vm.synced_folder ".", "/vagrant", type: "smb", smb_username: "#{ENV['VAGRANT_SMB_USER']}", smb_password: "#{ENV['VAGRANT_SMB_PASS']}"
       override.vm.provision 'shell', path: '.\automation\provisioning\CDAF.ps1'
     end
