@@ -16,7 +16,7 @@ $deployLand = getProp "deployLand"
 $remoteUser = getProp "remoteUser"
 $remoteCred = getProp "remoteCred"
 $decryptThb = getProp "decryptThb"
-$decryptAES = getProp "decryptAES"
+$userpass   = getProp "userpass"
 $warnondeployerror = getProp "warnondeployerror"
 
 $userName = [Environment]::UserName
@@ -26,7 +26,10 @@ write-host "[$scriptName]   deployLand = $deployLand"
 write-host "[$scriptName]   remoteUser = $remoteUser"
 write-host "[$scriptName]   remoteCred = $remoteCred"
 write-host "[$scriptName]   decryptThb = $decryptThb"
-write-host "[$scriptName]   decryptAES = $decryptAES"
+
+if ( $userpass ) {
+	write-host "[$scriptName]   userpass   = $userpass (only use for development purposes)"
+}
 
 # Create a reusable Remote PowerShell session handler
 # If remote user specifified, build the credentials object from name and encrypted password file
@@ -36,8 +39,8 @@ if ($remoteUser) {
 			$userpass = & .\${WORK_DIR_DEFAULT}\decryptKey.ps1 .\${WORK_DIR_DEFAULT}\cryptLocal\$remoteCred $decryptThb
 		    $password = ConvertTo-SecureString $userpass -asplaintext -force
 		} else {
-			if ($decryptThb) {
-			
+			if ($userpass) {
+			    $password = ConvertTo-SecureString $userpass -asplaintext -force
 			} else {
 				$password = get-content $remoteCred | convertto-securestring
 			}
