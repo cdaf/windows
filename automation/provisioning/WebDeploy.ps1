@@ -108,12 +108,12 @@ if ( $InstallPath ) {
 		Write-Host "[$scriptName] Web Deploy already installed, no action attempted."
 	}
 } else {
-	
+
 	# Prepare Install Media
 	$installFile = $mediaDir + '\' + $file
 	Write-Host "[$scriptName] installFile = $installFile"
 	
-	$logFile = $installDir = [Environment]::GetEnvironmentVariable('TEMP', 'user') + '\' + $file + '.log'
+	$logFile = $env:TEMP + '\' + $file + '.log'
 	Write-Host "[$scriptName] logFile     = $logFile`n"
 	
 	if ( Test-Path $installFile ) {
@@ -133,7 +133,11 @@ if ( $InstallPath ) {
 		}
 		executeExpression "(New-Object System.Net.WebClient).DownloadFile('$uri', '$installFile')"
 	}
-	
+
+	# Copy to temp dir in-case the media directory is a SMB mount
+	$installFile = $env:TEMP + '\' + $file
+	Copy-Item -Force "${mediaDir}\${file}" $installFile
+
 	# Output File (plain text or XML depending on method) must be supplioed
 	if ($Installtype -eq 'agent') {
 	    Write-Host "[$scriptName] For Installtype $Installtype, bind listener with default setting"
