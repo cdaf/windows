@@ -5,6 +5,10 @@ Param (
 	[string]$action
 )
 
+Import-Module Microsoft.PowerShell.Utility
+Import-Module Microsoft.PowerShell.Management
+Import-Module Microsoft.PowerShell.Security
+
 cmd /c "exit 0"
 $scriptName = $MyInvocation.MyCommand.Name
 
