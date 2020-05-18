@@ -14,7 +14,9 @@ write-host "[$scriptName] propertiesFile : $propertiesFile"
 $deployHost = getProp "deployHost"
 $deployLand = getProp "deployLand"
 $remoteUser = getProp "remoteUser"
-$remoteUser = Invoke-Expression "Write-Output $remoteUser"
+if ( $remoteUser ) {
+	$remoteUser = Invoke-Expression "Write-Output $remoteUser"
+}
 $remoteCred = getProp "remoteCred"
 $decryptThb = getProp "decryptThb"
 $remotePass = getProp "remotePass"
@@ -28,7 +30,9 @@ write-host "[$scriptName]   remoteUser = $remoteUser"
 write-host "[$scriptName]   remoteCred = $remoteCred"
 write-host "[$scriptName]   decryptThb = $decryptThb"
 write-host "[$scriptName]   remotePass = $remotePass"
-$remotePass = Invoke-Expression "Write-Output $remotePass"
+if ( $remotePass ) {
+	$remotePass = Invoke-Expression "Write-Output $remotePass"
+}
 
 # Create a reusable Remote PowerShell session handler
 # If remote user specifified, build the credentials object from name and encrypted password file
