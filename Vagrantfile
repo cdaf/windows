@@ -35,11 +35,11 @@ Vagrant.configure(2) do |allhosts|
       # Vagrant specific for WinRM
       server.vm.provision 'shell', path: '.\automation\provisioning\CredSSP.ps1', args: 'server'
       server.vm.provider 'virtualbox' do |virtualbox, override|
-        virtualbox.gui = false
         virtualbox.memory = "#{vRAM}"
         virtualbox.cpus = "#{vCPU}"
         override.vm.network 'private_network', ip: '172.16.17.101'
         override.vm.network 'forwarded_port', guest: 80, host: 80, auto_correct: true
+		override.vm.synced_folder ".", "/vagrant", disabled: true
         if ENV['SYNCED_FOLDER']
           override.vm.synced_folder "#{ENV['SYNCED_FOLDER']}", "/.provision" # equates to C:\.provision
         end
@@ -50,7 +50,10 @@ Vagrant.configure(2) do |allhosts|
         hyperv.memory = "#{vRAM}"
         hyperv.cpus = "#{vCPU}"
         override.vm.hostname = "server-#{i}"
-        override.vm.synced_folder ".", "/vagrant", type: "smb", smb_username: "#{ENV['VAGRANT_SMB_USER']}", smb_password: "#{ENV['VAGRANT_SMB_PASS']}"
+		override.vm.synced_folder ".", "/vagrant", disabled: true
+        if ENV['SYNCED_FOLDER']
+          override.vm.synced_folder ".", "/.provision", type: "smb", smb_username: "#{ENV['VAGRANT_SMB_USER']}", smb_password: "#{ENV['VAGRANT_SMB_PASS']}"
+        end
       end
     end
   end

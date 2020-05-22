@@ -21,13 +21,14 @@ function executeExpression ($expression) {
 			Write-Host "[$scriptName] `$LASTEXITCODE = $LASTEXITCODE " -ForegroundColor Red ; $error ; exit $LASTEXITCODE
 		} else {
 			if ( $error ) {
-				Write-Host "[$scriptName][WARN] $Error array populated by `$LASTEXITCODE = $LASTEXITCODE error follows...`n" -ForegroundColor Yellow
+				Write-Host "[$scriptName][WARN] $Error array populated by `$LASTEXITCODE = $LASTEXITCODE, $error[] =`n" -ForegroundColor Yellow
 				$error
 			}
 		} 
 	} else {
 	    if ( $error ) {
-			Write-Host "[$scriptName] `$error[] = $error"; exit 1113
+			Write-Host "[$scriptName][WARN] $Error array populated but LASTEXITCODE not set, $error[] =`n" -ForegroundColor Yellow
+			$error
 		}
 	}
 }

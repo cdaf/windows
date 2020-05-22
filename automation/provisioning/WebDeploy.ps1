@@ -136,7 +136,7 @@ if ( $InstallPath ) {
 
 	# Copy to temp dir in-case the media directory is a SMB mount
 	$installFile = $env:TEMP + '\' + $file
-	Copy-Item -Force "${mediaDir}\${file}" $installFile
+	executeExpression "Copy-Item -Force '${mediaDir}\${file}' '$installFile'"
 
 	# Output File (plain text or XML depending on method) must be supplioed
 	if ($Installtype -eq 'agent') {
