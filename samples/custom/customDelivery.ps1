@@ -1,7 +1,7 @@
 Param (
-  [string]$SOLUTION,
-  [string]$BUILD,
-  [string]$ENVIRONMENT
+	[string]$SOLUTION,
+	[string]$BUILD,
+	[string]$ENVIRONMENT
 )
 
 $Error.Clear()
