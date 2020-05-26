@@ -1,3 +1,7 @@
+echo "Some basic functions"
+REFRSH . $TMPDIR/workspacecopy
+REMOVE TMPDIR/workspacecopy
+
 Write-Host "The following is an example of secrets management" -ForegroundColor Green
 
 Write-Host "DO NOT log the AES key, this is supplied by CD tool as environment variable`n" -ForegroundColor Yellow
