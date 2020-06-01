@@ -27,10 +27,11 @@ function executeExpression ($expression) {
 		} 
 	} else {
 	    if ( $error ) {
-	    	if ( $env:CDAF_IGNORE_WARNING -eq 'yes' ) {
-		    	Write-Host "[$scriptName] `$error[0] = $error but `$env:CDAF_IGNORE_WARNING is yes so continuing ..."; $error.clear()
+	    	if ( $env:CDAF_IGNORE_WARNING -eq 'no' ) {
+				Write-Host "[$scriptName][ERROR] `$error[] = $error"; exit 1013
+				Write-Host "[$scriptName][ERROR] `$env:CDAF_IGNORE_WARNING is 'no' so exiting with LASTEXITCODE 1113 ..."; exit 1113
 	    	} else {
-		    	Write-Host "[$scriptName] `$error[0] = $error"; exit 1113
+		    	Write-Host "[$scriptName][WARN] `$error[] = $error"; $error.clear()
 	    	}
 		}
 	}
@@ -476,10 +477,11 @@ Foreach ($line in get-content $TASK_LIST) {
 					} 
 				} else {
 				    if ( $error ) {
-				    	if ( $env:CDAF_IGNORE_WARNING -eq 'yes' ) {
-					    	Write-Host "[$scriptName] `$error[0] = $error but `$env:CDAF_IGNORE_WARNING is yes so continuing ..."; $error.clear()
+				    	if ( $env:CDAF_IGNORE_WARNING -eq 'no' ) {
+					    	Write-Host "[$scriptName][ERROR] `$error[] = $error"; exit 1013
+					    	Write-Host "[$scriptName][ERROR] `$env:CDAF_IGNORE_WARNING is 'no' so exiting with LASTEXITCODE 1013 ..."; exit 1013
 				    	} else {
-					    	Write-Host "[$scriptName] `$error[0] = $error"; exit 1013
+					    	Write-Host "[$scriptName][WARN] `$error[] = $error"; $error.clear()
 				    	}
 					}
 				}
