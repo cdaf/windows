@@ -53,7 +53,7 @@ To alleviate the burden of argument passing, exception handling and logging, the
 | REMOVE  | Delete files, including wildcard  | REMOVE *.war                    |
 | REPLAC  | Replace token in file   		  | REPLAC fileName %token% $value  |
 | VECOPY  | Verbose copy					  | VECOPY *.war                    |
-| ELEVAT  | Execute as elevated NT SYSTEM     | ELEVAT "Write-Verbose whoami"   |
+| ELEVAT  | Execute as elevated NT SYSTEM     | ELEVAT "$(pwd)/custom.ps1"      |
 
 Notes on EXCREM use, the properties are similar to those used for remote tasks, where the minimum requried is the host, if other properties are not used, must be set to NOT_SUPPLIED, i.e.
 

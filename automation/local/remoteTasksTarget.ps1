@@ -12,7 +12,16 @@ $propertiesFile = "$WORK_DIR_DEFAULT\propertiesForRemoteTasks\$DEPLOY_TARGET"
 write-host "[$scriptName] propertiesFile : $propertiesFile"
 
 $deployHost = getProp "deployHost"
+if ( $deployHost ) {
+	$deployHost = Invoke-Expression "Write-Output $deployHost"
+} else {
+	write-host "[$scriptName][ERROR] deployHost not supplied, required property for remote deployment"
+	exit 5524
+}
 $deployLand = getProp "deployLand"
+if (!( $deployLand )) {
+	$deployLand = "c:\deploy\$SOLUTION"
+}
 $remoteUser = getProp "remoteUser"
 if ( $remoteUser ) {
 	$remoteUser = Invoke-Expression "Write-Output $remoteUser"

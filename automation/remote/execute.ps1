@@ -233,23 +233,33 @@ function IGNORE()
 }
 
 # Run command elevated (as inbuit NT SYSTEM account)
-function ELEVAT ($command) { 
+function ELEVAT ($command) {
     $scriptBlock = [scriptblock]::Create($command)
-    configuration elevated
-    {
+    configuration elevated {
+		Import-DscResource -ModuleName 'PSDesiredStateConfiguration'
         Set-StrictMode -Off
-        Node localhost
-        {
-            Script execute
-            {
+        Node localhost {
+            Script execute {
                 SetScript = $scriptBlock
-                TestScript = { return $false }
+                TestScript = {
+					if (([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator")) {
+						Write-Verbose "Verified Elevated Session"
+						return $false
+					} else {
+						Write-Verbose "Not an Elevated Session!"
+						exit 5524
+					}
+				}
                 GetScript = { return @{ 'Result' = 'RUN' } }
             }
         }
     }
-    elevated
-    Start-DscConfiguration -Wait -Path ./elevated -Verbose -Force
+    $mof = elevated
+	Start-DscConfiguration ./elevated -Wait -Verbose -Force
+	if ( $error ) {
+		$error
+		exit 4425
+	}
 }
 
 # Requires vswhere
