@@ -15,7 +15,12 @@ function executeExpression ($expression) {
 	try {
 		Invoke-Expression $expression
 	    if(!$?) { Write-Host "[$scriptName] `$? = $?"; $error ; exit 1111 }
-	} catch { Write-Output $_.Exception|format-list -force; $error ; exit 1112 }
+	} catch {
+		Write-Host "[$scriptName][EXCEPTION] List exception and error array (if populated) and exit with LASTEXITCIDE 1112"
+		Write-Host $_.Exception|format-list -force
+		if ( $error ) { Write-Host "[$scriptName][ERROR] `$error[] = $error" }
+		exit 1112
+	}
     if ( $LASTEXITCODE ) {
     	if ( $LASTEXITCODE -ne 0 ) {
 			Write-Host "[$scriptName] `$LASTEXITCODE = $LASTEXITCODE " -ForegroundColor Red ; $error ; exit $LASTEXITCODE
@@ -465,8 +470,13 @@ Foreach ($line in get-content $TASK_LIST) {
 				try {
 					Invoke-Expression $expression
 				    if(!$?) { Write-Host "[$scriptName] `$? = $?"; $error ; exit 1011 }
-				} catch { Write-Output $_.Exception|format-list -force; $error ; exit 1012 }
-			    if ( $LASTEXITCODE ) {
+				} catch {
+					Write-Host "[$scriptName][EXCEPTION] List exception and error array (if populated) and exit with LASTEXITCIDE 1012"
+					Write-Host $_.Exception|format-list -force
+					if ( $error ) { Write-Host "[$scriptName][ERROR] `$error[] = $error" }
+					exit 1012
+				}
+				if ( $LASTEXITCODE ) {
 			    	if ( $LASTEXITCODE -ne 0 ) {
 						Write-Host "[$scriptName] `$LASTEXITCODE = $LASTEXITCODE " -ForegroundColor Red ; $error ; exit $LASTEXITCODE
 					} else {
