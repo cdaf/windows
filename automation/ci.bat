@@ -4,9 +4,12 @@ cmd /c "exit 0"
 REM This script is a simple lauch script
 
 SET BUILDNUMBER=%1
-SET BRANCH=%2
+SET REVISION=%2
 SET ACTION=%3
-set AUTOMATION_ROOT=%4
+SET SOLUTION=%4
+SET AUTOMATION_ROOT=%5
+SET LOCAL_WORK_DIR=%6
+SET REMOTE_WORK_DIR=%7
 
 IF [%AUTOMATION_ROOT%] == [] (
 	for %%Q in ("%~dp0\.") DO set "automationRoot=%%~fQ"
