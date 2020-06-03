@@ -137,7 +137,19 @@ if ($solutionRoot) {
 if ( $BUILDNUMBER ) {
 	Write-Host "[$scriptName]   BUILDNUMBER     : $BUILDNUMBER"
 } else { 
-	exitWithCode "Build Number not supplied!" 21
+	$counterFile = "$env:USERPROFILE\buildnumber.counter"
+	# Use a simple text file ($counterFile) for incrimental build number, using the same logic as cdEmulate.ps1
+	if ( Test-Path "$counterFile" ) {
+		$buildNumber = Get-Content "$counterFile"
+	} else {
+		$buildNumber = 0
+	}
+	[int]$buildnumber = [convert]::ToInt32($buildNumber)
+	if ( $action -ne "cdonly" ) { # Do not incriment when just deploying
+		$buildNumber += 1
+	}
+	Set-Content "$counterFile" "$BUILDNUMBER"
+    Write-Host "[$scriptName]   BUILDNUMBER     : $BUILDNUMBER (not supplied, generated from local counter file)"
 }
 
 if ( $REVISION ) {

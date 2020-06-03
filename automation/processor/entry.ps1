@@ -50,16 +50,16 @@ function executeSuppress ($expression) {
 
 Write-Host "`n[$scriptName] ---------- start ----------"
 if ($automationRoot) {
-    Write-Host "[$scriptName] automationRoot : $automationRoot"
+    Write-Host "[$scriptName]   automationRoot : $automationRoot"
 } else {
 	$scriptPath = split-path -parent $MyInvocation.MyCommand.Definition
 	$automationRoot = split-path -parent $scriptPath
-    Write-Host "[$scriptName] automationRoot : $automationRoot (not supplied, derived from invocation)"
+    Write-Host "[$scriptName]   automationRoot : $automationRoot (not supplied, derived from invocation)"
 }
 $env:CDAF_AUTOMATION_ROOT = $automationRoot
 
 if ($BUILDNUMBER) {
-    Write-Host "[$scriptName] BUILDNUMBER    : $BUILDNUMBER"
+    Write-Host "[$scriptName]   BUILDNUMBER    : $BUILDNUMBER"
 } else {
 
 	$counterFile = "$env:USERPROFILE\buildnumber.counter"
@@ -74,30 +74,30 @@ if ($BUILDNUMBER) {
 		$buildNumber += 1
 	}
 	Set-Content "$counterFile" "$BUILDNUMBER"
-    Write-Host "[$scriptName] BUILDNUMBER    : $BUILDNUMBER (not supplied, generated from local counter file)"
+    Write-Host "[$scriptName]   BUILDNUMBER    : $BUILDNUMBER (not supplied, generated from local counter file)"
 }
 
 if ($branch) {
-    Write-Host "[$scriptName] branch         : $branch"
+    Write-Host "[$scriptName]   branch         : $branch"
 } else {
 	if ( $env:CDAF_BRANCH_NAME ) {
 		$branch = $env:CDAF_BRANCH_NAME
-	    Write-Host "[$scriptName] branch         : $branch (not supplied, derived from `$env:CDAF_BRANCH_NAME)"
+	    Write-Host "[$scriptName]   branch         : $branch (not supplied, derived from `$env:CDAF_BRANCH_NAME)"
 	} else {
 		$branch = 'feature'
-	    Write-Host "[$scriptName] branch         : $branch (not supplied, set to default)"
+	    Write-Host "[$scriptName]   branch         : $branch (not supplied, set to default)"
 	}
 }
 
 if ($action) {
-    Write-Host "[$scriptName] action         : $action"
+    Write-Host "[$scriptName]   action         : $action"
 } else {
-    Write-Host "[$scriptName] action         : (not set, set to remoteURL@ to trigger clean)"
+    Write-Host "[$scriptName]   action         : (not set, set to remoteURL@ to trigger clean)"
 }
 $workspace = $(Get-Location)
-Write-Host "[$scriptName] pwd            : $workspace"
-Write-Host "[$scriptName] hostname       : $(hostname)" 
-Write-Host "[$scriptName] whoami         : $(whoami)" 
+Write-Host "[$scriptName]   pwd            : $workspace"
+Write-Host "[$scriptName]   hostname       : $(hostname)" 
+Write-Host "[$scriptName]   whoami         : $(whoami)" 
 
 
 if ( $branch -eq 'master' ) {
