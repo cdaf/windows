@@ -80,7 +80,7 @@ Foreach ($line in $propertiesArray) {
                 write-host "[$scriptName] Ignoring $name as contains '.'"
             } else {
                 if ( $value -like "`$*" ) {
-                    $value = Invoke-Expression $value
+                    $value = Invoke-Expression "Write-Output $value"
                 }
     
                 # If token file is supplied, detokenise file (in situ)

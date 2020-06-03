@@ -1,5 +1,6 @@
 Param (
-	[string]$directoryName
+	[string]$directoryName,
+	[string]$level
 )
 
 cmd /c "exit 0"
@@ -37,10 +38,41 @@ if ($directoryName) {
     exit 2365
 }
 
-# Append Directory to PATH
-executeExpression "[Environment]::SetEnvironmentVariable(`'Path`', `$env:Path + `";$directoryName`", [EnvironmentVariableTarget]::Machine)"
+if ($level) {
+    Write-Host "[$scriptName] level         : $level (Choices are Machine or User)"
+} else {
+	$level = 'Machine'
+    Write-Host "[$scriptName] level         : $level (Default, choices are Machine or User)"
+}
+
+$elementInPath = $false
+# Append Directory to PATH if it is not already in the path
+$currentPath = [Environment]::GetEnvironmentVariable('Path', $level)
+if ( $currentPath ) {
+	foreach ( $item in $currentPath.split(';') ) {
+		if ( $item -eq $directoryName ) {
+			$elementInPath = $true
+		}
+	}
+	if ( $elementInPath ) {
+		Write-Host "`n[$scriptName] directoryName $directoryName already exists in $level path`n"
+	} else {
+		Write-Host
+		executeExpression "[Environment]::SetEnvironmentVariable(`'Path`', `$currentPath + `";$directoryName`", `'$level`')"
+		Write-Host
+	}
+}else {
+	Write-Host
+	executeExpression "[Environment]::SetEnvironmentVariable(`'Path`', `"$directoryName`", `'$level`')"
+	Write-Host
+}
 
 # Reload the path (without logging off and back on)
-$env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")
+$env:Path = [System.Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path", "User")
+
+Write-Host "[$scriptName] Complete path (User and Machine) is now ..."
+foreach ($item in ($env:PATH).split(';')) {
+	Write-Host "[$scriptName]  $item"
+}
 
 Write-Host "`n[$scriptName] ---------- stop -----------`n"
