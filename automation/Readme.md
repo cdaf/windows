@@ -47,6 +47,7 @@ To alleviate the burden of argument passing, exception handling and logging, the
 | EXCREM  | Execute Remote Command            | EXCREM hostname                 |
 |         | Execute Remote script             | EXCREM ./capabilities.ps1       |
 | EXITIF  | Exit normally is argument set     | EXITIF $ACTION -eq clean        |
+| IMGTXT  | Display image file as text        | IMGTXT sample.jpg               |
 | INVOKE  | call a custom script              | INVOKE ./script "Hello"         |
 | MAKDIR  | Create a directory and path (opt) | MAKDIR directory/and/path       |
 | PROPLD  | Load properties as variables      | PROPLD prop.file                |
