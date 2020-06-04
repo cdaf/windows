@@ -116,7 +116,9 @@ if ( $imageName ) {
 		$imageTag = 0
 		Write-Host "[$scriptName] No existing images, new image will be $($imageTag + 1)"
 	}
-	executeExpression "dir"
+
+	Write-Host "Directory listing of $(pwd)"
+	foreach ( $item in $(Get-ChildItem .) ) { Write-Host "  $item" }
 	
 	executeExpression "cat Dockerfile"
 		
