@@ -270,7 +270,11 @@ function ELEVAT ($command) {
 
 # Requires vswhere
 function MSTOOL ($command) { 
-	executeExpression "$automationHelper\msTools.ps1"
+	if ( Test-Path ".\msTools.ps1" ) {
+		executeExpression ".\msTools.ps1"
+	} else {
+		executeExpression "$automationHelper\msTools.ps1"
+	}
 }
 
 function CMDTST ($command) {
