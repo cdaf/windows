@@ -145,8 +145,9 @@ if ( $ACTION ) { # Do not list configuration instructions when an action is pass
 } else {
 	write-host "`n[$scriptName] ---------- CI Toolset Configuration Guide -------------`n"
     write-host 'For TeamCity ...'
-    write-host "  Command Executable  : $ciInstruction"
-    write-host "  Command parameters  : %build.counter% %build.vcs.number%"
+    write-host "  Command Executable  : call $ciProcess %build.counter%"
+    write-host "  When feature branches are enable, the branch name can be passed (will queue if used before first feature branch run)"
+    write-host "  Command Executable  : call $ciProcess %build.counter% %teamcity.build.branch%"
     write-host
     write-host 'For Bamboo ...'
     write-host "  Script file         : $ciProcess"
@@ -241,22 +242,23 @@ if ( $ACTION ) {
 	write-host "`n[$scriptName] ---------- CD Toolset Configuration Guide -------------`n"
 	write-host
 	write-host 'For TeamCity ...'
-	write-host "  Dependencies -> Get artifacts from : 'build from the same chain'"
-	write-host "                  Artifacts rules    : TasksLocal => TasksLocal"
-	write-host
-	write-host "  Command Executable  : $workDirLocal/$cdInstruction"
-	write-host "  Command parameters  : %env.TEAMCITY_BUILDCONF_NAME% %build.number%"
+	write-host '  Choose "Deployment" build'
+	write-host '  "Use Finish Build" trigger (branch filter +:<default>)'
+	write-host '  Configure artifact dependency using "Build from the same chain"'
+	write-host '  Add a Configuration parameter from build.vcs.number to %env.BUILD_NUMBER%'
+	write-host '  Add Command Line build step'
+	write-host "    Custom script       : $workDirLocal\delivery.bat %env.TEAMCITY_BUILDCONF_NAME% %build.number%"
 	write-host
 	write-host 'For Bamboo ...'
-	write-host "  Script file         : `${bamboo.build.working.directory}\$workDirLocal\$cdInstruction"
-	write-host "  Argument            : `${bamboo.deploy.environment} `${bamboo.deploy.release}"
+	write-host "  Script file           : `${bamboo.build.working.directory}\$workDirLocal\$cdInstruction"
+	write-host "  Argument              : `${bamboo.deploy.environment} `${bamboo.deploy.release}"
 	write-host
 	write-host 'For Jenkins (each environment requires a literal definition) ...'
-	write-host "  Command             : $workDirLocal\$cdInstruction <environment literal> %SVN_REVISION%"
+	write-host "  Command               : $workDirLocal\$cdInstruction <environment literal> %SVN_REVISION%"
 	write-host
 	write-host 'For BuildMaster ... (Use "Deploy Artifact" to download to $WorkingDirectory, then use "PSExec" as follows)'
-	write-host '  Set workspace       : cd $WorkingDirectory'
-	write-host "  Run Delivery        : $workDirLocal\$cdInstruction `${EnvironmentName} `${ReleaseNumber}"
+	write-host '  Set workspace         : cd $WorkingDirectory'
+	write-host "  Run Delivery          : $workDirLocal\$cdInstruction `${EnvironmentName} `${ReleaseNumber}"
 	write-host
     write-host 'For Azure DevOps/Server (formerly Visual Studio Team Services (VSTS)/Team Foundation Server (TFS))'
 	write-host '  Verify the queue for each Environment definition, and ensure Environment names do not contain spaces.'
