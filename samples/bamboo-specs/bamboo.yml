@@ -58,7 +58,6 @@ UAT:
     - script:
         - "${bamboo.build.working.directory}\\TasksLocal\\delivery.bat ${bamboo.deploy.environment} ${bamboo.deploy.release}"
 
-
 PROD:
   tasks:
     - clean
