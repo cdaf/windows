@@ -1,6 +1,6 @@
-context  target     deployHost  deployLand           remoteUser             remotePass
-remote   VAGRANT    server-1    c:\deploy\$SOLUTION  $env:CDAF_PS_USERNAME  $env:CDAF_PS_USERPASS
-remote   WINDOWS    localhost   c:\deploy\$SOLUTION
+context  target     deployHost  remoteUser             remotePass
+remote   VAGRANT    windows-1    $env:CDAF_PS_USERNAME  $env:CDAF_PS_USERPASS
+remote   WINDOWS    localhost
 local    WORKGROUP  localhost
 local    TEST       localhost
 local    PROD       localhost

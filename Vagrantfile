@@ -26,31 +26,31 @@ vCPU = SCALE_FACTOR
 Vagrant.configure(2) do |allhosts|
 
   (1..MAX_SERVER_TARGETS).each do |i|
-    allhosts.vm.define "server-#{i}" do |server|
-      server.vm.box = "#{OVERRIDE_IMAGE}"
+    allhosts.vm.define "windows-#{i}" do |windows|
+      windows.vm.box = "#{OVERRIDE_IMAGE}"
       
       # Align with Docker for remaining provisioning
-      server.vm.provision 'shell', path: '.\automation\provisioning\mkdir.ps1', args: 'C:\deploy'
+      windows.vm.provision 'shell', path: '.\automation\provisioning\mkdir.ps1', args: 'C:\deploy'
 
       # Vagrant specific for WinRM
-      server.vm.provision 'shell', path: '.\automation\provisioning\CredSSP.ps1', args: 'server'
-      server.vm.provider 'virtualbox' do |virtualbox, override|
+      windows.vm.provision 'shell', path: '.\automation\provisioning\CredSSP.ps1', args: 'server'
+      windows.vm.provider 'virtualbox' do |virtualbox, override|
         virtualbox.memory = "#{vRAM}"
         virtualbox.cpus = "#{vCPU}"
         override.vm.network 'private_network', ip: '172.16.17.101'
         override.vm.network 'forwarded_port', guest: 80, host: 80, auto_correct: true
-		override.vm.synced_folder ".", "/vagrant", disabled: true
+		    override.vm.synced_folder ".", "/vagrant", disabled: true
         if ENV['SYNCED_FOLDER']
           override.vm.synced_folder "#{ENV['SYNCED_FOLDER']}", "/.provision" # equates to C:\.provision
         end
       end
 
       # Microsoft Hyper-V
-      server.vm.provider 'hyperv' do |hyperv, override|
+      windows.vm.provider 'hyperv' do |hyperv, override|
         hyperv.memory = "#{vRAM}"
         hyperv.cpus = "#{vCPU}"
-        override.vm.hostname = "server-#{i}"
-		override.vm.synced_folder ".", "/vagrant", disabled: true
+        override.vm.hostname = "windows-#{i}"
+    		override.vm.synced_folder ".", "/vagrant", disabled: true
         if ENV['SYNCED_FOLDER']
           override.vm.synced_folder ".", "/.provision", type: "smb", smb_username: "#{ENV['VAGRANT_SMB_USER']}", smb_password: "#{ENV['VAGRANT_SMB_PASS']}"
         end
@@ -77,11 +77,8 @@ Vagrant.configure(2) do |allhosts|
       virtualbox.memory = "#{vRAM}"
       virtualbox.cpus = "#{vCPU}"
       override.vm.network 'private_network', ip: '172.16.17.100'
-      if ENV['SYNCED_FOLDER']
-        override.vm.synced_folder "#{ENV['SYNCED_FOLDER']}", "/.provision" # equates to C:\.provision
-      end
       (1..MAX_SERVER_TARGETS).each do |s|
-        override.vm.provision 'shell', path: '.\automation\provisioning\addHOSTS.ps1', args: "172.16.17.10#{s} server-#{s}"
+        override.vm.provision 'shell', path: '.\automation\provisioning\addHOSTS.ps1', args: "172.16.17.10#{s} windows-#{s}"
       end
       override.vm.provision 'shell', path: '.\automation\provisioning\CDAF.ps1'
     end

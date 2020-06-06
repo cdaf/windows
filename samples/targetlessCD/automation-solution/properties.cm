@@ -1,5 +1,5 @@
-context  target      deployTaskOverride  deployHost        deployLand            remoteUser  remoteCred        decryptThb
-remote   VAGRANT     test.tsk            server-1.sky.net  c:\deploy\vagrant     vagrant     WINDOWS_PASSWORD  1C5A22D1DA540F210122BB63EB8F38ABBBB9009A
+context  target      deployTaskOverride  deployHost            deployLand            remoteUser  remoteCred        decryptThb
+remote   VAGRANT     test.tsk            windows-1.mshome.net  c:\deploy\vagrant     vagrant     WINDOWS_PASSWORD  1C5A22D1DA540F210122BB63EB8F38ABBBB9009A
 
 local    DOCKER      compose.tsk
 local    TARGETLESS  test.tsk            localhost
