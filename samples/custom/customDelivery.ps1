@@ -32,11 +32,11 @@ function executeExpression ($expression) {
 	}
 }
 
-Write-Host "`n[$scriptName] ---------- start ----------`n"
-Write-Host "[$scriptName] SOLUTION    : $SOLUTION"
-Write-Host "[$scriptName] BUILD       : $BUILD"
-Write-Host "[$scriptName] ENVIRONMENT : $ENVIRONMENT"
-Write-Host "[$scriptName] TARGET      : $TARGET"
+Write-Host "`n[$scriptName] ---------- start ----------"
+Write-Host "[$scriptName]   SOLUTION    : $SOLUTION"
+Write-Host "[$scriptName]   BUILD       : $BUILD"
+Write-Host "[$scriptName]   ENVIRONMENT : $ENVIRONMENT"
+Write-Host "[$scriptName]   TARGET      : $TARGET"
 
 & ./Transform.ps1 $TARGET | ForEach-Object { invoke-expression $_ }
 
