@@ -1,3 +1,12 @@
+Param (
+	[string]$directoryName,
+	[string]$userName
+)
+
+cmd /c "exit 0"
+$Error.Clear()
+$scriptName = 'mkdir.ps1'
+
 # Common expression logging and error handling function, copied, not referenced to ensure atomic process
 function executeExpression ($expression) {
 	$error.clear()
@@ -11,9 +20,7 @@ function executeExpression ($expression) {
     return $output
 }
 
-$scriptName = 'mkdir.ps1'
 Write-Host "`n[$scriptName] ---------- start ----------`n"
-$directoryName = $args[0]
 if ($directoryName) {
     Write-Host "[$scriptName] directoryName : $directoryName"
 } else {
@@ -21,12 +28,30 @@ if ($directoryName) {
     exit 100
 }
 
+if ($userName) {
+    Write-Host "[$scriptName] userName      : $userName"
+} else {
+    Write-Host "[$scriptName] userName      : (not supplied, ACL changes will not be attempted)"
+}
+
 if ( Test-Path $directoryName ) {
 	Write-Host "[$scriptName] Directory $directoryName already exists, no action attempted."
 } else {
 	executeExpression "New-Item -ItemType Directory -Force -Path `'$directoryName`'"
 }
-	$newDir = executeExpression "New-Item -ItemType Directory -Force -Path `'$directoryName`'"
-	Write-Host "Created $($newDir.FullName)"
+$newDir = executeExpression "New-Item -ItemType Directory -Force -Path `'$directoryName`'"
+Write-Host "Created $($newDir.FullName)"
+
+if ($userName) {
+	Write-Host "`n[$scriptName] List ACL before changes"
+	Get-Acl $directoryName | Format-List
+	$acl = Get-Acl $directoryName
+	$permission = $userName,"FullControl","Allow"
+	$accessRule = New-Object System.Security.AccessControl.FileSystemAccessRule $permission
+	$acl.SetAccessRule($accessRule)
+	$acl | Set-Acl $directoryName
+	Write-Host "`n[$scriptName] List ACL after changes"
+	Get-Acl $directoryName | Format-List
+}
 
 Write-Host "`n[$scriptName] ---------- stop -----------"
