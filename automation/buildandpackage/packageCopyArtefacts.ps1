@@ -15,22 +15,22 @@ function taskFailure ($taskName) {
     throw "$scriptName HALT"
 }
 
-# Copy the item, if recursive, treat from as a direcotry and process the contents.
+# Copy the item, if recursive, treat from as a directory and process the contents.
 # If flat, then copy the contents to the root of the working directory
 function copyOpt ($manifestFile, $from, $first, $second) {
 
+    $arrRecurse = "-recurse", "-r", "--recursive"
+
 	if ($first) {
-		$arrRecurse = "-recurse", "-r", "--recursive"
-		if ($arrRecurse -contains $first.ToUpper()) { $recurse = '-Recurse' }
-		if ($first.ToUpper() -eq '-flat') {	$flat = '-Flat' }
+		if ($arrRecurse -contains $first.ToLower()) { $recurse = '-Recurse' }
+		if ($first -ieq '-flat') {	$flat = '-Flat' }
 	} else {
 		$recurse = '-Recurse'
 	}
 
 	if ($second) {
-		$arrRecurse = "-recurse", "-r", "--recursive"
-		if ($arrRecurse -contains $second.ToUpper()) { $recurse = '-Recurse' }
-		if ($second.ToUpper() -eq '-flat') { $flat = '-Flat' }
+		if ($arrRecurse -contains $second.ToLower()) { $recurse = '-Recurse' }
+		if ($second -ieq '-flat') { $flat = '-Flat' }
 	}
 
 	$nodes = executeExpression "Get-ChildItem -Path `"$from`" $recurse"
