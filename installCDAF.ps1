@@ -15,11 +15,13 @@ function executeExpression ($expression) {
 		} else {
 			if ( $error ) {
 				Write-Host "[$scriptName][WARN] `$Error[] populated but `$LASTEXITCODE = $LASTEXITCODE error follows... $Error`n" -ForegroundColor Yellow
+				$Error.Clear()
 			}
 		} 
 	} else {
 	    if ( $error ) {
 			Write-Host "[$scriptName][WARN] `$Error[] = $Error" -ForegroundColor Yellow
+			$Error.Clear()
 		}
 	}
 }
