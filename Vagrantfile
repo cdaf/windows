@@ -28,6 +28,7 @@ Vagrant.configure(2) do |allhosts|
   (1..MAX_SERVER_TARGETS).each do |i|
     allhosts.vm.define "windows-#{i}" do |windows|
       windows.vm.box = "#{OVERRIDE_IMAGE}"
+      windows.vm.provision 'shell', inline: 'Get-ScheduledTask -TaskName ServerManager | Disable-ScheduledTask -Verbose'
       
       # Align with Docker for remaining provisioning
       windows.vm.provision 'shell', path: '.\automation\provisioning\mkdir.ps1', args: 'C:\deploy'
@@ -52,7 +53,7 @@ Vagrant.configure(2) do |allhosts|
         override.vm.hostname = "windows-#{i}"
     		override.vm.synced_folder ".", "/vagrant", disabled: true
         if ENV['SYNCED_FOLDER']
-          override.vm.synced_folder ".", "/.provision", type: "smb", smb_username: "#{ENV['VAGRANT_SMB_USER']}", smb_password: "#{ENV['VAGRANT_SMB_PASS']}"
+          override.vm.synced_folder "#{ENV['SYNCED_FOLDER']}", "/.provision", type: "smb", smb_username: "#{ENV['VAGRANT_SMB_USER']}", smb_password: "#{ENV['VAGRANT_SMB_PASS']}"
         end
       end
     end
