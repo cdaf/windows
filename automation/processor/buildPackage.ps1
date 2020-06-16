@@ -416,7 +416,7 @@ if ( $artifactPrefix ) {
 	[IO.File]::WriteAllBytes("${SOLUTION}.ps1",[char[]][Convert]::ToBase64String([IO.File]::ReadAllBytes($SourceFile)))
 
 	$scriptLines = @('Param (', '[string]$ENVIRONMENT,' ,'[string]$RELEASE,','[string]$OPT_ARG',')','Import-Module Microsoft.PowerShell.Utility','Import-Module Microsoft.PowerShell.Management','Import-Module Microsoft.PowerShell.Security')
-	$scriptLines += "Write-Host 'Launching ${SOLUTION}.ps1 ($artifactID)'"
+	$scriptLines += "Write-Host 'Launching ${SOLUTION}.ps1 (${artifactPrefix}.${BUILDNUMBER}) ...'"
 	$scriptLines += '$Base64 = "'
 	$scriptLines + (get-content "${SOLUTION}.ps1") | set-content "${SOLUTION}.ps1"
 
