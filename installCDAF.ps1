@@ -1,5 +1,6 @@
 $scriptName = 'installCDAF.ps1'
 cmd /c "exit 0"
+$Error.Clear()
 
 # Common expression logging and error handling function, copied, not referenced to ensure atomic process
 function executeExpression ($expression) {
@@ -13,13 +14,12 @@ function executeExpression ($expression) {
 			Write-Host "[$scriptName] `$LASTEXITCODE = $LASTEXITCODE " -ForegroundColor Red ; $error ; exit $LASTEXITCODE
 		} else {
 			if ( $error ) {
-				Write-Host "[$scriptName][WARN] $Error array populated by `$LASTEXITCODE = $LASTEXITCODE error follows...`n" -ForegroundColor Yellow
-				$error
+				Write-Host "[$scriptName][WARN] `$Error[] populated but `$LASTEXITCODE = $LASTEXITCODE error follows... $Error`n" -ForegroundColor Yellow
 			}
 		} 
 	} else {
 	    if ( $error ) {
-			Write-Host "[$scriptName] `$error[] = $error"; exit 1113
+			Write-Host "[$scriptName][WARN] `$Error[] = $Error" -ForegroundColor Yellow
 		}
 	}
 }
