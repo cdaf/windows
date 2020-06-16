@@ -14,7 +14,6 @@ Import-Module Microsoft.PowerShell.Security
 
 # Initialise
 cmd /c "exit 0"
-$exitStatus = 0
 $scriptName = 'delivery.ps1'
 
 # Common expression logging and error handling function, copied, not referenced to ensure atomic process
@@ -32,7 +31,7 @@ function executeExpression ($expression) {
 # Primary powershell, returns exitcode to DOS
 function exceptionExit ( $identifier, $exception, $exitCode ) {
     write-host "`n[delivery.ps1] CDAF_DELIVERY_FAILURE.EXCEPTION : Exception in ${identifier}, details follow ..." -ForegroundColor Magenta
-    echo $exception.Exception | format-list -force
+    Write-Output $exception.Exception | format-list -force
     if ( $exitCode ) {
 		$host.SetShouldExit($exitCode)
 		exit $exitCode

@@ -19,7 +19,7 @@ $scriptName = $MyInvocation.MyCommand.Name
 # Common expression logging and error handling function, copied, not referenced to ensure atomic process
 function executeExpression ($expression) {
 	$error.clear()
-	Write-Host "[$(date)] $expression"
+	Write-Host "[$(Get-date)] $expression"
 	try {
 		Invoke-Expression $expression
 	    if(!$?) { Write-Host "[$scriptName] `$? = $?"; exit 1 }
@@ -192,7 +192,7 @@ $env:CDAF_AUTOMATION_ROOT = $AUTOMATIONROOT
 Write-Host "[$scriptName]   AUTOMATIONROOT  : $AUTOMATIONROOT" 
 
 # Runtime information
-Write-Host "[$scriptName]   pwd             : $(pwd)"
+Write-Host "[$scriptName]   pwd             : $(Get-Location)"
 Write-Host "[$scriptName]   hostname        : $(hostname)" 
 Write-Host "[$scriptName]   whoami          : $(whoami)"
 
@@ -392,9 +392,65 @@ if (( $containerBuild ) -and ( $ACTION -ne 'packageonly' )) {
 	}
 }
 
-if ( $ACTION -like 'staging@*' ) { # Primarily for VSTS / Azure pipelines
+$artifactPrefix = getProp 'artifactPrefix' "$solutionRoot\CDAF.solution"
+if ( $artifactPrefix ) {
+	$artifactID = "${SOLUTION}-${artifactPrefix}.${BUILDNUMBER}"
+	Write-Host "[$scriptName] artifactPrefix = $artifactID, generate single file artefact ..."
+	Write-Host "[$scriptName]   Created $(mkdir "$artifactID")"
+	
+	Move-Item ".\TasksLocal" ".\$artifactID"
+	[System.IO.Compression.ZipFile]::CreateFromDirectory($artifactID, "$artifactID.zip", "Optimal", $false)
+
+	$NewFileToAdd = "${SOLUTION}-${BUILDNUMBER}.zip"
+	if ( Test-Path $NewFileToAdd ) {
+		Write-Host "[$scriptName]   Include remote package in $artifactID.zip"
+		$zip = [System.IO.Compression.ZipFile]::Open("$artifactID.zip","Update")
+		$FileName = [System.IO.Path]::GetFileName($NewFileToAdd)
+		[System.IO.Compression.ZipFileExtensions]::CreateEntryFromFile($zip, $NewFileToAdd , $FileName , "Optimal") | Out-Null
+		$Zip.Dispose()
+	}
+
+	Write-Host "[$scriptName]   Create single script artefact ${SOLUTION}.ps1"
+	$SourceFile = (get-item "$artifactID.zip").FullName
+	
+	[IO.File]::WriteAllBytes("${SOLUTION}.ps1",[char[]][Convert]::ToBase64String([IO.File]::ReadAllBytes($SourceFile)))
+
+	$scriptLines = @('Param (', '[string]$ENVIRONMENT,' ,'[string]$RELEASE,','[string]$OPT_ARG',')','Import-Module Microsoft.PowerShell.Utility','Import-Module Microsoft.PowerShell.Management','Import-Module Microsoft.PowerShell.Security')
+	$scriptLines += "Write-Host 'Launching ${SOLUTION}.ps1 ($artifactID)'"
+	$scriptLines += '$Base64 = "'
+	$scriptLines + (get-content "${SOLUTION}.ps1") | set-content "${SOLUTION}.ps1"
+
+	Add-Content "${SOLUTION}.ps1" '"'
+	Add-Content "${SOLUTION}.ps1" 'if ( Test-Path "TasksLocal" ) { Remove-Item -Recurse TasksLocal }'
+	Add-Content "${SOLUTION}.ps1" "Remove-Item ${SOLUTION}*.zip"
+	Add-Content "${SOLUTION}.ps1" '$Content = [System.Convert]::FromBase64String($Base64)'
+	Add-Content "${SOLUTION}.ps1" "Set-Content -Path '${SOLUTION}-${artifactPrefix}.${BUILDNUMBER}.zip' -Value `$Content -Encoding Byte"
+	Add-Content "${SOLUTION}.ps1" 'Add-Type -AssemblyName System.IO.Compression.FileSystem'
+	Add-Content "${SOLUTION}.ps1" "[System.IO.Compression.ZipFile]::ExtractToDirectory(`"`$PWD\${SOLUTION}-${artifactPrefix}.${BUILDNUMBER}.zip`", `"`$PWD`")"
+	Add-Content "${SOLUTION}.ps1" '.\TasksLocal\delivery.bat "$ENVIRONMENT" "$RELEASE" "$OPT_ARG"'
+	Add-Content "${SOLUTION}.ps1" 'exit $LASTEXITCODE'
+}
+
+if ( $ACTION -like 'staging@*' ) { # Primarily for ADO pipelines
 	$parts = $ACTION.split('@')
 	$stageTarget = $parts[1]
-	executeExpression "Copy-Item -Recurse '.\TasksLocal\' '$stageTarget'"
-	executeExpression "Copy-Item '*.zip' '$stageTarget'"
+	if ( $artifactPrefix ) {
+		executeExpression "Copy-Item '$artifactFile' '$stageTarget'"
+	} else {
+		executeExpression "Copy-Item -Recurse '.\TasksLocal\' '$stageTarget'"
+		executeExpression "Copy-Item '*.zip' '$stageTarget'"
+	}
 }
+
+Write-Host "`n[$scriptName] Clean Workspace..."
+itemRemove "propertiesForLocalTasks"
+itemRemove "propertiesForRemoteTasks"
+itemRemove "manifest.txt"
+itemRemove "storeForLocal_manifest.txt"
+itemRemove "storeForRemote_manifest.txt"
+itemRemove "storeFor_manifest.txt"
+itemRemove "$LOCAL_WORK_DIR"
+itemRemove "$REMOTE_WORK_DIR"
+itemRemove "${SOLUTION}-${BUILDNUMBER}.zip"
+itemRemove "${SOLUTION}-${artifactPrefix}.${BUILDNUMBER}.zip"
+itemRemove "${SOLUTION}-${artifactPrefix}.${BUILDNUMBER}"

@@ -176,7 +176,7 @@ if ( Test-Path $remotePropertiesDir ) {
 }
 
 # Runtime information, build process can have large logging, so this is repeated
-Write-Host "[$scriptName]   pwd                     : $(pwd)"
+Write-Host "[$scriptName]   pwd                     : $(Get-Location)"
 Write-Host "[$scriptName]   hostname                : $(hostname)" 
 Write-Host "[$scriptName]   whoami                  : $(whoami)" 
 
@@ -198,6 +198,7 @@ itemRemove ".\*.nupkg"
 itemRemove "$LOCAL_WORK_DIR"
 itemRemove "$REMOTE_WORK_DIR"
 itemRemove "artifacts"
+itemRemove "${SOLUTION}.ps1"
 
 if ( $ACTION -eq "clean" ) {
 
