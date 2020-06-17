@@ -56,7 +56,7 @@ if ( $version ) {
 if ( $mediaDir ) {
 	Write-Host "[$scriptName] mediaDir : $mediaDir`n"
 } else {
-	$mediaDir = 'C:\.provision'
+	$mediaDir = "$env:TEMP"
 	Write-Host "[$scriptName] mediaDir : $mediaDir (not passed, set to default)`n"
 }
 

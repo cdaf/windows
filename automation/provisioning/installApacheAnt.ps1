@@ -36,7 +36,7 @@ $mediaDir = $args[1]
 if ( $mediaDir ) {
 	Write-Host "[$scriptName] mediaDirectory        : $mediaDir"
 } else {
-	$mediaDir = 'C:\.provision'
+	$mediaDir = "$env:TEMP"
 	Write-Host "[$scriptName] mediaDirectory        : $mediaDir (default)"
 }
 

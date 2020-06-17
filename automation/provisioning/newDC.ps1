@@ -74,7 +74,7 @@ if ($password) {
 if ($media) {
     Write-Host "[$scriptName] media    : $media"
 } else {
-	$media = 'C:\.provision\install.wim'
+	$media = "$env:TEMP"\install.wim"
     Write-Host "[$scriptName] media    : $media (default)"
 }
 

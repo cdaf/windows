@@ -83,7 +83,7 @@ if ( $tlsCAFile ) {
 if ( $mediaDirectory ) {
 	Write-Host "[$scriptName] mediaDirectory : $mediaDirectory"
 } else {
-	$mediaDirectory = 'C:\.provision'
+	$mediaDirectory = "$env:TEMP"
 	Write-Host "[$scriptName] mediaDirectory : $mediaDirectory (not supplied, set to default)"
 }
 

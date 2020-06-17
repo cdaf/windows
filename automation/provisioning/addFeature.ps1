@@ -36,7 +36,7 @@ if ($options) {
 if ($media) {
     Write-Host "[$scriptName] media     : $media"
 } else {
-	$media = 'c:\.provision\install.wim'
+	$media = "$env:TEMP\install.wim"
     Write-Host "[$scriptName] media     : $media (default)"
 }
 

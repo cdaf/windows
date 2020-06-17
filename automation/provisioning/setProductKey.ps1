@@ -7,7 +7,7 @@ $fileFile = $args[0]
 if ($fileFile) {
     Write-Host "[$scriptName] fileFile : $fileFile"
 } else {
-	$fileFile = 'C:\.provision\productkey.txt'
+	$fileFile = "$env:TEMP\productkey.txt"
     Write-Host "[$scriptName] fileFile : $fileFile (default)"
 }
 

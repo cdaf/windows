@@ -29,7 +29,7 @@ if ($url) {
 if ($mediaDir) {
     Write-Host "[$scriptName] mediaDir : $mediaDir"
 } else {
-	$mediaDir = 'c:\.provision'
+	$mediaDir = "$env:TEMP"
     Write-Host "[$scriptName] mediaDir : $mediaDir (default)"
 }
 

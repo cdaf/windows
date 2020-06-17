@@ -61,7 +61,7 @@ if ( $destinationInstallDir ) {
 if ( $sourceInstallDir) {
 	Write-Host "[$scriptName] sourceInstallDir      : $sourceInstallDir"
 } else {
-	$sourceInstallDir = 'c:\.provision'
+	$sourceInstallDir = "$env:TEMP"
 	Write-Host "[$scriptName] sourceInstallDir      : $sourceInstallDir (default)"
 }
 

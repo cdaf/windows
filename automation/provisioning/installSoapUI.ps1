@@ -41,7 +41,7 @@ if ( $soapui_version ) {
 if ( $mediaDirectory ) {
 	Write-Host "[$scriptName] mediaDirectory        : $mediaDirectory"
 } else {
-	$mediaDirectory = 'C:\.provision'
+	$mediaDirectory = "$env:TEMP"
 	Write-Host "[$scriptName] mediaDirectory        : $mediaDirectory (default)"
 }
 

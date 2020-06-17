@@ -24,7 +24,7 @@ Write-Host "`n[$scriptName] ---------- start ----------"
 if ($variable) {
     Write-Host "[$scriptName] variable : $variable"
 } else {
-	$mediaDir = '/.provision'
+	$mediaDir = "$env:TEMP"
     Write-Host "[$scriptName] mediaDir : $mediaDir (default)"
 }
 
