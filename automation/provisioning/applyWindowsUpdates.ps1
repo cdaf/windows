@@ -1,7 +1,6 @@
 # Only for Windows Server 2016 and above
 $scriptName = 'applyWindowsUpdates.ps1'
-Write-Host
-Write-Host "[$scriptName] ---------- start ----------"
+Write-Host "`n[$scriptName] ---------- start ----------"
 $autoRestart = $args[0]
 if ($autoRestart) {
     Write-Host "[$scriptName] autoRestart   : $autoRestart"
@@ -24,14 +23,13 @@ try {
 	Import-Module PSWindowsUpdate
 
 	if ($autoRestart -eq 'yes') {
-		Write-Host "[$scriptName] Get-WUInstall –Verbose –AcceptAll –AutoReboot:`$True -Confirm:`$False"
-		Get-WUInstall –Verbose –AcceptAll –AutoReboot:$True -Confirm:$False
+		Write-Host "[$scriptName] Get-WUInstall -Verbose -AcceptAll -AutoReboot:`$True -Confirm:`$False"
+		Get-WUInstall -Verbose -AcceptAll -AutoReboot:$True -Confirm:$False
 	} else {
-		Write-Host "[$scriptName] Get-WUInstall –Verbose –AcceptAll –AutoReboot:`$False -Confirm:`$False"
-		Get-WUInstall –Verbose –AcceptAll –AutoReboot:$False -Confirm:$False
+		Write-Host "[$scriptName] Get-WUInstall -Verbose -AcceptAll -AutoReboot:`$False -Confirm:`$False"
+		Get-WUInstall -Verbose -AcceptAll -AutoReboot:$False -Confirm:$False
 	}
 	
-} catch { echo $_.Exception|format-list -force; $exitCode = 5 }
+} catch { Write-Host $_.Exception|format-list -force; exit 5 }
 
-Write-Host
-Write-Host "[$scriptName] ---------- stop ----------"
+Write-Host "`n[$scriptName] ---------- stop ----------"
