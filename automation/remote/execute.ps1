@@ -229,12 +229,15 @@ function DETOKN( $tokenFile, $properties, $aeskey )
 	executeExpression $expression
 }
 
-# Log error array, if elements exist, then exit normally
-function IGNORE()
-{
-    if ( $error[0] ) {
-		Write-Host "[$scriptName (IGNORE)] `$error[0] = $error[0]"
-		$error.clear()
+# Execute expression, log errors but ignore and proceed
+function IGNORE ($expression) {
+	Write-Host "[$(Get-Date)] $expression"
+	try {
+		Invoke-Expression $expression
+	    if(!$?) { Write-Host "[$scriptName][ERROR] `$? = $?"; $error ; $error.clear() }
+	} catch { Write-Host "[$scriptName][EXCEPTION] $_.Exception"; $error ; $error.clear() }
+    if ( $LASTEXITCODE ) {
+    	if ( $LASTEXITCODE -ne 0 ) { Write-Host "[$scriptName][LASTEXITCODE] `$LASTEXITCODE = $LASTEXITCODE`n"; $error ; $error.clear() ; cmd /c "exit 0" }
 	}
 }
 
