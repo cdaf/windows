@@ -93,6 +93,8 @@ if ( $version ) {
 	Write-Host "[$scriptName] version        : (not supplied, will use latest)"
 }
 
+executeExpression "[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12"
+
 $versionTest = cmd /c gitlab-runner --version 2`>`&1
 if (!($versionTest -like '*not recognized*')) {
 	$versionLine = $(foreach ($line in $versionTest) { Select-String  -InputObject $line -CaseSensitive "Version" })
