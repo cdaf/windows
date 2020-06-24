@@ -11,7 +11,6 @@ Param (
 	[string]$restart
 )
 
-# Common expression logging and error handling function, copied, not referenced to ensure atomic process
 function executeExpression ($expression) {
 	Write-Host "[$(Get-date)] $expression"
 	try {
@@ -113,26 +112,30 @@ if ( $server ) {
 	Write-Host "[$scriptName] Scheduled task ServerManager not installed, disable not required."
 }
 
-if ( $stable -eq 'yes' ) { 
-	Write-Host "[$scriptName] Download Continuous Delivery Automation Framework"
-	Write-Host "[$scriptName] `$zipFile = 'WU-CDAF.zip'"
-	$zipFile = 'WU-CDAF.zip'
-	Write-Host "[$scriptName] `$url = `"http://cdaf.io/static/app/downloads/$zipFile`""
-	$url = "http://cdaf.io/static/app/downloads/$zipFile"
-	executeExpression "(New-Object System.Net.WebClient).DownloadFile('$url', '$PWD\$zipFile')"
-	executeExpression 'Add-Type -AssemblyName System.IO.Compression.FileSystem'
-	executeExpression '[System.IO.Compression.ZipFile]::ExtractToDirectory("$PWD\$zipfile", "$PWD")'
+if ( Test-Path ".\automation\CDAF.windows") {
+	Write-Host "[$scriptName] Use existing Continuous Delivery Automation Framework in ./automation"
 } else {
-	Write-Host "[$scriptName] Get latest CDAF from GitHub"
-	Write-Host "[$scriptName] `$zipFile = 'windows-master.zip'"
-	$zipFile = 'windows-master.zip'
-	Write-Host "[$scriptName] `$url = `"https://codeload.github.com/cdaf/windows/zip/master`""
-	$url = "https://codeload.github.com/cdaf/windows/zip/master"
-	executeExpression "[System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]'Tls11,Tls12'"
-	executeExpression "(New-Object System.Net.WebClient).DownloadFile('$url', '$PWD\$zipFile')"
-	executeExpression 'Add-Type -AssemblyName System.IO.Compression.FileSystem'
-	executeExpression '[System.IO.Compression.ZipFile]::ExtractToDirectory("$PWD\$zipfile", "$PWD")'
-	executeExpression 'mv windows-master\automation .'
+	if ( $stable -eq 'yes' ) { 
+		Write-Host "[$scriptName] Download Continuous Delivery Automation Framework"
+		Write-Host "[$scriptName] `$zipFile = 'WU-CDAF.zip'"
+		$zipFile = 'WU-CDAF.zip'
+		Write-Host "[$scriptName] `$url = `"http://cdaf.io/static/app/downloads/$zipFile`""
+		$url = "http://cdaf.io/static/app/downloads/$zipFile"
+		executeExpression "(New-Object System.Net.WebClient).DownloadFile('$url', '$PWD\$zipFile')"
+		executeExpression 'Add-Type -AssemblyName System.IO.Compression.FileSystem'
+		executeExpression '[System.IO.Compression.ZipFile]::ExtractToDirectory("$PWD\$zipfile", "$PWD")'
+	} else {
+		Write-Host "[$scriptName] Get latest CDAF from GitHub"
+		Write-Host "[$scriptName] `$zipFile = 'windows-master.zip'"
+		$zipFile = 'windows-master.zip'
+		Write-Host "[$scriptName] `$url = `"https://codeload.github.com/cdaf/windows/zip/master`""
+		$url = "https://codeload.github.com/cdaf/windows/zip/master"
+		executeExpression "[System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]'Tls11,Tls12'"
+		executeExpression "(New-Object System.Net.WebClient).DownloadFile('$url', '$PWD\$zipFile')"
+		executeExpression 'Add-Type -AssemblyName System.IO.Compression.FileSystem'
+		executeExpression '[System.IO.Compression.ZipFile]::ExtractToDirectory("$PWD\$zipfile", "$PWD")'
+		executeExpression 'mv windows-master\automation .'
+	}
 }
 
 executeExpression 'cat .\automation\CDAF.windows'
@@ -163,7 +166,5 @@ if ($vstsPackageAccessToken) {
 if ( $docker -eq 'yes' ) { 
 	executeExpression "./automation/provisioning/InstallDocker.ps1 -restart $restart"
 }
-
-Write-Host "[$scriptName] See logs at $env:temp\InstallAgent.log"
 
 Write-Host "`n[$scriptName] ---------- stop ----------"
