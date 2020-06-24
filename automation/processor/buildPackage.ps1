@@ -399,7 +399,8 @@ if ( $artifactPrefix ) {
 	Write-Host "[$scriptName]   Created $(mkdir "$artifactID")"
 	
 	Move-Item ".\TasksLocal" ".\$artifactID"
-	[System.IO.Compression.ZipFile]::CreateFromDirectory($artifactID, "$artifactID.zip", "Optimal", $false)
+	executeExpression 'Add-Type -AssemblyName System.IO.Compression.FileSystem'
+	executeExpression "[System.IO.Compression.ZipFile]::CreateFromDirectory('$artifactID', '$artifactID.zip', 'Optimal', `$false)"
 
 	$NewFileToAdd = "${SOLUTION}-${BUILDNUMBER}.zip"
 	if ( Test-Path $NewFileToAdd ) {
@@ -410,32 +411,32 @@ if ( $artifactPrefix ) {
 		$Zip.Dispose()
 	}
 
-	Write-Host "[$scriptName]   Create single script artefact ${SOLUTION}.ps1"
+	Write-Host "[$scriptName]   Create single script artefact release.ps1"
 	$SourceFile = (get-item "$artifactID.zip").FullName
 	
-	[IO.File]::WriteAllBytes("${SOLUTION}.ps1",[char[]][Convert]::ToBase64String([IO.File]::ReadAllBytes($SourceFile)))
+	[IO.File]::WriteAllBytes("release.ps1",[char[]][Convert]::ToBase64String([IO.File]::ReadAllBytes($SourceFile)))
 
 	$scriptLines = @('Param (', '[string]$ENVIRONMENT,' ,'[string]$RELEASE,','[string]$OPT_ARG',')','Import-Module Microsoft.PowerShell.Utility','Import-Module Microsoft.PowerShell.Management','Import-Module Microsoft.PowerShell.Security')
-	$scriptLines += "Write-Host 'Launching ${SOLUTION}.ps1 (${artifactPrefix}.${BUILDNUMBER}) ...'"
+	$scriptLines += "Write-Host 'Launching release.ps1 (${artifactPrefix}.${BUILDNUMBER}) ...'"
 	$scriptLines += '$Base64 = "'
-	$scriptLines + (get-content "${SOLUTION}.ps1") | set-content "${SOLUTION}.ps1"
+	$scriptLines + (get-content "release.ps1") | set-content "release.ps1"
 
-	Add-Content "${SOLUTION}.ps1" '"'
-	Add-Content "${SOLUTION}.ps1" 'if ( Test-Path "TasksLocal" ) { Remove-Item -Recurse TasksLocal }'
-	Add-Content "${SOLUTION}.ps1" "Remove-Item ${SOLUTION}*.zip"
-	Add-Content "${SOLUTION}.ps1" '$Content = [System.Convert]::FromBase64String($Base64)'
-	Add-Content "${SOLUTION}.ps1" "Set-Content -Path '${SOLUTION}-${artifactPrefix}.${BUILDNUMBER}.zip' -Value `$Content -Encoding Byte"
-	Add-Content "${SOLUTION}.ps1" 'Add-Type -AssemblyName System.IO.Compression.FileSystem'
-	Add-Content "${SOLUTION}.ps1" "[System.IO.Compression.ZipFile]::ExtractToDirectory(`"`$PWD\${SOLUTION}-${artifactPrefix}.${BUILDNUMBER}.zip`", `"`$PWD`")"
-	Add-Content "${SOLUTION}.ps1" '.\TasksLocal\delivery.bat "$ENVIRONMENT" "$RELEASE" "$OPT_ARG"'
-	Add-Content "${SOLUTION}.ps1" 'exit $LASTEXITCODE'
+	Add-Content "release.ps1" '"'
+	Add-Content "release.ps1" 'if ( Test-Path "TasksLocal" ) { Remove-Item -Recurse TasksLocal }'
+	Add-Content "release.ps1" "Remove-Item ${SOLUTION}*.zip"
+	Add-Content "release.ps1" '$Content = [System.Convert]::FromBase64String($Base64)'
+	Add-Content "release.ps1" "Set-Content -Path '${SOLUTION}-${artifactPrefix}.${BUILDNUMBER}.zip' -Value `$Content -Encoding Byte"
+	Add-Content "release.ps1" 'Add-Type -AssemblyName System.IO.Compression.FileSystem'
+	Add-Content "release.ps1" "[System.IO.Compression.ZipFile]::ExtractToDirectory(`"`$PWD\${SOLUTION}-${artifactPrefix}.${BUILDNUMBER}.zip`", `"`$PWD`")"
+	Add-Content "release.ps1" '.\TasksLocal\delivery.bat "$ENVIRONMENT" "$RELEASE" "$OPT_ARG"'
+	Add-Content "release.ps1" 'exit $LASTEXITCODE'
 }
 
 if ( $ACTION -like 'staging@*' ) { # Primarily for ADO pipelines
 	$parts = $ACTION.split('@')
 	$stageTarget = $parts[1]
 	if ( $artifactPrefix ) {
-		executeExpression "Copy-Item '${SOLUTION}.ps1' '$stageTarget'"
+		executeExpression "Copy-Item 'release.ps1' '$stageTarget'"
 	} else {
 		executeExpression "Copy-Item -Recurse '.\TasksLocal\' '$stageTarget'"
 		executeExpression "Copy-Item '*.zip' '$stageTarget'"
