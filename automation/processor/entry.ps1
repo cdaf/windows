@@ -94,11 +94,48 @@ if ($action) {
 } else {
     Write-Host "[$scriptName]   action         : (not set, set to remoteURL@ to trigger clean)"
 }
-$workspace = $(Get-Location)
-Write-Host "[$scriptName]   pwd            : $workspace"
-Write-Host "[$scriptName]   hostname       : $(hostname)" 
-Write-Host "[$scriptName]   whoami         : $(whoami)" 
 
+# check for DOS variable and load as PowerShell environment variable
+if ($CDAF_DELIVERY) { $environment = "$CDAF_DELIVERY" }
+if ($Env:CDAF_DELIVERY) { $environment = "$Env:CDAF_DELIVERY" }
+if ($environment) {
+    Write-Host "[$scriptName]   environment    : $environment (from CDAF_DELIVERY environment variable)"
+} else {
+	$environment = 'DOCKER'
+    Write-Host "[$scriptName]   environment    : (not set, default applied)"
+}
+
+# Check for user defined solution folder, i.e. outside of automation root, if found override solution root
+Write-Host "[$scriptName]   solutionRoot   : " -NoNewline
+foreach ($item in (Get-ChildItem -Path ".")) {
+	if (Test-Path $item -PathType "Container") {
+		if (Test-Path "$item\CDAF.solution") {
+			$solutionRoot=$item
+		}
+	}
+}
+
+if ($solutionRoot) {
+	write-host "$solutionRoot (override $solutionRoot\CDAF.solution found)"
+} else {
+	$solutionRoot="$automationRoot\solution"
+	write-host "$solutionRoot (default, project directory containing CDAF.solution not found)"
+}
+
+$automationHelper = "$automationRoot\remote"
+& $automationHelper\Transform.ps1 "$SOLUTIONROOT\CDAF.solution" | ForEach-Object { invoke-expression $_ }
+
+if ( $artifactPrefix ) {
+	$entryArtPrefix = $artifactPrefix
+	Write-Host "`n[$scriptName]   artifactPrefix = $artifactPrefix (will deploy using $solutionName.ps1)"
+} else {
+	Write-Host "`n[$scriptName]   artifactPrefix = (not set, will deploy using .\TasksLocal\delivery.ps1)"
+}
+
+$workspace = $(Get-Location)
+Write-Host "[$scriptName]   pwd            = $workspace"
+Write-Host "[$scriptName]   hostname       = $(hostname)" 
+Write-Host "[$scriptName]   whoami         = $(whoami)`n"
 
 if ( $branch -eq 'master' ) {
 	executeExpression "$automationRoot\processor\buildPackage.ps1 $BUILDNUMBER $branch $action -AUTOMATIONROOT $automationRoot"
@@ -111,7 +148,11 @@ if (( $branch -eq 'master' ) -or ( $branch -eq 'refs/heads/master' )) {
 	Write-Host "[$scriptName] Only perform container test in CI for branches, Master execution in CD pipeline"
 } else {
 	Write-Host "[$scriptName] Only perform container test in CI for feature branches, CD for branch $branch"
-	executeExpression '.\TasksLocal\delivery.ps1 DOCKER'
+	if ( $entryArtPrefix ) {
+		executeExpression ".\$solutionName.ps1 $environment"
+	} else {
+		executeExpression ".\TasksLocal\delivery.ps1 $environment"
+	}
 }
 
 $prefix,$remoteURL = $action.Split('@')
@@ -119,17 +160,6 @@ $prefix,$remoteURL = $action.Split('@')
 if ( $prefix -eq 'remoteURL' ) {
 
 	Write-Host "[$scriptName] ACTION ($action) prefix is remoteURL@, attempt remote branch synchronisation"
-
-	$AUTOMATIONROOT = (Get-Item $MyInvocation.MyCommand.Definition).Directory.Parent.FullName
-	foreach ($item in (Get-ChildItem -Path ".")) {
-		if (Test-Path $item -PathType "Container") {
-			if (Test-Path "$item\CDAF.solution") {
-				$solutionRoot=$item
-			}
-		}
-	}
-	$automationHelper = "$AUTOMATIONROOT\remote"
-	& $automationHelper\Transform.ps1 "$SOLUTIONROOT\CDAF.solution" | ForEach-Object { invoke-expression $_ }
 	
 	if (!( ${solutionName} )) {
 		Write-Host "`n[$scriptName]   solutionName not defined!"
@@ -172,42 +202,46 @@ if ( $prefix -eq 'remoteURL' ) {
 		}
 	}
 	
-	Write-Host "`n[$scriptName] Load docker images`n"
-	$dockerImages = executeReturn 'docker images --format "{{.Repository}}:{{.Tag}}:{{.ID}}" 2> $null'
-	
-	# Numbered lists for summary report
-	$imagesListBeforeHousekeeping = foreach ($i in $dockerImages) { $i_countb++; echo "$i_countb. $($i.split(':')[0]):$($i.split(':')[1])"`n }
-	
-	Write-Host "`n[$scriptName] Delete images for inactive branches`n"
-	$imagesRetained = @()
-	foreach ($i in $dockerImages) {
-	    if ($i -like "${solutionName}_*") {
-	    	$remove = $True
-	        foreach ($b in $remoteBranches) {
-				if (( $i -like "${solutionName}_$b*" ) -or ( $i -like "${solutionName}_container_*" )) {
-					$imagesRetained += $( $b_count++; echo "$b_count. $i"`n )
-					$remove = $False
-	                break
+
+	if ( $environment -eq 'DOCKER' ) {
+
+		Write-Host "`n[$scriptName] Load docker images`n"
+		$dockerImages = executeReturn 'docker images --format "{{.Repository}}:{{.Tag}}:{{.ID}}" 2> $null'
+		
+		# Numbered lists for summary report
+		$imagesListBeforeHousekeeping = foreach ($i in $dockerImages) { $i_countb++; Write-Output "$i_countb. $($i.split(':')[0]):$($i.split(':')[1])"`n }
+		
+		Write-Host "`n[$scriptName] Delete images for inactive branches`n"
+		$imagesRetained = @()
+		foreach ($i in $dockerImages) {
+			if ($i -like "${solutionName}_*") {
+				$remove = $True
+				foreach ($b in $remoteBranches) {
+					if (( $i -like "${solutionName}_$b*" ) -or ( $i -like "${solutionName}_container_*" )) {
+						$imagesRetained += $( $b_count++; Write-Output "$b_count. $i"`n )
+						$remove = $False
+						break
+					}
+				}
+				if ( $remove ) {
+					executeSuppress "docker rmi $($i.split(':')[2])"
+					$i_countd++
+					$imagesListDeleted = "$imagesListDeleted $i_countd. $($i.split(':')[0]):$($i.split(':')[1])`n"
 				}
 			}
-	        if ( $remove ) {
-		        executeSuppress "docker rmi $($i.split(':')[2])"
-		        $i_countd++
-		        $imagesListDeleted = "$imagesListDeleted $i_countd. $($i.split(':')[0]):$($i.split(':')[1])`n"
-	        }
-	    }
+		}
+		if (!( $i_countd )) { Write-Host "  < none >" }
+		
+		Write-Host "`n[$scriptName] Housekeeping Summary`n"
+		Write-Host "[$scriptName]   List of docker images (before housekeeping)`n $imagesListBeforeHousekeeping"
+		
+		$images = docker images --format "{{.Repository}}:{{.Tag}}:{{.ID}}" 2> $null
+		$imagesListPostHousekeeping = foreach ($i in $images) { $i_countp++; Write-Output "$i_countp. $($i.split(':')[0]):$($i.split(':')[1])`n" }
+		Write-Host "[$scriptName]   List of docker images (after housekeeping)`n $imagesListPostHousekeeping"
+		
+		Write-Host "[$scriptName]   List of docker images retained`n $imagesRetained"
+		Write-Host "[$scriptName]   List of docker images deleted`n$imagesListDeleted"
 	}
-	if (!( $i_countd )) { Write-Host "  < none >" }
-	
-	Write-Host "`n[$scriptName] Housekeeping Summary`n"
-	Write-Host "[$scriptName]   List of docker images (before housekeeping)`n $imagesListBeforeHousekeeping"
-	
-	$images = docker images --format "{{.Repository}}:{{.Tag}}:{{.ID}}" 2> $null
-	$imagesListPostHousekeeping = foreach ($i in $images) { $i_countp++; echo "$i_countp. $($i.split(':')[0]):$($i.split(':')[1])`n" }
-	Write-Host "[$scriptName]   List of docker images (after housekeeping)`n $imagesListPostHousekeeping"
-	
-	Write-Host "[$scriptName]   List of docker images retained`n $imagesRetained"
-	Write-Host "[$scriptName]   List of docker images deleted`n$imagesListDeleted"
 
 } else {
 
@@ -219,15 +253,19 @@ executeExpression "cd $workspace"
 
 if ( ! (( $branch -eq 'master' ) -or ( $branch -eq 'refs/heads/master' ))) {
 	Write-Host "[$scriptName] Purge artifacts for feature branches"
-	$zipPackage = (Get-Item '*.zip').Name
-	if ( $zipPackage ) {
-		executeExpression "Remove-Item -Force $zipPackage"
-		executeExpression "New-Item -Name $zipPackage -ItemType File"
-	}
-	$dirPackage = (Get-Item 'TasksLocal').Name
-	if ( $dirPackage ) {
-		executeExpression "Remove-Item -Recurse -Force '${dirPackage}\*'"
-		executeExpression "Add-Content ${dirPackage}\readme.md 'Dummy artifact created by entry.ps1 for feature branch $branch'"
+	if ( $entryArtPrefix ) {
+		executeExpression "Set-Content $solutionName.ps1 'Write-Host `"Dummy Artefact for Feature Branch`"'"
+	} else {
+		$zipPackage = (Get-Item '*.zip').Name
+		if ( $zipPackage ) {
+			executeExpression "Remove-Item -Force $zipPackage"
+			executeExpression "New-Item -Name $zipPackage -ItemType File"
+		}
+		$dirPackage = (Get-Item 'TasksLocal').Name
+		if ( $dirPackage ) {
+			executeExpression "Remove-Item -Recurse -Force '${dirPackage}\*'"
+			executeExpression "Add-Content ${dirPackage}\readme.md 'Dummy artifact created by entry.ps1 for feature branch $branch'"
+		}
 	}
 }
 

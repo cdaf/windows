@@ -435,7 +435,7 @@ if ( $ACTION -like 'staging@*' ) { # Primarily for ADO pipelines
 	$parts = $ACTION.split('@')
 	$stageTarget = $parts[1]
 	if ( $artifactPrefix ) {
-		executeExpression "Copy-Item '$artifactFile' '$stageTarget'"
+		executeExpression "Copy-Item '${SOLUTION}.ps1' '$stageTarget'"
 	} else {
 		executeExpression "Copy-Item -Recurse '.\TasksLocal\' '$stageTarget'"
 		executeExpression "Copy-Item '*.zip' '$stageTarget'"
