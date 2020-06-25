@@ -38,7 +38,7 @@ Vagrant.configure(2) do |allhosts|
       windows.vm.provider 'virtualbox' do |virtualbox, override|
         virtualbox.memory = "#{vRAM}"
         virtualbox.cpus = "#{vCPU}"
-        override.vm.network 'private_network', ip: '172.16.17.101'
+        override.vm.network 'private_network', ip: "172.16.17.10#{i}"
         override.vm.network 'forwarded_port', guest: 80, host: 80, auto_correct: true
 		    override.vm.synced_folder ".", "/vagrant", disabled: true
         if ENV['SYNCED_FOLDER']
