@@ -53,12 +53,18 @@ Write-Host "[$scriptName] `$atomicPath = $atomicPath"
 
 executeExpression "$atomicPath\automation\provisioning\InstallIIS.ps1 -management yes"
 
+if ( Test-Path 'C:\.provision' ) {
+	$mediaPath = 'C:\.provision'
+} else {
+	$mediaPath = "$env:TEMP"
+}	 
+
 Write-Host "[$scriptName] Install Application Request Routing (ARR)"
 executeExpression "Stop-Service W3SVC"
 executeExpression "$atomicPath\automation\provisioning\GetMedia.ps1 http://download.microsoft.com/download/E/9/8/E9849D6A-020E-47E4-9FD0-A023E99B54EB/requestRouter_amd64.msi"
-executeExpression "$atomicPath\automation\provisioning\installMSI.ps1 C:\.provision\requestRouter_amd64.msi"
+executeExpression "$atomicPath\automation\provisioning\installMSI.ps1 $mediaPath\requestRouter_amd64.msi"
 executeExpression "$atomicPath\automation\provisioning\GetMedia.ps1  https://download.microsoft.com/download/C/9/E/C9E8180D-4E51-40A6-A9BF-776990D8BCA9/rewrite_amd64.msi"
-executeExpression "$atomicPath\automation\provisioning\installMSI.ps1 C:\.provision\rewrite_amd64.msi"
+executeExpression "$atomicPath\automation\provisioning\installMSI.ps1 $mediaPath\rewrite_amd64.msi"
 executeExpression "Start-Service W3SVC"
 
 if ($port) {
