@@ -34,7 +34,8 @@ if ($bindingProtocol) {
     $options += "-bindingProtocol $bindingProtocol"
 } else {
 	if (Test-Path "iis:\Sites\$webSite") { 
-	    Write-Host "[$scriptName] bindingProtocol    : (not passed) [example] http"
+    	$bindingProtocol = "http"
+	    Write-Host "[$scriptName] bindingProtocol    : (not passed, set default, this will affect the existing site)"
     } else {
     	$bindingProtocol = "http"
 	    Write-Host "[$scriptName] bindingProtocol    : $bindingProtocol (not passed, set default as new website)"
@@ -109,13 +110,13 @@ if (Test-Path "iis:\Sites\$webSite") {
 	Write-Host "`n[$scriptName] List properties of existing site $webSite ..."
 	executeExpression "Get-Item `"IIS:\Sites\$webSite`" | Format-Table "
 	Write-Host "`n[$scriptName] Site ($webSite) exists, change properties (if passed)"
-	if ($bindingInformation -or $bindingProtocol) {
+	if ( $bindingInformation ) {
 		executeExpression "Set-ItemProperty IIS:\Sites\$webSite -name bindings -value @{protocol=`"$bindingProtocol`";bindingInformation=`"$bindingInformation`"} "
 	}
-	if ($applicationPool) {
+	if ( $applicationPool ) {
 		executeExpression "Set-ItemProperty IIS:\Sites\$webSite -name applicationPool -value `"$applicationPool`""
 	}
-	if ($physicalPath) {
+	if ( $physicalPath ) {
 		executeExpression "Set-ItemProperty IIS:\Sites\$webSite -name physicalPath -value `"$physicalPath`""
 	}
 	executeExpression "Get-Item `"IIS:\Sites\$webSite`" | Format-Table "
