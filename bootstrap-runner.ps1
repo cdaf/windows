@@ -159,6 +159,10 @@ if ( Test-Path ".\automation\CDAF.windows") {
 executeExpression 'cat .\automation\CDAF.windows'
 executeExpression '.\automation\provisioning\runner.bat .\automation\remote\capabilities.ps1'
 
+if ( $git -eq 'yes' ) { 
+	executeExpression "./automation/provisioning/base.ps1 'git'"
+}
+
 if ( $runnerSAPassword ) {
 	executeExpression "./automation/provisioning/newUser.ps1 $runnerSA `$runnerSAPassword -passwordExpires 'no'"
 	executeExpression "./automation/provisioning/addUserToLocalGroup.ps1 'Administrators' '$runnerSA'"
@@ -166,10 +170,6 @@ if ( $runnerSAPassword ) {
 	executeExpression "./automation/provisioning/installRunner.ps1 '$runnerURL' `$personalAccessToken '$runnerName' '$runnerTags' '$runnerExecutor' '$runnerSA' `$runnerSAPassword"
 } else {
 	executeExpression "./automation/provisioning/installRunner.ps1 '$runnerURL' `$personalAccessToken '$runnerName' '$runnerTags' '$runnerExecutor'"
-}
-
-if ( $git -eq 'yes' ) { 
-	executeExpression "./automation/provisioning/base.ps1 'git'"
 }
 
 if ( $docker -eq 'yes' ) { 
