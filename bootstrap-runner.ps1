@@ -13,13 +13,26 @@ Param (
 )
 
 function executeExpression ($expression) {
-	Write-Host "[$(Get-date)] $expression"
+	Write-Host "[$(Get-Date)] $expression"
 	try {
-		Invoke-Expression "$expression"
-	    if(!$?) { Write-Host "[FAILURE][$scriptName] `$? = $?" ; $error ; exit 1 }
-	} catch { Write-Host "[EXCEPTION][$scriptName] ..."; Write-Output $_.Exception|format-list -force ; $error ; exit 2 }
-    if ( $error ) { Write-Host "[$scriptName][ERROR] `$error[0] = $error"; exit 3 }
-    if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) { Write-Host "[$scriptName][EXIT] `$LASTEXITCODE = $LASTEXITCODE "; exit $LASTEXITCODE }
+		Invoke-Expression $expression
+	    if(!$?) { Write-Host "[$scriptName] `$? = $?"; $error ; exit 1111 }
+	} catch { Write-Output $_.Exception|format-list -force; $error ; exit 1112 }
+    if ( $LASTEXITCODE ) {
+    	if ( $LASTEXITCODE -ne 0 ) {
+			Write-Host "[$scriptName] `$LASTEXITCODE = $LASTEXITCODE " -ForegroundColor Red ; $error ; exit $LASTEXITCODE
+		} else {
+			if ( $error ) {
+				Write-Host "[$scriptName][WARN] $Error array populated by `$LASTEXITCODE = $LASTEXITCODE, $error[] = $error`n" -ForegroundColor Yellow
+				$error.clear()
+			}
+		} 
+	} else {
+	    if ( $error ) {
+			Write-Host "[$scriptName][WARN] $Error array populated but LASTEXITCODE not set, $error[] = $error`n" -ForegroundColor Yellow
+			$error.clear()
+		}
+	}
 }
 
 $scriptName = 'bootstrap-runner.ps1'
