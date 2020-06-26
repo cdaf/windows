@@ -46,7 +46,7 @@ Vagrant.configure(2) do |allhosts|
         end
       end
 
-      # Microsoft Hyper-V
+      # Set environment variable VAGRANT_DEFAULT_PROVIDER to 'hyperv'
       windows.vm.provider 'hyperv' do |hyperv, override|
         hyperv.memory = "#{vRAM}"
         hyperv.cpus = "#{vCPU}"
@@ -84,7 +84,7 @@ Vagrant.configure(2) do |allhosts|
       override.vm.provision 'shell', path: '.\automation\provisioning\CDAF.ps1'
     end
 
-    # Hyper-V
+    # Set environment variable VAGRANT_DEFAULT_PROVIDER to 'hyperv'
     build.vm.provider 'hyperv' do |hyperv, override|
       hyperv.memory = "#{vRAM}"
       hyperv.cpus = "#{vCPU}"
