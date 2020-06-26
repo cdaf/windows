@@ -282,7 +282,7 @@ if ( $ACTION ) {
     write-host "    script: `"$cdProcess `${ENV} `${CI_PIPELINE_ID}`""
 	write-host '    environment: <environment>'
    	write-host
-	write-host "[$scriptName] -------------------------------------------------------"
+	write-host "[$scriptName] -------------------------------------------------------`n"
 }
 
 if ( $execCD -eq 'yes' ) {
