@@ -51,7 +51,7 @@ NO_PROP:
     - artifact-download:
         destination: ${bamboo.working.directory}
     - script:
-        - "${bamboo.build.working.directory}\\release.ps1 ${bamboo.deploy.environment} ${bamboo.deploy.release}"
+        - "call powershell -NoProfile -NonInteractive -ExecutionPolicy ByPass -command ${bamboo.build.working.directory}\\release.ps1 ${bamboo.deploy.environment} ${bamboo.deploy.release}"
 
 WINDOWS:
   triggers:
@@ -61,7 +61,7 @@ WINDOWS:
     - artifact-download:
         destination: ${bamboo.working.directory}
     - script:
-        - "${bamboo.build.working.directory}\\release.ps1 ${bamboo.deploy.environment} ${bamboo.deploy.release}"
+        - "call powershell -NoProfile -NonInteractive -ExecutionPolicy ByPass -command ${bamboo.build.working.directory}\\release.ps1 ${bamboo.deploy.environment} ${bamboo.deploy.release}"
 
 CDAF:
   triggers:
@@ -71,4 +71,4 @@ CDAF:
     - artifact-download:
         destination: ${bamboo.working.directory}
     - script:
-        - "${bamboo.build.working.directory}\\release.ps1 ${bamboo.deploy.environment} ${bamboo.deploy.release}"
+        - "call powershell -NoProfile -NonInteractive -ExecutionPolicy ByPass -command ${bamboo.build.working.directory}\\release.ps1 ${bamboo.deploy.environment} ${bamboo.deploy.release}"
