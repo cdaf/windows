@@ -117,6 +117,8 @@ To support Continuous Delivery, the automation of Deployment is required, to aut
 
 ## Build and Package  
 
+To produce a self-extracting shell script for deployment, set artifactPrefix in CDAF.solution
+
 ### Automated Build
 
 If it exists, each project in the Project.list file is processed, in order (to support cross project dependencies), if the file does not exist, all project directories are processed, alphabetically.
