@@ -1,6 +1,6 @@
 # This file defines the automation root along with CD emulator value (solutionName)
-artifactPrefix=2.1.0
-# productVersion=2.1.0
+artifactPrefix=2.1.1
+# productVersion=2.1.1
 productName=My Product Name
 solutionName=myproduct
 # containerBuild=& $AUTOMATIONROOT/processor/containerBuild.ps1 $SOLUTION $BUILDNUMBER $REVISION $ACTION
