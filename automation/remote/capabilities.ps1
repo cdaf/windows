@@ -56,8 +56,16 @@ if ( Test-Path "C:\windows-master\automation\CDAF.windows" ) {
 }
 
 Write-Host "`n[$scriptName] List 3rd party components`n"
+$versionTest = cmd /c git --version 2`>`&1
+if ( $LASTEXITCODE -ne 0 ) {
+	Write-Host "  Git                     : not installed"
+} else {
+	$array = $versionTest.split(" ")
+	Write-Host "  Git                     : $($array[2])"
+}
+
 $versionTest = cmd /c dotnet --version 2`>`&1
-if ($versionTest -like '*not recognized*') {
+if ( $LASTEXITCODE -ne 0 ) {
 	Write-Host "  dotnet core             : not installed"
 } else {
 	$versionLine = $(foreach ($line in dotnet) { Select-String  -InputObject $line -CaseSensitive "Version  " })
@@ -70,14 +78,14 @@ if ($versionTest -like '*not recognized*') {
 }
 
 $versionTest = cmd /c choco --version 2`>`&1
-if ($versionTest -like '*not recognized*') {
+if ( $LASTEXITCODE -ne 0 ) {
 	Write-Host "  Chocolatey              : not installed"
 } else {
 	Write-Host "  Chocolatey              : $versionTest"
 }
 
 $versionTest = cmd /c java -version 2`>`&1
-if ($versionTest -like '*not recognized*') {
+if ( $LASTEXITCODE -ne 0 ) {
 	Write-Host "  Java                    : not installed"
 } else {
 	$array = $versionTest.split(" ")
@@ -86,7 +94,7 @@ if ($versionTest -like '*not recognized*') {
 }
 
 $versionTest = cmd /c javac -version 2`>`&1
-if ($versionTest -like '*not recognized*') {
+if ( $LASTEXITCODE -ne 0 ) {
 	Write-Host "  Java Compiler           : not installed"
 } else {
 	$array = $versionTest.split(" ")
@@ -98,7 +106,7 @@ if ($versionTest -like '*not recognized*') {
 }
 
 $versionTest = cmd /c ant -version 2`>`&1
-if ($versionTest -like '*not recognized*') {
+if ( $LASTEXITCODE -ne 0 ) {
 	Write-Host "  Apache Ant              : not installed"
 } else {
 	$array = $versionTest.split(" ")
@@ -106,7 +114,7 @@ if ($versionTest -like '*not recognized*') {
 }
 
 $versionTest = cmd /c mvn --version 2`>`&1
-if ($versionTest -like '*not recognized*') {
+if ( $LASTEXITCODE -ne 0 ) {
 	Write-Host "  Apache Maven            : not installed"
 } else {
 	$array = $versionTest.split(" ")
@@ -114,7 +122,7 @@ if ($versionTest -like '*not recognized*') {
 }
 
 $versionTest = cmd /c NuGet 2`>`&1
-if ($versionTest -like '*not recognized*') {
+if ( $LASTEXITCODE -ne 0 ) {
 	Write-Host "  NuGet                   : not installed"
 } else {
 	$array = $versionTest.split(" ")
@@ -122,7 +130,7 @@ if ($versionTest -like '*not recognized*') {
 }
 
 $versionTest = cmd /c 7za.exe i 2`>`&1
-if ($versionTest -like '*not recognized*') {
+if ( $LASTEXITCODE -ne 0 ) {
 	Write-Host "  7za.exe                 : not installed"
 } else {
 	$array = $versionTest.split(" ")
@@ -130,7 +138,7 @@ if ($versionTest -like '*not recognized*') {
 }
 
 $versionTest = cmd /c curl.exe --version 2`>`&1
-if ($versionTest -like '*not recognized*') {
+if ( $LASTEXITCODE -ne 0 ) {
 	Write-Host "  curl.exe                : not installed"
 } else {
 	$array = $versionTest.split(" ")
@@ -138,7 +146,7 @@ if ($versionTest -like '*not recognized*') {
 }
 
 $versionTest = cmd /c docker --version 2`>`&1
-if ($versionTest -like '*not recognized*') {
+if ( $LASTEXITCODE -ne 0 ) {
 	Write-Host "  Docker                  : not installed"
 } else {
 	$array = $versionTest.split(" ")
@@ -146,7 +154,7 @@ if ($versionTest -like '*not recognized*') {
 }
 
 $versionTest = cmd /c python --version 2`>`&1
-if ($versionTest -like '*not recognized*') {
+if ( $LASTEXITCODE -ne 0 ) {
 	Write-Host "  Python                  : not installed"
 } else {
 	$array = $versionTest.split(" ")
@@ -154,7 +162,7 @@ if ($versionTest -like '*not recognized*') {
 }
 
 $versionTest = cmd /c pip.exe --version 2`>`&1
-if ($versionTest -like '*not recognized*') {
+if ( $LASTEXITCODE -ne 0 ) {
 	Write-Host "  PiP                     : not installed"
 } else {
 	$array = $versionTest.split(" ")
@@ -162,21 +170,21 @@ if ($versionTest -like '*not recognized*') {
 }
 
 $versionTest = cmd /c node --version 2`>`&1
-if ($versionTest -like '*not recognized*') {
+if ( $LASTEXITCODE -ne 0 ) {
 	Write-Host "  NodeJS                  : not installed"
 } else {
 	Write-Host "  NodeJS                  : $versionTest"
 }
 
 $versionTest = cmd /c npm --version 2`>`&1
-if ($versionTest -like '*not recognized*') {
+if ( $LASTEXITCODE -ne 0 ) {
 	Write-Host "  NPM                     : not installed"
 } else {
 	Write-Host "  NPM                     : $versionTest"
 }
 
 $versionTest = cmd /c vswhere -products * 2`>`&1
-if ($versionTest -like '*not recognized*') {
+if ( $LASTEXITCODE -ne 0 ) {
 	Write-Host "  VSWhere                 : not installed"
 } else {
 	if ( $versionTest ) { 
