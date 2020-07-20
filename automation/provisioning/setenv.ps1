@@ -1,7 +1,8 @@
 Param (
 	[string]$variable,
 	[string]$value,
-	[string]$target
+	[string]$target,
+	[string]$secret
 )
 
 cmd /c "exit 0"
@@ -29,7 +30,11 @@ if ($variable) {
 }
 
 if ($value) {
-    Write-Host "[$scriptName] value    : $value"
+	if ($secret -eq 'yes') {
+		Write-Host "[$scriptName] value    : **********************"
+	} else {
+		Write-Host "[$scriptName] value    : $value"
+	}
 } else {
     Write-Host "[$scriptName] value required, exiting!"
     exit 101
@@ -44,7 +49,7 @@ if ($target) {
 
 
 Write-Host
-executeExpression "[Environment]::SetEnvironmentVariable(`'$variable`', `'$value`', `'$target`')"
+executeExpression "[Environment]::SetEnvironmentVariable(`'$variable`', `$value, `'$target`')"
 executeExpression "`$env:$variable = [Environment]::GetEnvironmentVariable(`'$variable`', `'$target`')"
 
 Write-Host "`n[$scriptName] ---------- stop -----------`n"
