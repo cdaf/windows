@@ -21,7 +21,6 @@ function executeExpression ($expression) {
 }
 
 Write-Host "`n[$scriptName] ---------- start ----------"
-# vagrant file share is dependant on provider, for VirtualBox, pass as C:\.provision
 if ($variable) {
     Write-Host "[$scriptName] variable : $variable"
 } else {
