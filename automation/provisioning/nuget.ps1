@@ -79,6 +79,7 @@ $versionTest = cmd /c NuGet 2`>`&1
 if ( $LASTEXITCODE -ne 0 ) {
 	cmd /c "exit 0"
 	executeExpression "[System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]'Tls11,Tls12'"
+	executeExpression "(New-Object System.Net.WebClient).DownloadFile('https://dist.nuget.org/win-x86-commandline/latest/nuget.exe', '$PWD\nuget.exe')"
 	$versionTest = cmd /c NuGet 2`>`&1
 	$array = $versionTest.split(" ")
 	Write-Host "[$scriptName] NuGet           : $($array[2]) (download into $(Get-Item NuGet.exe))"
