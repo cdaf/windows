@@ -62,6 +62,17 @@ if ( Test-Path $targetDirectory ) {
 	Write-Host "Created $($newDir.FullName)"
 }
 
+$versionTest = cmd /c NuGet 2`>`&1
+if ( $LASTEXITCODE -ne 0 ) {
+	executeExpression "[System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]'Tls11,Tls12'"
+	$versionTest = cmd /c NuGet 2`>`&1
+	$array = $versionTest.split(" ")
+	Write-Host "[$scriptName] NuGet           : $($array[2]) (download into $(Get-Item NuGet.exe))"
+} else {
+	$array = $versionTest.split(" ")
+	Write-Host "[$scriptName] NuGet           : $($array[2])"
+}
+
 if ($version) {
 	executeExpression "nuget install $packageName -Version $version -OutputDirectory $nugetOutDir"
 } else {

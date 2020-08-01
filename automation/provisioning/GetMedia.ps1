@@ -79,7 +79,7 @@ function executeRetry ($expression) {
 			} else {
 				$retryCount += 1
 				Write-Host "[$scriptName] Set TLS to version 1.1 or higher, Wait $wait seconds, then retry $retryCount of $retryMax"
-				executeExpression "[System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::'Tls11,Tls12'"
+				executeExpression "[System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]'Tls11,Tls12'"
 				Start-Sleep $wait
 				$wait = $wait + $wait
 			}

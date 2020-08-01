@@ -138,7 +138,7 @@ if ($autoReboot) {
 }
 
 Write-Host "`n[$scriptName] Set TLS to version 1.2 or higher"
-executeExpression "[System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::'Tls11,Tls12'"
+executeExpression "[System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]'Tls11,Tls12'"
 
 if ($proxy) {
     Write-Host "`n[$scriptName] Load common proxy settings`n"

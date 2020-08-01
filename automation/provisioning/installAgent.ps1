@@ -101,7 +101,7 @@ if (Test-Path "${mediaDirectory}\${mediaFileName}") {
 	}
 	
 	# As per guidance here https://stackoverflow.com/questions/36265534/invoke-webrequest-ssl-fails
-	executeExpression "[System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::'Tls11,Tls12'"
+	executeExpression "[System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]'Tls11,Tls12'"
 	$mediaURL = "https://vstsagentpackage.azureedge.net/agent/${version}/${mediaFileName}"
 	executeExpression "(New-Object System.Net.WebClient).DownloadFile('$mediaURL', '${mediaDirectory}\${mediaFileName}')"
 }
