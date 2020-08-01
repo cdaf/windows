@@ -121,7 +121,8 @@ if (! ($env:VS_TEST) ) {
 }
 
 $versionTest = cmd /c NuGet 2`>`&1
-if ($versionTest -like '*not recognized*') {
+if ( $LASTEXITCODE -ne 0 ) {
+	cmd /c "exit 0"
 	executeExpression "[System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]'Tls11,Tls12'"
 	$versionTest = cmd /c .\nuget.exe 2`>`&1
 	$env:NUGET_PATH = '.\nuget.exe'

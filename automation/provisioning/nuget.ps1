@@ -77,6 +77,7 @@ if ( Test-Path $targetDirectory ) {
 
 $versionTest = cmd /c NuGet 2`>`&1
 if ( $LASTEXITCODE -ne 0 ) {
+	cmd /c "exit 0"
 	executeExpression "[System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]'Tls11,Tls12'"
 	$versionTest = cmd /c NuGet 2`>`&1
 	$array = $versionTest.split(" ")
