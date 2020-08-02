@@ -82,16 +82,18 @@ if ( $LASTEXITCODE -ne 0 ) {
 	executeExpression "(New-Object System.Net.WebClient).DownloadFile('https://dist.nuget.org/win-x86-commandline/latest/nuget.exe', '$PWD\nuget.exe')"
 	$versionTest = cmd /c NuGet 2`>`&1
 	$array = $versionTest.split(" ")
-	Write-Host "[$scriptName] NuGet           : $($array[2]) (download into $(Get-Item NuGet.exe))"
+	Write-Host "`n[$scriptName] NuGet version $($array[2]) (downloaded into $(Get-Item NuGet.exe))`n"
+	$nugetCommand = './nuget.exe'
 } else {
 	$array = $versionTest.split(" ")
-	Write-Host "[$scriptName] NuGet           : $($array[2])"
+	Write-Host "`n[$scriptName] NuGet version $($array[2])`n"
+	$nugetCommand = 'nuget'
 }
 
 if ($version) {
-	executeExpression "nuget install $packageName -Version $version -OutputDirectory $nugetOutDir"
+	executeExpression "$nugetCommand install $packageName -Version $version -OutputDirectory '$nugetOutDir'"
 } else {
-	executeExpression "nuget install $packageName -OutputDirectory $nugetOutDir"
+	executeExpression "$nugetCommand install $packageName -OutputDirectory '$nugetOutDir'"
 }
 
 $files = Get-ChildItem "$nugetOutDir\$packageName*"
