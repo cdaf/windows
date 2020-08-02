@@ -108,6 +108,7 @@ if (Test-Path "${mediaDirectory}\${mediaFileName}") {
 
 Write-Host "`nExtract using default instructions from Microsoft"
 if (Test-Path "C:\agent") {
+	Get-Service vsts* | Stop-Service
 	executeExpression "Remove-Item `"C:\agent`" -Recurse -Force"
 }
 $result = executeExpression "mkdir C:\agent"
