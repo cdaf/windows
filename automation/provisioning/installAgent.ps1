@@ -15,18 +15,29 @@ $scriptName = 'installAgent.ps1'
 
 # Common expression logging and error handling function, copied, not referenced to ensure atomic process
 function executeExpression ($expression) {
-	$error.clear()
-	Write-Host "$expression"
+	Write-Host "[$(Get-Date)] $expression"
 	try {
-		$output = Invoke-Expression $expression
-	    if(!$?) { Write-Host "[$scriptName] `$? = $?"; exit 1 }
-	} catch { echo $_.Exception|format-list -force; exit 2 }
-    if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) { Write-Host "[$scriptName] `$LASTEXITCODE = $LASTEXITCODE "; exit $LASTEXITCODE }
-    if ( $error ) { Write-Host "[$scriptName] `$error[0] = $error"; exit 3 }
-    return $output
+		Invoke-Expression $expression
+	    if(!$?) { Write-Host "[$scriptName] `$? = $?"; $error ; exit 1111 }
+	} catch { Write-Output $_.Exception|format-list -force; $error ; exit 1112 }
+    if ( $LASTEXITCODE ) {
+    	if ( $LASTEXITCODE -ne 0 ) {
+			Write-Host "[$scriptName] `$LASTEXITCODE = $LASTEXITCODE " -ForegroundColor Red ; $error ; exit $LASTEXITCODE
+		} else {
+			if ( $error ) {
+				Write-Host "[$scriptName][WARN] $Error array populated by `$LASTEXITCODE = $LASTEXITCODE, $error[] = $error`n" -ForegroundColor Yellow
+				$error.clear()
+			}
+		} 
+	} else {
+	    if ( $error ) {
+			Write-Host "[$scriptName][WARN] $Error array populated but LASTEXITCODE not set, $error[] = $error`n" -ForegroundColor Yellow
+			$error.clear()
+		}
+	}
 }
 
-Write-Host "[$scriptName] ---------- start ----------"
+Write-Host "`n[$scriptName] ---------- start ----------"
 if ( $url ) {
 	Write-Host "[$scriptName] url             : $url"
 } else {
@@ -38,10 +49,10 @@ if ( $pat ) {
 	Write-Host "[$scriptName] pat             : (not supplied)"
 }
 if ( $pool ) {
-	Write-Host "[$scriptName] pool            : $pool"
+	Write-Host "[$scriptName] pool            : $pool (use pool name with '@' for Project@Deployment Group)"
 } else {
 	$pool = 'default'
-	Write-Host "[$scriptName] pool            : $pool (not supplied, set to default, if Deployment Group is used, this will be ignored)"
+	Write-Host "[$scriptName] pool            : $pool (default, use pool name with '@' for Project@Deployment Group)"
 }
 if ( $agentName ) {
 	Write-Host "[$scriptName] agentName       : $agentName"
@@ -60,20 +71,12 @@ if ( $servicePassword ) {
 } else {
 	Write-Host "[$scriptName] servicePassword : (not supplied)"
 }
-if ( $deploymentgroup ) {
+
+if ( $pool -match '@') {
 	Write-Host "[$scriptName] deploymentgroup : $deploymentgroup"
-} else {
-	Write-Host "[$scriptName] deploymentgroup : (not supplied)"
-}
-if ( $projectname ) {
 	Write-Host "[$scriptName] projectname     : $projectname"
-} else {
-	if ( $deploymentgroup ) {
-		Write-Host "[$scriptName] deploymentgroup ($deploymentgroup) supplied, therefore projectname required but not supplied, exit with `$LASTEXITCODE = 3"; exit 3
-	} else {
-		Write-Host "[$scriptName] projectname     : (not supplied)"
-	}
 }
+
 if ( $mediaDirectory ) {
 	Write-Host "[$scriptName] mediaDirectory  : $mediaDirectory"
 } else {
@@ -108,7 +111,6 @@ if (Test-Path "${mediaDirectory}\${mediaFileName}") {
 
 Write-Host "`nExtract using default instructions from Microsoft"
 if (Test-Path "C:\agent") {
-	Get-Service vsts* | Stop-Service
 	executeExpression "Remove-Item `"C:\agent`" -Recurse -Force"
 }
 $result = executeExpression "mkdir C:\agent"
@@ -119,19 +121,24 @@ if ( $url ) {
 	$argList = "--unattended --url $url --auth PAT"
 	if ( $deploymentgroup ) {
 		$argList += " --deploymentgroup --deploymentgroupname `"$deploymentgroup`" --projectname `"$projectname`""
+	} else {
+		$argList += " --pool `"$pool`""
 	}
-	
+	if ( $env:http_proxy ) {
+		$argList += " --proxyurl `"$env:http_proxy`""
+	}
+
 	Write-Host "`nUnattend configuration for VSTS with PAT authentication"
 	if ( $serviceAccount.StartsWith('.\')) { 
 		$serviceAccount = $serviceAccount.Substring(2) # Remove the .\ prefix
 	}
 	
 	if ( $serviceAccount ) {
-		$printList = "$argList --token `"`$pat`" --pool `"$pool`" --agent `"$agentName`" --replace --runasservice --windowslogonaccount `"$serviceAccount`" --windowslogonpassword `"`$servicePassword`""
-		$argList += " --token `"$pat`" --pool `"$pool`" --agent `"$agentName`" --replace --runasservice --windowslogonaccount `"$serviceAccount`" --windowslogonpassword `"$servicePassword`""
+		$printList = "$argList --token `"`$pat`" --agent `"$agentName`" --replace --runasservice --windowslogonaccount `"$serviceAccount`" --windowslogonpassword `"`$servicePassword`""
+		$argList += " --token `"$pat`" --agent `"$agentName`" --replace --runasservice --windowslogonaccount `"$serviceAccount`" --windowslogonpassword `"$servicePassword`""
 	} else {
-		$printList = "$argList --token `"`$pat`" --pool `"$pool`" --agent `"$agentName`" --replace"
-		$argList += " --token `"$pat`" --pool `"$pool`" --agent `"$agentName`" --replace"
+		$printList = "$argList --token `"`$pat`" --agent `"$agentName`" --replace"
+		$argList += " --token `"$pat`" --agent `"$agentName`" --replace"
 	}
 	
 	executeExpression "cd C:\agent"
@@ -163,5 +170,6 @@ if ( $url ) {
 }
 
 executeExpression "cd $workspace"
+
 Write-Host "`n[$scriptName] ---------- stop -----------`n"
 exit 0
