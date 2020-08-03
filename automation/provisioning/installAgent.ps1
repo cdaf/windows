@@ -119,7 +119,7 @@ Write-Host "`nCreated directory $result"
 executeExpression "[System.IO.Compression.ZipFile]::ExtractToDirectory(`"$mediaDirectory\$mediaFileName`", `"C:\agent`")"
 
 if ( $url ) {
-	$argList = "--unattended --url $url --auth PAT"
+	$argList = "--unattended --url $url"
 	if ( $deploymentgroup ) {
 		$argList += " --deploymentgroup --deploymentgroupname `"$deploymentgroup`" --projectname `"$projectname`""
 	} else {
@@ -129,19 +129,21 @@ if ( $url ) {
 		$argList += " --proxyurl `"$env:http_proxy`""
 	}
 
+	$argList += " --auth PAT"
+
 	Write-Host "`nUnattend configuration for VSTS with PAT authentication"
 	if ( $serviceAccount.StartsWith('.\')) { 
 		$serviceAccount = $serviceAccount.Substring(2) # Remove the .\ prefix
 	}
-	
+
 	if ( $serviceAccount ) {
-		$printList = "$argList --token `"`$pat`" --agent `"$agentName`" --replace --runasservice --windowslogonaccount `"$serviceAccount`" --windowslogonpassword `"`$servicePassword`""
-		$argList += " --token `"$pat`" --agent `"$agentName`" --replace --runasservice --windowslogonaccount `"$serviceAccount`" --windowslogonpassword `"$servicePassword`""
+		$printList = "$argList --token `$pat --agent `"$agentName`" --replace --runasservice --windowslogonaccount `"$serviceAccount`" --windowslogonpassword `"`$servicePassword`""
+		$argList += " --token $pat --agent `"$agentName`" --replace --runasservice --windowslogonaccount `"$serviceAccount`" --windowslogonpassword `"$servicePassword`""
 	} else {
-		$printList = "$argList --token `"`$pat`" --agent `"$agentName`" --replace"
-		$argList += " --token `"$pat`" --agent `"$agentName`" --replace"
+		$printList = "$argList --token `$pat --agent `"$agentName`" --replace"
+		$argList += " --token $pat --agent `"$agentName`" --replace"
 	}
-	
+
 	executeExpression "cd C:\agent"
 	Write-Host "[$scriptName] Start-Process $fullpath -ArgumentList $printList -PassThru -Wait -NoNewWindow"
 	$proc = Start-Process $fullpath -ArgumentList $argList -PassThru -Wait -NoNewWindow
