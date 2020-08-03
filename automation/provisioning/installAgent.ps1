@@ -73,6 +73,7 @@ if ( $servicePassword ) {
 }
 
 if ( $pool -match '@') {
+	$projectname, $deploymentgroup = $pool.Split('@')
 	Write-Host "[$scriptName] deploymentgroup : $deploymentgroup"
 	Write-Host "[$scriptName] projectname     : $projectname"
 }
