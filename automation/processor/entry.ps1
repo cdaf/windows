@@ -10,7 +10,7 @@ Import-Module Microsoft.PowerShell.Management
 Import-Module Microsoft.PowerShell.Security
 
 cmd /c "exit 0"
-$scriptName = $MyInvocation.MyCommand.Name
+$scriptName = 'entry.ps1'
 
 # Common expression logging and error handling function, copied, not referenced to ensure atomic process
 function executeExpression ($expression) {
@@ -138,10 +138,10 @@ Write-Host "[$scriptName]   hostname       = $(hostname)"
 Write-Host "[$scriptName]   whoami         = $(whoami)`n"
 
 if ( $branch -eq 'master' ) {
-	executeExpression "$automationRoot\processor\buildPackage.ps1 $BUILDNUMBER $branch $action -AUTOMATIONROOT $automationRoot"
+	executeExpression "$automationRoot\processor\buildPackage.ps1 $BUILDNUMBER $branch $action"
 } else {
 	Write-Host "[$scriptName] Do not pass ACTION when executing feature branch (non-master)"
-	executeExpression "$automationRoot\processor\buildPackage.ps1 $BUILDNUMBER $branch -AUTOMATIONROOT $automationRoot"
+	executeExpression "$automationRoot\processor\buildPackage.ps1 $BUILDNUMBER $branch"
 }
 
 if (( $branch -eq 'master' ) -or ( $branch -eq 'refs/heads/master' )) {
