@@ -400,7 +400,7 @@ if ( $ACTION -ne 'containerbuild' ) {
 		Write-Host "[$scriptName] artifactPrefix = $artifactID, generate single file artefact ..."
 		Write-Host "[$scriptName]   Created $(mkdir "$artifactID")"
 		
-		Move-Item ".\TasksLocal" ".\$artifactID"
+		executeExpression "Move-Item '.\TasksLocal' '.\$artifactID'"
 		executeExpression 'Add-Type -AssemblyName System.IO.Compression.FileSystem'
 		executeExpression "[System.IO.Compression.ZipFile]::CreateFromDirectory('$artifactID', '$artifactID.zip', 'Optimal', `$false)"
 

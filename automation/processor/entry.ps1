@@ -138,10 +138,10 @@ Write-Host "[$scriptName]   hostname       = $(hostname)"
 Write-Host "[$scriptName]   whoami         = $(whoami)`n"
 
 if ( $branch -eq 'master' ) {
-	executeExpression "$automationRoot\processor\buildPackage.ps1 $BUILDNUMBER $branch $action"
+	executeExpression "$automationRoot\processor\buildPackage.ps1 $BUILDNUMBER $branch $action -AUTOMATIONROOT $automationRoot"
 } else {
 	Write-Host "[$scriptName] Do not pass ACTION when executing feature branch (non-master)"
-	executeExpression "$automationRoot\processor\buildPackage.ps1 $BUILDNUMBER $branch"
+	executeExpression "$automationRoot\processor\buildPackage.ps1 $BUILDNUMBER $branch -AUTOMATIONROOT $automationRoot"
 }
 
 if (( $branch -eq 'master' ) -or ( $branch -eq 'refs/heads/master' )) {
