@@ -69,7 +69,15 @@ if ( $version ) {
 if ( $mediaDir ) {
 	Write-Host "[$scriptName] mediaDir : $mediaDir`n"
 } else {
-	$mediaDir = $(Get-Location)
+	$testFile = ([guid]::NewGuid()).tostring()
+	$mediaDir = $Env:USERPROFILE
+	try {
+		Add-Content "$mediaDir\$testFile" "$((Get-Date).ToString())"
+	} catch {
+		$mediaDir = $(Get-Location)
+		executeExpression "Add-Content $mediaDir\$testFile '$((Get-Date).ToString())'"
+	}
+	Remove-Item "$mediaDir\$testFile"
 	Write-Host "[$scriptName] mediaDir : $mediaDir (not passed, set to default)`n"
 }
 
