@@ -24,7 +24,7 @@ function executeExpression ($expression) {
 		Invoke-Expression $expression
 	    if(!$?) { passExitCode "[$scriptName] `$? = $?" 1101 }
 	} catch { passExitCode "$($_.Exception|format-list -force)" 1102 }
-    if ( $error ) { passExitCode "[$scriptName] `$error[0] = $error" 1103 }
+    if ( $error ) { passExitCode "[$scriptName] `$error[] = $error" 1103 }
     if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) { passExitCode "[$scriptName] `$LASTEXITCODE = $LASTEXITCODE " $LASTEXITCODE }
 }
 
