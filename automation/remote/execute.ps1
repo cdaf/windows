@@ -540,8 +540,8 @@ Foreach ($line in get-content $TASK_LIST) {
 						Write-Host "[$scriptName] `$LASTEXITCODE = $LASTEXITCODE " -ForegroundColor Red ; $error ; exit $LASTEXITCODE
 					} else {
 						if ( $error ) {
-							Write-Host "[$scriptName][WARN] $Error array populated by `$LASTEXITCODE = $LASTEXITCODE error follows...`n" -ForegroundColor Yellow
-							$error
+							Write-Host "[$scriptName][WARN] $Error array populated by `$LASTEXITCODE = $LASTEXITCODE. Error array follows...`n" -ForegroundColor Yellow
+					    	Write-Host "[$scriptName][WARN] `$error[] = $error"; $error.clear()
 						}
 					} 
 				} else {

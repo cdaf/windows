@@ -4,19 +4,33 @@ Param (
 	[string]$mediaDir,
 	[string]$proxy
 )
+
+cmd /c "exit 0"
+$Error.Clear()
 $scriptName = 'installDotnetCore.ps1'
 
 # Common expression logging and error handling function, copied, not referenced to ensure atomic process
 function executeExpression ($expression) {
-	$error.clear()
-	Write-Host "$expression"
+	Write-Host "[$(Get-Date)] $expression"
 	try {
-		$output = Invoke-Expression $expression
-	    if(!$?) { Write-Host "[$scriptName] `$? = $?"; exit 1 }
-	} catch { echo $_.Exception|format-list -force; exit 2 }
-    if ( $error ) { Write-Host "[$scriptName] `$error[0] = $error"; exit 3 }
-    if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) { Write-Host "[$scriptName] `$LASTEXITCODE = $LASTEXITCODE "; exit $LASTEXITCODE }
-    return $output
+		Invoke-Expression $expression
+	    if(!$?) { Write-Host "[$scriptName] `$? = $?"; $error ; exit 1111 }
+	} catch { Write-Output $_.Exception|format-list -force; $error ; exit 1112 }
+    if ( $LASTEXITCODE ) {
+    	if ( $LASTEXITCODE -ne 0 ) {
+			Write-Host "[$scriptName] `$LASTEXITCODE = $LASTEXITCODE " -ForegroundColor Red ; $error ; exit $LASTEXITCODE
+		} else {
+			if ( $error ) {
+				Write-Host "[$scriptName][WARN] $Error array populated by `$LASTEXITCODE = $LASTEXITCODE, $error[] = $error`n" -ForegroundColor Yellow
+				$error.clear()
+			}
+		} 
+	} else {
+	    if ( $error ) {
+			Write-Host "[$scriptName][WARN] $Error array populated but LASTEXITCODE not set, $error[] = $error`n" -ForegroundColor Yellow
+			$error.clear()
+		}
+	}
 }
 
 # As at dotnet 2 runtime files have changed https://www.microsoft.com/net/download/dotnet-core/2.1
@@ -24,7 +38,6 @@ function executeExpression ($expression) {
 # ASP.NET Core Installer	aspnetcore-runtime-2.1.x-win-x64.exe (asp)
 # .NET Core Binaries		dotnet-runtime-2.1.x-win-x64.exe     (not supported)
 
-cmd /c "exit 0"
 Write-Host "`n[$scriptName] ---------- start ----------"
 if ( $sdk ) {
 	Write-Host "[$scriptName] sdk      : $sdk (choices yes, no or asp)"
@@ -56,7 +69,7 @@ if ( $version ) {
 if ( $mediaDir ) {
 	Write-Host "[$scriptName] mediaDir : $mediaDir`n"
 } else {
-	$mediaDir = "$env:TEMP"
+	$mediaDir = $(Get-Location)
 	Write-Host "[$scriptName] mediaDir : $mediaDir (not passed, set to default)`n"
 }
 
@@ -95,7 +108,8 @@ if ( Test-Path $installer ) {
 
 $proc = executeExpression "Start-Process -FilePath '$installer' -ArgumentList '/INSTALL /QUIET /NORESTART /LOG $installer.log' -PassThru -Wait"
 if ( $proc.ExitCode -ne 0 ) {
-	Write-Host "`n[$scriptName] Exit with `$LASTEXITCODE = $($proc.ExitCode)`n"
+	Write-Host "`n[$scriptName][EXIT] List $installer.log and exit with `$LASTEXITCODE = $($proc.ExitCode)`n"
+	Get-Content $installer.log
     exit $proc.ExitCode
 }
 
