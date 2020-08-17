@@ -149,7 +149,7 @@ if (( $branch -eq 'master' ) -or ( $branch -eq 'refs/heads/master' )) {
 } else {
 	Write-Host "[$scriptName] Only perform container test in CI for feature branches, CD for branch $branch"
 	if ( $entryArtPrefix ) {
-		executeExpression ".\$solutionName.ps1 $environment"
+		executeExpression ".\release.ps1 $environment"
 	} else {
 		executeExpression ".\TasksLocal\delivery.ps1 $environment"
 	}
