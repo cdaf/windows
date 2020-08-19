@@ -26,8 +26,8 @@ variables:
   buildConfiguration: 'Release'
 
 steps:
-- script: |
-    automation\processor\entry.bat $(Build.BuildNumber) $(Build.SourceBranchName) staging@$(Build.ArtifactStagingDirectory)
+- script: automation\processor\entry.bat $env:Build_SourceBranchName staging@$env:Build_ArtifactStagingDirectory
+
 #  env:
 #    MAVEN_ARTIFACT_TOKEN: $(MAVEN_ARTIFACT_TOKEN)
 
