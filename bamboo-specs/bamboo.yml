@@ -21,7 +21,7 @@ Build Job:
         - "echo context  target     deployTaskOverride>automation\\solution\\cdaf.cm"
         - "echo local    CDAF       cdaf-deploy.tsk>>automation\\solution\\cdaf.cm"
         - "type automation\\solution\\cdaf.cm"
-        - "automation\\processor\\entry.bat ${bamboo.buildNumber} ${bamboo.repository.branch.name}"
+        - "automation\\entry.bat ${bamboo.buildNumber} ${bamboo.repository.branch.name}"
 
   artifacts:
     - name: Self Extracting
