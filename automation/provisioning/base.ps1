@@ -114,7 +114,7 @@ if ($version) {
 }
 
 if ($checksum) {
-    Write-Host "[$scriptName] checksum   : $checksum`n"
+    Write-Host "[$scriptName] checksum   : $checksum (optional, pass ignore to ignore checksum)`n"
 	if ( $checksum -eq 'ignore' ) {
 		$checksum = "--ignorechecksum -y"
 	} else {
