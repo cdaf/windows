@@ -13,7 +13,7 @@ stages:
 Build Job:
   tasks:
     - script:
-        - "automation\\processor\\entry.bat ${bamboo.buildNumber} ${bamboo.repository.branch.name}"
+        - "automation\\entry.bat ${bamboo.buildNumber} ${bamboo.repository.branch.name}"
 
   artifacts:
     - name: Package

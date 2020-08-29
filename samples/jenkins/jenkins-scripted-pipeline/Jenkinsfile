@@ -22,7 +22,7 @@ if (env.BRANCH_NAME != 'master') {
       withEnv(["BRANCH_NAME=${env.BRANCH_NAME}"]) {
         stage ('Application Build and Test') {
           checkout scm
-          bat "automation\\processor\\buildPackage.bat ${BUILD_NUMBER} ${BRANCH_NAME}"
+          bat "automation\\ci.bat ${BUILD_NUMBER} ${BRANCH_NAME}"
         }
       }
 
@@ -42,7 +42,7 @@ if (env.BRANCH_NAME != 'master') {
 
       stage ('Application Build and Test') {
         checkout scm
-          bat "automation\\processor\\buildPackage.bat ${BUILD_NUMBER} ${BRANCH_NAME}"
+          bat "automation\\ci.bat ${BUILD_NUMBER} ${BRANCH_NAME}"
       }
 
     } catch (e) {

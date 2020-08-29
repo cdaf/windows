@@ -8,7 +8,7 @@ cdaf-ci:
   stage: build
   tags:
     - batch
-  script: "automation/processor/buildPackage.bat %CI_BUILD_ID% %CI_BUILD_REF_NAME%"
+  script: "automation/ci.bat %CI_BUILD_ID% %CI_BUILD_REF_NAME%"
   artifacts:
     paths:
     - TasksLocal/
