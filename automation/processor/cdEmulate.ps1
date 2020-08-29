@@ -82,8 +82,8 @@ if (Test-Path "$solutionRoot\buildPackage.bat") {
 	$ciInstruction="$solutionRoot/buildPackage.bat"
 	write-host "$ciProcess (override)"
 } else {
-	$ciProcess="$AUTOMATIONROOT\processor\buildPackage.bat"
-	$ciInstruction="$AUTOMATIONROOT/processor/buildPackage.bat"
+	$ciProcess="$AUTOMATIONROOT\ci.bat"
+	$ciInstruction="$AUTOMATIONROOT\ci.bat"
 	write-host "$ciProcess (default)"
 }
 

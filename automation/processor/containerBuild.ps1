@@ -146,7 +146,7 @@ if ( $imageName ) {
 		Write-Host "[$scriptName] `$imageTag  : $imageTag"
 		Write-Host "[$scriptName] `$workspace : $workspace"
 		
-		executeExpression "docker run --tty --volume ${workspace}\:C:/solution/workspace ${imageName}:${imageTag} automation\processor\buildPackage.bat $buildNumber $revision $action"
+		executeExpression "docker run --tty --volume ${workspace}\:C:/solution/workspace ${imageName}:${imageTag} automation\ci.bat $buildNumber $revision $action"
 		
 		Write-Host "`n[$scriptName] List and remove all stopped containers"
 		executeExpression "docker ps --filter `"status=exited`" -a"
