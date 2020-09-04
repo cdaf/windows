@@ -1,7 +1,3 @@
-Param (
-	[string]$init
-)
-
 cmd /c "exit 0"
 $Error.Clear()
 
@@ -32,15 +28,6 @@ function executeExpression ($expression) {
 $scriptName = 'dev.ps1'
 
 Write-Host "`n[$scriptName] ---------- start ----------"
-if ($init) {
-    Write-Host "[$scriptName] init  : $init (bootstrap)"
-    executeExpression '(Get-WmiObject Win32_TerminalServiceSetting -Namespace root\cimv2\TerminalServices).SetAllowTsConnections(1,1) | Out-Null'
-    executeExpression "(Get-WmiObject -Class 'Win32_TSGeneralSetting' -Namespace root\cimv2\TerminalServices -Filter `"TerminalName='RDP-tcp'`").SetUserAuthenticationRequired(0) | Out-Null"
-    executeExpression 'Get-NetFirewallRule -DisplayName "Remote Desktop*" | Set-NetFirewallRule -enabled true'
-} else {
-    Write-Host "[$scriptName] init  : (not supplied, set to trigger bootstrap)"
-}
-
 if ( $env:http_proxy ) {
     executeExpression "[system.net.webrequest]::defaultwebproxy = New-Object system.net.webproxy('$env:http_proxy')"
 } else {
