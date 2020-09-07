@@ -4,6 +4,8 @@ Param (
 	[string]$retryMax
 )
 
+cmd /c "exit 0"
+
 # Only from Windows Server 2016 and above
 $scriptName = 'executeRetry.ps1'
 
@@ -31,7 +33,7 @@ while (( $retryCount -le $retryMax ) -and ($exitCode -ne 0)) {
 		Invoke-Expression $expression
 	    if(!$?) { Write-Host "[$scriptName] `$? = $?"; $exitCode = 1 }
 	} catch { Write-Host "[$scriptName] $_"; $exitCode = 2 }
-    if ( $error[0] ) { Write-Host "[$scriptName] Warning, message in `$error[0] = $error"; $error.clear() } # do not treat messages in error array as failure
+    if ( $error[0] ) { Write-Host "[$scriptName] Warning, message in `$error[] = $error"; $error.clear() } # do not treat messages in error array as failure
     if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) { Write-Host "[$scriptName] `$lastExitCode = $lastExitCode "; $exitCode = $lastExitCode }
     if ($exitCode -ne 0) {
 		if ($retryCount -ge $retryMax ) {
