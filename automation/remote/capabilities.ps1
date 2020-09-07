@@ -145,6 +145,14 @@ if ( $LASTEXITCODE -ne 0 ) {
 	Write-Host "  curl.exe                : $($array[1])"
 }
 
+$versionTest = cmd /c tar --version 2`>`&1
+if ( $LASTEXITCODE -ne 0 ) {
+	Write-Host "  tar                     : not installed"
+} else {
+	$array = $versionTest.split(" ")
+	Write-Host "  tar                     : $($array[1])"
+}
+
 $versionTest = cmd /c docker --version 2`>`&1
 if ( $LASTEXITCODE -ne 0 ) {
 	Write-Host "  Docker                  : not installed"
