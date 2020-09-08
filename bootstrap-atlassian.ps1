@@ -21,16 +21,16 @@ cmd /c "exit 0" # ensure LASTEXITCODE is 0
 
 Write-Host "`n[$scriptName] ---------- start ----------"
 if ($sqlSA) {
-    Write-Host "[$scriptName] sqlSA  : $sqlSA"
+    Write-Host "[$scriptName] sqlSA : $sqlSA"
 } else {
-    Write-Host "[$scriptName] sqlSA  : (not supplied, only reverse proxy will be installed)"
+    Write-Host "[$scriptName] sqlSA : (not supplied, only reverse proxy will be installed)"
 }
 
 if ($port) {
-    Write-Host "[$scriptName] port : $port"
+    Write-Host "[$scriptName] port  : $port"
 } else {
 	$port = '8080'
-    Write-Host "[$scriptName] port : $port (not supplied so set to default)"
+    Write-Host "[$scriptName] port  : $port (not supplied so set to default)"
 }
 
 Write-Host "[$scriptName] pwd    = $(pwd)"
