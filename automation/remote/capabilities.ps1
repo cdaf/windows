@@ -150,7 +150,7 @@ if ( $LASTEXITCODE -ne 0 ) {
 	Write-Host "  tar                     : not installed"
 } else {
 	$array = $versionTest.split(" ")
-	Write-Host "  tar                     : $($array[1])"
+	Write-Host "  tar                     : $($array[1]) $($array[2]) $($array[3])"
 }
 
 $versionTest = cmd /c docker --version 2`>`&1
