@@ -3,27 +3,40 @@ Param (
 	[string]$port
 )
 
+cmd /c "exit 0"
+$Error.Clear()
+
 # Common expression logging and error handling function, copied, not referenced to ensure atomic process
 function executeExpression ($expression) {
-	$error.clear()
-	Write-Host "[$(date)] $expression"
+	Write-Host "[$(Get-Date)] $expression"
 	try {
-		$output = Invoke-Expression $expression
-	    if(!$?) { Write-Host "[$scriptName] `$? = $?"; exit 1 }
-	} catch { echo $_.Exception|format-list -force; exit 2 }
-    if ( $error ) { Write-Host "[$scriptName] `$error[0] = $error"; exit 3 }
-    if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) { Write-Host "[$scriptName] `$LASTEXITCODE = $LASTEXITCODE "; exit $LASTEXITCODE }
-    return $output
+		Invoke-Expression $expression
+	    if(!$?) { Write-Host "[$scriptName] `$? = $?"; $error ; exit 1111 }
+	} catch { Write-Output $_.Exception|format-list -force; $error ; exit 1112 }
+    if ( $LASTEXITCODE ) {
+    	if ( $LASTEXITCODE -ne 0 ) {
+			Write-Host "[$scriptName] `$LASTEXITCODE = $LASTEXITCODE " -ForegroundColor Red ; $error ; exit $LASTEXITCODE
+		} else {
+			if ( $error ) {
+				Write-Host "[$scriptName][WARN] $Error array populated by `$LASTEXITCODE = $LASTEXITCODE, $error[] = $error`n" -ForegroundColor Yellow
+				$error.clear()
+			}
+		} 
+	} else {
+	    if ( $error ) {
+			Write-Host "[$scriptName][WARN] $Error array populated but LASTEXITCODE not set, $error[] = $error`n" -ForegroundColor Yellow
+			$error.clear()
+		}
+	}
 }
 
 $scriptName = 'bootstrap-atlassian.ps1'
-cmd /c "exit 0" # ensure LASTEXITCODE is 0
 
 Write-Host "`n[$scriptName] ---------- start ----------"
 if ($sqlSA) {
     Write-Host "[$scriptName] sqlSA : $sqlSA"
 } else {
-    Write-Host "[$scriptName] sqlSA : (not supplied, only reverse proxy will be installed)"
+    Write-Host "[$scriptName] sqlSA : (not supplied, SQL Server install required prior to calling this script)"
 }
 
 if ($port) {
@@ -33,7 +46,7 @@ if ($port) {
     Write-Host "[$scriptName] port  : $port (not supplied so set to default)"
 }
 
-Write-Host "[$scriptName] pwd    = $(pwd)"
+Write-Host "[$scriptName] pwd    = $(Get-Location)"
 Write-Host "[$scriptName] whoami = $(whoami)"
 
 if ( Test-Path ".\automation\CDAF.windows" ) {
@@ -102,23 +115,23 @@ if ($sqlSA) {
 	
 	## Mount Install media to D:\ (default for script), NOTE the '$' after the managed service account
 	executeExpression "$atomicPath\automation\provisioning\installSQLServer.ps1 '$msa'"
-	
-	# SMO installed as part of Standard, connect to the local default instance
-	executeExpression '[reflection.assembly]::LoadWithPartialName("Microsoft.SqlServer.Smo")'
-	executeExpression '[reflection.assembly]::LoadWithPartialName("Microsoft.SqlServer.SqlWmiManagement")'
-	$srv = executeExpression 'new-Object Microsoft.SqlServer.Management.Smo.Server(".")'
-	
-	# Change the mode and restart the instance
-	executeExpression '$srv.Settings.LoginMode = [Microsoft.SqlServer.Management.SMO.ServerLoginMode]::Mixed'
-	executeExpression '$srv.Alter()'
-	executeExpression '$srv.Settings.LoginMode'
-	executeExpression "Restart-Service MSSQLSERVER"
-	
-	# Allow remote access to the Database for SSMS to migrate the database
-	executeExpression "$atomicPath\automation\provisioning\openFirewallPort.ps1 1433 SQL"
-	
-	# Adopt Open JDK and Non Sucky Service Manager
-	executeExpression "$atomicPath\automation\provisioning\base.ps1 'adoptopenjdk8 nssm'"
 }
+
+# SMO installed as part of Standard, connect to the local default instance
+executeExpression '[reflection.assembly]::LoadWithPartialName("Microsoft.SqlServer.Smo")'
+executeExpression '[reflection.assembly]::LoadWithPartialName("Microsoft.SqlServer.SqlWmiManagement")'
+$srv = executeExpression 'new-Object Microsoft.SqlServer.Management.Smo.Server(".")'
+
+# Change the mode and restart the instance
+executeExpression '$srv.Settings.LoginMode = [Microsoft.SqlServer.Management.SMO.ServerLoginMode]::Mixed'
+executeExpression '$srv.Alter()'
+executeExpression '$srv.Settings.LoginMode'
+executeExpression "Restart-Service MSSQLSERVER"
+
+# Allow remote access to the Database for SSMS to migrate the database
+executeExpression "$atomicPath\automation\provisioning\openFirewallPort.ps1 1433 SQL"
+
+# Adopt Open JDK and Non Sucky Service Manager
+executeExpression "$atomicPath\automation\provisioning\base.ps1 'adoptopenjdk8 nssm'"
 
 Write-Host "`n[$scriptName] ---------- stop ----------"
