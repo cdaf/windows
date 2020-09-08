@@ -29,7 +29,7 @@ if ($sqlSA) {
 if ($port) {
     Write-Host "[$scriptName] port  : $port"
 } else {
-	$port = '8080'
+	$port = '8085'
     Write-Host "[$scriptName] port  : $port (not supplied so set to default)"
 }
 
