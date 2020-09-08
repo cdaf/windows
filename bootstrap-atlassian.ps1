@@ -71,8 +71,8 @@ if ( Test-Path 'C:\.provision' ) {
 executeExpression "Stop-Service W3SVC"
 executeExpression "$atomicPath\automation\provisioning\GetMedia.ps1 http://download.microsoft.com/download/E/9/8/E9849D6A-020E-47E4-9FD0-A023E99B54EB/requestRouter_amd64.msi"
 executeExpression "$atomicPath\automation\provisioning\installMSI.ps1 $mediaPath\requestRouter_amd64.msi"
-executeExpression "$atomicPath\automation\provisioning\GetMedia.ps1  https://download.microsoft.com/download/C/9/E/C9E8180D-4E51-40A6-A9BF-776990D8BCA9/rewrite_amd64.msi"
-executeExpression "$atomicPath\automation\provisioning\installMSI.ps1 $mediaPath\rewrite_amd64.msi"
+executeExpression "$atomicPath\automation\provisioning\GetMedia.ps1 https://download.microsoft.com/download/1/2/8/128E2E22-C1B9-44A4-BE2A-5859ED1D4592/rewrite_amd64_en-US.msi"
+executeExpression "$atomicPath\automation\provisioning\installMSI.ps1 $mediaPath\rewrite_amd64_en-US.msi"
 executeExpression "Start-Service W3SVC"
 
 if ( Test-Path 'C:\inetpub\wwwroot\web.config' ) {
