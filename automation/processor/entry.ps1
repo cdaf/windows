@@ -196,7 +196,6 @@ if ( $prefix -eq 'remoteURL' ) {
 			executeExpression "git branch -D $localBranch"
 		}
 	}
-	
 
 	if ( $environment -eq 'DOCKER' ) {
 
@@ -245,23 +244,5 @@ if ( $prefix -eq 'remoteURL' ) {
 }
 
 executeExpression "cd $workspace"
-
-if ( ! (( $branch -eq 'master' ) -or ( $branch -eq 'refs/heads/master' ))) {
-	Write-Host "[$scriptName] Purge artifacts for feature branches"
-	if ( $entryArtPrefix ) {
-		executeExpression "Set-Content $solutionName.ps1 'Write-Host `"Dummy Artefact for Feature Branch`"'"
-	} else {
-		$zipPackage = (Get-Item '*.zip').Name
-		if ( $zipPackage ) {
-			executeExpression "Remove-Item -Force $zipPackage"
-			executeExpression "New-Item -Name $zipPackage -ItemType File"
-		}
-		$dirPackage = (Get-Item 'TasksLocal').Name
-		if ( $dirPackage ) {
-			executeExpression "Remove-Item -Recurse -Force '${dirPackage}\*'"
-			executeExpression "Add-Content ${dirPackage}\readme.md 'Dummy artifact created by entry.ps1 for feature branch $branch'"
-		}
-	}
-}
 
 Write-Host "`n[$scriptName] ---------- stop ----------"
