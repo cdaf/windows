@@ -272,8 +272,8 @@ if ( $ACTION ) {
 	write-host "    Command Filename    : `$(System.DefaultWorkingDirectory)/$solutionName/drop/$cdProcess"
 	write-host '    Command arguments   : "$(Release.EnvironmentName)" "$(Release.ReleaseName)"'
 	write-host "    Working folder      : `$(System.DefaultWorkingDirectory)/$solutionName/drop"
-	write-host "    Release name format : $(Release.DefinitionName)-`$(Build.BuildNumber)"
-	write-host "      For re-release    : $(Release.DefinitionName)-`$(Build.BuildNumber)-`$(rev:r)"
+	write-host '    Release name format : $(Release.DefinitionName)-$(Build.BuildNumber)'
+	write-host '      For re-release    : $(Release.DefinitionName)-$(Build.BuildNumber)-$(rev:r)'
 	write-host
     write-host 'For GitLab (requires shell runner) ...'
     write-host '  If using the sample .gitlab-ci.yml simply clone and change the Environment literal'
