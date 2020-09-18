@@ -10,18 +10,37 @@ Import-Module Microsoft.PowerShell.Management
 Import-Module Microsoft.PowerShell.Security
 
 cmd /c "exit 0"
+$error.clear()
 $scriptName = 'entry.ps1'
 
 # Common expression logging and error handling function, copied, not referenced to ensure atomic process
 function executeExpression ($expression) {
-    $error.clear()
-    Write-Host "$expression"
-    try {
-        Invoke-Expression $expression
-        if(!$?) { Write-Host "[$scriptName] `$? = $?"; exit 1 }
-    } catch { Write-Output $_.Exception|format-list -force; exit 2 }
-    if ( $error ) { Write-Host "[$scriptName] `$error[0] = $error"; exit 3 }
-    if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) { Write-Host "[$scriptName] `$LASTEXITCODE = $LASTEXITCODE "; exit $LASTEXITCODE }
+	Write-Host "[$(Get-Date)] $expression"
+	try {
+		Invoke-Expression $expression
+		if(!$?) {
+			Write-Host "[$scriptName] `$? = $?"
+			if ( $error ) { Write-Host "[$scriptName] `$error[0] = $error[0]" ; $error.clear() }
+			exit 1111
+		}
+	} catch { Write-Output $_.Exception|format-list -force; $error ; exit 1112 }
+    if ( $LASTEXITCODE ) {
+    	if ( $LASTEXITCODE -ne 0 ) {
+			Write-Host "[$scriptName] `$LASTEXITCODE = $LASTEXITCODE " -ForegroundColor Red
+			if ( $error ) { Write-Host "[$scriptName] `$error[0] = $error[0]" ; $error.clear() }
+			exit $LASTEXITCODE
+		} else {
+			if ( $error ) {
+				Write-Host "[$scriptName][WARN] `$LASTEXITCODE = $LASTEXITCODE but $error[0] = $error[0]`n" -ForegroundColor Yellow
+				$error.clear()
+			}
+		} 
+	} else {
+	    if ( $error ) {
+			Write-Host "[$scriptName][WARN] `$LASTEXITCODE not set, but `$error[0] = $error[0]`n" -ForegroundColor Yellow
+			$error.clear()
+		}
+	}
 }
 
 # Capture and return expression output

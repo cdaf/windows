@@ -14,20 +14,26 @@ function executeExpression ($expression) {
 	Write-Host "[$(Get-Date)] $expression"
 	try {
 		Invoke-Expression $expression
-	    if(!$?) { Write-Host "[$scriptName] `$? = $?"; $error ; exit 1111 }
+		if(!$?) {
+			Write-Host "[$scriptName] `$? = $?"
+			if ( $error ) { Write-Host "[$scriptName] `$error[0] = $error[0]" ; $error.clear() }
+			exit 1111
+		}
 	} catch { Write-Output $_.Exception|format-list -force; $error ; exit 1112 }
     if ( $LASTEXITCODE ) {
     	if ( $LASTEXITCODE -ne 0 ) {
-			Write-Host "[$scriptName] `$LASTEXITCODE = $LASTEXITCODE " -ForegroundColor Red ; $error ; exit $LASTEXITCODE
+			Write-Host "[$scriptName] `$LASTEXITCODE = $LASTEXITCODE " -ForegroundColor Red
+			if ( $error ) { Write-Host "[$scriptName] `$error[0] = $error[0]" ; $error.clear() }
+			exit $LASTEXITCODE
 		} else {
 			if ( $error ) {
-				Write-Host "[$scriptName][WARN] $Error array populated by `$LASTEXITCODE = $LASTEXITCODE, $error[] = $error`n" -ForegroundColor Yellow
+				Write-Host "[$scriptName][WARN] `$LASTEXITCODE = $LASTEXITCODE but $error[0] = $error[0]`n" -ForegroundColor Yellow
 				$error.clear()
 			}
 		} 
 	} else {
 	    if ( $error ) {
-			Write-Host "[$scriptName][WARN] $Error array populated but LASTEXITCODE not set, $error[] = $error`n" -ForegroundColor Yellow
+			Write-Host "[$scriptName][WARN] `$LASTEXITCODE not set, but `$error[0] = $error[0]`n" -ForegroundColor Yellow
 			$error.clear()
 		}
 	}
