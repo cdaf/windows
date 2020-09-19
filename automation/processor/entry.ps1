@@ -49,7 +49,7 @@ function executeExpression ($expression) {
 }
 
 # Capture and return expression output
-function executeExpression ($expression) {
+function executeReturn ($expression) {
 	Write-Host "[$(Get-Date)] $expression"
 	try {
 		$result = Invoke-Expression "$expression 2> `$null"
