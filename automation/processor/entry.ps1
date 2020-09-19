@@ -49,21 +49,44 @@ function executeExpression ($expression) {
 }
 
 # Capture and return expression output
-function executeReturn ($expression) {
-    $error.clear()
-    Write-Host "$expression"
-    try {
-        $result = Invoke-Expression $expression
-        if(!$?) { Write-Host "[$scriptName] `$? = $?"; exit 1 }
-    } catch { Write-Output $_.Exception|format-list -force; exit 2 }
-    if ( $error ) { Write-Host "[$scriptName] `$error[0] = $error"; exit 3 }
-    if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) { Write-Host "[$scriptName] `$LASTEXITCODE = $LASTEXITCODE "; exit $LASTEXITCODE }
+function executeExpression ($expression) {
+	Write-Host "[$(Get-Date)] $expression"
+	try {
+		$result = Invoke-Expression "$expression 2> `$null"
+	    if(!$?) { Write-Host "[$scriptName] `$? = $?"; $error ; exit 1221 }
+	} catch {
+		Write-Host "[$scriptName][EXCEPTION] List exception and error array (if populated) and exit with LASTEXITCIDE 1222" -ForegroundColor Red
+		Write-Host $_.Exception|format-list -force
+		if ( $error ) { Write-Host "[$scriptName][ERROR] `$Error = $Error" ; $Error.clear() }
+		exit 1222
+	}
+    if ( $LASTEXITCODE ) {
+    	if ( $LASTEXITCODE -ne 0 ) {
+			Write-Host "[$scriptName] `$LASTEXITCODE = $LASTEXITCODE " -ForegroundColor Red
+			if ( $error ) { Write-Host "[$scriptName][ERROR] `$Error = $Error" ; $Error.clear() }
+			exit $LASTEXITCODE
+		} else {
+			if ( $error ) {
+				Write-Host "[$scriptName][WARN] $Error array populated by `$LASTEXITCODE = $LASTEXITCODE error follows...`n" -ForegroundColor Yellow
+				Write-Host "[$scriptName][WARN] `$Error = $Error" ; $Error.clear()
+			}
+		} 
+	} else {
+	    if ( $error ) {
+	    	if ( $env:CDAF_IGNORE_WARNING -eq 'no' ) {
+				Write-Host "[$scriptName][ERROR] `$Error = $error"; $Error.clear()
+				Write-Host "[$scriptName][ERROR] `$env:CDAF_IGNORE_WARNING is 'no' so exiting with LASTEXITCODE 1223 ..."; exit 1223
+	    	} else {
+		    	Write-Host "[$scriptName][WARN] `$Error = $error" ; $Error.clear()
+	    	}
+		}
+	}
     return $result
 }
 
 # Common expression logging and error handling function, copied, not referenced to ensure atomic process
 function executeSuppress ($expression) {
-    Write-Host "$expression"
+    Write-Host "$expression 2> `$null"
     try {
         Invoke-Expression $expression
         if(!$?) { Write-Host "[$scriptName] `$? = $?"; exit 1 }
