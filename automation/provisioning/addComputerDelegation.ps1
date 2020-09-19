@@ -13,28 +13,33 @@ $Error.Clear()
 function executeExpression ($expression) {
 	Write-Host "[$(Get-Date)] $expression"
 	try {
-		Invoke-Expression $expression
-		if(!$?) {
-			Write-Host "[$scriptName] `$? = $?"
-			if ( $error ) { Write-Host "[$scriptName] `$error[0] = $error[0]" ; $error.clear() }
-			exit 1111
-		}
-	} catch { Write-Output $_.Exception|format-list -force; $error ; exit 1112 }
+		Invoke-Expression "$expression 2> `$null"
+	    if(!$?) { Write-Host "[$scriptName] `$? = $?"; $error ; exit 1111 }
+	} catch {
+		Write-Host "[$scriptName][EXCEPTION] List exception and error array (if populated) and exit with LASTEXITCIDE 1112" -ForegroundColor Red
+		Write-Host $_.Exception|format-list -force
+		if ( $error ) { Write-Host "[$scriptName][ERROR] `$Error = $Error" ; $Error.clear() }
+		exit 1112
+	}
     if ( $LASTEXITCODE ) {
     	if ( $LASTEXITCODE -ne 0 ) {
 			Write-Host "[$scriptName] `$LASTEXITCODE = $LASTEXITCODE " -ForegroundColor Red
-			if ( $error ) { Write-Host "[$scriptName] `$error[0] = $error[0]" ; $error.clear() }
+			if ( $error ) { Write-Host "[$scriptName][ERROR] `$Error = $Error" ; $Error.clear() }
 			exit $LASTEXITCODE
 		} else {
 			if ( $error ) {
-				Write-Host "[$scriptName][WARN] `$LASTEXITCODE = $LASTEXITCODE but $error[0] = $error[0]`n" -ForegroundColor Yellow
-				$error.clear()
+				Write-Host "[$scriptName][WARN] $Error array populated by `$LASTEXITCODE = $LASTEXITCODE error follows...`n" -ForegroundColor Yellow
+				Write-Host "[$scriptName][WARN] `$Error = $Error" ; $Error.clear()
 			}
 		} 
 	} else {
 	    if ( $error ) {
-			Write-Host "[$scriptName][WARN] `$LASTEXITCODE not set, but `$error[0] = $error[0]`n" -ForegroundColor Yellow
-			$error.clear()
+	    	if ( $env:CDAF_IGNORE_WARNING -eq 'no' ) {
+				Write-Host "[$scriptName][ERROR] `$Error = $error"; $Error.clear()
+				Write-Host "[$scriptName][ERROR] `$env:CDAF_IGNORE_WARNING is 'no' so exiting with LASTEXITCODE 1113 ..."; exit 1113
+	    	} else {
+		    	Write-Host "[$scriptName][WARN] `$Error = $error" ; $Error.clear()
+	    	}
 		}
 	}
 }
