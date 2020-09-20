@@ -57,7 +57,7 @@ if ( $imageName ) {
 	if ( $action ) { 
 		Write-Host "[$scriptName]   action         : $action"
 	} else {
-		$action = 'containerbuild'
+		$action = 'container_build'
 		Write-Host "[$scriptName]   action         : $action (not supplied, set to default)"
 	}
 	
@@ -146,7 +146,7 @@ if ( $imageName ) {
 		Write-Host "[$scriptName] `$imageTag  : $imageTag"
 		Write-Host "[$scriptName] `$workspace : $workspace"
 		
-		executeExpression "docker run --tty --volume ${workspace}\:C:/solution/workspace ${imageName}:${imageTag} automation\ci.bat $buildNumber $revision $action"
+		executeExpression "docker run --tty --volume ${workspace}\:C:/solution/workspace ${imageName}:${imageTag} automation\ci.bat $buildNumber $revision container_build"
 		
 		Write-Host "`n[$scriptName] List and remove all stopped containers"
 		executeExpression "docker ps --filter `"status=exited`" -a"

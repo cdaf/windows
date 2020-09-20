@@ -12,13 +12,8 @@ Import-Module Microsoft.PowerShell.Utility
 Import-Module Microsoft.PowerShell.Management
 Import-Module Microsoft.PowerShell.Security
 
-# Initialise
-cmd /c "exit 0"
-$scriptName = $MyInvocation.MyCommand.Name
-
 # Common expression logging and error handling function, copied, not referenced to ensure atomic process
 function executeExpression ($expression) {
-	$error.clear()
 	Write-Host "[$(Get-date)] $expression"
 	try {
 		Invoke-Expression $expression
@@ -133,6 +128,10 @@ if ($solutionRoot) {
 	$solutionRoot="$AUTOMATIONROOT\solution"
 	write-host "$solutionRoot (default, project directory containing CDAF.solution not found)"
 }
+
+cmd /c "exit 0"
+$error.clear()
+$scriptName = 'buildPackage.ps1'
 
 if ( $BUILDNUMBER ) {
 	Write-Host "[$scriptName]   BUILDNUMBER     : $BUILDNUMBER"
@@ -297,7 +296,7 @@ foreach ($propertiesDriver in $pivotList) {
 }
 
 # CDAF 1.6.7 Container Build process
-if ( $ACTION -eq 'containerbuild' ) {
+if ( $ACTION -eq 'container_build' ) {
 	Write-Host "`n[$scriptName] `$ACTION = $ACTION, skip detection.`n"
 } else {
 	$containerBuild = getProp 'containerBuild' "$solutionRoot\CDAF.solution"
@@ -352,18 +351,18 @@ if ( $ACTION -eq 'containerbuild' ) {
 	}
 }
 
+# 2.2.0 Image Build as incorperated function
+$imageBuild = getProp 'imageBuild' "$solutionRoot\CDAF.solution"
+if ( $imageBuild ) {
+	Write-Host "[$scriptName]   imageBuild      : $imageBuild"
+} else {
+	Write-Host "[$scriptName]   imageBuild      : (not defined in $solutionRoot\CDAF.solution)"
+}
+
 if (( $containerBuild ) -and ( $ACTION -ne 'packageonly' )) {
 
 	Write-Host "`n[$scriptName] Execute Container build, this performs cionly, buildonly is ignored.`n" -ForegroundColor Green
 	executeExpression $containerBuild
-
-	$imageBuild = getProp 'imageBuild' "$solutionRoot\CDAF.solution"
-	if ( $imageBuild ) {
-		Write-Host "`n[$scriptName] Execute Image build, as defined for imageBuild in $solutionRoot\CDAF.solution`n"
-		executeExpression $imageBuild
-	} else {
-		Write-Host "[$scriptName]   imageBuild      : (not defined in $solutionRoot\CDAF.solution)"
-	}
 
 } else { # Native build
 	
@@ -392,8 +391,36 @@ if (( $containerBuild ) -and ( $ACTION -ne 'packageonly' )) {
 	}
 }
 
-# CDAF 2.1.0 Self-extracting Script Artifact
-if ( $ACTION -ne 'containerbuild' ) {
+if ( $ACTION -ne 'container_build' ) {
+
+	# 2.2.0 Image Build as incorperated function, no longer conditional on containerBuild, but do not attempt if within containerbuild
+	$runtimeImage = getProp 'runtimeImage' "$solutionRoot\CDAF.solution"
+	if ( $runtimeImage ) {
+		Remove-Item Env:\CONTAINER_IMAGE
+		Write-Host "[$scriptName] Execute image build (available runtimeImage = $runtimeImage)"
+	} else {
+		$runtimeImage = getProp 'containerImage' "$solutionRoot\CDAF.solution"
+		if ( $runtimeImage ) {
+			Remove-Item Env:\CONTAINER_IMAGE
+			Write-Host "[$scriptName] Execute image build (available runtimeImage = $runtimeImage, runtimeImage not found, using containerImage)"
+		} else {
+			Write-Host "[$scriptName] WARNING neither runtimeImage nor runtimeImage defined in $SOLUTIONROOT/CDAF.solution"
+		}
+
+		# If not using Git, or unconditional registry push is desired, configure CDAF.solution as
+		# imageBuild=./automation/remote/imageBuild.ps1 ${SOLUTION}_${REVISION} ${BUILDNUMBER} ${runtimeImage} TasksLocal registry.example.org/${SOLUTION}:$BUILDNUMBER
+
+		# If using Git, and only pushing master, use separate registryTag property
+		# imageBuild=./automation/remote/imageBuild.ps1 ${SOLUTION}_${REVISION} ${BUILDNUMBER} ${runtimeImage} TasksLocal
+		# registryTag=registry.example.org/${SOLUTION}:$BUILDNUMBER
+
+		if ( $REVISION -eq 'master' ) {
+			$runtimeImage = getProp 'runtimeImage' "$solutionRoot\CDAF.solution"
+		}
+		executeExpression "$imageBuild $registryTag"
+	}
+
+	# CDAF 2.1.0 Self-extracting Script Artifact
 	$artifactPrefix = getProp 'artifactPrefix' "$solutionRoot\CDAF.solution"
 	if ( $artifactPrefix ) {
 		$artifactID = "${SOLUTION}-${artifactPrefix}.${BUILDNUMBER}"
@@ -446,7 +473,7 @@ if ( $ACTION -like 'staging@*' ) { # Primarily for ADO pipelines
 	}
 }
 
-if ( $ACTION -ne 'containerbuild' ) {
+if ( $ACTION -ne 'container_build' ) {
 	Write-Host "`n[$scriptName] Clean Workspace..."
 	itemRemove "propertiesForLocalTasks"
 	itemRemove "propertiesForRemoteTasks"

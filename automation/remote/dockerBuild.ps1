@@ -6,19 +6,17 @@ Param (
 	[string]$optionalArgs
 )
 
-$scriptName = 'dockerBuild.ps1'
-
 # Common expression logging and error handling function, copied, not referenced to ensure atomic process
 function executeExpression ($expression) {
 	Write-Host "[$(Get-Date)] $expression"
 	try {
 		Invoke-Expression "$expression 2> `$null"
-	    if(!$?) { Write-Host "[$scriptName] `$? = $?"; $error ; exit 1211 }
+	    if(!$?) { Write-Host "[$scriptName] `$? = $?"; $error ; exit 1111 }
 	} catch {
-		Write-Host "[$scriptName][EXCEPTION] List exception and error array (if populated) and exit with LASTEXITCIDE 1212" -ForegroundColor Red
+		Write-Host "[$scriptName][EXCEPTION] List exception and error array (if populated) and exit with LASTEXITCIDE 1112" -ForegroundColor Red
 		Write-Host $_.Exception|format-list -force
 		if ( $error ) { Write-Host "[$scriptName][ERROR] `$Error = $Error" ; $Error.clear() }
-		exit 1212
+		exit 1112
 	}
     if ( $LASTEXITCODE ) {
     	if ( $LASTEXITCODE -ne 0 ) {
@@ -35,7 +33,7 @@ function executeExpression ($expression) {
 	    if ( $error ) {
 	    	if ( $env:CDAF_IGNORE_WARNING -eq 'no' ) {
 				Write-Host "[$scriptName][ERROR] `$Error = $error"; $Error.clear()
-				Write-Host "[$scriptName][ERROR] `$env:CDAF_IGNORE_WARNING is 'no' so exiting with LASTEXITCODE 1213 ..."; exit 1213
+				Write-Host "[$scriptName][ERROR] `$env:CDAF_IGNORE_WARNING is 'no' so exiting with LASTEXITCODE 1113 ..."; exit 1113
 	    	} else {
 		    	Write-Host "[$scriptName][WARN] `$Error = $error" ; $Error.clear()
 	    	}
@@ -47,17 +45,19 @@ function executeExpression ($expression) {
 function executeSuppress ($expression) {
 	Write-Host "$expression"
 	try {
-		Invoke-Expression $expression
+		Invoke-Expression "$expression 2> `$null"
 	    if(!$?) { Write-Host "[$scriptName] `$? = $?"; exit 1 }
 	} catch { Write-Host $_.Exception|format-list -force; exit 2 }
 	$error.clear()
     if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) { Write-Host "[$scriptName] Suppress `$LASTEXITCODE ($LASTEXITCODE)"; cmd /c "exit 0" } # reset LASTEXITCODE
 }
 
+$scriptName = 'dockerBuild.ps1'
+$Error.clear()
 cmd /c "exit 0"
 
-Write-Host "`n[$scriptName] ---------- start ----------"
 Write-Host "`n[$scriptName] Build docker image, resulting image tag will be ${imageName}:${tag}"
+Write-Host "`n[$scriptName] ---------- start ----------"
 if ($imageName) {
 	$imageName = $imageName.ToLower()
     Write-Host "[$scriptName] imageName    : $imageName"
@@ -144,5 +144,3 @@ Write-Host "`n[$scriptName] List Resulting images...`n"
 executeExpression "docker images -f label=cdaf.${imageName}.image.version"
 
 Write-Host "`n[$scriptName] --- end ---"
-$error.clear()
-exit 0

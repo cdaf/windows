@@ -2,22 +2,44 @@ Param (
 	[string]$id,
 	[string]$BUILDNUMBER,
 	[string]$containerImage,
-	[string]$optionalArgs,
-	[string]$persist
+	[string]$constructor,
+	[string]$registryTag,
+	[string]$optionalArgs
 )
-
-$scriptName = 'imageBuild.ps1'
 
 # Common expression logging and error handling function, copied, not referenced to ensure atomic process
 function executeExpression ($expression) {
-	$error.clear()
-	Write-Host "$expression"
+	Write-Host "[$(Get-Date)] $expression"
 	try {
-		Invoke-Expression $expression
-	    if(!$?) { Write-Host "[$scriptName] `$? = $?"; exit 1 }
-	} catch { Write-Host $_.Exception | format-list -force; exit 2 }
-    if ( $error ) { Write-Host "[$scriptName] `$error[0] = $error"; exit 3 }
-    if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) { Write-Host "[$scriptName] `$LASTEXITCODE = $LASTEXITCODE "; exit $LASTEXITCODE }
+		Invoke-Expression "$expression 2> `$null"
+	    if(!$?) { Write-Host "[$scriptName] `$? = $?"; $error ; exit 1111 }
+	} catch {
+		Write-Host "[$scriptName][EXCEPTION] List exception and error array (if populated) and exit with LASTEXITCIDE 1112" -ForegroundColor Red
+		Write-Host $_.Exception|format-list -force
+		if ( $error ) { Write-Host "[$scriptName][ERROR] `$Error = $Error" ; $Error.clear() }
+		exit 1112
+	}
+    if ( $LASTEXITCODE ) {
+    	if ( $LASTEXITCODE -ne 0 ) {
+			Write-Host "[$scriptName] `$LASTEXITCODE = $LASTEXITCODE " -ForegroundColor Red
+			if ( $error ) { Write-Host "[$scriptName][ERROR] `$Error = $Error" ; $Error.clear() }
+			exit $LASTEXITCODE
+		} else {
+			if ( $error ) {
+				Write-Host "[$scriptName][WARN] $Error array populated by `$LASTEXITCODE = $LASTEXITCODE error follows...`n" -ForegroundColor Yellow
+				Write-Host "[$scriptName][WARN] `$Error = $Error" ; $Error.clear()
+			}
+		} 
+	} else {
+	    if ( $error ) {
+	    	if ( $env:CDAF_IGNORE_WARNING -eq 'no' ) {
+				Write-Host "[$scriptName][ERROR] `$Error = $error"; $Error.clear()
+				Write-Host "[$scriptName][ERROR] `$env:CDAF_IGNORE_WARNING is 'no' so exiting with LASTEXITCODE 1113 ..."; exit 1113
+	    	} else {
+		    	Write-Host "[$scriptName][WARN] `$Error = $error" ; $Error.clear()
+	    	}
+		}
+	}
 }
 
 function executeRetry ($expression) {
@@ -54,7 +76,10 @@ function executeRetry ($expression) {
     return $output
 }
 
+$scriptName = 'imageBuild.ps1'
 cmd /c "exit 0"
+$error.clear()
+
 Write-Host "`n[$scriptName] ---------- start ----------`n"
 if ( $id ) {
 	$id = $id.ToLower()
@@ -96,53 +121,77 @@ if ( $containerImage ) {
 	}
 }
 
+# 2.2.0 extension to allow custom source directory
+if ( $constructor ) {
+	Write-Host "[$scriptName]   constructor     : $constructor"
+} else {
+	Write-Host "[$scriptName]   constructor     : (not supplied, will process all directories)"
+}
+
+# 2.2.0 Replaced optional persist parameter as extension for the support as integrated function
+if ( $registryTag ) {
+	Write-Host "[$scriptName]   registryTag     : $registryTag"
+} else {
+	Write-Host "[$scriptName]   registryTag     : (not supplied, push will not be attempted)"
+}
+
 if ( $optionalArgs ) {
 	Write-Host "[$scriptName]   optionalArgs    : $optionalArgs"
 } else {
 	Write-Host "[$scriptName]   optionalArgs    : (not supplied, example '--memory 4g')"
 }
 
-if ( $persist ) {
-	Write-Host "[$scriptName]   persist         : $persist"
-} else {
-	$persist = "$env:TEMP\buildImage\${id}"
-	Write-Host "[$scriptName]   persist         : $persist (not supplied, set to default)"
-}
-
 Write-Host "[$scriptName]   pwd             : $(Get-Location)"
 Write-Host "[$scriptName]   hostname        : $(hostname)"
 Write-Host "[$scriptName]   whoami          : $(whoami)"
 $workspace = $(Get-Location)
-Write-Host "[$scriptName]   workspace       : $workspace"
+Write-Host "[$scriptName]   workspace       : ${workspace}`n"
 
-Write-Host "Create the image file system locally if it does not exist`n"
-if ( Test-Path "${persist}" ) {
-	if (Test-Path "${persist}" -PathType "Leaf") {
-		Write-Host "${persist} already exists, but is not a directory, replacing as directory"
-		executeExpression "rm ${persist} -Force -Confirm:`$false"
-		executeExpression "Write-Host 'Created $(mkdir ${persist})'"
+$transient = "$env:TEMP\buildImage\${id}"
+
+if ( Test-Path "${transient}" ) {
+	if (Test-Path "${transient}" -PathType "Leaf") {
+		Write-Host "${transient} already exists, but is not a directory, replacing as directory"
+		executeExpression "rm ${transient} -Force -Confirm:`$false"
+		executeExpression "Write-Host 'Created $(mkdir ${transient})'"
+	} else {
+		Write-Host "Build directory ${transient} already exists"
 	}
 } else {
-	executeExpression "Write-Host 'Created $(mkdir ${persist})'"
+	executeExpression "Write-Host 'Created $(mkdir ${transient})'"
 }
 
-foreach ($server in (Get-ChildItem -Path "." -directory)) {
+if ( ! $constructor ) {
+	$constructor = (Get-ChildItem -Path "." -directory)
+}
+
+foreach ($image in $constructor ) {
 	Write-Host "`n----------------------"
-	Write-Host "    ${server} server"    
+	Write-Host "    ${image}"    
 	Write-Host "----------------------`n"
-	if ( Test-Path "${persist}\${server}" ) {
-		executeExpression "rm -Recurse ${persist}\${server}"
+	if ( Test-Path "${transient}\${image}" ) {
+		executeExpression "rm -Recurse ${transient}\${image}"
 	}
-	executeExpression "cp -Recurse .\${server} ${persist}"
-	executeExpression "cp ../dockerBuild.ps1 ${persist}\${server}"
-	executeExpression "cp -Recurse ../automation ${persist}\${server}"
-	executeExpression "cd ${persist}\${server}"
+	executeExpression "cp -Recurse .\${image} ${transient}"
+	if ( Test-Path ../dockerBuild.ps1 ) {
+		executeExpression "cp ../dockerBuild.ps1 ${transient}\${image}"
+	} else {
+		executeExpression "cp $env:CDAF_AUTOMATION_ROOT/remote/dockerBuild.ps1 ${transient}\${image}"
+	}
+	if ( Test-Path ../dockerClean.ps1 ) {
+		executeExpression "cp ../dockerClean.ps1 ${transient}\${image}"
+	} else {
+		executeExpression "cp $env:CDAF_AUTOMATION_ROOT/remote/dockerClean.ps1 ${transient}\${image}"
+	}
+	executeExpression "cp -Recurse ../automation ${transient}\${image}"
+	executeExpression "cd ${transient}\${image}"
 	executeExpression "cat Dockerfile"
 	if ( $optionalArgs ) {
-		executeExpression "./dockerBuild.ps1 ${id}_${server} $BUILDNUMBER -optionalArgs '${optionalArgs}'"
+		executeExpression "./dockerBuild.ps1 ${id}_${image} $BUILDNUMBER -optionalArgs '${optionalArgs}'"
 	} else {
-		executeExpression "./dockerBuild.ps1 ${id}_${server} $BUILDNUMBER"
+		executeExpression "./dockerBuild.ps1 ${id}_${image} $BUILDNUMBER"
 	}
+	executeExpression "./dockerClean.ps1 ${id}_${image} $BUILDNUMBER"
 	executeExpression "cd $workspace"
 }
 
