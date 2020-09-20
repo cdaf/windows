@@ -119,6 +119,19 @@ if ( $containerImage ) {
 		$env:CONTAINER_IMAGE = $containerImage
 		Write-Host "[$scriptName]   CONTAINER_IMAGE : $env:CONTAINER_IMAGE (set to `$containerImage)"
 	}
+} else {
+	if (($env:CONTAINER_IMAGE) -or ($CONTAINER_IMAGE)) {
+		Write-Host "[$scriptName]   containerImage  : $containerImage"
+		if ($env:CONTAINER_IMAGE) {
+			Write-Host "[$scriptName]   CONTAINER_IMAGE : $env:CONTAINER_IMAGE (containerImage not passed, using existing environment variable)"
+		} else {
+			$env:CONTAINER_IMAGE = $CONTAINER_IMAGE
+			Write-Host "[$scriptName]   CONTAINER_IMAGE : $env:CONTAINER_IMAGE (containerImage not passed, loaded from `$CONTAINER_IMAGE)"
+		}
+	} else {
+		Write-Host "[$scriptName][ERROR] containerImage not passed and neither `$env:CONTAINER_IMAGE nor `$CONTAINER_IMAGE set, exiting with `$LASTEXITCODE 6674"
+		exit 6674
+	}
 }
 
 # 2.2.0 extension to allow custom source directory

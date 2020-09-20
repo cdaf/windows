@@ -393,31 +393,33 @@ if (( $containerBuild ) -and ( $ACTION -ne 'packageonly' )) {
 
 if ( $ACTION -ne 'container_build' ) {
 
-	# 2.2.0 Image Build as incorperated function, no longer conditional on containerBuild, but do not attempt if within containerbuild
-	$runtimeImage = getProp 'runtimeImage' "$solutionRoot\CDAF.solution"
-	if ( $runtimeImage ) {
-		Remove-Item Env:\CONTAINER_IMAGE
-		Write-Host "[$scriptName] Execute image build (available runtimeImage = $runtimeImage)"
-	} else {
-		$runtimeImage = getProp 'containerImage' "$solutionRoot\CDAF.solution"
+	# 2.2.0 Image Build as an incorperated function, no longer conditional on containerBuild, but do not attempt if within containerbuild
+	if ( $imageBuild ) {
+		$runtimeImage = getProp 'runtimeImage' "$solutionRoot\CDAF.solution"
 		if ( $runtimeImage ) {
 			Remove-Item Env:\CONTAINER_IMAGE
-			Write-Host "[$scriptName] Execute image build (available runtimeImage = $runtimeImage, runtimeImage not found, using containerImage)"
+			Write-Host "[$scriptName] Execute image build (available runtimeImage = $runtimeImage)"
 		} else {
-			Write-Host "[$scriptName] WARNING neither runtimeImage nor runtimeImage defined in $SOLUTIONROOT/CDAF.solution"
+			$runtimeImage = getProp 'containerImage' "$solutionRoot\CDAF.solution"
+			if ( $runtimeImage ) {
+				Remove-Item Env:\CONTAINER_IMAGE
+				Write-Host "[$scriptName] Execute image build (available runtimeImage = $runtimeImage, runtimeImage not found, using containerImage)"
+			} else {
+				Write-Host "[$scriptName] WARNING neither runtimeImage nor containerImage defined in $SOLUTIONROOT/CDAF.solution"
+			}
+
+			# If not using Git, or unconditional registry push is desired, configure CDAF.solution as
+			# imageBuild=./automation/remote/imageBuild.ps1 ${SOLUTION}_${REVISION} ${BUILDNUMBER} ${runtimeImage} TasksLocal registry.example.org/${SOLUTION}:$BUILDNUMBER
+
+			# If using Git, and only pushing master, use separate registryTag property
+			# imageBuild=./automation/remote/imageBuild.ps1 ${SOLUTION}_${REVISION} ${BUILDNUMBER} ${runtimeImage} TasksLocal
+			# registryTag=registry.example.org/${SOLUTION}:$BUILDNUMBER
+
+			if ( $REVISION -eq 'master' ) {
+				$registryTag = getProp 'registryTag' "$solutionRoot\CDAF.solution"
+			}
+			executeExpression "$imageBuild $registryTag"
 		}
-
-		# If not using Git, or unconditional registry push is desired, configure CDAF.solution as
-		# imageBuild=./automation/remote/imageBuild.ps1 ${SOLUTION}_${REVISION} ${BUILDNUMBER} ${runtimeImage} TasksLocal registry.example.org/${SOLUTION}:$BUILDNUMBER
-
-		# If using Git, and only pushing master, use separate registryTag property
-		# imageBuild=./automation/remote/imageBuild.ps1 ${SOLUTION}_${REVISION} ${BUILDNUMBER} ${runtimeImage} TasksLocal
-		# registryTag=registry.example.org/${SOLUTION}:$BUILDNUMBER
-
-		if ( $REVISION -eq 'master' ) {
-			$runtimeImage = getProp 'runtimeImage' "$solutionRoot\CDAF.solution"
-		}
-		executeExpression "$imageBuild $registryTag"
 	}
 
 	# CDAF 2.1.0 Self-extracting Script Artifact
