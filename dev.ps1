@@ -39,7 +39,7 @@ executeExpression '[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityPr
 executeExpression  ". { iwr -useb http://cdaf.io/static/app/downloads/cdaf.ps1 } | iex"
 
 executeExpression  "~\automation\provisioning\base.ps1 'adoptopenjdk8 maven'"
-executeExpression  "~\automation\provisioning\base.ps1 'eclipse -version 4.16'"
+executeExpression  "~\automation\provisioning\base.ps1 eclipse -version 4.16"
 executeExpression  "~\automation\provisioning\base.ps1 'nuget.commandline azure-cli visualstudio2019enterprise vscode'"
 
 executeExpression  "~\automation\provisioning\base.ps1 'nodejs.install python ruby msys2 sqlite'"
