@@ -42,7 +42,9 @@ executeExpression  "~\automation\provisioning\base.ps1 'adoptopenjdk8 maven'"
 executeExpression  "~\automation\provisioning\base.ps1 eclipse -version 4.16"
 executeExpression  "~\automation\provisioning\base.ps1 'nuget.commandline azure-cli visualstudio2019enterprise vscode'"
 
-executeExpression  "~\automation\provisioning\base.ps1 'nodejs.install python ruby msys2 sqlite'"
+executeExpression  "~\automation\provisioning\base.ps1 'nodejs.install python'
+executeExpression  "~\automation\provisioning\base.ps1 ruby -version 2.7.0.1"
+executeExpression  "~\automation\provisioning\base.ps1 'msys2 sqlite'"
 executeExpression  "~\automation\provisioning\base.ps1 'hugo git svn vnc-viewer putty winscp postman insomnia-rest-api-client'"
 executeExpression  "~\automation\provisioning\base.ps1 'pdk citrix-receiver zoom microsoft-edge'"
 executeExpression  "~\automation\provisioning\base.ps1 'googlechrome' -checksum ignore"
