@@ -39,15 +39,15 @@ executeExpression '[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityPr
 executeExpression  ". { iwr -useb http://cdaf.io/static/app/downloads/cdaf.ps1 } | iex"
 
 executeExpression  "~\automation\provisioning\base.ps1 'adoptopenjdk8 maven'"
-executeExpression  "~\automation\provisioning\base.ps1 eclipse -version 4.16"
+executeExpression  "~\automation\provisioning\base.ps1 eclipse -version 4.16" # Locked to the last release supporting Java 8
 executeExpression  "~\automation\provisioning\base.ps1 'nuget.commandline azure-cli visualstudio2019enterprise vscode'"
 
 executeExpression  "~\automation\provisioning\base.ps1 'nodejs.install python'"
-executeExpression  "~\automation\provisioning\base.ps1 ruby -version 2.7.0.1"
+executeExpression  "~\automation\provisioning\base.ps1 ruby -version 2.7.0.1" # Locked to the Ubuntu 20.04 cannonical version 
 executeExpression  "~\automation\provisioning\base.ps1 'msys2 sqlite'"
 executeExpression  "~\automation\provisioning\base.ps1 'hugo git svn vnc-viewer putty winscp postman insomnia-rest-api-client'"
 executeExpression  "~\automation\provisioning\base.ps1 'pdk citrix-receiver zoom microsoft-edge'"
-executeExpression  "~\automation\provisioning\base.ps1 'googlechrome' -checksum ignore"
+executeExpression  "~\automation\provisioning\base.ps1 'googlechrome' -checksum ignore" # Google does not provide a static download, so checksum can briefly fail on new releases
 
 executeExpression  "~\automation\provisioning\base.ps1 'vagrant' -autoReboot yes"
 
