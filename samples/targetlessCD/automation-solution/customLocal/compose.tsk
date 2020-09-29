@@ -9,7 +9,7 @@ Write-host $env:WORK_SPACE
 # Copy any artefacts needed into specific images here
 
 cd compose
-..\imageBuild.ps1 ${id} ${BUILDNUMBER} ${containerImage} '--build-arg COMPOSE_KEEP=$env:COMPOSE_KEEP'
+..\imageBuild.ps1 ${id} ${BUILDNUMBER} ${containerImage}
 cd ..
 
 ASSIGN $composePersist = "${env:TEMP}\${id}"
