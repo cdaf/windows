@@ -2,9 +2,9 @@ Param (
 	[string]$id,
 	[string]$BUILDNUMBER,
 	[string]$containerImage,
+	[string]$optionalArgs,
 	[string]$constructor,
-	[string]$registryTag,
-	[string]$optionalArgs
+	[string]$registryTag
 )
 
 # Common expression logging and error handling function, copied, not referenced to ensure atomic process
@@ -132,6 +132,12 @@ if ( $containerImage ) {
 		Write-Host "[$scriptName][ERROR] containerImage not passed and neither `$env:CONTAINER_IMAGE nor `$CONTAINER_IMAGE set, exiting with `$LASTEXITCODE 6674"
 		exit 6674
 	}
+}
+
+if ( $optionalArgs ) {
+	Write-Host "[$scriptName]   optionalArgs    : $optionalArgs"
+} else {
+	Write-Host "[$scriptName]   optionalArgs    : (not supplied, example '--memory 4g')"
 }
 
 # 2.2.0 extension to allow custom source directory
