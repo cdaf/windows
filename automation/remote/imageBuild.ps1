@@ -177,9 +177,8 @@ if ( Test-Path "${transient}" ) {
 if ( $constructor ) {
 	$constructor = $constructor.Split()
 } else {
-	$constructor = Get-ChildItem -Path "." -directory
+	[array]$constructor = @((Get-ChildItem -Path "." -directory).Name)
 }
-$constructor
 foreach ($image in $constructor ) {
 	Write-Host "`n----------------------"
 	Write-Host "    ${image}"    
