@@ -154,12 +154,6 @@ if ( $registryTag ) {
 	Write-Host "[$scriptName]   registryTag     : (not supplied, push will not be attempted)"
 }
 
-if ( $optionalArgs ) {
-	Write-Host "[$scriptName]   optionalArgs    : $optionalArgs"
-} else {
-	Write-Host "[$scriptName]   optionalArgs    : (not supplied, example '--memory 4g')"
-}
-
 Write-Host "[$scriptName]   pwd             : $(Get-Location)"
 Write-Host "[$scriptName]   hostname        : $(hostname)"
 Write-Host "[$scriptName]   whoami          : $(whoami)"
@@ -180,8 +174,10 @@ if ( Test-Path "${transient}" ) {
 	executeExpression "Write-Host 'Created $(mkdir ${transient})'"
 }
 
-if ( ! $constructor ) {
-	$constructor = (Get-ChildItem -Path "." -directory)
+if ( $constructor ) {
+	$constructor = $constructor.Split()
+} else {
+	$constructor = Get-ChildItem -Path "." -directory
 }
 
 foreach ($image in $constructor ) {
