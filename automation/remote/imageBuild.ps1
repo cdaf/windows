@@ -2,9 +2,9 @@ Param (
 	[string]$id,
 	[string]$BUILDNUMBER,
 	[string]$containerImage,
-	[string]$optionalArgs,
 	[string]$constructor,
-	[string]$registryTag
+	[string]$registryTag,
+	[string]$optionalArgs
 )
 
 # Common expression logging and error handling function, copied, not referenced to ensure atomic process
@@ -134,12 +134,6 @@ if ( $containerImage ) {
 	}
 }
 
-if ( $optionalArgs ) {
-	Write-Host "[$scriptName]   optionalArgs    : $optionalArgs"
-} else {
-	Write-Host "[$scriptName]   optionalArgs    : (not supplied, example '--memory 4g')"
-}
-
 # 2.2.0 extension to allow custom source directory
 if ( $constructor ) {
 	Write-Host "[$scriptName]   constructor     : $constructor"
@@ -152,6 +146,12 @@ if ( $registryTag ) {
 	Write-Host "[$scriptName]   registryTag     : $registryTag"
 } else {
 	Write-Host "[$scriptName]   registryTag     : (not supplied, push will not be attempted)"
+}
+
+if ( $optionalArgs ) {
+	Write-Host "[$scriptName]   optionalArgs    : $optionalArgs"
+} else {
+	Write-Host "[$scriptName]   optionalArgs    : (not supplied, example '--memory 4g')"
 }
 
 Write-Host "[$scriptName]   pwd             : $(Get-Location)"
@@ -179,7 +179,7 @@ if ( $constructor ) {
 } else {
 	$constructor = Get-ChildItem -Path "." -directory
 }
-
+$constructor
 foreach ($image in $constructor ) {
 	Write-Host "`n----------------------"
 	Write-Host "    ${image}"    
