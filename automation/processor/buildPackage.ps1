@@ -408,15 +408,12 @@ if ( $ACTION -ne 'container_build' ) {
 				Write-Host "[$scriptName] WARNING neither runtimeImage nor containerImage defined in $SOLUTIONROOT/CDAF.solution"
 			}
 
-			# If not using Git, or unconditional registry push is desired, configure CDAF.solution as
-			# imageBuild=./automation/remote/imageBuild.ps1 ${SOLUTION}_${REVISION} ${BUILDNUMBER} ${runtimeImage} TasksLocal registry.example.org/${SOLUTION}:$BUILDNUMBER
-
-			# If using Git, and only pushing master, use separate registryTag property
-			# imageBuild=./automation/remote/imageBuild.ps1 ${SOLUTION}_${REVISION} ${BUILDNUMBER} ${runtimeImage} TasksLocal
-			# registryTag=registry.example.org/${SOLUTION}:$BUILDNUMBER
-
+			# 2.2.0 Integrated Function using environment variables
 			if ( $REVISION -eq 'master' ) {
-				$registryTag = getProp 'registryTag' "$solutionRoot\CDAF.solution"
+				$env:CDAF_REGISTRY_URL = Invoke-Expression "Write-Output $(getProp 'CDAF_REGISTRY_URL' "$solutionRoot\CDAF.solution")"
+				$env:CDAF_REGISTRY_TAG = Invoke-Expression "Write-Output $(getProp 'CDAF_REGISTRY_TAG' "$solutionRoot\CDAF.solution")"
+				$env:CDAF_REGISTRY_USER = Invoke-Expression "Write-Output $(getProp 'CDAF_REGISTRY_USER' "$solutionRoot\CDAF.solution")"
+				$env:CDAF_REGISTRY_TOKEN = Invoke-Expression "Write-Output $(getProp 'CDAF_REGISTRY_TOKEN' "$solutionRoot\CDAF.solution")"
 			}
 			executeExpression "$imageBuild $registryTag"
 		}
