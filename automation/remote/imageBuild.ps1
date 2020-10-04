@@ -214,7 +214,7 @@ foreach ($image in $constructor ) {
 	} else {
 		executeExpression "cp $env:CDAF_AUTOMATION_ROOT/remote/dockerClean.ps1 ${transient}\${image}"
 	}
-	executeExpression "cp -Recurse ../automation ${transient}\${image}"
+	executeExpression "cp -Recurse $env:CDAF_AUTOMATION_ROOT ${transient}\${image}"
 	executeExpression "cd ${transient}\${image}"
 	executeExpression "cat Dockerfile"
 	if ( $optionalArgs ) {
