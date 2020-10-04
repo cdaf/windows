@@ -54,7 +54,7 @@ function executeReturn ($expression) {
 	try {
 		$output = Invoke-Expression $expression
 	    if(!$?) { Write-Host "[$scriptName] `$? = $?"; exit 1 }
-	} catch { Write-Output $_.Exception|format-list -force; exit 2 }
+	} catch { Write-Host $_.Exception|format-list -force; exit 2 }
     if ( $error ) { Write-Host "[$scriptName] `$error[0] = $error"; exit 3 }
     if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) { Write-Host "[$scriptName] `$LASTEXITCODE = $LASTEXITCODE "; exit $LASTEXITCODE }
     return $output
@@ -77,7 +77,7 @@ function passExitCode ($message, $exitCode) {
 
 function exceptionExit ($exception) {
     write-host "[$scriptName]   Exception details follow ..." -ForegroundColor Red
-    Write-Output $exception.Exception|format-list -force
+    Write-Host $exception.Exception|format-list -force
     write-host "[$scriptName] Returning errorlevel (20) to DOS" -ForegroundColor Magenta
     $host.SetShouldExit(20)
     exit
@@ -434,10 +434,18 @@ if ( $ACTION -ne 'container_build' ) {
 		}
 		# 2.2.0 Integrated Function using environment variables
 		if ( $REVISION -eq 'master' ) {
-			$env:CDAF_REGISTRY_URL = Invoke-Expression "Write-Output $(getProp 'CDAF_REGISTRY_URL' '$solutionRoot\CDAF.solution')"
-			$env:CDAF_REGISTRY_TAG = Invoke-Expression "Write-Output $(getProp 'CDAF_REGISTRY_TAG' '$solutionRoot\CDAF.solution')"
-			$env:CDAF_REGISTRY_USER = Invoke-Expression "Write-Output $(getProp 'CDAF_REGISTRY_USER' '$solutionRoot\CDAF.solution')"
-			$env:CDAF_REGISTRY_TOKEN = Invoke-Expression "Write-Output $(getProp 'CDAF_REGISTRY_TOKEN' '$solutionRoot\CDAF.solution')"
+			if ( $CDAF_REGISTRY_URL ) {
+				$env:CDAF_REGISTRY_URL = Invoke-Expression "Write-Output $CDAF_REGISTRY_URL"
+			}
+			if ( $CDAF_REGISTRY_TAG ) {
+				$env:CDAF_REGISTRY_TAG = Invoke-Expression "Write-Output $CDAF_REGISTRY_TAG"
+			}
+			if ( $CDAF_REGISTRY_USER ) {
+				$env:CDAF_REGISTRY_USER = Invoke-Expression "Write-Output $CDAF_REGISTRY_USER"
+			}
+			if ( $CDAF_REGISTRY_TOKEN ) {
+				$env:CDAF_REGISTRY_TOKEN = Invoke-Expression "Write-Output $CDAF_REGISTRY_TOKEN"
+			}
 		}
 		executeExpression "$imageBuild"
 	}
