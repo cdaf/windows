@@ -434,10 +434,10 @@ if ( $ACTION -ne 'container_build' ) {
 		}
 		# 2.2.0 Integrated Function using environment variables
 		if ( $REVISION -eq 'master' ) {
-			$env:CDAF_REGISTRY_URL = Invoke-Expression "Write-Output $(getProp 'CDAF_REGISTRY_URL' "$solutionRoot\CDAF.solution")"
-			$env:CDAF_REGISTRY_TAG = Invoke-Expression "Write-Output $(getProp 'CDAF_REGISTRY_TAG' "$solutionRoot\CDAF.solution")"
-			$env:CDAF_REGISTRY_USER = Invoke-Expression "Write-Output $(getProp 'CDAF_REGISTRY_USER' "$solutionRoot\CDAF.solution")"
-			$env:CDAF_REGISTRY_TOKEN = Invoke-Expression "Write-Output $(getProp 'CDAF_REGISTRY_TOKEN' "$solutionRoot\CDAF.solution")"
+			$env:CDAF_REGISTRY_URL = Invoke-Expression "Write-Output $(getProp 'CDAF_REGISTRY_URL' '$solutionRoot\CDAF.solution')"
+			$env:CDAF_REGISTRY_TAG = Invoke-Expression "Write-Output $(getProp 'CDAF_REGISTRY_TAG' '$solutionRoot\CDAF.solution')"
+			$env:CDAF_REGISTRY_USER = Invoke-Expression "Write-Output $(getProp 'CDAF_REGISTRY_USER' '$solutionRoot\CDAF.solution')"
+			$env:CDAF_REGISTRY_TOKEN = Invoke-Expression "Write-Output $(getProp 'CDAF_REGISTRY_TOKEN' '$solutionRoot\CDAF.solution')"
 		}
 		executeExpression "$imageBuild"
 	}
