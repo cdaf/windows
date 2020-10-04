@@ -82,14 +82,14 @@ $error.clear()
 Write-Host "`n[$scriptName] ---------- start ----------`n"
 if ( $id ) {
 	$id = $id.ToLower()
-	Write-Host "[$scriptName]   id              : $id"
+	Write-Host "[$scriptName]   id                  : $id"
 } else {
 	Write-Host "[$scriptName]   id not supplied! Exit with LASTEXITCODE 1"
 	exit 1
 }
 
 if ( $buildNumber ) { 
-	Write-Host "[$scriptName]   BUILDNUMBER     : $BUILDNUMBER"
+	Write-Host "[$scriptName]   BUILDNUMBER         : $BUILDNUMBER"
 } else {
 	# Use a simple text file (buildnumber.counter) for incrimental build number
 	if ( Test-Path imagenumber.counter ) {

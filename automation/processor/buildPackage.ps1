@@ -14,13 +14,37 @@ Import-Module Microsoft.PowerShell.Security
 
 # Common expression logging and error handling function, copied, not referenced to ensure atomic process
 function executeExpression ($expression) {
-	Write-Host "[$(Get-date)] $expression"
+	Write-Host "[$(Get-Date)] $expression"
 	try {
-		Invoke-Expression $expression
-	    if(!$?) { Write-Host "[$scriptName] `$? = $?"; exit 1 }
-	} catch { Write-Output $_.Exception|format-list -force; exit 2 }
-    if ( $error ) { Write-Host "[$scriptName] `$error[0] = $error"; exit 3 }
-    if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) { Write-Host "[$scriptName] `$LASTEXITCODE = $LASTEXITCODE "; exit $LASTEXITCODE }
+		Invoke-Expression "$expression 2> `$null"
+	    if(!$?) { Write-Host "[$scriptName] `$? = $?"; $error ; exit 1111 }
+	} catch {
+		Write-Host "[$scriptName][EXCEPTION] List exception and error array (if populated) and exit with LASTEXITCIDE 1112" -ForegroundColor Red
+		Write-Host $_.Exception|format-list -force
+		if ( $error ) { Write-Host "[$scriptName][ERROR] `$Error = $Error" ; $Error.clear() }
+		exit 1112
+	}
+    if ( $LASTEXITCODE ) {
+    	if ( $LASTEXITCODE -ne 0 ) {
+			Write-Host "[$scriptName] `$LASTEXITCODE = $LASTEXITCODE " -ForegroundColor Red
+			if ( $error ) { Write-Host "[$scriptName][ERROR] `$Error = $Error" ; $Error.clear() }
+			exit $LASTEXITCODE
+		} else {
+			if ( $error ) {
+				Write-Host "[$scriptName][WARN] $Error array populated by `$LASTEXITCODE = $LASTEXITCODE error follows...`n" -ForegroundColor Yellow
+				Write-Host "[$scriptName][WARN] `$Error = $Error" ; $Error.clear()
+			}
+		} 
+	} else {
+	    if ( $error ) {
+	    	if ( $env:CDAF_IGNORE_WARNING -eq 'no' ) {
+				Write-Host "[$scriptName][ERROR] `$Error = $error"; $Error.clear()
+				Write-Host "[$scriptName][ERROR] `$env:CDAF_IGNORE_WARNING is 'no' so exiting with LASTEXITCODE 1113 ..."; exit 1113
+	    	} else {
+		    	Write-Host "[$scriptName][WARN] `$Error = $error" ; $Error.clear()
+	    	}
+		}
+	}
 }
 
 # Common expression logging and error handling function, copied, not referenced to ensure atomic process
@@ -407,16 +431,15 @@ if ( $ACTION -ne 'container_build' ) {
 			} else {
 				Write-Host "[$scriptName] WARNING neither runtimeImage nor containerImage defined in $SOLUTIONROOT/CDAF.solution"
 			}
-
-			# 2.2.0 Integrated Function using environment variables
-			if ( $REVISION -eq 'master' ) {
-				$env:CDAF_REGISTRY_URL = Invoke-Expression "Write-Output $(getProp 'CDAF_REGISTRY_URL' "$solutionRoot\CDAF.solution")"
-				$env:CDAF_REGISTRY_TAG = Invoke-Expression "Write-Output $(getProp 'CDAF_REGISTRY_TAG' "$solutionRoot\CDAF.solution")"
-				$env:CDAF_REGISTRY_USER = Invoke-Expression "Write-Output $(getProp 'CDAF_REGISTRY_USER' "$solutionRoot\CDAF.solution")"
-				$env:CDAF_REGISTRY_TOKEN = Invoke-Expression "Write-Output $(getProp 'CDAF_REGISTRY_TOKEN' "$solutionRoot\CDAF.solution")"
-			}
-			executeExpression "$imageBuild $registryTag"
 		}
+		# 2.2.0 Integrated Function using environment variables
+		if ( $REVISION -eq 'master' ) {
+			$env:CDAF_REGISTRY_URL = Invoke-Expression "Write-Output $(getProp 'CDAF_REGISTRY_URL' "$solutionRoot\CDAF.solution")"
+			$env:CDAF_REGISTRY_TAG = Invoke-Expression "Write-Output $(getProp 'CDAF_REGISTRY_TAG' "$solutionRoot\CDAF.solution")"
+			$env:CDAF_REGISTRY_USER = Invoke-Expression "Write-Output $(getProp 'CDAF_REGISTRY_USER' "$solutionRoot\CDAF.solution")"
+			$env:CDAF_REGISTRY_TOKEN = Invoke-Expression "Write-Output $(getProp 'CDAF_REGISTRY_TOKEN' "$solutionRoot\CDAF.solution")"
+		}
+		executeExpression "$imageBuild"
 	}
 
 	# CDAF 2.1.0 Self-extracting Script Artifact
