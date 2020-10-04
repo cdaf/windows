@@ -203,6 +203,7 @@ foreach ($image in $constructor ) {
 		executeExpression "rm -Recurse ${transient}\${image}"
 	}
 	executeExpression "cp -Recurse .\${image} ${transient}"
+	$image = $image.ToLower()
 	if ( Test-Path ../dockerBuild.ps1 ) {
 		executeExpression "cp ../dockerBuild.ps1 ${transient}\${image}"
 	} else {
