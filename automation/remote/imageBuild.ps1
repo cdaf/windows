@@ -3,7 +3,6 @@ Param (
 	[string]$BUILDNUMBER,
 	[string]$containerImage,
 	[string]$constructor,
-	[string]$registryTag,
 	[string]$optionalArgs
 )
 
@@ -103,30 +102,30 @@ if ( $buildNumber ) {
 		$BUILDNUMBER += 1
 	}
 	Out-File imagenumber.counter -InputObject $BUILDNUMBER
-	Write-Host "[$scriptName]   BUILDNUMBER     : $BUILDNUMBER (using locally generated counter)"
+	Write-Host "[$scriptName]   BUILDNUMBER         : $BUILDNUMBER (using locally generated counter)"
 }
 
 if ( $containerImage ) {
 	if (($env:CONTAINER_IMAGE) -or ($CONTAINER_IMAGE)) {
-		Write-Host "[$scriptName]   containerImage  : $containerImage"
+		Write-Host "[$scriptName]   containerImage      : $containerImage"
 		if ($env:CONTAINER_IMAGE) {
 			Write-Host "[$scriptName]   CONTAINER_IMAGE : $env:CONTAINER_IMAGE (not changed as already set)"
 		} else {
 			$env:CONTAINER_IMAGE = $CONTAINER_IMAGE
-			Write-Host "[$scriptName]   CONTAINER_IMAGE : $env:CONTAINER_IMAGE (loaded from `$CONTAINER_IMAGE)"
+			Write-Host "[$scriptName]   CONTAINER_IMAGE     : $env:CONTAINER_IMAGE (loaded from `$CONTAINER_IMAGE)"
 		}
 	} else {
 		$env:CONTAINER_IMAGE = $containerImage
-		Write-Host "[$scriptName]   CONTAINER_IMAGE : $env:CONTAINER_IMAGE (set to `$containerImage)"
+		Write-Host "[$scriptName]   CONTAINER_IMAGE     : $env:CONTAINER_IMAGE (set to `$containerImage)"
 	}
 } else {
 	if (($env:CONTAINER_IMAGE) -or ($CONTAINER_IMAGE)) {
-		Write-Host "[$scriptName]   containerImage  : $containerImage"
+		Write-Host "[$scriptName]   containerImage      : $containerImage"
 		if ($env:CONTAINER_IMAGE) {
-			Write-Host "[$scriptName]   CONTAINER_IMAGE : $env:CONTAINER_IMAGE (containerImage not passed, using existing environment variable)"
+			Write-Host "[$scriptName]   CONTAINER_IMAGE     : $env:CONTAINER_IMAGE (containerImage not passed, using existing environment variable)"
 		} else {
 			$env:CONTAINER_IMAGE = $CONTAINER_IMAGE
-			Write-Host "[$scriptName]   CONTAINER_IMAGE : $env:CONTAINER_IMAGE (containerImage not passed, loaded from `$CONTAINER_IMAGE)"
+			Write-Host "[$scriptName]   CONTAINER_IMAGE     : $env:CONTAINER_IMAGE (containerImage not passed, loaded from `$CONTAINER_IMAGE)"
 		}
 	} else {
 		Write-Host "[$scriptName][ERROR] containerImage not passed and neither `$env:CONTAINER_IMAGE nor `$CONTAINER_IMAGE set, exiting with `$LASTEXITCODE 6674"
@@ -134,31 +133,48 @@ if ( $containerImage ) {
 	}
 }
 
-# 2.2.0 extension to allow custom source directory
+# 2.2.0 Replaced optional persist parameter as extension for the support as integrated function, extension to allow custom source directory
 if ( $constructor ) {
-	Write-Host "[$scriptName]   constructor     : $constructor"
+	Write-Host "[$scriptName]   constructor         : $constructor"
 } else {
-	Write-Host "[$scriptName]   constructor     : (not supplied, will process all directories)"
+	Write-Host "[$scriptName]   constructor         : (not supplied, will process all directories)"
 }
 
-# 2.2.0 Replaced optional persist parameter as extension for the support as integrated function
-if ( $registryTag ) {
-	Write-Host "[$scriptName]   registryTag     : $registryTag"
+if ( $env:CDAF_REGISTRY_URL ) {
+	Write-Host "[$scriptName]   CDAF_REGISTRY_URL   : $env:CDAF_REGISTRY_URL"
 } else {
-	Write-Host "[$scriptName]   registryTag     : (not supplied, push will not be attempted)"
+	Write-Host "[$scriptName]   CDAF_REGISTRY_URL   : (not supplied)"
+}
+
+if ( $env:CDAF_REGISTRY_TAG ) {
+	Write-Host "[$scriptName]   CDAF_REGISTRY_TAG   : $env:CDAF_REGISTRY_TAG"
+} else {
+	Write-Host "[$scriptName]   CDAF_REGISTRY_TAG   : (not supplied)"
+}
+
+if ( $env:CDAF_REGISTRY_USER ) {
+	Write-Host "[$scriptName]   CDAF_REGISTRY_USER  : $env:CDAF_REGISTRY_USER"
+} else {
+	Write-Host "[$scriptName]   CDAF_REGISTRY_USER  : (not supplied, push will not be attempted)"
+}
+
+if ( $env:CDAF_REGISTRY_TOKEN ) {
+	Write-Host "[$scriptName]   CDAF_REGISTRY_TOKEN : $env:CDAF_REGISTRY_TOKEN"
+} else {
+	Write-Host "[$scriptName]   CDAF_REGISTRY_TOKEN : (not supplied)"
 }
 
 if ( $optionalArgs ) {
-	Write-Host "[$scriptName]   optionalArgs    : $optionalArgs"
+	Write-Host "[$scriptName]   optionalArgs        : $optionalArgs"
 } else {
-	Write-Host "[$scriptName]   optionalArgs    : (not supplied, example '--memory 4g')"
+	Write-Host "[$scriptName]   optionalArgs        : (not supplied, example '--memory 4g')"
 }
 
-Write-Host "[$scriptName]   pwd             : $(Get-Location)"
-Write-Host "[$scriptName]   hostname        : $(hostname)"
-Write-Host "[$scriptName]   whoami          : $(whoami)"
+Write-Host "[$scriptName]   pwd                 : $(Get-Location)"
+Write-Host "[$scriptName]   hostname            : $(hostname)"
+Write-Host "[$scriptName]   whoami              : $(whoami)"
 $workspace = $(Get-Location)
-Write-Host "[$scriptName]   workspace       : ${workspace}`n"
+Write-Host "[$scriptName]   workspace           : ${workspace}`n"
 
 $transient = "$env:TEMP\buildImage\${id}"
 
@@ -207,6 +223,16 @@ foreach ($image in $constructor ) {
 	}
 	executeExpression "./dockerClean.ps1 ${id}_${image} $BUILDNUMBER"
 	executeExpression "cd $workspace"
+}
+
+# 2.2.0 Integrated Registry push, not masking of secrets, it is expected the CI tool will know to mask these
+if ( "$env:CDAF_REGISTRY_USER" ) {
+	executeExpression "echo $env:CDAF_REGISTRY_TOKEN | docker login --username $env:CDAF_REGISTRY_USER --password-stdin $env:CDAF_REGISTRY_URL"
+	executeExpression "docker tag ${id}_${image##*/}:$BUILDNUMBER $env:CDAF_REGISTRY_TAG"
+	executeExpression "docker push $env:CDAF_REGISTRY_TAG"
+} else {
+	Write-Host "~$env:CDAF_REGISTRY_USER not set, to push to registry set CDAF_REGISTRY_URL, CDAF_REGISTRY_TAG, CDAF_REGISTRY_USER & CDAF_REGISTRY_TOKEN"
+	Write-Host "Do not set CDAF_REGISTRY_URL when pushing to dockerhub"
 }
 
 Write-Host "`n[$scriptName] ---------- stop ----------"

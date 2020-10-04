@@ -1,0 +1,23 @@
+# This file defines the automation root along with CD emulator value (solutionName)
+artifactPrefix=0.0
+# productVersion=0.0.0
+productName=My Product Name
+solutionName=myproduct
+# containerBuild=& $AUTOMATIONROOT/processor/containerBuild.ps1 ${SOLUTION} ${BUILDNUMBER} ${REVISION}
+# containerImage=mcr.microsoft.com/windows/servercore:ltsc2019@sha256:30f8f12fc7a3da27e2b9e8c6c7f564f78a7610594713ae49143e5808e1fe7b36
+# processSequence=localTasks.ps1 remoteTasks.ps1
+
+imageBuild=& $AUTOMATIONROOT/remote/imageBuild.ps1 ${SOLUTION}_${REVISION} ${BUILDNUMBER} $runtimeImage TasksLocal dockerhub
+
+# Private Registry
+# CDAF_REGISTRY_URL=${CI_REGISTRY}
+# CDAF_REGISTRY_TAG=${CI_REGISTRY}/windows/${SOLUTION}:$BUILDNUMBER
+# CDAF_REGISTRY_USER=${CI_REGISTRY_USER}
+# CDAF_REGISTRY_TOKEN=${CI_JOB_TOKEN}
+
+# Docker Hub (do not define URL)
+CDAF_REGISTRY_TAG=cdaf/${SOLUTION}:$BUILDNUMBER
+CDAF_REGISTRY_USER=${bamboo_DOCKER_HUB_USER}
+CDAF_REGISTRY_TOKEN=${bamboo_DOCKER_HUB_PASSWORD}
+
+# processSequence=localTasks.sh remoteTasks.sh
