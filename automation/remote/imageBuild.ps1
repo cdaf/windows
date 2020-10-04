@@ -228,7 +228,7 @@ foreach ($image in $constructor ) {
 # 2.2.0 Integrated Registry push, not masking of secrets, it is expected the CI tool will know to mask these
 if ( "$env:CDAF_REGISTRY_USER" ) {
 	executeExpression "echo $env:CDAF_REGISTRY_TOKEN | docker login --username $env:CDAF_REGISTRY_USER --password-stdin $env:CDAF_REGISTRY_URL"
-	executeExpression "docker tag ${id}_${image##*/}:$BUILDNUMBER $env:CDAF_REGISTRY_TAG"
+	executeExpression "docker tag ${id}_${image}:$BUILDNUMBER $env:CDAF_REGISTRY_TAG"
 	executeExpression "docker push $env:CDAF_REGISTRY_TAG"
 } else {
 	Write-Host "~$env:CDAF_REGISTRY_USER not set, to push to registry set CDAF_REGISTRY_URL, CDAF_REGISTRY_TAG, CDAF_REGISTRY_USER & CDAF_REGISTRY_TOKEN"
