@@ -204,6 +204,13 @@ foreach ($image in $constructor ) {
 	}
 	executeExpression "cp -Recurse .\${image} ${transient}"
 	$image = $image.ToLower()
+	if ( Test-Path ../automation ) {
+		executeExpression "cp -Recurse ../automation ${transient}\${image}"
+	} else {
+		if ( Test-Path $env:CDAF_AUTOMATION_ROOT ) {
+			executeExpression "cp $env:CDAF_AUTOMATION_ROOT ${transient}\${image}"
+		}
+	}
 	if ( Test-Path ../dockerBuild.ps1 ) {
 		executeExpression "cp ../dockerBuild.ps1 ${transient}\${image}"
 	} else {
