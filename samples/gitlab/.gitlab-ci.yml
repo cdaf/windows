@@ -11,14 +11,13 @@ cdaf-ci:
   script: "automation/ci.bat %CI_BUILD_ID% %CI_BUILD_REF_NAME%"
   artifacts:
     paths:
-    - TasksLocal/
-    - "%CI_PROJECT_NAME%-%CI_BUILD_ID%.zip"
+    - release.ps1
 
 cd:
   stage: automated test
   tags:
     - batch
-  script: "TasksLocal/delivery.bat %CI_JOB_NAME% %CI_PIPELINE_ID%"
+  script: "./release.ps1 $env:CI_JOB_NAME $env:CI_PIPELINE_ID"
   environment: "${CI_JOB_STAGE}"
   dependencies:
     - cdaf-ci
@@ -27,7 +26,7 @@ test:
   stage: manual test
   tags:
     - batch
-  script: "TasksLocal/delivery.bat %CI_JOB_NAME% %CI_PIPELINE_ID%"
+  script: "./release.ps1 $env:CI_JOB_NAME $env:CI_PIPELINE_ID"
   environment: "${CI_JOB_STAGE}"
   dependencies:
     - cdaf-ci
@@ -38,7 +37,7 @@ production:
   stage: live
   tags:
     - batch
-  script: "TasksLocal/delivery.bat %CI_JOB_NAME% %CI_PIPELINE_ID%"
+  script: "./release.ps1 $env:CI_JOB_NAME $env:CI_PIPELINE_ID"
   environment: "${CI_JOB_STAGE}"
   dependencies:
     - cdaf-ci
