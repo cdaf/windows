@@ -12,6 +12,10 @@ Import-Module Microsoft.PowerShell.Utility
 Import-Module Microsoft.PowerShell.Management
 Import-Module Microsoft.PowerShell.Security
 
+cmd /c "exit 0"
+$error.clear()
+$scriptName = 'buildPackage.ps1'
+
 # Common expression logging and error handling function, copied, not referenced to ensure atomic process
 function executeExpression ($expression) {
 	Write-Host "[$(Get-Date)] $expression"
@@ -152,10 +156,6 @@ if ($solutionRoot) {
 	$solutionRoot="$AUTOMATIONROOT\solution"
 	write-host "$solutionRoot (default, project directory containing CDAF.solution not found)"
 }
-
-cmd /c "exit 0"
-$error.clear()
-$scriptName = 'buildPackage.ps1'
 
 if ( $BUILDNUMBER ) {
 	Write-Host "[$scriptName]   BUILDNUMBER     : $BUILDNUMBER"
@@ -329,6 +329,7 @@ if ( $ACTION -eq 'container_build' ) {
 		if ($versionTest -like '*not recognized*') {
 			Write-Host "[$scriptName]   containerBuild  : containerBuild defined in $solutionRoot\CDAF.solution, but Docker not installed, will attempt to execute natively"
 			Clear-Variable -Name 'containerBuild'
+			$executeNative = $true
 		} else {
 			Write-Host "[$scriptName]   containerBuild  : $containerBuild"
 			$array = $versionTest.split(" ")
@@ -352,6 +353,7 @@ if ( $ACTION -eq 'container_build' ) {
 						Write-Host "[$scriptName] Docker installed but not running, will attempt to execute natively (set `$env:CDAF_DOCKER_REQUIRED if docker is mandatory)"
 						cmd /c "exit 0"
 						Clear-Variable -Name 'containerBuild'
+						$executeNative = $true
 					}
 				}
 			}
@@ -364,9 +366,10 @@ if ( $ACTION -eq 'container_build' ) {
 				if ( $env:CDAF_DOCKER_REQUIRED ) {
 					dockerStart
 				} else {			    
-					Write-Host "[$scriptName] Docker installed but not running, will attempt to execute natively (set `$env:CDAF_DOCKER_REQUIRED if docker is mandatory)"
+					Write-Host "[$scriptName]   Docker installed but not running, will attempt to execute natively (set `$env:CDAF_DOCKER_REQUIRED if docker is mandatory)"
 					cmd /c "exit 0"
 					Clear-Variable -Name 'containerBuild'
+					$executeNative = $true
 				}
 			}
 		}
@@ -378,7 +381,12 @@ if ( $ACTION -eq 'container_build' ) {
 # 2.2.0 Image Build as incorperated function
 $imageBuild = getProp 'imageBuild' "$solutionRoot\CDAF.solution"
 if ( $imageBuild ) {
-	Write-Host "[$scriptName]   imageBuild      : $imageBuild"
+	if ( $executeNative ) { # docker test already performed
+		Write-Host "[$scriptName]   imageBuild      : containerBuild defined in $solutionRoot\CDAF.solution, but Docker not in use, imageBuild will not be attempted"
+		Clear-Variable -Name 'imageBuild'
+	} else {
+		Write-Host "[$scriptName]   imageBuild      : $imageBuild"
+	}
 } else {
 	Write-Host "[$scriptName]   imageBuild      : (not defined in $solutionRoot\CDAF.solution)"
 }
