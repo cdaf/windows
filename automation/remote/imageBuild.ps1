@@ -207,19 +207,29 @@ foreach ($image in $constructor ) {
 	if ( Test-Path ../automation ) {
 		executeExpression "cp -Recurse ../automation ${transient}\${image}"
 	} else {
-		if ( Test-Path $env:CDAF_AUTOMATION_ROOT ) {
-			executeExpression "cp $env:CDAF_AUTOMATION_ROOT ${transient}\${image}"
+		if (! ( $constructor )) {
+			Write-Host "`n[$scriptName][WARN] CDAF not found in ../automation`n"
 		}
 	}
 	if ( Test-Path ../dockerBuild.ps1 ) {
 		executeExpression "cp ../dockerBuild.ps1 ${transient}\${image}"
 	} else {
-		executeExpression "cp $env:CDAF_AUTOMATION_ROOT/remote/dockerBuild.ps1 ${transient}\${image}"
+		if ( $env:CDAF_AUTOMATION_ROOT ) {
+			executeExpression "cp $env:CDAF_AUTOMATION_ROOT/remote/dockerBuild.ps1 ${transient}\${image}"
+		} else {
+			Write-Host "`n[$scriptName][ERROR] dockerBuild.ps1 not found in parent directory and `$env:CDAF_AUTOMATION_ROOT not set. ABORT with LASTEXITCODE 7401 `n"
+			exit 7401
+		}
 	}
 	if ( Test-Path ../dockerClean.ps1 ) {
 		executeExpression "cp ../dockerClean.ps1 ${transient}\${image}"
 	} else {
-		executeExpression "cp $env:CDAF_AUTOMATION_ROOT/remote/dockerClean.ps1 ${transient}\${image}"
+		if ( $env:CDAF_AUTOMATION_ROOT ) {
+			executeExpression "cp $env:CDAF_AUTOMATION_ROOT/remote/dockerClean.ps1 ${transient}\${image}"
+		} else {
+			Write-Host "`n[$scriptName][ERROR] dockerClean.ps1 not found in parent directory and `$env:CDAF_AUTOMATION_ROOT not set. ABORT with LASTEXITCODE 7402 `n"
+			exit 7402
+		}
 	}
 	executeExpression "cd ${transient}\${image}"
 	executeExpression "cat Dockerfile"
@@ -238,7 +248,7 @@ if ( "$env:CDAF_REGISTRY_USER" ) {
 	executeExpression "docker tag ${id}_${image}:$BUILDNUMBER $env:CDAF_REGISTRY_TAG"
 	executeExpression "docker push $env:CDAF_REGISTRY_TAG"
 } else {
-	Write-Host "~$env:CDAF_REGISTRY_USER not set, to push to registry set CDAF_REGISTRY_URL, CDAF_REGISTRY_TAG, CDAF_REGISTRY_USER & CDAF_REGISTRY_TOKEN"
+	Write-Host "`$env:CDAF_REGISTRY_USER not set, to push to registry set CDAF_REGISTRY_URL, CDAF_REGISTRY_TAG, CDAF_REGISTRY_USER & CDAF_REGISTRY_TOKEN"
 	Write-Host "Do not set CDAF_REGISTRY_URL when pushing to dockerhub"
 }
 

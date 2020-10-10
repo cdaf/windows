@@ -464,8 +464,12 @@ if ( $ACTION -ne 'container_build' ) {
 		$artifactID = "${SOLUTION}-${artifactPrefix}.${BUILDNUMBER}"
 		Write-Host "[$scriptName] artifactPrefix = $artifactID, generate single file artefact ..."
 		Write-Host "[$scriptName]   Created $(mkdir "$artifactID")"
-		
-		executeExpression "Move-Item '.\TasksLocal' '.\$artifactID'"
+		if ( Test-Path .\TasksLocal ) { 
+			executeExpression "Move-Item '.\TasksLocal' '.\$artifactID'"
+		} else {
+			Write-Host "[$scriptName] package output .\TasksLocal missing! ABORTING with LASTEXITCODE 2548."
+			exit 2548
+		}
 		executeExpression 'Add-Type -AssemblyName System.IO.Compression.FileSystem'
 		executeExpression "[System.IO.Compression.ZipFile]::CreateFromDirectory('$artifactID', '$artifactID.zip', 'Optimal', `$false)"
 
