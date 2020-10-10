@@ -22,14 +22,14 @@ function execute ($expression) {
 	writeLog "[$(Get-date)] $expression"
 	try {
 		Invoke-Expression $expression
-	    if(!$?) { writeLog "`$? = $?"; exit 1 }
-	} catch { Write-Output $_.Exception|format-list -force; exit 2 }
-    if ( $error[0] ) { writeLog "`$error[0] = $error"; exit 3 }
+	    if(!$?) { writeLog "`$? = $?"; emailAndExit 1 }
+	} catch { Write-Output $_.Exception|format-list -force; emailAndExit 2 }
+    if ( $error[0] ) { writeLog "`$error[0] = $error"; emailAndExit 3 }
 }
 
 function executeExpression ($expression) {
 	execute $expression
-    if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) { writeLog "ERROR! Exiting with `$LASTEXITCODE = $LASTEXITCODE"; exit $LASTEXITCODE }
+    if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) { writeLog "ERROR! Exiting with `$LASTEXITCODE = $LASTEXITCODE"; emailAndExit $LASTEXITCODE }
 }
 
 function executeIgnoreExit ($expression) {
