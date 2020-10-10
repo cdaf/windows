@@ -95,6 +95,7 @@ if ($stripDISM) {
 }
 
 executeExpression "cd $(split-path -parent $MyInvocation.MyCommand.Definition)"
+executeExpression "[System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]'Tls11,Tls12'"
 executeExpression "pwd"
 
 if ( $hypervisor -eq 'virtualbox' ) {
