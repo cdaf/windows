@@ -1,4 +1,4 @@
-	Param (
+Param (
 	[string]$emailTo,
 	[string]$smtpServer,
 	[string]$skipUpdates
