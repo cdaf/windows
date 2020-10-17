@@ -137,7 +137,7 @@ write-host "`n[$scriptName] Transfer control to the remote host`n" -ForegroundCo
 try {
 	Invoke-Command -session $session -File $WORK_DIR_DEFAULT\deploy.ps1 -Args $DEPLOY_TARGET,$deployLand\$SOLUTION-$BUILD,$warnondeployerror,$OPT_ARG
 } catch { 
-	$exceptionCode = echo $_.tostring()
+	$exceptionCode = Write-Output $_.tostring()
 	[int]$exceptionCode = [convert]::ToInt32($exceptionCode)
 	if ( $exceptionCode -ne 0 ){
 	    write-host "[$scriptName] EXCEPTION_PASS_BACK Invoke-Command -session $session -File $WORK_DIR_DEFAULT\deploy.ps1 -Args $DEPLOY_TARGET,$deployLand\$SOLUTION-$BUILD,$warnondeployerror" -ForegroundColor Magenta
