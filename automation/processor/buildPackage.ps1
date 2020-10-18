@@ -501,18 +501,21 @@ if ( $ACTION -ne 'container_build' ) {
 		Add-Content "release.ps1" "[System.IO.Compression.ZipFile]::ExtractToDirectory(`"`$PWD\${SOLUTION}-${artifactPrefix}.${BUILDNUMBER}.zip`", `"`$PWD`")"
 		Add-Content "release.ps1" '.\TasksLocal\delivery.bat "$ENVIRONMENT" "$RELEASE" "$OPT_ARG"'
 		Add-Content "release.ps1" 'exit $LASTEXITCODE'
+		$artefactList = @('release.ps1')
+	} else {
+		$artefactList = @(Get-ChildItem *.zip)
+		$artefactList += '.\TasksLocal\'
 	}
 }
 
 if ( $ACTION -like 'staging@*' ) { # Primarily for ADO pipelines
 	$parts = $ACTION.split('@')
 	$stageTarget = $parts[1]
-	if ( $artifactPrefix ) {
-		executeExpression "Copy-Item 'release.ps1' '$stageTarget'"
-	} else {
-		executeExpression "Copy-Item -Recurse '.\TasksLocal\' '$stageTarget'"
-		executeExpression "Copy-Item '*.zip' '$stageTarget'"
+	foreach ($artefactItem in $artefactList) {
+		executeExpression "Copy-Item '$artefactItem' '$stageTarget'"
 	}
+} else {
+	$stageTarget = Get-Location
 }
 
 if ( $ACTION -ne 'container_build' ) {
@@ -531,3 +534,5 @@ if ( $ACTION -ne 'container_build' ) {
 		itemRemove "${SOLUTION}-${artifactPrefix}.${BUILDNUMBER}"
 	}
 }
+
+Write-Host "[$scriptName][$(Get-Date)] Process complete, artefacts [$artefactList] placed in $stageTarget"
