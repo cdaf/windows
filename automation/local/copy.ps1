@@ -35,7 +35,7 @@ if ( Test-Path $WORK_DIR_DEFAULT\copyLand.ps1 ) {
 Foreach ($line in get-content $WORK_DIR_DEFAULT\copyTemplate.ps1) {
 	$line = $line -replace "deployLand", $deployPath 
 	$line = $line -replace "copy.ps1", "copyLand.ps1"
-	$result = Add-Content $WORK_DIR_DEFAULT\copyLand.ps1 $line
+	$result = $(Add-Content $WORK_DIR_DEFAULT\copyLand.ps1 $line)
 }
 
 try {
