@@ -504,15 +504,20 @@ if ( $ACTION -ne 'container_build' ) {
 		$artefactList = @('release.ps1')
 	} else {
 		$artefactList = @(Get-ChildItem *.zip)
-		$artefactList += '.\TasksLocal\'
+		$artefactList += "$(Get-Location)\TasksLocal\"
 	}
 }
 
 if ( $ACTION -like 'staging@*' ) { # Primarily for ADO pipelines
 	$parts = $ACTION.split('@')
 	$stageTarget = $parts[1]
+	if ( Test-Path $stageTarget ) {
+		executeExpression "Remove-Item -Recurse -Force $stageTarget\*"
+	} else {
+		Write-Host "Created $(mkdir $stageTarget)"
+	}
 	foreach ($artefactItem in $artefactList) {
-		executeExpression "Copy-Item '$artefactItem' '$stageTarget'"
+		executeExpression "Copy-Item -Recurse '$artefactItem' '$stageTarget'"
 	}
 } else {
 	$stageTarget = Get-Location
