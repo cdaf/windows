@@ -510,6 +510,8 @@ if ( $ACTION -ne 'container_build' ) {
 		$artefactList = @(Get-ChildItem *.zip)
 		$artefactList += "$(Get-Location)\TasksLocal\"
 	}
+} else { # self-extracting release is never created in container_build
+	$artefactList += "$(Get-Location)\TasksLocal\"
 }
 
 if ( $ACTION -like 'staging@*' ) { # Primarily for ADO pipelines
