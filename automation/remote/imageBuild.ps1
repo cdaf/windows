@@ -83,7 +83,7 @@ function dockerLogin {
 		exit 6630
 	}
 
-	$value = .\getProperty.ps1 "manifest.txt" "CDAF_REGISTRY_URL"
+	$value = & .\getProperty.ps1 "manifest.txt" "CDAF_REGISTRY_URL"
 	if ( $value ) {
 		$env:CDAF_REGISTRY_URL = Invoke-Expression "Write-Output $value"
 	}
@@ -93,7 +93,7 @@ function dockerLogin {
 		Write-Host  "[$scriptName]  CDAF_REGISTRY_URL   = $env:CDAF_REGISTRY_URL"
 	}
 
-	$value = .\getProperty.ps1 "manifest.txt" "CDAF_REGISTRY_USER"
+	$value = & .\getProperty.ps1 "manifest.txt" "CDAF_REGISTRY_USER"
 	if ( $value ) {
 		$env:CDAF_REGISTRY_USER = Invoke-Expression "Write-Output $value"
 	}
@@ -104,7 +104,7 @@ function dockerLogin {
 		Write-Host  "[$scriptName]  CDAF_REGISTRY_USER  = $env:CDAF_REGISTRY_USER"
 	}
 
-	$value = .\getProperty.ps1 "manifest.txt" "CDAF_REGISTRY_TOKEN"
+	$value = & .\getProperty.ps1 "manifest.txt" "CDAF_REGISTRY_TOKEN"
 	if ( $value ) {
 		$env:CDAF_REGISTRY_TOKEN = Invoke-Expression "Write-Output $value"
 	}
