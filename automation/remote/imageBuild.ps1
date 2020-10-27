@@ -83,27 +83,35 @@ function dockerLogin {
 		exit 6630
 	}
 
-	$env:CDAF_REGISTRY_USER = Invoke-Expression "Write-Output $(.\getProperty.ps1 "manifest.txt" "CDAF_REGISTRY_USER")"
-	if ( Test-Path "$env:CDAF_REGISTRY_USER" ) {
-		Write-Host  "[$scriptName]  CDAF_REGISTRY_USER not supplied! User credentials required for publishing."
-		exit 6631
-	} else {
-		Write-Host  "[$scriptName]  CDAF_REGISTRY_USER  = $env:CDAF_REGISTRY_USER"
+	$value = .\getProperty.ps1 "manifest.txt" "CDAF_REGISTRY_URL"
+	if ( $value ) {
+		$env:CDAF_REGISTRY_URL = Invoke-Expression "Write-Output $value"
+		if ( Test-Path "$env:CDAF_REGISTRY_URL" ) {
+			Write-Host  "[$scriptName]  CDAF_REGISTRY_URL   = (not supplied, do not set when pushing to Dockerhub)"
+		} else {
+			Write-Host  "[$scriptName]  CDAF_REGISTRY_URL   = $env:CDAF_REGISTRY_URL"
+		}
 	}
 
-	$env:CDAF_REGISTRY_TOKEN = Invoke-Expression "Write-Output $(.\getProperty.ps1 "manifest.txt" "CDAF_REGISTRY_TOKEN")"
-	if ( Test-Path "$env:CDAF_REGISTRY_TOKEN" ) {
-		Write-Host  "[$scriptName]  CDAF_REGISTRY_TOKEN not supplied! User credentials required for publishing."
-		exit 6632
-	} else {
-		Write-Host  "[$scriptName]  CDAF_REGISTRY_TOKEN = $env:CDAF_REGISTRY_TOKEN"
+	$value = .\getProperty.ps1 "manifest.txt" "CDAF_REGISTRY_USER"
+	if ( $value ) {
+		$env:CDAF_REGISTRY_USER = Invoke-Expression "Write-Output $value"
+		if ( Test-Path "$env:CDAF_REGISTRY_USER" ) {
+			Write-Host  "[$scriptName]  CDAF_REGISTRY_USER not supplied! User credentials required for publishing."
+			exit 6631
+		} else {
+			Write-Host  "[$scriptName]  CDAF_REGISTRY_USER  = $env:CDAF_REGISTRY_USER"
+		}
 	}
-
-	$env:CDAF_REGISTRY_URL = Invoke-Expression "Write-Output $(.\getProperty.ps1 "manifest.txt" "CDAF_REGISTRY_URL")"
-	if ( Test-Path "$env:CDAF_REGISTRY_URL" ) {
-		Write-Host  "[$scriptName]  CDAF_REGISTRY_URL   = (not supplied, do not set when pushing to Dockerhub)"
-	} else {
-		Write-Host  "[$scriptName]  CDAF_REGISTRY_URL   = $env:CDAF_REGISTRY_URL"
+	$value = .\getProperty.ps1 "manifest.txt" "CDAF_REGISTRY_TOKEN"
+	if ( $value ) {
+		$env:CDAF_REGISTRY_TOKEN = Invoke-Expression "Write-Output $value"
+		if ( Test-Path "$env:CDAF_REGISTRY_TOKEN" ) {
+			Write-Host  "[$scriptName]  CDAF_REGISTRY_TOKEN not supplied! User credentials required for publishing."
+			exit 6632
+		} else {
+			Write-Host  "[$scriptName]  CDAF_REGISTRY_TOKEN = $env:CDAF_REGISTRY_TOKEN"
+		}
 	}
 
 	executeExpression "echo `$env:CDAF_REGISTRY_TOKEN | docker login --username $env:CDAF_REGISTRY_USER --password-stdin $env:CDAF_REGISTRY_URL"
