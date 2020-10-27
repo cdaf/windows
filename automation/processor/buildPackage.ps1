@@ -442,18 +442,10 @@ if ( $ACTION -ne 'container_build' ) {
 		}
 		# 2.2.0 Integrated Function using environment variables
 		if ( $REVISION -eq 'master' ) {
-			if ( $CDAF_REGISTRY_URL ) {
-				$env:CDAF_REGISTRY_URL = Invoke-Expression "Write-Output $CDAF_REGISTRY_URL"
-			}
-			if ( $CDAF_REGISTRY_TAG ) {
-				$env:CDAF_REGISTRY_TAG = Invoke-Expression "Write-Output $CDAF_REGISTRY_TAG"
-			}
-			if ( $CDAF_REGISTRY_USER ) {
-				$env:CDAF_REGISTRY_USER = Invoke-Expression "Write-Output $CDAF_REGISTRY_USER"
-			}
-			if ( $CDAF_REGISTRY_TOKEN ) {
-				$env:CDAF_REGISTRY_TOKEN = Invoke-Expression "Write-Output $CDAF_REGISTRY_TOKEN"
-			}
+			$env:CDAF_REGISTRY_URL = Invoke-Expression "Write-Output $(& $AUTOMATIONROOT\remote\getProperty.ps1 "$SOLUTIONROOT/CDAF.solution" "CDAF_REGISTRY_URL")"
+			$env:CDAF_REGISTRY_TAG = Invoke-Expression "Write-Output $(& $AUTOMATIONROOT\remote\getProperty.ps1 "$SOLUTIONROOT/CDAF.solution" "CDAF_REGISTRY_TAG")"
+			$env:CDAF_REGISTRY_USER = Invoke-Expression "Write-Output $(& $AUTOMATIONROOT\remote\getProperty.ps1 "$SOLUTIONROOT/CDAF.solution" "CDAF_REGISTRY_USER")"
+			$env:CDAF_REGISTRY_TOKEN = Invoke-Expression "Write-Output $(& $AUTOMATIONROOT\remote\getProperty.ps1 "$SOLUTIONROOT/CDAF.solution" "CDAF_REGISTRY_TOKEN")"
 		}
 		executeExpression "$imageBuild"
 	}

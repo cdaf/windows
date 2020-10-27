@@ -75,181 +75,215 @@ function executeRetry ($expression) {
     return $output
 }
 
+function dockerLogin {
+	if ( Test-Path manifest.txt ) {
+		Write-Host "`n[$scriptName] Loading registry properties from manifest.txt..."
+	} else {
+		Write-Host "`n[$scriptName] manifest.txt file not found! If processing from CI context, use wrap.tsk driver.`n"
+		exit 6630
+	}
+
+	$env:CDAF_REGISTRY_USER = Invoke-Expression "Write-Output $(.\getProperty.ps1 "manifest.txt" "CDAF_REGISTRY_USER")"
+	if ( Test-Path "$env:CDAF_REGISTRY_USER" ) {
+		Write-Host  "[$scriptName]  CDAF_REGISTRY_USER not supplied! User credentials required for publishing."
+		exit 6631
+	} else {
+		Write-Host  "[$scriptName]  CDAF_REGISTRY_USER  = $env:CDAF_REGISTRY_USER"
+	}
+
+	$env:CDAF_REGISTRY_TOKEN = Invoke-Expression "Write-Output $(.\getProperty.ps1 "manifest.txt" "CDAF_REGISTRY_TOKEN")"
+	if ( Test-Path "$env:CDAF_REGISTRY_TOKEN" ) {
+		Write-Host  "[$scriptName]  CDAF_REGISTRY_TOKEN not supplied! User credentials required for publishing."
+		exit 6632
+	} else {
+		Write-Host  "[$scriptName]  CDAF_REGISTRY_TOKEN = $env:CDAF_REGISTRY_TOKEN"
+	}
+
+	$env:CDAF_REGISTRY_URL = Invoke-Expression "Write-Output $(.\getProperty.ps1 "manifest.txt" "CDAF_REGISTRY_URL")"
+	if ( Test-Path "$env:CDAF_REGISTRY_URL" ) {
+		Write-Host  "[$scriptName]  CDAF_REGISTRY_URL   = (not supplied, do not set when pushing to Dockerhub)"
+	} else {
+		Write-Host  "[$scriptName]  CDAF_REGISTRY_URL   = $env:CDAF_REGISTRY_URL"
+	}
+
+	executeExpression "echo `$env:CDAF_REGISTRY_TOKEN | docker login --username $env:CDAF_REGISTRY_USER --password-stdin $env:CDAF_REGISTRY_URL"
+}
+
 $scriptName = 'imageBuild.ps1'
 cmd /c "exit 0"
 $error.clear()
 
 Write-Host "`n[$scriptName] ---------- start ----------`n"
-if ( $id ) {
+if (!( $id )) {
+	dockerLogin
+} else {
 	$id = $id.ToLower()
 	Write-Host "[$scriptName]   id                  : $id"
-} else {
-	Write-Host "[$scriptName]   id not supplied! Exit with LASTEXITCODE 1"
-	exit 1
-}
 
-if ( $buildNumber ) { 
-	Write-Host "[$scriptName]   BUILDNUMBER         : $BUILDNUMBER"
-} else {
-	# Use a simple text file (buildnumber.counter) for incrimental build number
-	if ( Test-Path imagenumber.counter ) {
-		$BUILDNUMBER = Get-Content imagenumber.counter
-	} else {
-		$BUILDNUMBER = 0
-	}
-	[int]$BUILDNUMBER = [convert]::ToInt32($BUILDNUMBER)
-	if ( $ACTION -ne "deliveryonly" ) { # Do not incriment when just deploying
-		$BUILDNUMBER += 1
-	}
-	Out-File imagenumber.counter -InputObject $BUILDNUMBER
-	Write-Host "[$scriptName]   BUILDNUMBER         : $BUILDNUMBER (using locally generated counter)"
-}
+	if (!( $buildNumber )) {
 
-if ( $containerImage ) {
-	if (($env:CONTAINER_IMAGE) -or ($CONTAINER_IMAGE)) {
-		Write-Host "[$scriptName]   containerImage      : $containerImage"
-		if ($env:CONTAINER_IMAGE) {
-			Write-Host "[$scriptName]   CONTAINER_IMAGE     : $env:CONTAINER_IMAGE (not changed as already set)"
+		Write-Host "[$scriptName]   BUILDNUMBER not supplied, will publish $id as latest"
+		dockerLogin
+		$noTag,$tag = ${id}.Split(':')
+		if ( $env:CDAF_REGISTRY_URL ) {
+			executeExpression "docker tag $env:CDAF_REGISTRY_URL/${id} $env:CDAF_REGISTRY_URL/${noTag}:latest"
+			executeExpression "docker push $env:CDAF_REGISTRY_URL/${noTag}:latest"
 		} else {
-			$env:CONTAINER_IMAGE = $CONTAINER_IMAGE
-			Write-Host "[$scriptName]   CONTAINER_IMAGE     : $env:CONTAINER_IMAGE (loaded from `$CONTAINER_IMAGE)"
+			executeExpression "docker tag ${id} ${noTag}:latest"
+			executeExpression "docker push ${noTag}:latest"
 		}
+
 	} else {
-		$env:CONTAINER_IMAGE = $containerImage
-		Write-Host "[$scriptName]   CONTAINER_IMAGE     : $env:CONTAINER_IMAGE (set to `$containerImage)"
-	}
-} else {
-	if (($env:CONTAINER_IMAGE) -or ($CONTAINER_IMAGE)) {
-		Write-Host "[$scriptName]   containerImage      : $containerImage"
-		if ($env:CONTAINER_IMAGE) {
-			Write-Host "[$scriptName]   CONTAINER_IMAGE     : $env:CONTAINER_IMAGE (containerImage not passed, using existing environment variable)"
+		Write-Host "[$scriptName]   BUILDNUMBER         : $BUILDNUMBER"
+
+		if ( $containerImage ) {
+			if (($env:CONTAINER_IMAGE) -or ($CONTAINER_IMAGE)) {
+				Write-Host "[$scriptName]   containerImage      : $containerImage"
+				if ($env:CONTAINER_IMAGE) {
+					Write-Host "[$scriptName]   CONTAINER_IMAGE     : $env:CONTAINER_IMAGE (not changed as already set)"
+				} else {
+					$env:CONTAINER_IMAGE = $CONTAINER_IMAGE
+					Write-Host "[$scriptName]   CONTAINER_IMAGE     : $env:CONTAINER_IMAGE (loaded from `$CONTAINER_IMAGE)"
+				}
+			} else {
+				$env:CONTAINER_IMAGE = $containerImage
+				Write-Host "[$scriptName]   CONTAINER_IMAGE     : $env:CONTAINER_IMAGE (set to `$containerImage)"
+			}
 		} else {
-			$env:CONTAINER_IMAGE = $CONTAINER_IMAGE
-			Write-Host "[$scriptName]   CONTAINER_IMAGE     : $env:CONTAINER_IMAGE (containerImage not passed, loaded from `$CONTAINER_IMAGE)"
+			if (($env:CONTAINER_IMAGE) -or ($CONTAINER_IMAGE)) {
+				Write-Host "[$scriptName]   containerImage      : $containerImage"
+				if ($env:CONTAINER_IMAGE) {
+					Write-Host "[$scriptName]   CONTAINER_IMAGE     : $env:CONTAINER_IMAGE (containerImage not passed, using existing environment variable)"
+				} else {
+					$env:CONTAINER_IMAGE = $CONTAINER_IMAGE
+					Write-Host "[$scriptName]   CONTAINER_IMAGE     : $env:CONTAINER_IMAGE (containerImage not passed, loaded from `$CONTAINER_IMAGE)"
+				}
+			} else {
+				Write-Host "[$scriptName][ERROR] containerImage not passed and neither `$env:CONTAINER_IMAGE nor `$CONTAINER_IMAGE set, exiting with `$LASTEXITCODE 6674"
+				exit 6674
+			}
 		}
-	} else {
-		Write-Host "[$scriptName][ERROR] containerImage not passed and neither `$env:CONTAINER_IMAGE nor `$CONTAINER_IMAGE set, exiting with `$LASTEXITCODE 6674"
-		exit 6674
-	}
-}
 
-# 2.2.0 Replaced optional persist parameter as extension for the support as integrated function, extension to allow custom source directory
-if ( $constructor ) {
-	Write-Host "[$scriptName]   constructor         : $constructor"
-} else {
-	Write-Host "[$scriptName]   constructor         : (not supplied, will process all directories)"
-}
-
-if ( $env:CDAF_REGISTRY_URL ) {
-	Write-Host "[$scriptName]   CDAF_REGISTRY_URL   : $env:CDAF_REGISTRY_URL"
-} else {
-	Write-Host "[$scriptName]   CDAF_REGISTRY_URL   : (not supplied)"
-}
-
-if ( $env:CDAF_REGISTRY_TAG ) {
-	Write-Host "[$scriptName]   CDAF_REGISTRY_TAG   : $env:CDAF_REGISTRY_TAG"
-} else {
-	Write-Host "[$scriptName]   CDAF_REGISTRY_TAG   : (not supplied)"
-}
-
-if ( $env:CDAF_REGISTRY_USER ) {
-	Write-Host "[$scriptName]   CDAF_REGISTRY_USER  : $env:CDAF_REGISTRY_USER"
-} else {
-	Write-Host "[$scriptName]   CDAF_REGISTRY_USER  : (not supplied, push will not be attempted)"
-}
-
-if ( $env:CDAF_REGISTRY_TOKEN ) {
-	Write-Host "[$scriptName]   CDAF_REGISTRY_TOKEN : $env:CDAF_REGISTRY_TOKEN"
-} else {
-	Write-Host "[$scriptName]   CDAF_REGISTRY_TOKEN : (not supplied)"
-}
-
-if ( $optionalArgs ) {
-	Write-Host "[$scriptName]   optionalArgs        : $optionalArgs"
-} else {
-	Write-Host "[$scriptName]   optionalArgs        : (not supplied, example '--memory 4g')"
-}
-
-Write-Host "[$scriptName]   pwd                 : $(Get-Location)"
-Write-Host "[$scriptName]   hostname            : $(hostname)"
-Write-Host "[$scriptName]   whoami              : $(whoami)"
-$workspace = $(Get-Location)
-Write-Host "[$scriptName]   workspace           : ${workspace}`n"
-
-$transient = "$env:TEMP\buildImage\${id}"
-
-if ( Test-Path "${transient}" ) {
-	if (Test-Path "${transient}" -PathType "Leaf") {
-		Write-Host "${transient} already exists, but is not a directory, replacing as directory"
-		executeExpression "rm ${transient} -Force -Confirm:`$false"
-		executeExpression "Write-Host 'Created $(mkdir ${transient})'"
-	} else {
-		Write-Host "Build directory ${transient} already exists"
-	}
-} else {
-	executeExpression "Write-Host 'Created $(mkdir ${transient})'"
-}
-
-if ( $constructor ) {
-	$constructor = $constructor.Split()
-} else {
-	[array]$constructor = @((Get-ChildItem -Path "." -directory).Name)
-}
-foreach ($image in $constructor ) {
-	Write-Host "`n----------------------"
-	Write-Host "    ${image}"    
-	Write-Host "----------------------`n"
-	if ( Test-Path "${transient}\${image}" ) {
-		executeExpression "rm -Recurse ${transient}\${image}"
-	}
-	executeExpression "cp -Recurse .\${image} ${transient}"
-	$image = $image.ToLower()
-	if ( Test-Path ../automation ) {
-		executeExpression "cp -Recurse ../automation ${transient}\${image}"
-	} else {
-		if (! ( $constructor )) {
-			Write-Host "`n[$scriptName][WARN] CDAF not found in ../automation`n"
-		}
-	}
-	if ( Test-Path ../dockerBuild.ps1 ) {
-		executeExpression "cp ../dockerBuild.ps1 ${transient}\${image}"
-	} else {
-		if ( $env:CDAF_AUTOMATION_ROOT ) {
-			executeExpression "cp $env:CDAF_AUTOMATION_ROOT/remote/dockerBuild.ps1 ${transient}\${image}"
+		# 2.2.0 Replaced optional persist parameter as extension for the support as integrated function, extension to allow custom source directory
+		if ( $constructor ) {
+			Write-Host "[$scriptName]   constructor         : $constructor"
 		} else {
-			Write-Host "`n[$scriptName][ERROR] dockerBuild.ps1 not found in parent directory and `$env:CDAF_AUTOMATION_ROOT not set. ABORT with LASTEXITCODE 7401 `n"
-			exit 7401
+			Write-Host "[$scriptName]   constructor         : (not supplied, will process all directories)"
 		}
-	}
-	if ( Test-Path ../dockerClean.ps1 ) {
-		executeExpression "cp ../dockerClean.ps1 ${transient}\${image}"
-	} else {
-		if ( $env:CDAF_AUTOMATION_ROOT ) {
-			executeExpression "cp $env:CDAF_AUTOMATION_ROOT/remote/dockerClean.ps1 ${transient}\${image}"
-		} else {
-			Write-Host "`n[$scriptName][ERROR] dockerClean.ps1 not found in parent directory and `$env:CDAF_AUTOMATION_ROOT not set. ABORT with LASTEXITCODE 7402 `n"
-			exit 7402
-		}
-	}
-	executeExpression "cd ${transient}\${image}"
-	executeExpression "cat Dockerfile"
-	if ( $optionalArgs ) {
-		executeExpression "./dockerBuild.ps1 ${id}_${image} $BUILDNUMBER -optionalArgs '${optionalArgs}'"
-	} else {
-		executeExpression "./dockerBuild.ps1 ${id}_${image} $BUILDNUMBER"
-	}
-	executeExpression "./dockerClean.ps1 ${id}_${image} $BUILDNUMBER"
-	executeExpression "cd $workspace"
-}
 
-# 2.2.0 Integrated Registry push, not masking of secrets, it is expected the CI tool will know to mask these
-if ( "$env:CDAF_REGISTRY_USER" ) {
-	executeExpression "echo $env:CDAF_REGISTRY_TOKEN | docker login --username $env:CDAF_REGISTRY_USER --password-stdin $env:CDAF_REGISTRY_URL"
-	executeExpression "docker tag ${id}_${image}:$BUILDNUMBER $env:CDAF_REGISTRY_TAG"
-	executeExpression "docker push $env:CDAF_REGISTRY_TAG"
-} else {
-	Write-Host "`$env:CDAF_REGISTRY_USER not set, to push to registry set CDAF_REGISTRY_URL, CDAF_REGISTRY_TAG, CDAF_REGISTRY_USER & CDAF_REGISTRY_TOKEN"
-	Write-Host "Do not set CDAF_REGISTRY_URL when pushing to dockerhub"
+		if ( $env:CDAF_REGISTRY_URL ) {
+			Write-Host "[$scriptName]   CDAF_REGISTRY_URL   : $env:CDAF_REGISTRY_URL"
+		} else {
+			Write-Host "[$scriptName]   CDAF_REGISTRY_URL   : (not supplied)"
+		}
+
+		if ( $env:CDAF_REGISTRY_TAG ) {
+			Write-Host "[$scriptName]   CDAF_REGISTRY_TAG   : $env:CDAF_REGISTRY_TAG"
+		} else {
+			Write-Host "[$scriptName]   CDAF_REGISTRY_TAG   : (not supplied)"
+		}
+
+		if ( $env:CDAF_REGISTRY_USER ) {
+			Write-Host "[$scriptName]   CDAF_REGISTRY_USER  : $env:CDAF_REGISTRY_USER"
+		} else {
+			Write-Host "[$scriptName]   CDAF_REGISTRY_USER  : (not supplied, push will not be attempted)"
+		}
+
+		if ( $env:CDAF_REGISTRY_TOKEN ) {
+			Write-Host "[$scriptName]   CDAF_REGISTRY_TOKEN : $env:CDAF_REGISTRY_TOKEN"
+		} else {
+			Write-Host "[$scriptName]   CDAF_REGISTRY_TOKEN : (not supplied)"
+		}
+
+		if ( $optionalArgs ) {
+			Write-Host "[$scriptName]   optionalArgs        : $optionalArgs"
+		} else {
+			Write-Host "[$scriptName]   optionalArgs        : (not supplied, example '--memory 4g')"
+		}
+
+		Write-Host "[$scriptName]   pwd                 : $(Get-Location)"
+		Write-Host "[$scriptName]   hostname            : $(hostname)"
+		Write-Host "[$scriptName]   whoami              : $(whoami)"
+		$workspace = $(Get-Location)
+		Write-Host "[$scriptName]   workspace           : ${workspace}`n"
+
+		$transient = "$env:TEMP\buildImage\${id}"
+
+		if ( Test-Path "${transient}" ) {
+			if (Test-Path "${transient}" -PathType "Leaf") {
+				Write-Host "${transient} already exists, but is not a directory, replacing as directory"
+				executeExpression "rm ${transient} -Force -Confirm:`$false"
+				executeExpression "Write-Host 'Created $(mkdir ${transient})'"
+			} else {
+				Write-Host "Build directory ${transient} already exists"
+			}
+		} else {
+			executeExpression "Write-Host 'Created $(mkdir ${transient})'"
+		}
+
+		if ( $constructor ) {
+			$constructor = $constructor.Split()
+		} else {
+			[array]$constructor = @((Get-ChildItem -Path "." -directory).Name)
+		}
+		foreach ($image in $constructor ) {
+			Write-Host "`n----------------------"
+			Write-Host "    ${image}"    
+			Write-Host "----------------------`n"
+			if ( Test-Path "${transient}\${image}" ) {
+				executeExpression "rm -Recurse ${transient}\${image}"
+			}
+			executeExpression "cp -Recurse .\${image} ${transient}"
+			$image = $image.ToLower()
+			if ( Test-Path ../automation ) {
+				executeExpression "cp -Recurse ../automation ${transient}\${image}"
+			} else {
+				if (! ( $constructor )) {
+					Write-Host "`n[$scriptName][WARN] CDAF not found in ../automation`n"
+				}
+			}
+			if ( Test-Path ../dockerBuild.ps1 ) {
+				executeExpression "cp ../dockerBuild.ps1 ${transient}\${image}"
+			} else {
+				if ( $env:CDAF_AUTOMATION_ROOT ) {
+					executeExpression "cp $env:CDAF_AUTOMATION_ROOT/remote/dockerBuild.ps1 ${transient}\${image}"
+				} else {
+					Write-Host "`n[$scriptName][ERROR] dockerBuild.ps1 not found in parent directory and `$env:CDAF_AUTOMATION_ROOT not set. ABORT with LASTEXITCODE 7401 `n"
+					exit 7401
+				}
+			}
+			if ( Test-Path ../dockerClean.ps1 ) {
+				executeExpression "cp ../dockerClean.ps1 ${transient}\${image}"
+			} else {
+				if ( $env:CDAF_AUTOMATION_ROOT ) {
+					executeExpression "cp $env:CDAF_AUTOMATION_ROOT/remote/dockerClean.ps1 ${transient}\${image}"
+				} else {
+					Write-Host "`n[$scriptName][ERROR] dockerClean.ps1 not found in parent directory and `$env:CDAF_AUTOMATION_ROOT not set. ABORT with LASTEXITCODE 7402 `n"
+					exit 7402
+				}
+			}
+			executeExpression "cd ${transient}\${image}"
+			executeExpression "cat Dockerfile"
+			if ( $optionalArgs ) {
+				executeExpression "./dockerBuild.ps1 ${id}_${image} $BUILDNUMBER -optionalArgs '${optionalArgs}'"
+			} else {
+				executeExpression "./dockerBuild.ps1 ${id}_${image} $BUILDNUMBER"
+			}
+			executeExpression "./dockerClean.ps1 ${id}_${image} $BUILDNUMBER"
+			executeExpression "cd $workspace"
+		}
+
+		# 2.2.0 Integrated Registry push, not masking of secrets, it is expected the CI tool will know to mask these
+		if ( "$env:CDAF_REGISTRY_USER" ) {
+			executeExpression "echo $env:CDAF_REGISTRY_TOKEN | docker login --username $env:CDAF_REGISTRY_USER --password-stdin $env:CDAF_REGISTRY_URL"
+			executeExpression "docker tag ${id}_${image}:$BUILDNUMBER $env:CDAF_REGISTRY_TAG"
+			executeExpression "docker push $env:CDAF_REGISTRY_TAG"
+		} else {
+			Write-Host "`$env:CDAF_REGISTRY_USER not set, to push to registry set CDAF_REGISTRY_URL, CDAF_REGISTRY_TAG, CDAF_REGISTRY_USER & CDAF_REGISTRY_TOKEN"
+			Write-Host "Do not set CDAF_REGISTRY_URL when pushing to dockerhub"
+		}
+	}
+
 }
 
 Write-Host "`n[$scriptName] ---------- stop ----------"
