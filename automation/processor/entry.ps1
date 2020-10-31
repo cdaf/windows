@@ -125,6 +125,10 @@ if ($BUILDNUMBER) {
 }
 
 if ($branch) {
+	$branch = Invoke-Expression "Write-Output $branch"
+	if ( $branch -match '/' ) {
+		$branch = $branch.Split('/')[-1]
+	}
     Write-Host "[$scriptName]   branch         : $branch"
 } else {
 	if ( $env:CDAF_BRANCH_NAME ) {
@@ -186,7 +190,7 @@ Write-Host "[$scriptName]   whoami         = $(whoami)`n"
 
 executeExpression "$automationRoot\processor\buildPackage.ps1 '$BUILDNUMBER' '$branch' '$action' -AUTOMATIONROOT '$automationRoot'"
 
-if (( $branch -eq 'master' ) -or ( $branch -eq 'refs/heads/master' )) {
+if ( $branch -eq 'master' ) {
 	Write-Host "[$scriptName] Only perform container test in CI for branches, Master execution in CD pipeline"
 } else {
 	Write-Host "[$scriptName] Only perform container test in CI for feature branches, CD for branch $branch"

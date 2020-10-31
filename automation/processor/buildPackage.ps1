@@ -176,6 +176,10 @@ if ( $BUILDNUMBER ) {
 }
 
 if ( $REVISION ) {
+	$REVISION = Invoke-Expression "Write-Output $REVISION"
+	if ( $REVISION -match '/' ) {
+		$REVISION = $REVISION.Split('/')[-1]
+	}
 	Write-Host "[$scriptName]   REVISION        : $REVISION"
 } else {
 	$REVISION = 'Revision'
@@ -429,15 +433,18 @@ if ( $ACTION -ne 'container_build' ) {
 	if ( $imageBuild ) {
 		$runtimeImage = getProp 'runtimeImage' "$solutionRoot\CDAF.solution"
 		if ( $runtimeImage ) {
-			Remove-Item Env:\CONTAINER_IMAGE
 			Write-Host "[$scriptName] Execute image build (available runtimeImage = $runtimeImage)"
 		} else {
 			$runtimeImage = getProp 'containerImage' "$solutionRoot\CDAF.solution"
 			if ( $runtimeImage ) {
-				Remove-Item Env:\CONTAINER_IMAGE
 				Write-Host "[$scriptName] Execute image build (available runtimeImage = $runtimeImage, runtimeImage not found, using containerImage)"
 			} else {
-				Write-Host "[$scriptName] WARNING neither runtimeImage nor containerImage defined in $SOLUTIONROOT/CDAF.solution"
+				if ( $Env:CONTAINER_IMAGE ) {
+					Write-Host "[$scriptName][WARN] neither runtimeImage nor containerImage defined in $SOLUTIONROOT/CDAF.solution, assuming a hardcoded image will be used."
+				} else {
+					Write-Host "[$scriptName][WARN] neither runtimeImage nor containerImage defined in $SOLUTIONROOT/CDAF.solution, however Environment Variable CONTAINER_IMAGE set to $CONTAINER_IMAGE, overrides image passed to dockerBuild."
+					$runtimeImage = $env:CONTAINER_IMAGE
+				}
 			}
 		}
 		# 2.2.0 Integrated Function using environment variables
