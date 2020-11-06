@@ -28,6 +28,13 @@ variables:
 steps:
 - script: automation\entry.bat $env:Build_BuildNumber $env:Build_SourceBranchName staging@$env:Build_ArtifactStagingDirectory
 
+# Require explicit exit code if using a multi-line script
+# - script: |
+#     $env:READ_ONLY_PAT=$(READ_ONLY_PAT)
+#     ~/cdaf/processor/entry.ps1 $env:Build_BuildNumber $env:Build_SourceBranchName staging@$env:Build_ArtifactStagingDirectory
+#     $LASTEXITCODE=$?
+#     if ( $LASTEXITCODE != "0" ) { exit $$LASTEXITCODE }
+
 #  env:
 #    MAVEN_ARTIFACT_TOKEN: $(MAVEN_ARTIFACT_TOKEN)
 
