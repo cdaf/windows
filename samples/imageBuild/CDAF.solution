@@ -1,14 +1,7 @@
-# This file defines the automation root along with CD emulator value (solutionName)
-artifactPrefix=0.0
-productName=My Product Name
-solutionName=myproduct
-# containerBuild=& $AUTOMATIONROOT/processor/containerBuild.ps1 ${SOLUTION} ${BUILDNUMBER} ${REVISION}
-# containerImage=mcr.microsoft.com/windows/servercore:ltsc2019@sha256:30f8f12fc7a3da27e2b9e8c6c7f564f78a7610594713ae49143e5808e1fe7b36
-
 imageBuild=& $AUTOMATIONROOT/remote/imageBuild.ps1 ${SOLUTION}_${REVISION} ${BUILDNUMBER} $runtimeImage runtime
 
 # If not set, will use containerImage
-# runtimeImage=mcr.microsoft.com/windows/servercore:ltsc2019@sha256:30f8f12fc7a3da27e2b9e8c6c7f564f78a7610594713ae49143e5808e1fe7b36
+runtimeImage=mcr.microsoft.com/windows/servercore:ltsc2019@sha256:30f8f12fc7a3da27e2b9e8c6c7f564f78a7610594713ae49143e5808e1fe7b36
 
 # Private Registry
 # CDAF_REGISTRY_URL=`$env:CI_REGISTRY
