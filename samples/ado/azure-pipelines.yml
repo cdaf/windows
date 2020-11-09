@@ -26,7 +26,8 @@ variables:
   buildConfiguration: 'Release'
 
 steps:
-- script: automation\entry.bat "$env:Build_BuildNumber" "$env:Build_SourceBranchName" "staging@$env:Build_ArtifactStagingDirectory"
+  - script: automation\entry.bat "$env:Build_BuildNumber" "$env:Build_SourceBranchName" "staging@$env:Build_ArtifactStagingDirectory"
+#  - script: "%USERPROFILE%\\.cdaf\\entry.bat \"$(Build.BuildNumber)\" \"$(Build.SourceBranchName)\" \"staging@$(Build.ArtifactStagingDirectory)\""
 
 # Require explicit exit code if using a multi-line script
 # - script: |
@@ -50,6 +51,6 @@ steps:
     #buildConfiguration: # Optional
     #publishRunAttachments: true # Optional
 
-- task: PublishBuildArtifacts@1
+  - task: PublishBuildArtifacts@1
     #ArtifactName: 'drop'
     #publishLocation: 'Container'

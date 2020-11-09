@@ -126,19 +126,28 @@ if ($BUILDNUMBER) {
 
 if ($branch) {
 	$branch = Invoke-Expression "Write-Output $branch"
-	if ( $branch -match '/' ) {
-		$branch = $branch.Split('/')[-1]
-	}
     Write-Host "[$scriptName]   branch         : $branch"
 } else {
 	if ( $env:CDAF_BRANCH_NAME ) {
 		$branch = $env:CDAF_BRANCH_NAME
 	    Write-Host "[$scriptName]   branch         : $branch (not supplied, derived from `$env:CDAF_BRANCH_NAME)"
 	} else {
-		$branch = 'feature'
-	    Write-Host "[$scriptName]   branch         : $branch (not supplied, set to default)"
+		$branch=$(git rev-parse --abbrev-ref HEAD)
+		if ($branch) {
+			Write-Host "[$scriptName]   branch         : $branch (determined from workspace)"
+		} else {
+			$branch = 'feature'
+			Write-Host "[$scriptName]   branch         : $branch (not supplied, set to default)"
+		}
 	}
 }
+
+if ( $branch -match '/' ) {
+	$branchBase = $branch.Split('/')[-1]
+} else {
+	$branchBase = $branch
+}
+$branch = ($branchBase -replace '[^a-zA-Z0-9]', '').ToLower()
 
 if ($action) {
     Write-Host "[$scriptName]   action         : $action"
