@@ -145,9 +145,13 @@ if ( $imageName ) {
 		$workspace = (Get-Location).Path
 		Write-Host "[$scriptName] `$imageTag  : $imageTag"
 		Write-Host "[$scriptName] `$workspace : $workspace"
-		
-		executeExpression "docker run --tty --volume ${workspace}\:C:/solution/workspace ${imageName}:${imageTag} automation\ci.bat $buildNumber $revision container_build"
-		
+
+		if ( $env:USERPROFILE ) {
+			executeExpression "docker run --tty --volume ${env:USERPROFILE}\:C:/solution/home --volume ${workspace}\:C:/solution/workspace ${imageName}:${imageTag} automation\ci.bat $buildNumber $revision container_build"
+		} else {
+			executeExpression "docker run --tty --volume ${workspace}\:C:/solution/workspace ${imageName}:${imageTag} automation\ci.bat $buildNumber $revision container_build"
+		}
+
 		Write-Host "`n[$scriptName] List and remove all stopped containers"
 		executeExpression "docker ps --filter `"status=exited`" -a"
 		$stopped = docker ps --filter "status=exited" -aq
