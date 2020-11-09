@@ -1,10 +1,1 @@
-# Template Solution Properties file
-# If using symantic versioning, append build number at the end of version
-productVersion=0.0.2
-productName=Targetless CD Sample
-solutionName=samples
-# containerBuild=automation/processor/containerBuild.ps1 $SOLUTION $BUILDNUMBER $REVISION $ACTION
 containerImage=mcr.microsoft.com/windows/servercore:ltsc2016@sha256:a8bc031f38ad457c3a04fcf72c7773014c6960978299c3dfe3e1c4d133f35190
-# containerImage=mcr.microsoft.com/windows/servercore:ltsc2019@sha256:404e0ee336a063619d1e93a2446061cf19cb3068bacb1775f5613e3b54e527e1
-# imageBuild=automation-solution/imageBuild.ps1 $SOLUTION $BUILDNUMBER $REVISION $ACTION
-# processSequence=localTasks.ps1 remoteTasks.ps1
