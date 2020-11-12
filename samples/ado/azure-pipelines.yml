@@ -26,7 +26,12 @@ variables:
   buildConfiguration: 'Release'
 
 steps:
-  - script: automation\entry.bat "$env:Build_BuildNumber" "$env:Build_SourceBranchName" "staging@$env:Build_ArtifactStagingDirectory"
+  - script: automation\entry.bat "$(Build.BuildNumber)" "$env:Build_SourceBranchName" "staging@$env:Build_ArtifactStagingDirectory"
+    env: 
+      GIT_USER: $(GIT_USER)
+      GIT_PASS: $(GIT_PASS)
+
+# For installed instance of CDAF, in the agents user profile in this example
 #  - script: "%USERPROFILE%\\.cdaf\\entry.bat \"$(Build.BuildNumber)\" \"$(Build.SourceBranchName)\" \"staging@$(Build.ArtifactStagingDirectory)\""
 
 # Require explicit exit code if using a multi-line script
