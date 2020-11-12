@@ -175,16 +175,31 @@ if ( $BUILDNUMBER ) {
     Write-Host "[$scriptName]   BUILDNUMBER     : $BUILDNUMBER (not supplied, generated from local counter file)"
 }
 
-if ( $REVISION ) {
-	$REVISION = Invoke-Expression "Write-Output $REVISION"
-	if ( $REVISION -match '/' ) {
-		$REVISION = $REVISION.Split('/')[-1]
+if ($REVISION) {
+	if ( $REVISION.contains('$')) {
+		$REVISION = Invoke-Expression "Write-Output $REVISION"
 	}
-	Write-Host "[$scriptName]   REVISION        : $REVISION"
+    Write-Host "[$scriptName]   REVISION        : $REVISION"
 } else {
-	$REVISION = 'Revision'
-	Write-Host "[$scriptName]   REVISION        : $REVISION (default)"
+	if ( $env:CDAF_BRANCH_NAME ) {
+		$REVISION = $env:CDAF_BRANCH_NAME
+	    Write-Host "[$scriptName]   REVISION        : $REVISION (not supplied, derived from `$env:CDAF_BRANCH_NAME)"
+	} else {
+		$REVISION=$(git rev-parse --abbrev-ref HEAD)
+		if ($REVISION) {
+			Write-Host "[$scriptName]   REVISION        : $REVISION (determined from workspace)"
+		} else {
+			$REVISION = 'targetlesscd'
+			Write-Host "[$scriptName]   REVISION        : $REVISION (not supplied, set to default)"
+		}
+	}
 }
+if ( $REVISION -match '/' ) {
+	$branchBase = $REVISION.Split('/')[-1]
+} else {
+	$branchBase = $REVISION
+}
+$REVISION = ($branchBase -replace '[^a-zA-Z0-9]', '').ToLower()
 
 Write-Host "[$scriptName]   ACTION          : $ACTION"
 

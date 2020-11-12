@@ -1,8 +1,8 @@
 Param (
-	[string]$automationRoot,
+	[string]$AUTOMATIONROOT,
 	[string]$BUILDNUMBER,
-	[string]$branch,
-	[string]$action
+	[string]$BRANCH,
+	[string]$ACTION
 )
 
 Import-Module Microsoft.PowerShell.Utility
@@ -96,14 +96,14 @@ function executeSuppress ($expression) {
 }
 
 Write-Host "`n[$scriptName] ---------- start ----------"
-if ($automationRoot) {
-    Write-Host "[$scriptName]   automationRoot : $automationRoot"
+if ($AUTOMATIONROOT) {
+    Write-Host "[$scriptName]   AUTOMATIONROOT : $AUTOMATIONROOT"
 } else {
 	$scriptPath = split-path -parent $MyInvocation.MyCommand.Definition
-	$automationRoot = split-path -parent $scriptPath
-    Write-Host "[$scriptName]   automationRoot : $automationRoot (not supplied, derived from invocation)"
+	$AUTOMATIONROOT = split-path -parent $scriptPath
+    Write-Host "[$scriptName]   AUTOMATIONROOT : $AUTOMATIONROOT (not supplied, derived from invocation)"
 }
-$env:CDAF_AUTOMATION_ROOT = $automationRoot
+$env:CDAF_AUTOMATION_ROOT = $AUTOMATIONROOT
 
 if ($BUILDNUMBER) {
     Write-Host "[$scriptName]   BUILDNUMBER    : $BUILDNUMBER"
@@ -117,42 +117,46 @@ if ($BUILDNUMBER) {
 		$buildNumber = 0
 	}
 	[int]$buildnumber = [convert]::ToInt32($buildNumber)
-	if ( $action -ne "cdonly" ) { # Do not incriment when just deploying
+	if ( $ACTION -ne "cdonly" ) { # Do not incriment when just deploying
 		$buildNumber += 1
 	}
 	Set-Content "$counterFile" "$BUILDNUMBER"
     Write-Host "[$scriptName]   BUILDNUMBER    : $BUILDNUMBER (not supplied, generated from local counter file)"
 }
 
-if ($branch) {
-	$branch = Invoke-Expression "Write-Output $branch"
-    Write-Host "[$scriptName]   branch         : $branch"
+if ($BRANCH) {
+	if ( $BRANCH.contains('$')) {
+		$BRANCH = Invoke-Expression "Write-Output $BRANCH"
+	}
+    Write-Host "[$scriptName]   BRANCH         : $BRANCH"
 } else {
 	if ( $env:CDAF_BRANCH_NAME ) {
 		$branch = $env:CDAF_BRANCH_NAME
-	    Write-Host "[$scriptName]   branch         : $branch (not supplied, derived from `$env:CDAF_BRANCH_NAME)"
+	    Write-Host "[$scriptName]   BRANCH         : $BRANCH (not supplied, derived from `$env:CDAF_BRANCH_NAME)"
 	} else {
-		$branch=$(git rev-parse --abbrev-ref HEAD)
-		if ($branch) {
-			Write-Host "[$scriptName]   branch         : $branch (determined from workspace)"
+		$BRANCH=$(git rev-parse --abbrev-ref HEAD)
+		if ($BRANCH) {
+			Write-Host "[$scriptName]   BRANCH         : $BRANCH (determined from workspace)"
 		} else {
-			$branch = 'feature'
-			Write-Host "[$scriptName]   branch         : $branch (not supplied, set to default)"
+			$BRANCH = 'targetlesscd'
+			Write-Host "[$scriptName]   BRANCH         : $BRANCH (not supplied, set to default)"
 		}
 	}
 }
-
-if ( $branch -match '/' ) {
-	$branchBase = $branch.Split('/')[-1]
+if ( $BRANCH -match '/' ) {
+	$branchBase = $BRANCH.Split('/')[-1]
 } else {
-	$branchBase = $branch
+	$branchBase = $BRANCH
 }
-$branch = ($branchBase -replace '[^a-zA-Z0-9]', '').ToLower()
+$BRANCH = ($branchBase -replace '[^a-zA-Z0-9]', '').ToLower()
 
-if ($action) {
-    Write-Host "[$scriptName]   action         : $action"
+if ($ACTION) {
+	if ( $ACTION.contains('$')) {
+		$ACTION = Invoke-Expression "Write-Output $ACTION"
+	}
+    Write-Host "[$scriptName]   ACTION         : $ACTION"
 } else {
-    Write-Host "[$scriptName]   action         : (not set, set to remoteURL@ to trigger clean)"
+    Write-Host "[$scriptName]   ACTION         : (not passed)"
 }
 
 # check for DOS variable and load as PowerShell environment variable
@@ -166,30 +170,31 @@ if ($environment) {
 }
 
 # Check for user defined solution folder, i.e. outside of automation root, if found override solution root
-Write-Host "[$scriptName]   solutionRoot   : " -NoNewline
+Write-Host "[$scriptName]   SOLUTIONROOT   : " -NoNewline
 foreach ($item in (Get-ChildItem -Path ".")) {
 	if (Test-Path $item -PathType "Container") {
 		if (Test-Path "$item\CDAF.solution") {
-			$solutionRoot=$item
+			$SOLUTIONROOT = $item.FullName
 		}
 	}
 }
 
-if ($solutionRoot) {
-	write-host "$solutionRoot (override $solutionRoot\CDAF.solution found)"
+if ($SOLUTIONROOT) {
+	write-host "$SOLUTIONROOT (override CDAF.solution found)"
 } else {
-	$solutionRoot="$automationRoot\solution"
-	write-host "$solutionRoot (default, project directory containing CDAF.solution not found)"
+	$SOLUTIONROOT="$AUTOMATIONROOT\solution"
+	write-host "$SOLUTIONROOT (default, project directory containing CDAF.solution not found)"
 }
 
-$automationHelper = "$automationRoot\remote"
-& $automationHelper\Transform.ps1 "$SOLUTIONROOT\CDAF.solution" | ForEach-Object { invoke-expression $_ }
+$automationHelper = "$AUTOMATIONROOT\remote"
+& $automationHelper\Transform.ps1 "$SOLUTIONROOT\CDAF.solution" | ForEach-Object { invoke-expression "$_" }
 
-if ( $artifactPrefix ) {
-	$entryArtPrefix = $artifactPrefix
-	Write-Host "`n[$scriptName]   artifactPrefix = $artifactPrefix (will deploy using $solutionName.ps1)"
+if ( ${solutionName} ) {
+	$SOLUTION = $solutionName
+	Write-Host "`n[$scriptName]   SOLUTION       = $SOLUTION"
 } else {
-	Write-Host "`n[$scriptName]   artifactPrefix = (not set, will deploy using .\TasksLocal\delivery.ps1)"
+	Write-Host "`n[$scriptName]   solutionName not defined!"
+	exit 7762 
 }
 
 $workspace = $(Get-Location)
@@ -197,112 +202,131 @@ Write-Host "[$scriptName]   pwd            = $workspace"
 Write-Host "[$scriptName]   hostname       = $(hostname)" 
 Write-Host "[$scriptName]   whoami         = $(whoami)`n"
 
-executeExpression "$automationRoot\processor\buildPackage.ps1 '$BUILDNUMBER' '$branch' '$action' -AUTOMATIONROOT '$automationRoot'"
+executeExpression "$AUTOMATIONROOT\processor\buildPackage.ps1 '$BUILDNUMBER' '$BRANCH' '$ACTION' -AUTOMATIONROOT '$AUTOMATIONROOT'"
 
-if ( $branch -eq 'master' ) {
+if ( $BRANCH -eq 'master' ) {
 	Write-Host "[$scriptName] Only perform container test in CI for branches, Master execution in CD pipeline"
 } else {
-	Write-Host "[$scriptName] Only perform container test in CI for feature branches, CD for branch $branch"
-	if ( $entryArtPrefix ) {
+	Write-Host "[$scriptName] Only perform container test in CI for feature branches, CD for branch $BRANCH"
+	if ( $artifactPrefix ) {
 		executeExpression ".\release.ps1 $environment"
 	} else {
 		executeExpression ".\TasksLocal\delivery.ps1 $environment"
 	}
 }
 
-$prefix,$remoteURL = $action.Split('@')
- 
-if ( $prefix -eq 'remoteURL' ) {
+if (!( $gitRemoteURL )) {
+	Write-Host "[$scriptName] gitRemoteURL not defined in $SOLUTIONROOT/CDAF.solution, skipping ..."
+} else {
+	if ( $gitRemoteURL.contains('$')) {
+		$gitRemoteURL = Invoke-Expression "Write-Output ${gitRemoteURL}"
+	}
 
-	Write-Host "[$scriptName] ACTION ($action) prefix is remoteURL@, attempt remote branch synchronisation"
-	
-	if (!( ${solutionName} )) {
-		Write-Host "`n[$scriptName]   solutionName not defined!"
-		exit 7762 
-	}
-	
-	Write-Host "`n[$scriptName] Load Local branches`n"
-	$gitBranch = executeReturn 'git branch'
-	
-	Write-Host "`n[$scriptName] Local branches`n"
-	$localBranches = @()
-	foreach ($branchName in $gitBranch) {
-		$branchName = ($branchName.Replace(" ","")).Replace("*","")
-		Write-Host "[$scriptName]   $branchName"
-		$localBranches += $branchName
-	}
-	
-	Write-Host "`n[$scriptName] Load remote branches`n"
-	executeExpression 'git fetch --prune'
-	if ($remoteURL) {
-		$gitlsremoteheads = executeSuppress "git ls-remote $remoteURL 2>`$null | Select-String 'refs/heads'"
+	Write-Host "[$scriptName] gitRemoteURL = ${gitRemoteURL}, perform branch cleanup ..."
+	if (!( $gitUserNameEnvVar )) {
+		Write-Host "[$scriptName]   gitRemoteURL defined, but gitUserNameEnvVar not defined, relying on current workspace being up to date"
 	} else {
-		$gitlsremoteheads = executeSuppress 'git ls-remote 2>$null | Select-String "refs/heads"'
-	}
-	
-	Write-Host "`n[$scriptName] Remote branches`n"
-	$remoteBranches = @()
-	foreach ($branchName in $gitlsremoteheads) {
-		$branchName = $(($branchName.tostring()).Replace('refs/heads/','|').split('|')[-1])
-		Write-Host "[$scriptName]   $branchName"
-		$remoteBranches += $branchName
-	}
-	
-	Write-Host "`n[$scriptName] Delete Local Branches that are not active on Remote`n"
-	foreach ( $localBranch in $localBranches ) {
-		if ($remoteBranches -contains $localBranch) {
-			Write-Host "active branch $localBranch"
+		$userName = Invoke-Expression "Write-Output ${gitUserNameEnvVar}"
+		if (!( $userName )) {
+			Write-Host "[$scriptName]   $gitUserNameEnvVar contains no value, relying on current workspace being up to date"
 		} else {
-			executeExpression "git branch -D $localBranch"
-		}
-	}
-
-	if ( $environment -eq 'DOCKER' ) {
-
-		Write-Host "`n[$scriptName] Load docker images`n"
-		$dockerImages = executeReturn 'docker images --format "{{.Repository}}:{{.Tag}}:{{.ID}}" 2> $null'
-		
-		# Numbered lists for summary report
-		$imagesListBeforeHousekeeping = foreach ($i in $dockerImages) { $i_countb++; Write-Output "$i_countb. $($i.split(':')[0]):$($i.split(':')[1])"`n }
-		
-		Write-Host "`n[$scriptName] Delete images for inactive branches`n"
-		$imagesRetained = @()
-		foreach ($i in $dockerImages) {
-			if ($i -like "${solutionName}_*") {
-				$remove = $True
-				foreach ($b in $remoteBranches) {
-					if (( $i -like "${solutionName}_$b*" ) -or ( $i -like "${solutionName}_container_*" )) {
-						$imagesRetained += $( $b_count++; Write-Output "$b_count. $i"`n )
-						$remove = $False
-						break
-					}
-				}
-				if ( $remove ) {
-					executeSuppress "docker rmi $($i.split(':')[2])"
-					$i_countd++
-					$imagesListDeleted = "$imagesListDeleted $i_countd. $($i.split(':')[0]):$($i.split(':')[1])`n"
-				}
+			$userName = $userName.replace("@","%40")
+			if (!( $gitUserPassEnvVar )) { Write-Error "[$scriptName]   gitUserNameEnvVar defined, but gitUserPassEnvVar not defined in $SOLUTIONROOT/CDAF.solution!"; exit 6921 }
+			$userPass = Invoke-Expression "Write-Output ${gitUserPassEnvVar}"
+			if (!( $userPass )) {
+				Write-Host "[$scriptName]   $gitUserPassEnvVar contains no value, relying on current workspace being up to date"
+			} else {
+				$gitRemoteURL = "https://${userName}:${userPass}@$($gitRemoteURL.Replace('https://', ''))"
 			}
 		}
-		if (!( $i_countd )) { Write-Host "  < none >" }
-		
-		Write-Host "`n[$scriptName] Housekeeping Summary`n"
-		Write-Host "[$scriptName]   List of docker images (before housekeeping)`n $imagesListBeforeHousekeeping"
-		
-		$images = docker images --format "{{.Repository}}:{{.Tag}}:{{.ID}}" 2> $null
-		$imagesListPostHousekeeping = foreach ($i in $images) { $i_countp++; Write-Output "$i_countp. $($i.split(':')[0]):$($i.split(':')[1])`n" }
-		Write-Host "[$scriptName]   List of docker images (after housekeeping)`n $imagesListPostHousekeeping"
-		
-		Write-Host "[$scriptName]   List of docker images retained`n $imagesRetained"
-		Write-Host "[$scriptName]   List of docker images deleted`n$imagesListDeleted"
 	}
 
-} else {
+	$isGit = $(git log -n 1 --pretty=%d HEAD 2>$null)
+	if ( $LASTEXITCODE -eq 0 ) { 
+		$headAttached = $isGit | Select-String '->'
+	}
 
-	Write-Host "[$scriptName] Action prefix is not 'remoteURL' so housekeeping not attempted"
+	if (!( $headAttached )) {
+		if (!( $userName )) {
+			Write-Host "[$scriptName] Workspace is not a Git repository or has detached head, but git credentials not set, skipping ...`n"
+			$skipRemoteBranchCheck = 'yes'
+		} else {
+			if ( $env:USERPROFILE ) {
+				$tempDir = "$env:USERPROFILE\.cdaf-cache"
+			} else {
+				$tempDir = "$env:TEMP\.cdaf-cache"
+			}
+			Write-Host "[$scriptName] Workspace is not a Git repository or has detached head, skip branch clean-up and perform custom clean-up tasks in $tempDir ...`n"
+			executeExpression "mkdir -p $tempDir"
+			executeExpression "cd $tempDir"
+			$repoName = ($gitRemoteURL.Trim('/')).Split('/')[-1]            # remove trailing / and retrieve basename
+			$repoName = $repoName.Substring($repoName.lastIndexOf('.') + 1) # remove extension
+			if (!( Test-Path $repoName )) {
+				executeExpression "git clone '${gitRemoteURL}'"
+			}
+			executeExpression "cd $repoName"
+			executeExpression "git fetch --prune '${gitRemoteURL}'"
+			$usingCache = $(git log -n 1 --pretty=%d HEAD 2>$null)
+			if ( $LASTEXITCODE -ne 0 ) { Write-Error "[$scriptName] Git cache update failed!"; exit 6924 }
+			Write-Host "$usingCache"
+			Write-Host "git branch '${branchBase}' 2> `$null"
+			git branch "${branchBase}" 2>$null
+			git checkout -b "${branchBase}" 2>$null # cater for ambiguous origin
+			executeSuppress "git checkout '${branchBase}'"
+			$gitName = $(git config --list | Select-String 'user.name=')
+			if (!( $gitName )) {
+				git config user.name "Your Name"
+			}
+			$gitEmail = $(git config --list | Select-String 'user.email=')
+			if (!( $gitEmail )) {
+				git config user.email "you@example.com"
+			}
+			executeExpression "git pull origin '${branchBase}'"
+		}
+	} else {
+		Write-Host "$headAttached"
+		Write-Host "[$scriptName] Refresh Remote branches`n"
+		if (!($userName)) {
+			executeExpression "git fetch --prune"
+		} else {
+			executeExpression "git fetch --prune '${gitRemoteURL}'"
+		}
 
+	}
+
+	if (!( $skipRemoteBranchCheck )) {
+		Write-Host "[$scriptName] Load Remote branches from local cache (git ls-remote --heads origin 2>`$null)`n"
+		$remoteArray = @()
+		foreach ( $remoteBranch in $(git ls-remote --heads origin 2>$null) ) {
+			if ( $remoteBranch.Contains('/')) {
+				$remoteArray += $remoteBranch.Split('/')[-1]
+			}
+		}
+		if (!( $remoteArray )) { Write-Error "[$scriptName] git ls-remote --heads origin provided no branches!"; exit 6925 }
+		foreach ($remoteBranch in $remoteArray) { # verify array contents
+			Write-Host "  $remoteBranch"
+		}
+
+		Write-Host "`n[$scriptName] Process Local branches (git branch --format='%(refname:short)')`n"
+		foreach ( $localBranch in $(git branch --format='%(refname:short)') ) {
+			if ( $remoteArray.Contains($localBranch) ) {
+				Write-Host "  keep branch ${localBranch}"
+			} else {
+				executeExpression "  git branch -D '${localBranch}'"
+			}
+		}
+
+		if (!( $gitCustomCleanup )) {
+			Write-Host "`n[$scriptName] gitCustomCleanup not defined in $SOLUTIONROOT/CDAF.solution, skipping ..."
+		} else {
+			Write-Host
+			executeExpression "$gitCustomCleanup $SOLUTION `$remoteArray"
+		}
+	}
 }
 
-executeExpression "cd $workspace"
+if ( $usingCache ) {
+	executeExpression "cd $workspace"
+}
 
 Write-Host "`n[$scriptName] ---------- stop ----------"

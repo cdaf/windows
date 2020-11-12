@@ -14,7 +14,7 @@ function throwErrorlevel ($trappedExit) {
 $scriptName = "deploy.ps1"
 
 write-host "[$scriptName] cd $WORKSPACE"
-cd $WORKSPACE
+Set-Location $WORKSPACE
 write-host
 & .\deploy.bat $TARGET $ENVIRONMENT $OPT_ARG
 if ( !$? ) {
@@ -23,7 +23,7 @@ if ( !$? ) {
 		if ( $warnondeployerror ) {
 			Write-host "[$scriptName] deploy.bat did not complete normally, however `$warnondeployerror set ($warnondeployerror) so proceeding normally." -ForegroundColor Yellow
 			cmd /c "exit 0"
-			& echo "[$scriptName] Reset call operator : ";$?
+			& Write-Output "[$scriptName] Reset call operator : ";$?
 		} else {
 			throwErrorlevel $exitCode
 		}

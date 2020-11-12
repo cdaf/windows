@@ -79,12 +79,12 @@ Foreach ($line in $propertiesArray) {
             if ( $name -like "*.*" ) {
                 write-host "[$scriptName] Ignoring $name as contains '.'"
             } else {
-                if ( $value -like "`$*" ) {
-                    $value = Invoke-Expression "Write-Output $value"
-                }
     
                 # If token file is supplied, detokenise file (in situ)
                 if ($TOKENFILE) {
+                    if ( $value -like "`$*" ) {
+                        $value = Invoke-Expression "Write-Output $value"
+                    }
                     $i = 0
                     $token = "%" + $name + "%"
                     foreach ($record in $transformed) {
@@ -99,7 +99,7 @@ Foreach ($line in $propertiesArray) {
                         $i++
                     }
                 } else { # If token file is not supplied, echo strings for instantiating as variables (cannot instantiate here as they will be out of scope)
-                    $loadVariable = "`$$name=`"$value`""
+                    $loadVariable = "`$$name = '$value'"
                     Write-Output "$loadVariable"
                     write-host "[$scriptName]   $name = $value"
                 }

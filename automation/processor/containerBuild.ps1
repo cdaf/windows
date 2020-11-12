@@ -74,8 +74,8 @@ if ( $imageName ) {
 		Write-Host "[$scriptName]   buildArgs      : (not supplied)"
 	}
 	
-	$imageName = "${imageName}_$($revision.ToLower())"
-	Write-Host "[$scriptName]   imageName      : $imageName"
+	$buildImage = "${imageName}_$($revision.ToLower())_containerbuild"
+	Write-Host "[$scriptName]   buildImage     : $buildImage"
 	Write-Host "[$scriptName]   DOCKER_HOST    : $env:DOCKER_HOST"
 	Write-Host "[$scriptName]   pwd            : $(Get-Location)"
 	Write-Host "[$scriptName]   hostname       : $(hostname)"
@@ -103,11 +103,11 @@ if ( Test-Path ".\automation" ) {
 	}
 }
 
-if ( $imageName ) {
+if ( $buildImage ) {
 	Write-Host '$dockerStatus = ' -NoNewline 
 	
 	$imageTag = 0
-	foreach ( $imageDetails in docker images --filter label=cdaf.${imageName}.image.version --format "{{.Tag}}" ) {
+	foreach ( $imageDetails in docker images --filter label=cdaf.${buildImage}.image.version --format "{{.Tag}}" ) {
 		if ($imageTag -lt [INT]$imageDetails ) { $imageTag = [INT]$imageDetails }
 	}
 	if ( $imageTag ) {
@@ -130,15 +130,15 @@ if ( $imageName ) {
 		$otherOptions += " -optionalArgs '$buildArgs'"
 	}
 
-	executeExpression "$env:CDAF_AUTOMATION_ROOT/remote/dockerBuild.ps1 ${imageName} $($imageTag + 1) $otherOptions"
+	executeExpression "$env:CDAF_AUTOMATION_ROOT/remote/dockerBuild.ps1 ${buildImage} $($imageTag + 1) $otherOptions"
 	
 	# Remove any older images	
-	executeExpression "$env:CDAF_AUTOMATION_ROOT/remote/dockerClean.ps1 ${imageName} $($imageTag + 1)"
+	executeExpression "$env:CDAF_AUTOMATION_ROOT/remote/dockerClean.ps1 ${buildImage} $($imageTag + 1)"
 	
 	if ( $rebuildImage -ne 'imageonly') {
 		# Retrieve the latest image number
 		$imageTag = 0
-		foreach ( $imageDetails in docker images --filter label=cdaf.${imageName}.image.version --format "{{.Tag}}" ) {
+		foreach ( $imageDetails in docker images --filter label=cdaf.${buildImage}.image.version --format "{{.Tag}}" ) {
 			if ($imageTag -lt [INT]$imageDetails ) { $imageTag = [INT]$imageDetails }
 		}
 	
@@ -147,9 +147,9 @@ if ( $imageName ) {
 		Write-Host "[$scriptName] `$workspace : $workspace"
 
 		if ( $env:USERPROFILE ) {
-			executeExpression "docker run --tty --volume ${env:USERPROFILE}\:C:/solution/home --volume ${workspace}\:C:/solution/workspace ${imageName}:${imageTag} automation\ci.bat $buildNumber $revision container_build"
+			executeExpression "docker run --tty --volume ${env:USERPROFILE}\:C:/solution/home --volume ${workspace}\:C:/solution/workspace ${buildImage}:${imageTag} automation\ci.bat $buildNumber $revision container_build"
 		} else {
-			executeExpression "docker run --tty --volume ${workspace}\:C:/solution/workspace ${imageName}:${imageTag} automation\ci.bat $buildNumber $revision container_build"
+			executeExpression "docker run --tty --volume ${workspace}\:C:/solution/workspace ${buildImage}:${imageTag} automation\ci.bat $buildNumber $revision container_build"
 		}
 
 		Write-Host "`n[$scriptName] List and remove all stopped containers"

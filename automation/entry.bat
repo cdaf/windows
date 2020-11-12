@@ -9,29 +9,29 @@ REM housekeeping with remoteURL@
 SET BUILDNUMBER=%1
 SET BRANCH=%2
 SET ACTION=%3
-set AUTOMATION_ROOT=%4
+set AUTOMATIONROOT=%4
 
-IF [%AUTOMATION_ROOT%] == [] (
-	for %%Q in ("%~dp0\.") DO set "automationRoot=%%~fQ"
+IF [%AUTOMATIONROOT%] == [] (
+	for %%Q in ("%~dp0\.") DO set "AUTOMATIONROOT=%%~fQ"
 ) else (
-	set "automationRoot=%AUTOMATION_ROOT%"
+	set "AUTOMATIONROOT=%AUTOMATIONROOT%"
 )
 
 echo.
 echo [%~nx0] --------------------
 echo [%~nx0] Git workspace processing
-echo [%~nx0]   AUTOMATION_ROOT : %automationRoot%
-echo [%~nx0]   BUILDNUMBER     : %BUILDNUMBER%
-echo [%~nx0]   BRANCH          : %BRANCH%
-echo [%~nx0]   ACTION          : %ACTION%
+echo [%~nx0]   AUTOMATIONROOT : %AUTOMATIONROOT%
+echo [%~nx0]   BUILDNUMBER    : %BUILDNUMBER%
+echo [%~nx0]   BRANCH         : %BRANCH%
+echo [%~nx0]   ACTION         : %ACTION%
 
 REM Launcher script that overides execution policy
 REM cannot elevate powershell
 
-call powershell -NoProfile -NonInteractive -ExecutionPolicy ByPass -command %automationRoot%\processor\entry.ps1 %automationRoot% %BUILDNUMBER% %BRANCH% %ACTION%
+call powershell -NoProfile -NonInteractive -ExecutionPolicy ByPass -command %AUTOMATIONROOT%\processor\entry.ps1 %AUTOMATIONROOT% %BUILDNUMBER% %BRANCH% %ACTION%
 set result=%errorlevel%
 if %result% NEQ 0 (
-	echo [%~nx0] DELIVERY_ERROR call powershell -NoProfile -NonInteractive -ExecutionPolicy ByPass -command %automationRoot%\processor\entry.ps1 %automationRoot% %BUILDNUMBER% %BRANCH% %ACTION%
+	echo [%~nx0] DELIVERY_ERROR call powershell -NoProfile -NonInteractive -ExecutionPolicy ByPass -command %AUTOMATIONROOT%\processor\entry.ps1 %AUTOMATIONROOT% %BUILDNUMBER% %BRANCH% %ACTION%
 	echo [%~nx0]   Return LASTEXITCODE %result% 
 	exit /b %result%
 )
