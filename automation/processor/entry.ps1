@@ -185,6 +185,7 @@ if ($SOLUTIONROOT) {
 	$SOLUTIONROOT="$AUTOMATIONROOT\solution"
 	write-host "$SOLUTIONROOT (default, project directory containing CDAF.solution not found)"
 }
+$SOLUTIONROOT = (Get-Item $SOLUTIONROOT).FullName
 
 $automationHelper = "$AUTOMATIONROOT\remote"
 & $automationHelper\Transform.ps1 "$SOLUTIONROOT\CDAF.solution" | ForEach-Object { invoke-expression "$_" }

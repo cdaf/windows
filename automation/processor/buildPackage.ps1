@@ -142,20 +142,21 @@ if (!($AUTOMATIONROOT)) {
 }
 
 # Check for user defined solution folder, i.e. outside of automation root, if found override solution root
-Write-Host "[$scriptName]   solutionRoot    : " -NoNewline
+Write-Host "[$scriptName]   SOLUTIONROOT    : " -NoNewline
 foreach ($item in (Get-ChildItem -Path ".")) {
 	if (Test-Path $item -PathType "Container") {
 		if (Test-Path "$item\CDAF.solution") {
-			$solutionRoot=$item
+			$SOLUTIONROOT=$item
 		}
 	}
 }
-if ($solutionRoot) {
-	write-host "$solutionRoot (override $solutionRoot\CDAF.solution found)"
+if ($SOLUTIONROOT) {
+	write-host "$SOLUTIONROOT (override $SOLUTIONROOT\CDAF.solution found)"
 } else {
-	$solutionRoot="$AUTOMATIONROOT\solution"
-	write-host "$solutionRoot (default, project directory containing CDAF.solution not found)"
+	$SOLUTIONROOT="$AUTOMATIONROOT\solution"
+	write-host "$SOLUTIONROOT (default, project directory containing CDAF.solution not found)"
 }
+$SOLUTIONROOT = (Get-Item $SOLUTIONROOT).FullName
 
 if ( $BUILDNUMBER ) {
 	Write-Host "[$scriptName]   BUILDNUMBER     : $BUILDNUMBER"
@@ -206,11 +207,11 @@ Write-Host "[$scriptName]   ACTION          : $ACTION"
 if ($SOLUTION) {
 	Write-Host "[$scriptName]   SOLUTION        : $SOLUTION"
 } else {
-	$SOLUTION = getProp 'solutionName' "$solutionRoot\CDAF.solution"
+	$SOLUTION = getProp 'solutionName' "$SOLUTIONROOT\CDAF.solution"
 	if ($SOLUTION) {
-		Write-Host "[$scriptName]   SOLUTION        : $SOLUTION (from `$solutionRoot\CDAF.solution)"
+		Write-Host "[$scriptName]   SOLUTION        : $SOLUTION (from `$SOLUTIONROOT\CDAF.solution)"
 	} else {
-		exitWithCode "SOLUTION_NOT_FOUND Solution not supplied and unable to derive from $solutionRoot\CDAF.solution" 22
+		exitWithCode "SOLUTION_NOT_FOUND Solution not supplied and unable to derive from $SOLUTIONROOT\CDAF.solution" 22
 	}
 }
 
@@ -241,7 +242,7 @@ Write-Host "[$scriptName]   whoami          : $(whoami)"
 $cdafVersion = getProp 'productVersion' "$AUTOMATIONROOT\CDAF.windows"
 Write-Host "[$scriptName]   CDAF Version    : $cdafVersion"
 
-$containerImage = getProp 'containerImage' "$solutionRoot\CDAF.solution"
+$containerImage = getProp 'containerImage' "$SOLUTIONROOT\CDAF.solution"
 if ( $containerImage ) {
 	if (($env:CONTAINER_IMAGE) -or ($CONTAINER_IMAGE)) {
 		Write-Host "[$scriptName]   containerImage  : $containerImage"
@@ -263,7 +264,7 @@ foreach ($itemName in $itemList) {
 	itemRemove ".\${itemName}"
 }
 
-$configManagementList = Get-ChildItem -Path "$solutionRoot" -Name '*.cm'
+$configManagementList = Get-ChildItem -Path "$SOLUTIONROOT" -Name '*.cm'
 if ( $configManagementList ) {
 	foreach ($item in $configManagementList) {
 		Write-Host "[$scriptName]   CM Driver       : $item"
@@ -272,7 +273,7 @@ if ( $configManagementList ) {
 		Write-Host "[$scriptName]   CM Driver       : none ($SOLUTIONROOT\*.cm)"
 }
 
-$pivotList = Get-ChildItem -Path "$solutionRoot" -Name '*.pv'
+$pivotList = Get-ChildItem -Path "$SOLUTIONROOT" -Name '*.pv'
 if ( $pivotList ) {
 	foreach ($item in $pivotList) {
 		Write-Host "[$scriptName]   PV Driver       : $item"
@@ -342,11 +343,11 @@ foreach ($propertiesDriver in $pivotList) {
 if ( $ACTION -eq 'container_build' ) {
 	Write-Host "`n[$scriptName] `$ACTION = $ACTION, skip detection.`n"
 } else {
-	$containerBuild = getProp 'containerBuild' "$solutionRoot\CDAF.solution"
+	$containerBuild = getProp 'containerBuild' "$SOLUTIONROOT\CDAF.solution"
 	if ( $containerBuild ) {
 		$versionTest = cmd /c docker --version 2`>`&1; cmd /c "exit 0"
 		if ($versionTest -like '*not recognized*') {
-			Write-Host "[$scriptName]   containerBuild  : containerBuild defined in $solutionRoot\CDAF.solution, but Docker not installed, will attempt to execute natively"
+			Write-Host "[$scriptName]   containerBuild  : containerBuild defined in $SOLUTIONROOT\CDAF.solution, but Docker not installed, will attempt to execute natively"
 			Clear-Variable -Name 'containerBuild'
 			$executeNative = $true
 		} else {
@@ -393,21 +394,21 @@ if ( $ACTION -eq 'container_build' ) {
 			}
 		}
 	} else {
-		Write-Host "[$scriptName]   containerBuild  : (not defined in $solutionRoot\CDAF.solution)"
+		Write-Host "[$scriptName]   containerBuild  : (not defined in $SOLUTIONROOT\CDAF.solution)"
 	}
 }
 
 # 2.2.0 Image Build as incorperated function
-$imageBuild = getProp 'imageBuild' "$solutionRoot\CDAF.solution"
+$imageBuild = getProp 'imageBuild' "$SOLUTIONROOT\CDAF.solution"
 if ( $imageBuild ) {
 	if ( $executeNative ) { # docker test already performed
-		Write-Host "[$scriptName]   imageBuild      : containerBuild defined in $solutionRoot\CDAF.solution, but Docker not in use, imageBuild will not be attempted"
+		Write-Host "[$scriptName]   imageBuild      : containerBuild defined in $SOLUTIONROOT\CDAF.solution, but Docker not in use, imageBuild will not be attempted"
 		Clear-Variable -Name 'imageBuild'
 	} else {
 		Write-Host "[$scriptName]   imageBuild      : $imageBuild"
 	}
 } else {
-	Write-Host "[$scriptName]   imageBuild      : (not defined in $solutionRoot\CDAF.solution)"
+	Write-Host "[$scriptName]   imageBuild      : (not defined in $SOLUTIONROOT\CDAF.solution)"
 }
 
 if (( $containerBuild ) -and ( $ACTION -ne 'packageonly' )) {
@@ -424,9 +425,9 @@ if (( $containerBuild ) -and ( $ACTION -ne 'packageonly' )) {
 			Write-Host "`n[$scriptName] ACTION is $ACTION so skipping build process" -ForegroundColor Yellow
 		}
 	} else {
-		& $AUTOMATIONROOT\buildandpackage\buildProjects.ps1 $SOLUTION $BUILDNUMBER $REVISION $AUTOMATIONROOT $solutionRoot $ACTION
+		& $AUTOMATIONROOT\buildandpackage\buildProjects.ps1 $SOLUTION $BUILDNUMBER $REVISION $AUTOMATIONROOT $SOLUTIONROOT $ACTION
 		if($LASTEXITCODE -ne 0){
-			exitWithCode "BUILD_NON_ZERO_EXIT $AUTOMATIONROOT\buildandpackage\buildProjects.ps1 $SOLUTION $BUILDNUMBER $REVISION $AUTOMATIONROOT $solutionRoot $ACTION" $LASTEXITCODE
+			exitWithCode "BUILD_NON_ZERO_EXIT $AUTOMATIONROOT\buildandpackage\buildProjects.ps1 $SOLUTION $BUILDNUMBER $REVISION $AUTOMATIONROOT $SOLUTIONROOT $ACTION" $LASTEXITCODE
 		}
 		if(!$?){ taskWarning "buildProjects.ps1" }
 	}
@@ -434,9 +435,9 @@ if (( $containerBuild ) -and ( $ACTION -ne 'packageonly' )) {
 	if ( $ACTION -eq 'buildonly' ) {
 		Write-Host "`n[$scriptName] Action is $ACTION so skipping package process" -ForegroundColor Yellow
 	} else {
-		& $AUTOMATIONROOT\buildandpackage\package.ps1 $SOLUTION $BUILDNUMBER $REVISION $AUTOMATIONROOT $solutionRoot $LOCAL_WORK_DIR $REMOTE_WORK_DIR $ACTION
+		& $AUTOMATIONROOT\buildandpackage\package.ps1 $SOLUTION $BUILDNUMBER $REVISION $AUTOMATIONROOT $SOLUTIONROOT $LOCAL_WORK_DIR $REMOTE_WORK_DIR $ACTION
 		if($LASTEXITCODE -ne 0){
-			exitWithCode "PACKAGE_NON_ZERO_EXIT $AUTOMATIONROOT\buildandpackage\package.ps1 $SOLUTION $BUILDNUMBER $REVISION $AUTOMATIONROOT $solutionRoot $LOCAL_WORK_DIR $REMOTE_WORK_DIR $ACTION" $LASTEXITCODE
+			exitWithCode "PACKAGE_NON_ZERO_EXIT $AUTOMATIONROOT\buildandpackage\package.ps1 $SOLUTION $BUILDNUMBER $REVISION $AUTOMATIONROOT $SOLUTIONROOT $LOCAL_WORK_DIR $REMOTE_WORK_DIR $ACTION" $LASTEXITCODE
 		}
 		if(!$?){ taskWarning "package.ps1" }
 	}
@@ -446,11 +447,11 @@ if ( $ACTION -ne 'container_build' ) {
 
 	# 2.2.0 Image Build as an incorperated function, no longer conditional on containerBuild, but do not attempt if within containerbuild
 	if ( $imageBuild ) {
-		$runtimeImage = getProp 'runtimeImage' "$solutionRoot\CDAF.solution"
+		$runtimeImage = getProp 'runtimeImage' "$SOLUTIONROOT\CDAF.solution"
 		if ( $runtimeImage ) {
 			Write-Host "[$scriptName] Execute image build (available runtimeImage = $runtimeImage)"
 		} else {
-			$runtimeImage = getProp 'containerImage' "$solutionRoot\CDAF.solution"
+			$runtimeImage = getProp 'containerImage' "$SOLUTIONROOT\CDAF.solution"
 			if ( $runtimeImage ) {
 				Write-Host "[$scriptName] Execute image build (available runtimeImage = $runtimeImage, runtimeImage not found, using containerImage)"
 			} else {
@@ -485,7 +486,7 @@ if ( $ACTION -ne 'container_build' ) {
 	}
 
 	# CDAF 2.1.0 Self-extracting Script Artifact
-	$artifactPrefix = getProp 'artifactPrefix' "$solutionRoot\CDAF.solution"
+	$artifactPrefix = getProp 'artifactPrefix' "$SOLUTIONROOT\CDAF.solution"
 	if ( $artifactPrefix ) {
 		$artifactID = "${SOLUTION}-${artifactPrefix}.${BUILDNUMBER}"
 		Write-Host "[$scriptName] artifactPrefix = $artifactID, generate single file artefact ..."
