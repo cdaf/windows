@@ -86,11 +86,20 @@ if ($dockerExpose) {
 Write-Host "`n[$scriptName] List the running containers (before)`n"
 docker ps
 
-Write-Host "`n[$scriptName] Remove any existing containers based on label=cdaf.${imageName}.container.instance=${instance}`n"
-foreach ($containerInstance in docker ps --filter label=cdaf.${imageName}.container.instance=${instance} -aq) {
-	Write-Host "[$scriptName] Stop and remove existing container instance ($instance)"
-	executeExpression "docker stop $containerInstance"
-	executeExpression "docker rm $containerInstance"
+if ($dockerExpose) {
+	Write-Host "`n[$scriptName] Remove any existing containers based on docker ps --filter label=cdaf.${imageName}.container.instance=${instance}`n"
+	foreach ($containerInstance in docker ps --filter label=cdaf.${imageName}.container.instance=${instance} -aq) {
+		Write-Host "[$scriptName] Stop and remove existing container instance ($instance)"
+		executeExpression "docker stop $containerInstance"
+		executeExpression "docker rm $containerInstance"
+	}
+} else {
+	Write-Host "`n[$scriptName] Remove any existing containers based on docker ps --filter label=cdaf.${imageName}.container.instance`n"
+	foreach ($containerInstance in docker ps --filter label=cdaf.${imageName}.container.instance -aq) {
+		Write-Host "[$scriptName] Stop and remove existing container instance ($instance)"
+		executeExpression "docker stop $containerInstance"
+		executeExpression "docker rm $containerInstance"
+	}
 }
 
 if ($dockerExpose) {
