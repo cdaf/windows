@@ -1,0 +1,10 @@
+/TasksLocal/
+/TasksRemote/
+/projectDirectories.txt
+/manifest.txt
+/storeFor_manifest.txt
+/storeForLocal_manifest.txt
+/storeForRemote_manifest.txt
+/projectsToBuild.txt
+/propertiesForLocalTasks/
+/propertiesForRemoteTasks/

@@ -111,9 +111,10 @@ executeSuppress "docker system prune -f"
 
 $buildCommand = 'docker build'
 
-if ($env:http_proxy) {
-	Write-Host "`n[$scriptName] `$env:http_proxy is set ($env:http_proxy), pass as `$proxy to build`n"
-	$buildCommand += " --build-arg proxy=$env:http_proxy"
+foreach ( $envVar in Get-ChildItem env:) {
+	if ($envVar.Name.Contains('CDAF_CB_')) {
+		$buildCommand += " --build-arg $(${envVar}.Name)=$(${envVar}.Value)"
+	}
 }
 
 if ($rebuild -eq 'yes') {
