@@ -3,6 +3,10 @@ Param (
 	[string[]]$passedArray
 )
 
+cmd /c "exit 0"
+$Error.Clear()
+$scriptName = 'clean.ps1'
+
 # Common expression logging and error handling function, copied, not referenced to ensure atomic process
 function executeExpression ($expression) {
 	Write-Host "[$(Get-Date)] $expression"
@@ -38,8 +42,6 @@ function executeExpression ($expression) {
 	}
 }
 
-$scriptName = 'clean.ps1'
-
 Write-Host "`n[$scriptName] --- start ---"
 if ($SOLUTION) {
     Write-Host "[$scriptName]   SOLUTION      : $SOLUTION"
@@ -73,4 +75,6 @@ foreach ( $image in $(docker images "${SOLUTION}*" --format "{{.Repository}}:{{.
 	}
 }
 
+cmd /c "exit 0"
+$Error.Clear()
 Write-Host "[$scriptName] --- end ---"
