@@ -526,9 +526,6 @@ Foreach ($line in get-content $TASK_LIST) {
 
 			# Perform no further processing if Feature is Property Loader
             if ( $feature -ne 'PROPLD ' ) {
-
-	            # Execute expression and trap powershell exceptions, do not use executeExpression function of variables will go out of scope
-            	$Error.clear()
             	
 			    # Do not echo line if it is an echo itself
 			    if (-not (($expression -match 'Write-Host') -or ($expression -match 'echo'))) {
@@ -538,6 +535,9 @@ Foreach ($line in get-content $TASK_LIST) {
 					Write-Host "$expression"
 			    }
 
+	            # Execute expression and trap powershell exceptions, do not use executeExpression function of variables will go out of scope
+            	$Error.clear()
+
 				try {
 					Invoke-Expression "$expression 2> `$null"
 					if(!$?) { Write-Host "`n[$scriptName][TRAP] `$? = $?"
@@ -546,9 +546,13 @@ Foreach ($line in get-content $TASK_LIST) {
 					}
 				} catch {
 					Write-Host "`n[$scriptName][EXCEPTION] List exception and error array (if populated) and exit with LASTEXITCODE 1012"
-					Write-Host "[$scriptName][EXCEPTION]   $($_.Exception.Message)"
-					if ( $error ) { Write-Host "[$scriptName][EXCEPTION]   `$error[] = $error" ; $Error.clear()}
-					exit 1012
+					if ( $_.Exception.Message ) {
+						Write-Host "[$scriptName][EXCEPTION]   $($_.Exception.Message)"
+						if ( $error ) { Write-Host "[$scriptName][EXCEPTION]   `$error[] = $error" ; $Error.clear()}
+						exit 1012	
+					} else {
+						Write-Host "[$scriptName][WARN]   `$Error[] = $Error. "; $Error.clear()
+					}
 				}
 				if ( $LASTEXITCODE ) {
 			    	if ( $LASTEXITCODE -ne 0 ) {
