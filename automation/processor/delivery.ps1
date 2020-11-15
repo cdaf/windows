@@ -25,7 +25,7 @@ function executeExpression ($expression) {
 	    if(!$?) { Write-Host "`n[$scriptName][TRAP] `$? = $?"; $error ; exit 1311 }
 	} catch {
 		Write-Host "`n[$scriptName][EXCEPTION] List exception and error array (if populated) and exit with LASTEXITCODE 1312" -ForegroundColor Red
-		Write-Host "[$scriptName][EXCEPTION]   $($_.ErrorDetails.Message.message)"
+		Write-Host "[$scriptName][EXCEPTION]   $($_.Exception.Message)"
 		if ( $error ) { Write-Host "[$scriptName][ERROR]   `$Error = $Error" ; $Error.clear() }
 		exit 1312
 	}
