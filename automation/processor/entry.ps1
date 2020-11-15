@@ -86,13 +86,13 @@ function executeReturn ($expression) {
 
 # Common expression logging and error handling function, copied, not referenced to ensure atomic process
 function executeSuppress ($expression) {
-    Write-Host "$expression 2> `$null"
+    Write-Host "[$(Get-Date)] $expression"
     try {
-        Invoke-Expression $expression
-        if(!$?) { Write-Host "[$scriptName] `$? = $?"; exit 1 }
-    } catch { Write-Host $_.Exception|format-list -force; exit 2 }
+        Invoke-Expression "$expression 2> `$null"
+        if(!$?) { Write-Host "[$scriptName][TRAP] `$? = $?"; exit 1 }
+    } catch { $error.clear() }
     $error.clear()
-    if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) { Write-Host "[$scriptName] Suppress `$LASTEXITCODE ($LASTEXITCODE)"; cmd /c "exit 0" } # reset LASTEXITCODE
+    if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) { $error.clear(); cmd /c "exit 0" } # reset LASTEXITCODE
 }
 
 Write-Host "`n[$scriptName] ---------- start ----------"
@@ -270,9 +270,8 @@ if (!( $gitRemoteURL )) {
 			$usingCache = $(git log -n 1 --pretty=%d HEAD 2>$null)
 			if ( $LASTEXITCODE -ne 0 ) { Write-Error "[$scriptName] Git cache update failed!"; exit 6924 }
 			Write-Host "$usingCache"
-			Write-Host "git branch '${branchBase}' 2> `$null"
-			git branch "${branchBase}" 2>$null
-			git checkout -b "${branchBase}" 2>$null # cater for ambiguous origin
+			executeSuppress "git branch '${branchBase}'"
+			executeSuppress "git checkout -b '${branchBase}'" # cater for ambiguous origin
 			executeSuppress "git checkout '${branchBase}'"
 			$gitName = $(git config --list | Select-String 'user.name=')
 			if (!( $gitName )) {

@@ -15,32 +15,32 @@ function executeExpression ($expression) {
 	try {
 		Invoke-Expression "$expression 2> `$null"
 	    if(!$?) {
-			Write-Host "[$scriptName] `$? = $?"
+			Write-Host "`n[$scriptName][TRAP] `$? = $?"
 			if ( $error ) { Write-Host "[$scriptName][STATUS] `$Error = $Error" ; $Error.clear() }
 			exit 1111
 		}
 	} catch {
-		Write-Host "[$scriptName][EXCEPTION] List exception and error array (if populated) and exit with LASTEXITCIDE 1112" -ForegroundColor Red
-		Write-Host $_.Exception|format-list -force
-		if ( $error ) { Write-Host "[$scriptName] `$Error = $Error" ; $Error.clear() }
+		Write-Host "`n[$scriptName][EXCEPTION] List exception and error array (if populated) and exit with LASTEXITCODE 1112" -ForegroundColor Red
+		Write-Host "[$scriptName][EXCEPTION]   $($_.ErrorDetails.Message.message)"
+		if ( $error ) { Write-Host "[$scriptName]   `$Error = $Error" ; $Error.clear() }
 		exit 1112
 	}
     if ( $LASTEXITCODE ) {
     	if ( $LASTEXITCODE -ne 0 ) {
-			Write-Host "[$scriptName][EXIT] `$LASTEXITCODE = $LASTEXITCODE " -ForegroundColor Red
-			if ( $error ) { Write-Host "[$scriptName] `$Error = $Error" ; $Error.clear() }
+			Write-Host "`n[$scriptName][EXIT] `$LASTEXITCODE = $LASTEXITCODE " -ForegroundColor Red
+			if ( $error ) { Write-Host "[$scriptName][EXIT]   `$Error = $Error" ; $Error.clear() }
 			exit $LASTEXITCODE
 		} else {
 			if ( $error ) {
 				Write-Host "[$scriptName][WARN] $Error array populated by `$LASTEXITCODE = $LASTEXITCODE error follows...`n" -ForegroundColor Yellow
-				Write-Host "[$scriptName] `$Error = $Error" ; $Error.clear()
+				Write-Host "[$scriptName][WARN]   `$Error = $Error" ; $Error.clear()
 			}
 		} 
 	} else {
 	    if ( $error ) {
 	    	if ( $env:CDAF_IGNORE_WARNING -eq 'no' ) {
-				Write-Host "[$scriptName][ERROR] `$Error = $error"; $Error.clear()
-				Write-Host "[$scriptName] `$env:CDAF_IGNORE_WARNING is 'no' so exiting with LASTEXITCODE 1113 ..."; exit 1113
+				Write-Host "`n[$scriptName][ERROR] `$Error = $error"; $Error.clear()
+				Write-Host "[$scriptName][ERROR]   `$env:CDAF_IGNORE_WARNING is 'no' so exiting with LASTEXITCODE 1113 ..."; exit 1113
 	    	} else {
 		    	Write-Host "[$scriptName][WARN] `$Error = $error" ; $Error.clear()
 	    	}
@@ -545,7 +545,7 @@ Foreach ($line in get-content $TASK_LIST) {
 						exit 1011
 					}
 				} catch {
-					Write-Host "[$scriptName][EXCEPTION] List exception and error array (if populated) and exit with LASTEXITCIDE 1012"
+					Write-Host "[$scriptName][EXCEPTION] List exception and error array (if populated) and exit with LASTEXITCODE 1012"
 					Write-Host $_.Exception|format-list -force
 					if ( $error ) { Write-Host "[$scriptName] $error = $error" ; $Error.clear()}
 					exit 1012

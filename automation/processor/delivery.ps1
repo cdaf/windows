@@ -14,6 +14,7 @@ Import-Module Microsoft.PowerShell.Security
 
 # Initialise
 cmd /c "exit 0"
+$Error.clear()
 $scriptName = 'delivery.ps1'
 
 # Common expression logging and error handling function, copied, not referenced to ensure atomic process
@@ -21,29 +22,29 @@ function executeExpression ($expression) {
 	Write-Host "[$(Get-Date)] $expression"
 	try {
 		Invoke-Expression "$expression 2> `$null"
-	    if(!$?) { Write-Host "[$scriptName] `$? = $?"; $error ; exit 1311 }
+	    if(!$?) { Write-Host "`n[$scriptName][TRAP] `$? = $?"; $error ; exit 1311 }
 	} catch {
-		Write-Host "[$scriptName][EXCEPTION] List exception and error array (if populated) and exit with LASTEXITCIDE 1312" -ForegroundColor Red
-		Write-Host $_.Exception|format-list -force
-		if ( $error ) { Write-Host "[$scriptName][ERROR] `$Error = $Error" ; $Error.clear() }
+		Write-Host "`n[$scriptName][EXCEPTION] List exception and error array (if populated) and exit with LASTEXITCODE 1312" -ForegroundColor Red
+		Write-Host "[$scriptName][EXCEPTION]   $($_.ErrorDetails.Message.message)"
+		if ( $error ) { Write-Host "[$scriptName][ERROR]   `$Error = $Error" ; $Error.clear() }
 		exit 1312
 	}
     if ( $LASTEXITCODE ) {
     	if ( $LASTEXITCODE -ne 0 ) {
-			Write-Host "[$scriptName] `$LASTEXITCODE = $LASTEXITCODE " -ForegroundColor Red
-			if ( $error ) { Write-Host "[$scriptName][ERROR] `$Error = $Error" ; $Error.clear() }
+			Write-Host "`n[$scriptName][EXIT] `$LASTEXITCODE = $LASTEXITCODE " -ForegroundColor Red
+			if ( $error ) { Write-Host "[$scriptName][EXIT]   `$Error = $Error" ; $Error.clear() }
 			exit $LASTEXITCODE
 		} else {
 			if ( $error ) {
 				Write-Host "[$scriptName][WARN] $Error array populated by `$LASTEXITCODE = $LASTEXITCODE error follows...`n" -ForegroundColor Yellow
-				Write-Host "[$scriptName][WARN] `$Error = $Error" ; $Error.clear()
+				Write-Host "[$scriptName][WARN]   `$Error = $Error" ; $Error.clear()
 			}
 		} 
 	} else {
 	    if ( $error ) {
 	    	if ( $env:CDAF_IGNORE_WARNING -eq 'no' ) {
-				Write-Host "[$scriptName][ERROR] `$Error = $error"; $Error.clear()
-				Write-Host "[$scriptName][ERROR] `$env:CDAF_IGNORE_WARNING is 'no' so exiting with LASTEXITCODE 1313 ..."; exit 1313
+				Write-Host "`n[$scriptName][ERROR] `$Error = $error"; $Error.clear()
+				Write-Host "[$scriptName][ERROR]   `$env:CDAF_IGNORE_WARNING is 'no' so exiting with LASTEXITCODE 1313 ..."; exit 1313
 	    	} else {
 		    	Write-Host "[$scriptName][WARN] `$Error = $error" ; $Error.clear()
 	    	}
