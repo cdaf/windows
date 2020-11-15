@@ -21,7 +21,7 @@ function executeExpression ($expression) {
 		}
 	} catch {
 		Write-Host "`n[$scriptName][EXCEPTION] List exception and error array (if populated) and exit with LASTEXITCODE 1112" -ForegroundColor Red
-		Write-Host "[$scriptName][EXCEPTION]   $($_.Exception.Message)"
+		Write-Host $_.Exception|format-list -force
 		if ( $error ) { Write-Host "[$scriptName][EXCEPTION]   `$Error[] = $Error" ; $Error.clear() }
 		exit 1112
 	}
@@ -546,13 +546,9 @@ Foreach ($line in get-content $TASK_LIST) {
 					}
 				} catch {
 					Write-Host "`n[$scriptName][EXCEPTION] List exception and error array (if populated) and exit with LASTEXITCODE 1012"
-					if ( $_.Exception.Message ) {
-						Write-Host "[$scriptName][EXCEPTION]   $($_.Exception.Message)"
-						if ( $error ) { Write-Host "[$scriptName][EXCEPTION]   `$error[] = $error" ; $Error.clear()}
-						exit 1012	
-					} else {
-						Write-Host "[$scriptName][WARN]   `$Error[] = $Error. "; $Error.clear()
-					}
+					Write-Host $_.Exception|format-list -force
+					if ( $error ) { Write-Host "[$scriptName][EXCEPTION]   `$error[] = $error" ; $Error.clear()}
+					exit 1012	
 				}
 				if ( $LASTEXITCODE ) {
 			    	if ( $LASTEXITCODE -ne 0 ) {

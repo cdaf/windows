@@ -121,7 +121,7 @@ if ($dockerUser) {
 if (${compose}) {
     Write-Host "[$scriptName]  compose     : ${compose}"
 } else {
-	$compose = '1.26.2'
+	$compose = '1.27.4'
     Write-Host "[$scriptName]  compose     : ${compose} (default)"
 }
 
