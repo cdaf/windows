@@ -77,4 +77,4 @@ foreach ( $image in $(docker images "${SOLUTION}*" --format "{{.Repository}}:{{.
 
 cmd /c "exit 0"
 $Error.Clear()
-Write-Host "[$scriptName] --- end ---"
+Write-Host "`n[$scriptName] --- end ---"
