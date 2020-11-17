@@ -237,7 +237,7 @@ if (!( $gitRemoteURL )) {
 			if (!( $userPass )) {
 				Write-Host "[$scriptName]   $gitUserPassEnvVar contains no value, relying on current workspace being up to date"
 			} else {
-				$gitRemoteURL = "https://${userName}:${userPass}@$($gitRemoteURL.Replace('https://', ''))"
+				$urlWithCreds = "https://${userName}:${userPass}@$($gitRemoteURL.Replace('https://', ''))"
 			}
 		}
 	}
@@ -253,36 +253,34 @@ if (!( $gitRemoteURL )) {
 			$skipRemoteBranchCheck = 'yes'
 		} else {
 			if ( $env:USERPROFILE ) {
-				$tempDir = "$env:USERPROFILE\.cdaf-cache"
+				$cacheDir = "$env:USERPROFILE\.cdaf-cache"
 			} else {
-				$tempDir = "$env:TEMP\.cdaf-cache"
+				$cacheDir = "$env:TEMP\.cdaf-cache"
 			}
-			Write-Host "[$scriptName] Workspace is not a Git repository or has detached head, skip branch clean-up and perform custom clean-up tasks in $tempDir ...`n"
-			$gitName = $(git config --list | Select-String 'user.name=')
-			if (!( $gitName )) {
-				git config user.name "Your Name"
+			$gitRemoteURL = $gitRemoteURL.Trim('/')                                              # remove trailing /
+			$tempParent = (Split-Path -Path $gitRemoteURL -Parent).Replace('https:\', $cacheDir) # retain parent directory for create if required
+			$repoName = $gitRemoteURL.Split('/')[-1].Split('.')[0]                               # retrieve basename and remove extension
+			$cacheDir = $tempParent + '\' + $repoName                                            # ensure cache directory is unique by using URI
+			Write-Host "[$scriptName] Workspace is not a Git repository or has detached head, skip branch clean-up and work with cache clone ...`n"
+			if ( Test-Path $cacheDir ) {
+				executeExpression "cd $cacheDir"
+			} else {
+				executeExpression "mkdir -p $tempParent"
+				executeExpression "cd $tempParent"
+				executeExpression "git clone '${urlWithCreds}'"
+				executeExpression "cd $repoName"
+				$gitName = $(git config --list | Select-String 'user.name=')
+				if (!( $gitName )) {
+					git config user.name "Your Name"
+				}
+				$gitEmail = $(git config --list | Select-String 'user.email=')
+				if (!( $gitEmail )) {
+					git config user.email "you@example.com"
+				}
 			}
-			$gitEmail = $(git config --list | Select-String 'user.email=')
-			if (!( $gitEmail )) {
-				git config user.email "you@example.com"
-			}
-			if (!( Test-Path $tempDir )) {
-				executeExpression "mkdir -p $tempDir"
-			}
-			executeExpression "cd $tempDir"
-			$repoName = ($gitRemoteURL.Trim('/')).Split('/')[-1].Split('.')[0] # remove trailing /, retrieve basename and remove extension
-			if (!( Test-Path $repoName )) {
-				executeExpression "git clone '${gitRemoteURL}'"
-			}
-			executeExpression "cd $repoName"
-			executeExpression "git fetch --prune '${gitRemoteURL}'"
+			executeExpression "git fetch --prune '${urlWithCreds}'"
 			$usingCache = $(git log -n 1 --pretty=%d HEAD 2>$null)
-			if ( $LASTEXITCODE -ne 0 ) { Write-Error "[$scriptName] Git cache update failed!"; exit 6924 }
-			Write-Host "$usingCache"
-			executeSuppress "git branch '${branchBase}'"
-			executeSuppress "git checkout -b '${branchBase}'" # cater for ambiguous origin
-			executeSuppress "git checkout '${branchBase}'"
-			executeSuppress "git pull origin '${branchBase}'"
+			if ( $LASTEXITCODE -ne 0 ) { Write-Error "[$scriptName] Git cache update failed!"; exit 6924 }			
 		}
 	} else {
 		Write-Host "$headAttached"
@@ -290,30 +288,36 @@ if (!( $gitRemoteURL )) {
 		if (!($userName)) {
 			executeExpression "git fetch --prune"
 		} else {
-			executeExpression "git fetch --prune '${gitRemoteURL}'"
+			executeExpression "git fetch --prune '${urlWithCreds}'"
 		}
 
 	}
 
-	if (!( $skipRemoteBranchCheck )) {
-		Write-Host "[$scriptName] Load Remote branches from local cache (git ls-remote --heads origin 2>`$null)`n"
-		$remoteArray = @()
-		foreach ( $remoteBranch in $(git ls-remote --heads origin 2>$null) ) {
-			if ( $remoteBranch.Contains('/')) {
-				$remoteArray += $remoteBranch.Split('/')[-1]
-			}
+	Write-Host "[$scriptName] Load Remote branches (git ls-remote --heads origin 2>`$null)`n"
+	$remoteArray = @()
+	foreach ( $remoteBranch in $(git ls-remote --heads origin 2>$null) ) {
+		if ( $remoteBranch.Contains('/')) {
+			$remoteArray += $remoteBranch.Split('/')[-1]
 		}
-		if (!( $remoteArray )) { Write-Error "[$scriptName] git ls-remote --heads origin provided no branches!"; exit 6925 }
-		foreach ($remoteBranch in $remoteArray) { # verify array contents
-			Write-Host "  $remoteBranch"
-		}
+	}
+	if (!( $remoteArray )) { Write-Error "[$scriptName] git ls-remote --heads origin provided no branches!"; exit 6925 }
+	foreach ($remoteBranch in $remoteArray) { # verify array contents
+		Write-Host "  $remoteBranch"
+	}
 
-		Write-Host "`n[$scriptName] Process Local branches (git branch --format='%(refname:short)')`n"
-		foreach ( $localBranch in $(git branch --format='%(refname:short)') ) {
-			if ( $remoteArray.Contains($localBranch) ) {
-				Write-Host "  keep branch ${localBranch}"
-			} else {
-				executeExpression "  git branch -D '${localBranch}'"
+	if ( $usingCache ) { # cache only required to build remoteArray
+		executeExpression "cd $workspace"
+	}
+
+	if (!( $skipRemoteBranchCheck )) {
+		if ( $headAttached ) {
+			Write-Host "`n[$scriptName] Process Local branches (git branch --format='%(refname:short)')`n"
+			foreach ( $localBranch in $(git branch --format='%(refname:short)') ) {
+				if ( $remoteArray.Contains($localBranch) ) {
+					Write-Host "  keep branch ${localBranch}"
+				} else {
+					executeExpression "  git branch -D '${localBranch}'"
+				}
 			}
 		}
 
@@ -324,10 +328,6 @@ if (!( $gitRemoteURL )) {
 			executeExpression "$gitCustomCleanup $SOLUTION `$remoteArray"
 		}
 	}
-}
-
-if ( $usingCache ) {
-	executeExpression "cd $workspace"
 }
 
 Write-Host "`n[$scriptName] ---------- stop ----------"
