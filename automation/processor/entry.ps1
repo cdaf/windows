@@ -258,10 +258,19 @@ if (!( $gitRemoteURL )) {
 				$tempDir = "$env:TEMP\.cdaf-cache"
 			}
 			Write-Host "[$scriptName] Workspace is not a Git repository or has detached head, skip branch clean-up and perform custom clean-up tasks in $tempDir ...`n"
-			executeExpression "mkdir -p $tempDir"
+			$gitName = $(git config --list | Select-String 'user.name=')
+			if (!( $gitName )) {
+				git config user.name "Your Name"
+			}
+			$gitEmail = $(git config --list | Select-String 'user.email=')
+			if (!( $gitEmail )) {
+				git config user.email "you@example.com"
+			}
+			if (!( Test-Path $tempDir )) {
+				executeExpression "mkdir -p $tempDir"
+			}
 			executeExpression "cd $tempDir"
-			$repoName = ($gitRemoteURL.Trim('/')).Split('/')[-1]            # remove trailing / and retrieve basename
-			$repoName = $repoName.Substring($repoName.lastIndexOf('.') + 1) # remove extension
+			$repoName = ($gitRemoteURL.Trim('/')).Split('/')[-1].Split('.')[0] # remove trailing /, retrieve basename and remove extension
 			if (!( Test-Path $repoName )) {
 				executeExpression "git clone '${gitRemoteURL}'"
 			}
@@ -273,15 +282,7 @@ if (!( $gitRemoteURL )) {
 			executeSuppress "git branch '${branchBase}'"
 			executeSuppress "git checkout -b '${branchBase}'" # cater for ambiguous origin
 			executeSuppress "git checkout '${branchBase}'"
-			$gitName = $(git config --list | Select-String 'user.name=')
-			if (!( $gitName )) {
-				git config user.name "Your Name"
-			}
-			$gitEmail = $(git config --list | Select-String 'user.email=')
-			if (!( $gitEmail )) {
-				git config user.email "you@example.com"
-			}
-			executeExpression "git pull origin '${branchBase}'"
+			executeSuppress "git pull origin '${branchBase}'"
 		}
 	} else {
 		Write-Host "$headAttached"
