@@ -116,7 +116,7 @@ if ($pfxFile) {
   $pfx = executeReturn 'new-object System.Security.Cryptography.X509Certificates.X509Certificate2'
   executeExpression '$pfx.import($ByteArray , "password", "Exportable,PersistKeySet")'
 } else {
-  executeExpression "`$pfx.Import('$certPath', $pfxPassword, 'Exportable, PersistKeySet')"
+  executeExpression "`$pfx.Import('$certPath', '$pfxPassword', 'Exportable, PersistKeySet')"
 }
 
 Write-Host "`n[$scriptName] Access the store ($location\$placement)"
