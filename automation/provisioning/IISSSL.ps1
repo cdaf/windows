@@ -136,10 +136,9 @@ if ( $ip -eq '0.0.0.0' ) {
 }
 $bindCheck = executeReturn "Get-WebBinding -Name '$siteName' -IP '$ip' -Port '$port' -Protocol https"
 if ( $bindCheck ) { # Observed Windows Container not binding to site, but VM does, generic test for either
-	Write-Host "[$scriptName] Binding Exists for $siteName with IP $ip and port $port (Protocol https)"
-} else {
-	executeExpression "New-WebBinding -Name '$siteName' -IP $ip -Port $port -Protocol https"
+	executeExpression "Remove-WebBinding -Name '$siteName'"
 }
+executeExpression "New-WebBinding -Name '$siteName' -IP $ip -Port $port -Protocol https"
 
 Write-Host "`n[$scriptName] ---------- stop ----------"
 $error.clear()
