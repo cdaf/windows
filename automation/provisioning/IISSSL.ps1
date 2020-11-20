@@ -125,7 +125,7 @@ executeExpression 'import-module WebAdministration'
 
 Write-Host
 if (test-path IIS:\SslBindings\$ip!$port) { 
-	executeExpression "remove-item IIS:\SslBindings\$ip!$port"
+	executeExpression "Remove-Item IIS:\SslBindings\$ip!$port"
 }
 
 $cert = executeReturn "Get-ChildItem -Path Cert:\$location\$placement\$thumbPrint"
@@ -138,7 +138,7 @@ $bindCheck = executeReturn "Get-WebBinding -Name '$siteName' -IP '$ip' -Port '$p
 if ( $bindCheck ) { # Observed Windows Container not binding to site, but VM does, generic test for either
 	executeExpression "Remove-WebBinding -Name '$siteName'"
 }
-executeExpression "New-WebBinding -Name '$siteName' -IP $ip -Port $port -Protocol https"
+executeExpression "New-WebBinding -Name '$siteName' -IP '$ip' -Port '$port' -Protocol https"
 
 Write-Host "`n[$scriptName] ---------- stop ----------"
 $error.clear()
