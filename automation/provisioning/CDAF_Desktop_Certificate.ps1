@@ -1,5 +1,6 @@
 Param (
   [string]$location,
+  [string]$placement,
   [string]$certPath,
   [string]$pfxPassword
 )
@@ -9,10 +10,17 @@ $scriptName = 'CDAF_Desktop_Certificate.ps1'
 Write-Host "`n[$scriptName] Requires elevated privilages"
 Write-Host "`n[$scriptName] ---------- start ----------"
 if ($location) {
-  Write-Host "[$scriptName] location    : $location"
+  Write-Host "[$scriptName] location    : $location (CurrentUser or LocalMachine)"
 } else {
   $location = 'CurrentUser'
   Write-Host "[$scriptName] location    : $location (default)"
+}
+
+if ($placement) {
+  Write-Host "[$scriptName] placement   : $placement (e.g. My, WebHosting)"
+} else {
+  $placement = 'My'
+  Write-Host "[$scriptName] placement   : $placement (default)"
 }
 
 if ($certPath) {
@@ -39,14 +47,14 @@ if ($pfxFile) {
   $pfx.Import($certPath, $pfxPassword, "Exportable, PersistKeySet")
 }
 
-Write-Host "`n[$scriptName] Access the store (My/$location)"
-$store = new-object System.Security.Cryptography.X509Certificates.X509Store('My', $location)
+Write-Host "`n[$scriptName] Access the store ($location\$placement)"
+$store = new-object System.Security.Cryptography.X509Certificates.X509Store($placement, $location)
 $store.open('MaxAllowed')
 $store.add($pfx)
 $store.close()
 
 Write-Host "`n[$scriptName] Import complete"
-Get-ChildItem -path cert:\$location\My
+Get-ChildItem -path cert:\$location\$placement
 
 Write-Host "`n[$scriptName] ---------- stop -----------"
 $error.clear()
