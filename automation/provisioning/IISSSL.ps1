@@ -82,44 +82,74 @@ function executeExpression ($expression) {
 	}
 }
 
+function ELEVAT ($command) {
+    $scriptBlock = [scriptblock]::Create($command)
+    configuration elevated {
+		Import-DscResource -ModuleName 'PSDesiredStateConfiguration'
+        Set-StrictMode -Off
+        Node localhost {
+            Script execute {
+                SetScript = $scriptBlock
+                TestScript = {
+					if (([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator")) {
+						Write-Verbose "Verified Elevated Session"
+						return $false
+					} else {
+						Write-Verbose "Not an Elevated Session!"
+						exit 5524
+					}
+				}
+                GetScript = { return @{ 'Result' = 'RUN' } }
+            }
+        }
+    }
+    $mof = elevated
+	Start-DscConfiguration ./elevated -Wait -Verbose -Force
+	if ( $error ) { Write-Host "[ELEVAT][WARN] `$Error[] = $Error" ; $Error.clear() }
+}
+
 Write-Host "`n[$scriptName] ---------- start ----------"
 if ($thumbPrint) {
     Write-Host "[$scriptName] thumbPrint : $thumbPrint"
 } else {
     Write-Host "[$scriptName] thumbPrint not passed, exiting with LASTEXITCODE = 53"; exit 53
 }
+
 if ($ip) {
     Write-Host "[$scriptName] ip         : $ip"
 } else {
 	$ip = '0.0.0.0'
     Write-Host "[$scriptName] ip         : $ip (default)"
 }
+
 if ($port) {
     Write-Host "[$scriptName] port       : $port"
 } else {
 	$port = '443'
     Write-Host "[$scriptName] port       : $port (default)"
 }
+
 if ($siteName) {
     Write-Host "[$scriptName] siteName   : $siteName"
 } else {
 	$siteName = 'Default Web Site'
     Write-Host "[$scriptName] siteName   : $siteName (default)"
 }
+
 if ($location) {
-	Write-Host "[$scriptName] location    : $location (CurrentUser or LocalMachine)"
+	Write-Host "[$scriptName] location   : $location (CurrentUser or LocalMachine)"
 } else {
 	$location = 'LocalMachine'
-	Write-Host "[$scriptName] location    : $location (default)"
+	Write-Host "[$scriptName] location   : $location (default)"
 }
-  
+
 if ($placement) {
-	Write-Host "[$scriptName] placement   : $placement (e.g. My, WebHosting)"
+	Write-Host "[$scriptName] placement  : $placement (e.g. My, WebHosting)"
 } else {
 	$placement = 'My'
-	Write-Host "[$scriptName] placement   : $placement (default)"
+	Write-Host "[$scriptName] placement  : $placement (default)"
 }
-  
+
 Write-Host
 executeExpression 'import-module WebAdministration'
 
@@ -129,7 +159,7 @@ if (test-path IIS:\SslBindings\$ip!$port) {
 }
 
 $cert = executeReturn "Get-ChildItem -Path Cert:\$location\$placement\$thumbPrint"
-executeExpression "New-Item 'IIS:\SslBindings\$ip!$port' -Value `$cert"
+ELEVAT "New-Item 'IIS:\SslBindings\$ip!$port' -Value `$cert"
 
 if ( $ip -eq '0.0.0.0' ) {
 	$ip = '*'
