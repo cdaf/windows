@@ -134,9 +134,9 @@ executeExpression "New-Item 'IIS:\SslBindings\$ip!$port' -Value `$cert"
 if ( $ip -eq '0.0.0.0' ) {
 	$ip = '*'
 }
-$bindCheck = executeReturn "Get-WebBinding -Name '$siteName' -IP '$ip' -Port '$port' -Protocol https"
+$bindCheck = executeReturn "Get-WebBinding -Name '$siteName' -Protocol https"
 if ( $bindCheck ) {
-	executeExpression "Remove-WebBinding -Name '$siteName' -IP '$ip' -Port '$port' -Protocol https"
+	executeExpression "Remove-WebBinding -Name '$siteName' -Protocol https"
 }
 executeExpression "New-WebBinding -Name '$siteName' -IP '$ip' -Port '$port' -Protocol https"
 executeExpression "Get-WebBinding -Name '$siteName'"
