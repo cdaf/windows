@@ -139,6 +139,7 @@ if ( $bindCheck ) { # Observed Windows Container not binding to site, but VM doe
 	executeExpression "Remove-WebBinding -Name '$siteName' -IP '$ip' -Port '$port' -Protocol https"
 }
 executeExpression "New-WebBinding -Name '$siteName' -IP '$ip' -Port '$port' -Protocol https"
+executeExpression "Get-WebBinding -Name '$siteName'"
 
 Write-Host "`n[$scriptName] ---------- stop ----------"
 $error.clear()
