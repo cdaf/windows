@@ -129,7 +129,7 @@ if (test-path IIS:\SslBindings\$ip!$port) {
 }
 
 $cert = executeReturn "Get-ChildItem -Path Cert:\$location\$placement\$thumbPrint"
-executeExpression "New-Item 'IIS:\SslBindings\$ip!$port' -Value `$cert | Format-Table"
+executeExpression "New-Item 'IIS:\SslBindings\$ip!$port' -Value `$cert"
 
 if ( $ip -eq '0.0.0.0' ) {
 	$ip = '*'
