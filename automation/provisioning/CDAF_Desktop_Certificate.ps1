@@ -82,30 +82,36 @@ function executeExpression ($expression) {
 Write-Host "`n[$scriptName] Requires elevated privilages"
 Write-Host "`n[$scriptName] ---------- start ----------"
 if ($location) {
-  Write-Host "[$scriptName] location    : $location (CurrentUser or LocalMachine)"
+	Write-Host "[$scriptName] location    : $location (CurrentUser or LocalMachine)"
 } else {
-  $location = 'CurrentUser'
-  Write-Host "[$scriptName] location    : $location (default)"
+	$location = 'CurrentUser'
+	Write-Host "[$scriptName] location    : $location (default)"
 }
 
 if ($placement) {
-  Write-Host "[$scriptName] placement   : $placement (e.g. My, WebHosting)"
+	Write-Host "[$scriptName] placement   : $placement (e.g. My, WebHosting)"
 } else {
-  $placement = 'My'
-  Write-Host "[$scriptName] placement   : $placement (default)"
+	$placement = 'My'
+	Write-Host "[$scriptName] placement   : $placement (default)"
 }
 
 if ($certPath) {
 	$certPath = Resolve-Path -Path $certPath
 	Write-Host "[$scriptName] certPath    : $certPath"
 } else {
-  Write-Host "[$scriptName] certPath    : (not supplied, must be absolute path)"
+	Write-Host "[$scriptName] certPath    : (not supplied, must be absolute path)"
 }
 
 if ($pfxPassword) {
-  Write-Host "[$scriptName] pfxPassword : $pfxPassword"
+	Write-Host "[$scriptName] pfxPassword : $pfxPassword"
 } else {
-  Write-Host "[$scriptName] pfxPassword : (not supplied, will install 'well known' CDAF certificate)"
+	Write-Host "[$scriptName] pfxPassword : (not supplied, will install 'well known' CDAF certificate)"
+}
+
+if ( $location -eq 'LocalMachine') {
+	$flags = [System.Security.Cryptography.X509Certificates.X509KeyStorageFlags]::MachineKeySet -bor [System.Security.Cryptography.X509Certificates.X509KeyStorageFlags]::PersistKeySet
+} else {
+	$flags = [System.Security.Cryptography.X509Certificates.X509KeyStorageFlags]::PersistKeySet
 }
 
 $pfx = executeReturn 'new-object System.Security.Cryptography.X509Certificates.X509Certificate2'
@@ -115,9 +121,8 @@ if ($pfxFile) {
 	$ByteArray = [System.Convert]::FromBase64String($EncodedText)
 
 	# Create an object for the certificate
-	executeExpression '$pfx.import($ByteArray , "password", [System.Security.Cryptography.X509Certificates.X509KeyStorageFlags]"PersistKeySet")'
+	executeExpression '$pfx.import($ByteArray , "password", $flags)'
 } else {
-	$flags = [System.Security.Cryptography.X509Certificates.X509KeyStorageFlags]::MachineKeySet -bor [System.Security.Cryptography.X509Certificates.X509KeyStorageFlags]::PersistKeySet
 	executeExpression "`$pfx.Import('$certPath', '$pfxPassword', `$flags)"
 }
 
