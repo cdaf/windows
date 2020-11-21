@@ -252,16 +252,17 @@ if (!( $gitRemoteURL )) {
 			Write-Host "[$scriptName] Workspace is not a Git repository or has detached head, but git credentials not set, skipping ...`n"
 			$skipRemoteBranchCheck = 'yes'
 		} else {
+			Write-Host "[$scriptName] Workspace is not a Git repository or has detached head, skip branch clean-up and work with cache clone ...`n"
 			if ( $env:USERPROFILE ) {
 				$cacheDir = "$env:USERPROFILE\.cdaf-cache"
 			} else {
 				$cacheDir = "$env:TEMP\.cdaf-cache"
 			}
-			$gitRemoteURL = $gitRemoteURL.Trim('/')                                              # remove trailing /
+			$gitRemoteURL = $gitRemoteURL.Trim('/') # remove trailing /                                          # remove trailing /
 			$tempParent = (Split-Path -Path $gitRemoteURL -Parent).Replace('https:\', $cacheDir) # retain parent directory for create if required
 			$repoName = $gitRemoteURL.Split('/')[-1].Split('.')[0]                               # retrieve basename and remove extension
 			$cacheDir = $tempParent + '\' + $repoName                                            # ensure cache directory is unique by using URI
-			Write-Host "[$scriptName] Workspace is not a Git repository or has detached head, skip branch clean-up and work with cache clone ...`n"
+
 			if ( Test-Path $cacheDir ) {
 				executeExpression "cd $cacheDir"
 			} else {
@@ -282,7 +283,9 @@ if (!( $gitRemoteURL )) {
 			$usingCache = $(git log -n 1 --pretty=%d HEAD 2>$null)
 			if ( $LASTEXITCODE -ne 0 ) { Write-Error "[$scriptName] Git cache update failed!"; exit 6924 }			
 		}
+
 	} else {
+
 		Write-Host "$headAttached"
 		Write-Host "[$scriptName] Refresh Remote branches`n"
 		if (!($userName)) {
@@ -293,23 +296,23 @@ if (!( $gitRemoteURL )) {
 
 	}
 
-	Write-Host "[$scriptName] Load Remote branches (git ls-remote --heads origin 2>`$null)`n"
-	$remoteArray = @()
-	foreach ( $remoteBranch in $(git ls-remote --heads origin 2>$null) ) {
-		if ( $remoteBranch.Contains('/')) {
-			$remoteArray += $remoteBranch.Split('/')[-1]
-		}
-	}
-	if (!( $remoteArray )) { Write-Error "[$scriptName] git ls-remote --heads origin provided no branches!"; exit 6925 }
-	foreach ($remoteBranch in $remoteArray) { # verify array contents
-		Write-Host "  $remoteBranch"
-	}
-
-	if ( $usingCache ) { # cache only required to build remoteArray
-		executeExpression "cd $workspace"
-	}
-
 	if (!( $skipRemoteBranchCheck )) {
+		Write-Host "[$scriptName] Load Remote branches (git ls-remote --heads origin 2>`$null)`n"
+		$remoteArray = @()
+		foreach ( $remoteBranch in $(git ls-remote --heads origin 2>$null) ) {
+			if ( $remoteBranch.Contains('/')) {
+				$remoteArray += $remoteBranch.Split('/')[-1]
+			}
+		}
+		if (!( $remoteArray )) { Write-Error "[$scriptName] git ls-remote --heads origin provided no branches!"; exit 6925 }
+		foreach ($remoteBranch in $remoteArray) { # verify array contents
+			Write-Host "  $remoteBranch"
+		}
+
+		if ( $usingCache ) { # cache only required to build remoteArray
+			executeExpression "cd $workspace"
+		}
+
 		if ( $headAttached ) {
 			Write-Host "`n[$scriptName] Process Local branches (git branch --format='%(refname:short)')`n"
 			foreach ( $localBranch in $(git branch --format='%(refname:short)') ) {
