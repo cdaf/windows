@@ -42,46 +42,10 @@ function executeExpression ($expression) {
 				Write-Host "[$scriptName][ERROR] `$Error = $error"; $Error.clear()
 				Write-Host "[$scriptName][ERROR] `$env:CDAF_IGNORE_WARNING is 'no' so exiting with LASTEXITCODE 1213 ..."; exit 1213
 	    	} else {
-		    	Write-Host "[$scriptName][WARN] `$Error = $error" ; $Error.clear()
+		    	Write-Host "$error" ; $Error.clear()
 	    	}
 		}
 	}
-}
-
-# Capture and return expression output
-function executeReturn ($expression) {
-	Write-Host "[$(Get-Date)] $expression"
-	try {
-		$result = Invoke-Expression "$expression 2> `$null"
-	    if(!$?) { Write-Host "[$scriptName] `$? = $?"; $error ; exit 1221 }
-	} catch {
-		Write-Host "[$scriptName][EXCEPTION] List exception and error array (if populated) and exit with LASTEXITCIDE 1222" -ForegroundColor Red
-		Write-Host $_.Exception|format-list -force
-		if ( $error ) { Write-Host "[$scriptName][ERROR] `$Error = $Error" ; $Error.clear() }
-		exit 1222
-	}
-    if ( $LASTEXITCODE ) {
-    	if ( $LASTEXITCODE -ne 0 ) {
-			Write-Host "[$scriptName] `$LASTEXITCODE = $LASTEXITCODE " -ForegroundColor Red
-			if ( $error ) { Write-Host "[$scriptName][ERROR] `$Error = $Error" ; $Error.clear() }
-			exit $LASTEXITCODE
-		} else {
-			if ( $error ) {
-				Write-Host "[$scriptName][WARN] $Error array populated by `$LASTEXITCODE = $LASTEXITCODE error follows...`n" -ForegroundColor Yellow
-				Write-Host "[$scriptName][WARN] `$Error = $Error" ; $Error.clear()
-			}
-		} 
-	} else {
-	    if ( $error ) {
-	    	if ( $env:CDAF_IGNORE_WARNING -eq 'no' ) {
-				Write-Host "[$scriptName][ERROR] `$Error = $error"; $Error.clear()
-				Write-Host "[$scriptName][ERROR] `$env:CDAF_IGNORE_WARNING is 'no' so exiting with LASTEXITCODE 1223 ..."; exit 1223
-	    	} else {
-		    	Write-Host "[$scriptName][WARN] `$Error = $error" ; $Error.clear()
-	    	}
-		}
-	}
-    return $result
 }
 
 # Common expression logging and error handling function, copied, not referenced to ensure atomic process
@@ -282,6 +246,8 @@ if (!( $gitRemoteURL )) {
 			executeExpression "git fetch --prune '${urlWithCreds}'"
 			$usingCache = $(git log -n 1 --pretty=%d HEAD 2>$null)
 			if ( $LASTEXITCODE -ne 0 ) { Write-Error "[$scriptName] Git cache update failed!"; exit 6924 }			
+			Write-Host "[$scriptName] Load Remote branches (git ls-remote --heads origin 2>`$null)`n"
+			$lsRemote = $(git ls-remote --heads origin)
 		}
 
 	} else {
@@ -290,16 +256,19 @@ if (!( $gitRemoteURL )) {
 		Write-Host "[$scriptName] Refresh Remote branches`n"
 		if (!($userName)) {
 			executeExpression "git fetch --prune"
+			Write-Host "[$scriptName] Load Remote branches (git ls-remote --heads origin)`n"
+			$lsRemote = $(git ls-remote --heads origin)
 		} else {
 			executeExpression "git fetch --prune '${urlWithCreds}'"
+			Write-Host "[$scriptName] Load Remote branches (git ls-remote --heads ${urlWithCreds} 2>`$null)`n"
+			$lsRemote = $(git ls-remote --heads "${urlWithCreds}")
 		}
 
 	}
 
 	if (!( $skipRemoteBranchCheck )) {
-		Write-Host "[$scriptName] Load Remote branches (git ls-remote --heads origin 2>`$null)`n"
 		$remoteArray = @()
-		foreach ( $remoteBranch in $(git ls-remote --heads origin 2>$null) ) {
+		foreach ( $remoteBranch in $lsRemote ) {
 			if ( $remoteBranch.Contains('/')) {
 				$remoteArray += $remoteBranch.Split('/')[-1]
 			}
