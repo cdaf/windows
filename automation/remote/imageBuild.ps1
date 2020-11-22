@@ -261,16 +261,6 @@ if (!( $id )) {
 					exit 7401
 				}
 			}
-			if ( Test-Path ../dockerClean.ps1 ) {
-				executeExpression "cp ../dockerClean.ps1 ${transient}\${image}"
-			} else {
-				if ( $env:CDAF_AUTOMATION_ROOT ) {
-					executeExpression "cp $env:CDAF_AUTOMATION_ROOT/remote/dockerClean.ps1 ${transient}\${image}"
-				} else {
-					Write-Host "`n[$scriptName][ERROR] dockerClean.ps1 not found in parent directory and `$env:CDAF_AUTOMATION_ROOT not set. ABORT with LASTEXITCODE 7402 `n"
-					exit 7402
-				}
-			}
 			executeExpression "cd ${transient}\${image}"
 			executeExpression "cat Dockerfile"
 			if ( $optionalArgs ) {
@@ -278,7 +268,6 @@ if (!( $id )) {
 			} else {
 				executeExpression "./dockerBuild.ps1 ${id}_${image} $BUILDNUMBER"
 			}
-			executeExpression "./dockerClean.ps1 ${id}_${image} $BUILDNUMBER"
 			executeExpression "cd $workspace"
 		}
 
