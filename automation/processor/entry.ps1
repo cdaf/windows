@@ -246,7 +246,7 @@ if (!( $gitRemoteURL )) {
 			executeExpression "git fetch --prune '${urlWithCreds}'"
 			$usingCache = $(git log -n 1 --pretty=%d HEAD 2>$null)
 			if ( $LASTEXITCODE -ne 0 ) { Write-Error "[$scriptName] Git cache update failed!"; exit 6924 }			
-			Write-Host "[$scriptName] Load Remote branches (git ls-remote --heads origin 2>`$null)`n"
+			Write-Host "[$scriptName] Load Remote branches using cache (git ls-remote --heads origin)`n"
 			$lsRemote = $(git ls-remote --heads origin)
 		}
 
@@ -260,7 +260,7 @@ if (!( $gitRemoteURL )) {
 			$lsRemote = $(git ls-remote --heads origin)
 		} else {
 			executeExpression "git fetch --prune '${urlWithCreds}'"
-			Write-Host "[$scriptName] Load Remote branches (git ls-remote --heads ${urlWithCreds} 2>`$null)`n"
+			Write-Host "[$scriptName] Load Remote branches (git ls-remote --heads ${urlWithCreds})`n"
 			$lsRemote = $(git ls-remote --heads "${urlWithCreds}")
 		}
 
