@@ -96,6 +96,7 @@ if ($BRANCH) {
 } else {
 	if ( $env:CDAF_BRANCH_NAME ) {
 		$branch = $env:CDAF_BRANCH_NAME
+		$skipBranchCleanup = 'yes'
 	    Write-Host "[$scriptName]   BRANCH         : $BRANCH (not supplied, derived from `$env:CDAF_BRANCH_NAME)"
 	} else {
 		$BRANCH=$(git rev-parse --abbrev-ref HEAD)
@@ -180,124 +181,128 @@ if ( $BRANCH -eq 'master' ) {
 	}
 }
 
-if (!( $gitRemoteURL )) {
-	Write-Host "[$scriptName] gitRemoteURL not defined in $SOLUTIONROOT/CDAF.solution, skipping ..."
+if ( $skipBranchCleanup ) {
+	Write-Host "[$scriptName] Branch not passed and using `$CDAF_BRANCH_NAME override, skipping clean-up ..."
 } else {
-	if ( $gitRemoteURL.contains('$')) {
-		$gitRemoteURL = Invoke-Expression "Write-Output ${gitRemoteURL}"
-	}
-
-	Write-Host "[$scriptName] gitRemoteURL = ${gitRemoteURL}, perform branch cleanup ..."
-	if (!( $gitUserNameEnvVar )) {
-		Write-Host "[$scriptName]   gitRemoteURL defined, but gitUserNameEnvVar not defined, relying on current workspace being up to date"
+	if (!( $gitRemoteURL )) {
+		Write-Host "[$scriptName] gitRemoteURL not defined in $SOLUTIONROOT/CDAF.solution, skipping clean-up ..."
 	} else {
-		$userName = Invoke-Expression "Write-Output ${gitUserNameEnvVar}"
-		if (!( $userName )) {
-			Write-Host "[$scriptName]   $gitUserNameEnvVar contains no value, relying on current workspace being up to date"
+		if ( $gitRemoteURL.contains('$')) {
+			$gitRemoteURL = Invoke-Expression "Write-Output ${gitRemoteURL}"
+		}
+
+		Write-Host "[$scriptName] gitRemoteURL = ${gitRemoteURL}, perform branch cleanup ..."
+		if (!( $gitUserNameEnvVar )) {
+			Write-Host "[$scriptName]   gitRemoteURL defined, but gitUserNameEnvVar not defined, relying on current workspace being up to date"
 		} else {
-			$userName = $userName.replace("@","%40")
-			if (!( $gitUserPassEnvVar )) { Write-Error "[$scriptName]   gitUserNameEnvVar defined, but gitUserPassEnvVar not defined in $SOLUTIONROOT/CDAF.solution!"; exit 6921 }
-			$userPass = Invoke-Expression "Write-Output ${gitUserPassEnvVar}"
-			if (!( $userPass )) {
-				Write-Host "[$scriptName]   $gitUserPassEnvVar contains no value, relying on current workspace being up to date"
+			$userName = Invoke-Expression "Write-Output ${gitUserNameEnvVar}"
+			if (!( $userName )) {
+				Write-Host "[$scriptName]   $gitUserNameEnvVar contains no value, relying on current workspace being up to date"
 			} else {
-				$urlWithCreds = "https://${userName}:${userPass}@$($gitRemoteURL.Replace('https://', ''))"
-			}
-		}
-	}
-
-	$isGit = $(git log -n 1 --pretty=%d HEAD 2>$null)
-	if ( $LASTEXITCODE -eq 0 ) { 
-		$headAttached = $isGit | Select-String '->'
-	}
-
-	if (!( $headAttached )) {
-		if (!( $userName )) {
-			Write-Host "[$scriptName] Workspace is not a Git repository or has detached head, but git credentials not set, skipping ...`n"
-			$skipRemoteBranchCheck = 'yes'
-		} else {
-			Write-Host "[$scriptName] Workspace is not a Git repository or has detached head, skip branch clean-up and work with cache clone ...`n"
-			if ( $env:USERPROFILE ) {
-				$cacheDir = "$env:USERPROFILE\.cdaf-cache"
-			} else {
-				$cacheDir = "$env:TEMP\.cdaf-cache"
-			}
-			$gitRemoteURL = $gitRemoteURL.Trim('/') # remove trailing /                                          # remove trailing /
-			$tempParent = (Split-Path -Path $gitRemoteURL -Parent).Replace('https:\', $cacheDir) # retain parent directory for create if required
-			$repoName = $gitRemoteURL.Split('/')[-1].Split('.')[0]                               # retrieve basename and remove extension
-			$cacheDir = $tempParent + '\' + $repoName                                            # ensure cache directory is unique by using URI
-
-			if ( Test-Path $cacheDir ) {
-				executeExpression "cd $cacheDir"
-			} else {
-				executeExpression "mkdir -p $tempParent"
-				executeExpression "cd $tempParent"
-				executeExpression "git clone '${urlWithCreds}'"
-				executeExpression "cd $repoName"
-				$gitName = $(git config --list | Select-String 'user.name=')
-				if (!( $gitName )) {
-					git config user.name "Your Name"
-				}
-				$gitEmail = $(git config --list | Select-String 'user.email=')
-				if (!( $gitEmail )) {
-					git config user.email "you@example.com"
-				}
-			}
-			executeExpression "git fetch --prune '${urlWithCreds}'"
-			$usingCache = $(git log -n 1 --pretty=%d HEAD 2>$null)
-			if ( $LASTEXITCODE -ne 0 ) { Write-Error "[$scriptName] Git cache update failed!"; exit 6924 }			
-			Write-Host "[$scriptName] Load Remote branches using cache (git ls-remote --heads origin)`n"
-			$lsRemote = $(git ls-remote --heads origin)
-		}
-
-	} else {
-
-		Write-Host "$headAttached"
-		Write-Host "[$scriptName] Refresh Remote branches`n"
-		if (!($userName)) {
-			executeExpression "git fetch --prune"
-			Write-Host "[$scriptName] Load Remote branches (git ls-remote --heads origin)`n"
-			$lsRemote = $(git ls-remote --heads origin)
-		} else {
-			executeExpression "git fetch --prune '${urlWithCreds}'"
-			Write-Host "[$scriptName] Load Remote branches (git ls-remote --heads ${urlWithCreds})`n"
-			$lsRemote = $(git ls-remote --heads "${urlWithCreds}")
-		}
-
-	}
-
-	if (!( $skipRemoteBranchCheck )) {
-		$remoteArray = @()
-		foreach ( $remoteBranch in $lsRemote ) {
-			if ( $remoteBranch.Contains('/')) {
-				$remoteArray += $remoteBranch.Split('/')[-1]
-			}
-		}
-		if (!( $remoteArray )) { Write-Error "[$scriptName] git ls-remote --heads origin provided no branches!"; exit 6925 }
-		foreach ($remoteBranch in $remoteArray) { # verify array contents
-			Write-Host "  $remoteBranch"
-		}
-
-		if ( $usingCache ) { # cache only required to build remoteArray
-			executeExpression "cd $workspace"
-		}
-
-		if ( $headAttached ) {
-			Write-Host "`n[$scriptName] Process Local branches (git branch --format='%(refname:short)')`n"
-			foreach ( $localBranch in $(git branch --format='%(refname:short)') ) {
-				if ( $remoteArray.Contains($localBranch) ) {
-					Write-Host "  keep branch ${localBranch}"
+				$userName = $userName.replace("@","%40")
+				if (!( $gitUserPassEnvVar )) { Write-Error "[$scriptName]   gitUserNameEnvVar defined, but gitUserPassEnvVar not defined in $SOLUTIONROOT/CDAF.solution!"; exit 6921 }
+				$userPass = Invoke-Expression "Write-Output ${gitUserPassEnvVar}"
+				if (!( $userPass )) {
+					Write-Host "[$scriptName]   $gitUserPassEnvVar contains no value, relying on current workspace being up to date"
 				} else {
-					executeExpression "  git branch -D '${localBranch}'"
+					$urlWithCreds = "https://${userName}:${userPass}@$($gitRemoteURL.Replace('https://', ''))"
 				}
 			}
 		}
 
-		if (!( $gitCustomCleanup )) {
-			Write-Host "`n[$scriptName] gitCustomCleanup not defined in $SOLUTIONROOT/CDAF.solution, skipping ..."
+		$isGit = $(git log -n 1 --pretty=%d HEAD 2>$null)
+		if ( $LASTEXITCODE -eq 0 ) { 
+			$headAttached = $isGit | Select-String '->'
+		}
+
+		if (!( $headAttached )) {
+			if (!( $userName )) {
+				Write-Host "[$scriptName] Workspace is not a Git repository or has detached head, but git credentials not set, skipping ...`n"
+				$skipRemoteBranchCheck = 'yes'
+			} else {
+				Write-Host "[$scriptName] Workspace is not a Git repository or has detached head, skip branch clean-up and work with cache clone ...`n"
+				if ( $env:USERPROFILE ) {
+					$cacheDir = "$env:USERPROFILE\.cdaf-cache"
+				} else {
+					$cacheDir = "$env:TEMP\.cdaf-cache"
+				}
+				$gitRemoteURL = $gitRemoteURL.Trim('/') # remove trailing /                                          # remove trailing /
+				$tempParent = (Split-Path -Path $gitRemoteURL -Parent).Replace('https:\', $cacheDir) # retain parent directory for create if required
+				$repoName = $gitRemoteURL.Split('/')[-1].Split('.')[0]                               # retrieve basename and remove extension
+				$cacheDir = $tempParent + '\' + $repoName                                            # ensure cache directory is unique by using URI
+
+				if ( Test-Path $cacheDir ) {
+					executeExpression "cd $cacheDir"
+				} else {
+					executeExpression "mkdir -p $tempParent"
+					executeExpression "cd $tempParent"
+					executeExpression "git clone '${urlWithCreds}'"
+					executeExpression "cd $repoName"
+					$gitName = $(git config --list | Select-String 'user.name=')
+					if (!( $gitName )) {
+						git config user.name "Your Name"
+					}
+					$gitEmail = $(git config --list | Select-String 'user.email=')
+					if (!( $gitEmail )) {
+						git config user.email "you@example.com"
+					}
+				}
+				executeExpression "git fetch --prune '${urlWithCreds}'"
+				$usingCache = $(git log -n 1 --pretty=%d HEAD 2>$null)
+				if ( $LASTEXITCODE -ne 0 ) { Write-Error "[$scriptName] Git cache update failed!"; exit 6924 }			
+				Write-Host "[$scriptName] Load Remote branches using cache (git ls-remote --heads origin)`n"
+				$lsRemote = $(git ls-remote --heads origin)
+			}
+
 		} else {
-			Write-Host
-			executeExpression "$gitCustomCleanup $SOLUTION `$remoteArray"
+
+			Write-Host "$headAttached"
+			Write-Host "[$scriptName] Refresh Remote branches`n"
+			if (!($userName)) {
+				executeExpression "git fetch --prune"
+				Write-Host "[$scriptName] Load Remote branches (git ls-remote --heads origin)`n"
+				$lsRemote = $(git ls-remote --heads origin)
+			} else {
+				executeExpression "git fetch --prune '${urlWithCreds}'"
+				Write-Host "[$scriptName] Load Remote branches (git ls-remote --heads ${urlWithCreds})`n"
+				$lsRemote = $(git ls-remote --heads "${urlWithCreds}")
+			}
+
+		}
+
+		if (!( $skipRemoteBranchCheck )) {
+			$remoteArray = @()
+			foreach ( $remoteBranch in $lsRemote ) {
+				if ( $remoteBranch.Contains('/')) {
+					$remoteArray += $remoteBranch.Split('/')[-1]
+				}
+			}
+			if (!( $remoteArray )) { Write-Error "[$scriptName] git ls-remote --heads origin provided no branches!"; exit 6925 }
+			foreach ($remoteBranch in $remoteArray) { # verify array contents
+				Write-Host "  $remoteBranch"
+			}
+
+			if ( $usingCache ) { # cache only required to build remoteArray
+				executeExpression "cd $workspace"
+			}
+
+			if ( $headAttached ) {
+				Write-Host "`n[$scriptName] Process Local branches (git branch --format='%(refname:short)')`n"
+				foreach ( $localBranch in $(git branch --format='%(refname:short)') ) {
+					if ( $remoteArray.Contains($localBranch) ) {
+						Write-Host "  keep branch ${localBranch}"
+					} else {
+						executeExpression "  git branch -D '${localBranch}'"
+					}
+				}
+			}
+
+			if (!( $gitCustomCleanup )) {
+				Write-Host "`n[$scriptName] gitCustomCleanup not defined in $SOLUTIONROOT/CDAF.solution, skipping ..."
+			} else {
+				Write-Host
+				executeExpression "$gitCustomCleanup $SOLUTION `$remoteArray"
+			}
 		}
 	}
 }
