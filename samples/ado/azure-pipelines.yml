@@ -24,12 +24,16 @@ trigger:
 
 variables:
   - group: Git-Reader-for-Branch-Clean-up
+  - name: gitUser
+   	value: $[variables.GIT_USER]
+  - name: gitPass
+   	value: $[variables.GIT_PASS]
 
 steps:
   - script: automation\entry.bat "$(Build.BuildNumber)" "$env:Build_SourceBranchName" "staging@$env:Build_ArtifactStagingDirectory"
     env: 
-      GIT_USER: $[variables.GIT_USER]
-      GIT_PASS: $[variables.GIT_PASS]
+      GIT_USER: $(gitUser)
+      GIT_PASS: $(gitPass)
 
 # For installed instance of CDAF, in the agents user profile in this example
 #  - script: "%USERPROFILE%\\.cdaf\\entry.bat \"$(Build.BuildNumber)\" \"$(Build.SourceBranchName)\" \"staging@$(Build.ArtifactStagingDirectory)\""
