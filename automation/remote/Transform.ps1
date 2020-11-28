@@ -76,33 +76,29 @@ Foreach ($line in $propertiesArray) {
         # Do not attempt any processing when a line is just a comment
         if ($nameValue) {
             $name, $value = $nameValue -split '=', 2
-            if ( $name -like "*.*" ) {
-                write-host "[$scriptName] Ignoring $name as contains '.'"
-            } else {
     
-                # If token file is supplied, detokenise file (in situ)
-                if ($TOKENFILE) {
-                    if ( $value -like "`$*" ) {
-                        $value = Invoke-Expression "Write-Output $value"
-                    }
-                    $i = 0
-                    $token = "%" + $name + "%"
-                    foreach ($record in $transformed) {
-                        if ($record -match "$token") {
-	                        if ($aeskey) {
-    	                        write-host "Found $token, replacing with *****************"
-	                        } else {
-    	                        write-host "Found $token, replacing with $value"
-	                        }
-                            $transformed[$i] = ($transformed[$i]).Replace("$token","$value")
-                        }
-                        $i++
-                    }
-                } else { # If token file is not supplied, echo strings for instantiating as variables (cannot instantiate here as they will be out of scope)
-                    $loadVariable = "`$$name = '$value'"
-                    Write-Output "$loadVariable"
-                    write-host "[$scriptName]   $name = $value"
+            # If token file is supplied, detokenise file (in situ)
+            if ($TOKENFILE) {
+                if ( $value -like "`$*" ) {
+                    $value = Invoke-Expression "Write-Output $value"
                 }
+                $i = 0
+                $token = "%" + $name + "%"
+                foreach ($record in $transformed) {
+                    if ($record -match "$token") {
+                        if ($aeskey) {
+                            write-host "Found $token, replacing with *****************"
+                        } else {
+                            write-host "Found $token, replacing with $value"
+                        }
+                        $transformed[$i] = ($transformed[$i]).Replace("$token","$value")
+                    }
+                    $i++
+                }
+            } else { # If token file is not supplied, echo strings for instantiating as variables (cannot instantiate here as they will be out of scope)
+                $loadVariable = "`$$name = '$value'"
+                Write-Output "$loadVariable"
+                write-host "[$scriptName]   $name = $value"
             }
         }
     }
