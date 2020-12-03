@@ -292,7 +292,7 @@ if ( $skipBranchCleanup ) {
 					if ( $remoteArray.Contains($localBranch) ) {
 						Write-Host "  keep branch ${localBranch}"
 					} else {
-						executeExpression "  git branch -D '${localBranch}'"
+						executeSuppress "  git branch -D '${localBranch}'"
 					}
 				}
 			}
