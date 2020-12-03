@@ -15,6 +15,7 @@ Import-Module Microsoft.PowerShell.Security
 # Initialise
 cmd /c "exit 0"
 $Error.clear()
+$env:CDAF_AUTOMATION_ROOT = ''
 $scriptName = 'delivery.ps1'
 
 # Common expression logging and error handling function, copied, not referenced to ensure atomic process
