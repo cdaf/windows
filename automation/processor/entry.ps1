@@ -124,16 +124,6 @@ if ($ACTION) {
     Write-Host "[$scriptName]   ACTION         : (not passed)"
 }
 
-# check for DOS variable and load as PowerShell environment variable
-if ($CDAF_DELIVERY) { $environment = "$CDAF_DELIVERY" }
-if ($Env:CDAF_DELIVERY) { $environment = "$Env:CDAF_DELIVERY" }
-if ($environment) {
-    Write-Host "[$scriptName]   environment    : $environment (from CDAF_DELIVERY environment variable)"
-} else {
-	$environment = 'DOCKER'
-    Write-Host "[$scriptName]   environment    : (not set, default applied)"
-}
-
 # Check for user defined solution folder, i.e. outside of automation root, if found override solution root
 Write-Host "[$scriptName]   SOLUTIONROOT   : " -NoNewline
 foreach ($item in (Get-ChildItem -Path ".")) {
@@ -155,6 +145,20 @@ $SOLUTIONROOT = (Get-Item $SOLUTIONROOT).FullName
 $automationHelper = "$AUTOMATIONROOT\remote"
 & $automationHelper\Transform.ps1 "$SOLUTIONROOT\CDAF.solution" | ForEach-Object { invoke-expression "$_" }
 
+# check for DOS variable and load as PowerShell environment variable
+if ($CDAF_DELIVERY) { $environment = "$CDAF_DELIVERY" }
+if ($Env:CDAF_DELIVERY) { $environment = "$Env:CDAF_DELIVERY" }
+if ($environment) {
+    Write-Host "[$scriptName]   environment    : $environment (from CDAF_DELIVERY environment variable)"
+} else {
+	if ( $defaultEnvironment ) {
+		$environment = Invoke-Expression "Write-Output $defaultEnvironment"
+	} else {
+		$environment = 'DOCKER'
+	}
+    Write-Host "[$scriptName]   environment    : (not set, default applied)"
+}
+
 if ( ${solutionName} ) {
 	$SOLUTION = $solutionName
 	Write-Host "`n[$scriptName]   SOLUTION       = $SOLUTION"
@@ -170,8 +174,14 @@ Write-Host "[$scriptName]   whoami         = $(whoami)`n"
 
 executeExpression "$AUTOMATIONROOT\processor\buildPackage.ps1 '$BUILDNUMBER' '$BRANCH' '$ACTION' -AUTOMATIONROOT '$AUTOMATIONROOT'"
 
-if ( $BRANCH -eq 'master' ) {
-	Write-Host "[$scriptName] Only perform container test in CI for branches, Master execution in CD pipeline"
+if ( $defaultBranch ) {
+	$defaultBranch = Invoke-Expression "Write-Output $defaultBranch"
+} else {
+	$defaultBranch = 'master'
+}
+
+if ( $BRANCH -eq $defaultBranch ) {
+	Write-Host "[$scriptName] Only perform container test in CI for branches, $defaultBranch execution in CD pipeline"
 } else {
 	Write-Host "[$scriptName] Only perform container test in CI for feature branches, CD for branch $BRANCH"
 	if ( $artifactPrefix ) {
