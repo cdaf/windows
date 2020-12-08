@@ -145,11 +145,17 @@ if ( $buildImage ) {
 		$workspace = (Get-Location).Path
 		Write-Host "[$scriptName] `$imageTag  : $imageTag"
 		Write-Host "[$scriptName] `$workspace : $workspace"
+		
+		foreach ( $envVar in Get-ChildItem env:) {
+			if ($envVar.Name.Contains('CDAF_CB_')) {
+				${buildCommand} += " --env $(${envVar}.Name)=$(${envVar}.Value)"
+			}
+		}
 
 		if ( $env:USERPROFILE ) {
-			executeExpression "docker run --tty --volume ${env:USERPROFILE}\:C:/solution/home --volume ${workspace}\:C:/solution/workspace ${buildImage}:${imageTag} automation\ci.bat $buildNumber $revision container_build"
+			executeExpression "docker run --tty --volume ${env:USERPROFILE}\:C:/solution/home --volume ${workspace}\:C:/solution/workspace ${buildCommand} ${buildImage}:${imageTag} automation\ci.bat $buildNumber $revision container_build"
 		} else {
-			executeExpression "docker run --tty --volume ${workspace}\:C:/solution/workspace ${buildImage}:${imageTag} automation\ci.bat $buildNumber $revision container_build"
+			executeExpression "docker run --tty --volume ${workspace}\:C:/solution/workspace ${buildCommand} ${buildImage}:${imageTag} automation\ci.bat $buildNumber $revision container_build"
 		}
 
 		Write-Host "`n[$scriptName] List and remove all stopped containers"
