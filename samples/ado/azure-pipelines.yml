@@ -25,9 +25,9 @@ trigger:
 variables:
   - group: Git-Reader-for-Branch-Clean-up
   - name: gitUser
-   	value: $[variables.GIT_USER]
+    value: $[variables.GIT_USER]
   - name: gitPass
-   	value: $[variables.GIT_PASS]
+    value: $[variables.GIT_PASS]
 
 steps:
   - script: automation\entry.bat "$(Build.BuildNumber)" "$env:Build_SourceBranchName" "staging@$env:Build_ArtifactStagingDirectory"
