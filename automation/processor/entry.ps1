@@ -149,29 +149,29 @@ $automationHelper = "$AUTOMATIONROOT\remote"
 if ($CDAF_DELIVERY) { $environment = "$CDAF_DELIVERY" }
 if ($Env:CDAF_DELIVERY) { $environment = "$Env:CDAF_DELIVERY" }
 if ($environment) {
-    Write-Host "[$scriptName]   environment    : $environment (from CDAF_DELIVERY environment variable)"
+    Write-Host "`n[$scriptName]   environment    : $environment (from CDAF_DELIVERY environment variable)"
 } else {
 	if ( $defaultEnvironment ) {
 		$environment = Invoke-Expression "Write-Output $defaultEnvironment"
-	    Write-Host "[$scriptName]   environment    : $environment (loaded defaultEnvironment property)"
+	    Write-Host "`n[$scriptName]   environment    : $environment (loaded defaultEnvironment property)"
 	} else {
 		$environment = 'DOCKER'
-	    Write-Host "[$scriptName]   environment    : $environment (not set, default applied)"
+	    Write-Host "`n[$scriptName]   environment    : $environment (not set, default applied)"
 	}
 }
 
 if ( ${solutionName} ) {
 	$SOLUTION = $solutionName
-	Write-Host "`n[$scriptName]   SOLUTION       = $SOLUTION"
+	Write-Host "[$scriptName]   SOLUTION       : $SOLUTION"
 } else {
-	Write-Host "`n[$scriptName]   solutionName not defined!"
+	Write-Host "[$scriptName]   solutionName not defined!"
 	exit 7762 
 }
 
 $workspace = $(Get-Location)
-Write-Host "[$scriptName]   pwd            = $workspace"
-Write-Host "[$scriptName]   hostname       = $(hostname)" 
-Write-Host "[$scriptName]   whoami         = $(whoami)`n"
+Write-Host "[$scriptName]   pwd            : $workspace"
+Write-Host "[$scriptName]   hostname       : $(hostname)" 
+Write-Host "[$scriptName]   whoami         : $(whoami)`n"
 
 executeExpression "$AUTOMATIONROOT\processor\buildPackage.ps1 '$BUILDNUMBER' '$BRANCH' '$ACTION' -AUTOMATIONROOT '$AUTOMATIONROOT'"
 
