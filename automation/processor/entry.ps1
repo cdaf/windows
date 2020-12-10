@@ -153,10 +153,11 @@ if ($environment) {
 } else {
 	if ( $defaultEnvironment ) {
 		$environment = Invoke-Expression "Write-Output $defaultEnvironment"
+	    Write-Host "[$scriptName]   environment    : $environment (loaded defaultEnvironment property)"
 	} else {
 		$environment = 'DOCKER'
+	    Write-Host "[$scriptName]   environment    : $environment (not set, default applied)"
 	}
-    Write-Host "[$scriptName]   environment    : (not set, default applied)"
 }
 
 if ( ${solutionName} ) {
