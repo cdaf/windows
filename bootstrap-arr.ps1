@@ -88,4 +88,7 @@ if ($port) {
 	executeExpression 'Add-Content C:\inetpub\wwwroot\web.config "    </system.webServer>"'
 	executeExpression 'Add-Content C:\inetpub\wwwroot\web.config "</configuration>"'
 }
+
+executeExpression 'Get-Content C:\inetpub\wwwroot\web.config'
+
 Write-Host "`n[$scriptName] ---------- stop ----------"
