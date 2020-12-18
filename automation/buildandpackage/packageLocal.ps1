@@ -8,6 +8,18 @@ function taskFailure ($taskName) {
     throw "$scriptName HALT"
 }
 
+# 1.7.8 Merge files into directory, i.e. don't replace any properties provided above
+function propMerge ($generatedPropDir, $generatedPropertyFile) {
+	Write-Host "`n[$scriptName] Processing generated properties directory (${generatedPropDir}):`n"
+	if ( ! ( Test-Path "$WORK_DIR_DEFAULT\${generatedPropDir}" )) {
+		Write-Host "[$scriptName]   $(mkdir $WORK_DIR_DEFAULT\${generatedPropDir})"
+	}
+	foreach ( $generatedPropertyFile in (Get-ChildItem ".\${generatedPropDir}")) {
+		Write-Host "[$scriptName]   ${generatedPropDir}\${generatedPropertyFile} --> $WORK_DIR_DEFAULT\${generatedPropDir}\${generatedPropertyFile}"
+		Get-Content ".\${generatedPropDir}\${generatedPropertyFile}" | Add-Content "$WORK_DIR_DEFAULT\${generatedPropDir}\${generatedPropertyFile}"
+	}
+}
+
 $SOLUTION = $args[0]
 $BUILDNUMBER = $args[1]
 $REVISION = $args[2]
@@ -17,54 +29,62 @@ $AUTOMATIONROOT = $args[5]
 
 $scriptName = $MyInvocation.MyCommand.Name
 
-$localArtifactListFile = "$SOLUTIONROOT\storeForLocal"
-$genericArtifactList   = "$SOLUTIONROOT\storeFor"
-$localPropertiesDir    = "$SOLUTIONROOT\propertiesForLocalTasks"
-$localGenPropDir       = "propertiesForLocalTasks"
-$localEnvironmentPath  = "$SOLUTIONROOT\propertiesForLocalEnvironment"
-$localCustomDir        = "$SOLUTIONROOT\customLocal"
-$commonCustomDir       = "$SOLUTIONROOT\custom"
-$localCryptDir         = "$SOLUTIONROOT\cryptLocal"
-$cryptDir              = "$SOLUTIONROOT\crypt"
-$remotePropertiesDir   = "$SOLUTIONROOT\propertiesForRemoteTasks"
-$remoteGenPropDir      = "propertiesForRemoteTasks"
+$localArtifactListFile    = "$SOLUTIONROOT\storeForLocal"
+$genericArtifactList      = "$SOLUTIONROOT\storeFor"
+$localPropertiesDir       = "$SOLUTIONROOT\propertiesForLocalTasks"
+$localGenPropDir          = "propertiesForLocalTasks"
+$localEnvironmentPath     = "$SOLUTIONROOT\propertiesForLocalEnvironment"
+$localCustomDir           = "$SOLUTIONROOT\customLocal"
+$commonCustomDir          = "$SOLUTIONROOT\custom"
+$localCryptDir            = "$SOLUTIONROOT\cryptLocal"
+$cryptDir                 = "$SOLUTIONROOT\crypt"
+$remotePropertiesDir      = "$SOLUTIONROOT\propertiesForRemoteTasks"
+$remoteGenPropDir         = "propertiesForRemoteTasks"
+$containerPropertiesDir   = "$SOLUTIONROOT\propertiesForContainerTasks"
+$containerGenPropDir      = "propertiesForContainerTasks"
 
 Write-Host
 Write-Host "[$scriptName] ---------------------------------------------------------------" 
-Write-Host "[$scriptName]   WORK_DIR_DEFAULT             : $WORK_DIR_DEFAULT" 
+Write-Host "[$scriptName]   WORK_DIR_DEFAULT                : $WORK_DIR_DEFAULT" 
 
-Write-Host –NoNewLine "[$scriptName]   Local Artifact List          : " 
+Write-Host –NoNewLine "[$scriptName]   Local Artifact List             : " 
 pathTest $localArtifactListFile
 
-Write-Host –NoNewLine "[$scriptName]   Generic Artifact List        : " 
+Write-Host –NoNewLine "[$scriptName]   Generic Artifact List           : " 
 pathTest $genericArtifactList
 
-Write-Host –NoNewLine "[$scriptName]   Local Tasks Properties List  : " 
+Write-Host –NoNewLine "[$scriptName]   Local Tasks Properties List     : " 
 pathTest $localPropertiesDir
 
-Write-Host –NoNewLine "[$scriptName]   Generated local properties   : " 
+Write-Host –NoNewLine "[$scriptName]   Generated local properties      : " 
 pathTest $localGenPropDir
 
-Write-Host –NoNewLine "[$scriptName]   Local Environment Properties : " 
+Write-Host –NoNewLine "[$scriptName]   Local Environment Properties    : " 
 pathTest $localEnvironmentPath
 
-Write-Host –NoNewLine "[$scriptName]   Local Tasks Encrypted Data   : " 
+Write-Host –NoNewLine "[$scriptName]   Local Tasks Encrypted Data      : " 
 pathTest $localCryptDir
 
-Write-Host –NoNewLine "[$scriptName]   Common Encrypted Data        : " 
+Write-Host –NoNewLine "[$scriptName]   Common Encrypted Data           : " 
 pathTest $cryptDir
 
-Write-Host –NoNewLine "[$scriptName]   Local Tasks Custom Scripts   : " 
+Write-Host –NoNewLine "[$scriptName]   Local Tasks Custom Scripts      : " 
 pathTest $localCustomDir
 
-Write-Host –NoNewLine "[$scriptName]   Common Custom Scripts        : " 
+Write-Host –NoNewLine "[$scriptName]   Common Custom Scripts           : " 
 pathTest $commonCustomDir
 
-Write-Host –NoNewLine "[$scriptName]   Remote Tasks Properties List : " 
+Write-Host –NoNewLine "[$scriptName]   Remote Tasks Properties List    : " 
 pathTest $remotePropertiesDir
 
-Write-Host –NoNewLine "[$scriptName]   Generated remote properties  : " 
+Write-Host –NoNewLine "[$scriptName]   Generated remote properties     : " 
 pathTest $remoteGenPropDir
+
+Write-Host –NoNewLine "[$scriptName]   Container Tasks Properties List : " 
+pathTest $containerPropertiesDir
+
+Write-Host –NoNewLine "[$scriptName]   Generated Container properties  : " 
+pathTest $containerGenPropDir
 
 # Create the workspace directory
 if ( Test-Path "$WORK_DIR_DEFAULT" ) {
@@ -115,16 +135,8 @@ if ( Test-Path $localPropertiesDir ) {
 	copyDir $localPropertiesDir $WORK_DIR_DEFAULT
 }
 
-# 1.7.8  Merge files into directory, i.e. don't replace any properties provided above
 if ( Test-Path ".\$localGenPropDir" ) {
-	Write-Host "`n[$scriptName] Processing generated properties directory (${localGenPropDir}):`n"
-	if ( ! ( Test-Path "$WORK_DIR_DEFAULT\${localGenPropDir}" )) {
-		Write-Host "[$scriptName]   $(mkdir $WORK_DIR_DEFAULT\${localGenPropDir})"
-	}
-	foreach ( $generatedPropertyFile in (Get-ChildItem ".\${localGenPropDir}")) {
-		Write-Host "[$scriptName]   ${localGenPropDir}\${generatedPropertyFile} --> $WORK_DIR_DEFAULT\${localGenPropDir}\${generatedPropertyFile}"
-		Get-Content ".\${localGenPropDir}\${generatedPropertyFile}" | Add-Content "$WORK_DIR_DEFAULT\${localGenPropDir}\${generatedPropertyFile}"
-	}
+	propMerge $localGenPropDir $generatedPropertyFile
 }
 
 # Copy local environment properties (pre and post target process)
@@ -137,16 +149,17 @@ if ( Test-Path $remotePropertiesDir ) {
 	copyDir $remotePropertiesDir $WORK_DIR_DEFAULT
 }
 
-# 1.7.8 Merge files into directory, i.e. don't replace any properties provided above
 if ( Test-Path ".\$remoteGenPropDir" ) {
-	Write-Host "`n[$scriptName] Processing generated properties directory (${remoteGenPropDir}):`n"
-	if ( ! ( Test-Path "$WORK_DIR_DEFAULT\${remoteGenPropDir}" )) {
-		Write-Host "[$scriptName]   $(mkdir $WORK_DIR_DEFAULT\${remoteGenPropDir})"
-	}
-	foreach ( $generatedPropertyFile in (Get-ChildItem ".\${remoteGenPropDir}")) {
-		Write-Host "[$scriptName]   ${remoteGenPropDir}\${generatedPropertyFile} --> $WORK_DIR_DEFAULT\${remoteGenPropDir}\${generatedPropertyFile}"
-		Get-Content ".\${remoteGenPropDir}\${generatedPropertyFile}" | Add-Content "$WORK_DIR_DEFAULT\${remoteGenPropDir}\${generatedPropertyFile}"
-	}
+	propMerge $remoteGenPropDir $generatedPropertyFile
+}
+
+# Copy remote properties if directory exists
+if ( Test-Path $containerPropertiesDir ) {
+	copyDir $containerPropertiesDir $WORK_DIR_DEFAULT
+}
+
+if ( Test-Path ".\$containerGenPropDir" ) {
+	propMerge $containerGenPropDir $generatedPropertyFile
 }
 
 # Copy encrypted file directory if it exists

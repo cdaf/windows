@@ -107,16 +107,16 @@ if ( Test-Path automation ) {
 	executeExpression "cp -Recurse automation $imageDir"
 }
 
-executeExpression "cp -Recurse propertiesForLocalTasks $imageDir/properties"
+executeExpression "cp -Recurse propertiesForContainerTasks $imageDir/properties"
 executeExpression "cp ..\${SOLUTION}-${BUILDNUMBER}.zip $imageDir/deploy.zip"
 executeExpression "cd $imageDir"
 
 Write-Host "`n[$scriptName] Remove any remaining deploy containers from previous (failed) deployments"
 $id = "${SOLUTION}_${REVISION}".ToLower() + "${id}_push"
-executeExpression "${env:CDAF_WORKSPACE}/dockerRun.ps1 ${id}"
+executeExpression "${CDAF_WORKSPACE}/dockerRun.ps1 ${id}"
 $env:CDAF_CD_ENVIRONMENT = $ENVIRONMENT
-executeExpression "${env:CDAF_WORKSPACE}/dockerBuild.ps1 ${id} ${BUILDNUMBER}"
-executeExpression "${env:CDAF_WORKSPACE}/dockerClean.ps1 ${id} ${BUILDNUMBER}"
+executeExpression "${CDAF_WORKSPACE}/dockerBuild.ps1 ${id} ${BUILDNUMBER}"
+executeExpression "${CDAF_WORKSPACE}/dockerClean.ps1 ${id} ${BUILDNUMBER}"
 
 Write-Host "[$scriptName] Perform Remote Deployment activity using image ${id}:${BUILDNUMBER}"
 foreach ( $envVar in Get-ChildItem env:) {
@@ -125,15 +125,16 @@ foreach ( $envVar in Get-ChildItem env:) {
 	}
 }
 
+${prefix} = ${SOLUTION}.ToUpper()
 foreach ( $envVar in Get-ChildItem env:) {
-	if ($envVar.Name.Contains("CDAF_${SOLUTION}_CD_")) {
-		${buildCommand} += " --env $(${envVar}.Name.Replace("CDAF_${SOLUTION}_CD_", ''))=$(${envVar}.Value)"
+	if ($envVar.Name.Contains("CDAF_${prefix}_CD_")) {
+		${buildCommand} += " --env $(${envVar}.Name.Replace("CDAF_${prefix}_CD_", ''))=$(${envVar}.Value)"
 	}
 }
 
 executeExpression "docker run --tty --volume ${env:USERPROFILE}:C:/solution/home ${buildCommand} --label cdaf.${id}.container.instance=${REVISION} --name ${id} ${id}:${BUILDNUMBER} deploy.bat ${ENVIRONMENT}"
 Write-Host
-executeExpression "${env:CDAF_WORKSPACE}/dockerRun.ps1 ${id}"
+executeExpression "${CDAF_WORKSPACE}/dockerRun.ps1 ${id}"
 
 Write-Host "`n[$scriptName] List Resulting images...`n"
 executeExpression "docker images -f label=cdaf.${SOLUTION}.image.REVISION"

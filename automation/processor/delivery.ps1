@@ -204,19 +204,23 @@ if ( $processSequence ) {
 }
 
 # The containerDeploy is an extension to remote tasks, which means recursive call to this script should not happen (unlike containerBuild)
-# containerDeploy example & ${env:CDAF_WORKSPACE}/containerDeploy.ps1 "${ENVIRONMENT}" "${RELEASE}" "${SOLUTION}" "${BUILDNUMBER}" "${REVISION}"
-$containerDeploy = getProp 'containerDeploy'
-$REVISION = getProp 'REVISION'
-if ( $containerDeploy ) {
-	# To support environment dependent containerDeploy, e.g. only on the build server, allow setting as variable
-	$containerDeploy = Invoke-Expression "Write-Output `"$containerDeploy`""
+# containerDeploy example & ${CDAF_WORKSPACE}/containerDeploy.ps1 "${ENVIRONMENT}" "${RELEASE}" "${SOLUTION}" "${BUILDNUMBER}" "${REVISION}"
+if ( Test-Path $WORK_DIR_DEFAULT\propertiesForContainerTasks\$ENVIRONMENT ) {
+	$containerDeploy = getProp 'containerDeploy'
+	$REVISION = getProp 'REVISION'
 	if ( $containerDeploy ) {
-		${env:CONTAINER_IMAGE} = getProp 'containerImage'
-		${env:CDAF_WORKSPACE} = "$(Get-Location)/${WORK_DIR_DEFAULT}"
-		Set-Location "${env:CDAF_WORKSPACE}"
-		Write-Host
-		executeExpression "$containerDeploy"
-		Set-Location "$landingDir"
+		# To support environment dependent containerDeploy, e.g. only on the build server, allow setting as variable
+		if ( $containerDeploy -match 'env:' ) {
+			$containerDeploy = Invoke-Expression "Write-Output `"$containerDeploy`""
+		}
+		if ( $containerDeploy ) {
+			${env:CONTAINER_IMAGE} = getProp 'containerImage'
+			${CDAF_WORKSPACE} = "$(Get-Location)/${WORK_DIR_DEFAULT}"
+			Set-Location "${CDAF_WORKSPACE}"
+			Write-Host
+			executeExpression "$containerDeploy"
+			Set-Location "$landingDir"
+		}
 	}
 }
 

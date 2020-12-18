@@ -258,8 +258,8 @@ if ( $containerImage ) {
 	}
 }
 
-# Properties generator (added in release 1.7.8, extended to list in 1.8.11, moved from build to pre-process 1.8.14)
-$itemList = @("propertiesForLocalTasks", "propertiesForRemoteTasks")
+# Properties generator (added in release 1.7.8, extended to list in 1.8.11, moved from build to pre-process 1.8.14), added container tasks 2.4.0
+$itemList = @("propertiesForLocalTasks", "propertiesForRemoteTasks", "propertiesForContainerTasks")
 foreach ($itemName in $itemList) {  
 	itemRemove ".\${itemName}"
 }
@@ -291,8 +291,10 @@ foreach ($propertiesDriver in $configManagementList) {
 		if ( $arr[0] -ne 'context' ) {
 			if ( $arr[0] -eq 'remote' ) {
 				$cdafPath="./propertiesForRemoteTasks"
-			} else {
+			} elseif ( $arr[0] -eq 'local' ) {
 				$cdafPath="./propertiesForLocalTasks"
+			} else {
+				$cdafPath="./propertiesForContainerTasks"
 			}
 			if ( ! (Test-Path $cdafPath) ) {
 				Write-Host "[$scriptName]   mkdir $(mkdir $cdafPath)"
@@ -556,6 +558,7 @@ if ( $ACTION -ne 'container_build' ) {
 	Write-Host "`n[$scriptName] Clean Workspace..."
 	itemRemove "propertiesForLocalTasks"
 	itemRemove "propertiesForRemoteTasks"
+	itemRemove "propertiesForContainerTasks"
 	itemRemove "manifest.txt"
 	itemRemove "storeForLocal_manifest.txt"
 	itemRemove "storeForRemote_manifest.txt"

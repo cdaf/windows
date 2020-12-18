@@ -112,37 +112,37 @@ Write-Host "[$scriptName] +-----------------+"
 
 $SOLUTION = $args[0]
 if (-not($SOLUTION)) {exceptionExit SOLUTION_NOT_PASSED }
-Write-Host "[$scriptName]   SOLUTION                : $SOLUTION"
+Write-Host "[$scriptName]   SOLUTION                   : $SOLUTION"
 
 $BUILDNUMBER = $args[1]
 if (-not($BUILDNUMBER)) {exceptionExit BUILDNUMBER_NOT_PASSED }
-Write-Host "[$scriptName]   BUILDNUMBER             : $BUILDNUMBER"
+Write-Host "[$scriptName]   BUILDNUMBER                : $BUILDNUMBER"
 
 $REVISION = $args[2]
 if (-not($REVISION)) {exceptionExit REVISION_NOT_PASSED }
-Write-Host "[$scriptName]   REVISION                : $REVISION"
+Write-Host "[$scriptName]   REVISION                   : $REVISION"
 
 $AUTOMATIONROOT=$args[3]
 if (-not($LOCAL_WORK_DIR)) {exceptionExit AUTOMATIONROOT_NOT_PASSED }
-Write-Host "[$scriptName]   AUTOMATIONROOT          : $AUTOMATIONROOT"
+Write-Host "[$scriptName]   AUTOMATIONROOT             : $AUTOMATIONROOT"
 
 $SOLUTIONROOT=$args[4]
 if (-not($LOCAL_WORK_DIR)) {exceptionExit SOLUTIONROOT_NOT_PASSED }
-Write-Host "[$scriptName]   SOLUTIONROOT            : $SOLUTIONROOT"
+Write-Host "[$scriptName]   SOLUTIONROOT               : $SOLUTIONROOT"
 
 $LOCAL_WORK_DIR = $args[5]
 if (-not($LOCAL_WORK_DIR)) {exceptionExit LOCAL_NOT_PASSED }
-Write-Host "[$scriptName]   LOCAL_WORK_DIR          : $LOCAL_WORK_DIR"
+Write-Host "[$scriptName]   LOCAL_WORK_DIR             : $LOCAL_WORK_DIR"
 
 $REMOTE_WORK_DIR = $args[6]
 if (-not($REMOTE_WORK_DIR)) {exceptionExit REMOTE_NOT_PASSED }
-Write-Host "[$scriptName]   REMOTE_WORK_DIR         : $REMOTE_WORK_DIR"
+Write-Host "[$scriptName]   REMOTE_WORK_DIR            : $REMOTE_WORK_DIR"
 
 $ACTION = $args[7]
-Write-Host "[$scriptName]   ACTION                  : $ACTION"
+Write-Host "[$scriptName]   ACTION                     : $ACTION"
 
 $prepackageTask = "$SOLUTIONROOT\package.tsk"
-Write-Host -NoNewLine "[$scriptName]   Prepackage Tasks        : " 
+Write-Host -NoNewLine "[$scriptName]   Prepackage Tasks           : " 
 if (Test-Path "$prepackageTask") {
 	Write-Host "found ($prepackageTask)"
 } else {
@@ -150,7 +150,7 @@ if (Test-Path "$prepackageTask") {
 }
 
 $prepackageScript = ".\package.ps1"
-Write-Host -NoNewLine "[$scriptName]   Prepackage Script       : " 
+Write-Host -NoNewLine "[$scriptName]   Prepackage Script          : " 
 if (Test-Path "$prepackageScript") {
 	Write-Host "found ($prepackageScript)"
 } else {
@@ -158,7 +158,7 @@ if (Test-Path "$prepackageScript") {
 }
 
 $postpackageTasks = "$SOLUTIONROOT\wrap.tsk"
-Write-Host -NoNewLine "[$scriptName]   Postpackage Tasks       : " 
+Write-Host -NoNewLine "[$scriptName]   Postpackage Tasks          : " 
 if (Test-Path "$postpackageTasks") {
 	Write-Host "found ($postpackageTasks)"
 } else {
@@ -167,18 +167,26 @@ if (Test-Path "$postpackageTasks") {
 
 # Test for optional properties
 $remotePropertiesDir = "$SOLUTIONROOT\propertiesForRemoteTasks"
-Write-Host -NoNewLine "[$scriptName]   Remote Target Directory : " 
+Write-Host -NoNewLine "[$scriptName]   Remote Target Directory    : " 
 
 if ( Test-Path $remotePropertiesDir ) {
 	Write-Host "found ($remotePropertiesDir)"
 } else {
 	Write-Host "none ($remotePropertiesDir)"
 }
+$containerPropertiesDir = "$SOLUTIONROOT\propertiesForContainerTasks"
+Write-Host -NoNewLine "[$scriptName]   Container Target Directory : " 
+
+if ( Test-Path $containerPropertiesDir ) {
+	Write-Host "found ($containerPropertiesDir)"
+} else {
+	Write-Host "none ($containerPropertiesDir)"
+}
 
 # Runtime information, build process can have large logging, so this is repeated
-Write-Host "[$scriptName]   pwd                     : $(Get-Location)"
-Write-Host "[$scriptName]   hostname                : $(hostname)" 
-Write-Host "[$scriptName]   whoami                  : $(whoami)" 
+Write-Host "[$scriptName]   pwd                        : $(Get-Location)"
+Write-Host "[$scriptName]   hostname                   : $(hostname)" 
+Write-Host "[$scriptName]   whoami                     : $(whoami)" 
 
 $propertiesFile = "$AUTOMATIONROOT\CDAF.windows"
 $propName = "productVersion"
@@ -186,7 +194,7 @@ try {
 	$cdafVersion=$(& $AUTOMATIONROOT\remote\getProperty.ps1 $propertiesFile $propName)
 	if(!$?){ taskWarning }
 } catch { exceptionExit "PACK_GET_CDAF_VERSION" }
-Write-Host "[$scriptName]   CDAF Version            : $cdafVersion"
+Write-Host "[$scriptName]   CDAF Version               : $cdafVersion"
 
 # Cannot brute force clear the workspace as the Visual Studio solution file is here
 write-host "`n[$scriptName]   --- Start Package Process ---`n" -ForegroundColor Green
@@ -249,7 +257,7 @@ if ( $ACTION -eq "clean" ) {
 		if(!$?){ taskWarning }
 	} catch { exceptionExit("packageLocal.ps1") }
 
-	if (( Test-Path "$remotePropertiesDir" -pathtype container) -or ( Test-Path "$SOLUTIONROOT\storeForRemote" -pathtype leaf) -or ( Test-Path "$SOLUTIONROOT\storeFor" -pathtype leaf)) {
+	if (( Test-Path "$containerPropertiesDir" -pathtype container) -or ( Test-Path "$remotePropertiesDir" -pathtype container) -or ( Test-Path "$SOLUTIONROOT\storeForRemote" -pathtype leaf) -or ( Test-Path "$SOLUTIONROOT\storeFor" -pathtype leaf)) {
 
 		try {
 			& $AUTOMATIONROOT\buildandpackage\packageRemote.ps1 $SOLUTION $BUILDNUMBER $REVISION $LOCAL_WORK_DIR $REMOTE_WORK_DIR $SOLUTIONROOT $AUTOMATIONROOT

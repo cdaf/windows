@@ -8,4 +8,5 @@
 /projectsToBuild.txt
 /propertiesForLocalTasks/
 /propertiesForRemoteTasks/
+/propertiesForContainerTasks/
 /release.ps1
