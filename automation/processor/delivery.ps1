@@ -200,33 +200,10 @@ $processSequence = getProp 'processSequence'
 if ( $processSequence ) {
 	Write-Host "[$scriptName]   processSequence  : $processSequence (override)"
 } else {
-	$processSequence = 'remoteTasks.ps1 localTasks.ps1'
+	$processSequence = 'remoteTasks.ps1 localTasks.ps1 containerTasks.ps1'
 }
 
-# The containerDeploy is an extension to remote tasks, which means recursive call to this script should not happen (unlike containerBuild)
-# containerDeploy example & ${CDAF_WORKSPACE}/containerDeploy.ps1 "${ENVIRONMENT}" "${RELEASE}" "${SOLUTION}" "${BUILDNUMBER}" "${REVISION}"
-if ( Test-Path $WORK_DIR_DEFAULT\propertiesForContainerTasks\$ENVIRONMENT ) {
-	$containerDeploy = getProp 'containerDeploy'
-	$REVISION = getProp 'REVISION'
-	if ( $containerDeploy ) {
-		# To support environment dependent containerDeploy, e.g. only on the build server, allow setting as variable
-		if ( $containerDeploy -match 'env:' ) {
-			$containerDeploy = Invoke-Expression "Write-Output `"$containerDeploy`""
-		}
-		if ( $containerDeploy ) {
-			${env:CONTAINER_IMAGE} = getProp 'containerImage'
-			${CDAF_WORKSPACE} = "$(Get-Location)/${WORK_DIR_DEFAULT}"
-			Set-Location "${CDAF_WORKSPACE}"
-			Write-Host
-			executeExpression "$containerDeploy"
-			Set-Location "$landingDir"
-		}
-	}
-}
-
-if (!( $containerDeploy )) {
-	foreach ($step in $processSequence.Split()) {
-		Write-Host
-		executeExpression "& .\$WORK_DIR_DEFAULT\$step '$ENVIRONMENT' '$BUILDNUMBER' '$SOLUTION' '$WORK_DIR_DEFAULT' '$OPT_ARG'"
-	}
+foreach ($step in $processSequence.Split()) {
+	Write-Host
+	executeExpression "& .\$WORK_DIR_DEFAULT\$step '$ENVIRONMENT' '$BUILDNUMBER' '$SOLUTION' '$WORK_DIR_DEFAULT' '$OPT_ARG'"
 }

@@ -15,36 +15,40 @@ $WORK_DIR_DEFAULT = $args[3]
 Write-Host "[$scriptName]   WORK_DIR_DEFAULT : $WORK_DIR_DEFAULT" 
 $OPT_ARG = $args[4]
 Write-Host "[$scriptName]   OPT_ARG          : $OPT_ARG" 
-Write-Host "[$scriptName]   Hostname         : $(hostname)" 
-Write-Host "[$scriptName]   Whoami           : $(whoami)" 
 
-$remoteProperties = "propertiesForRemoteTasks\$ENVIRONMENT*"
 $propertiesFile = "CDAF.properties"
 $propName = "productVersion"
 try {
 	$cdafVersion=$(& .\$WORK_DIR_DEFAULT\getProperty.ps1 .\$WORK_DIR_DEFAULT\$propertiesFile $propName)
 	if(!$?){ taskWarning }
-} catch { exceptionExit 'GET_CDAF_VERSION' $_ }
+} catch { exceptionExit 'GET_CDAF_VERSION_104' $_ }
+
 Write-Host "[$scriptName]   CDAF Version     : $cdafVersion"
+
+# list system info
+Write-Host "[$scriptName]   Hostname         : $(hostname)" 
+Write-Host "[$scriptName]   Whoami           : $(whoami)" 
 Write-Host "[$scriptName]   pwd              : $(pwd)"
- 
+
+$propertiesFilter = 'propertiesForRemoteTasks\' + "$ENVIRONMENT*"
+
 $exitStatus = 0
 
 # Perform Remote Tasks for each environment defintion file
 
-if (-not(Test-Path $WORK_DIR_DEFAULT\$remoteProperties)) {
+if (-not(Test-Path $WORK_DIR_DEFAULT\$propertiesFilter)) {
 
-	Write-Host "[$scriptName] Remote properties not found ($WORK_DIR_DEFAULT\$remoteProperties) assuming this is new implementation, no action attempted" -ForegroundColor Yellow
+	Write-Host "[$scriptName][WARN] local properties not found ($propertiesFilter) alter processSequence property to skip" -ForegroundColor Yellow
 
 } else {
 
 	Write-Host "`n[$scriptName] Preparing to process deploy targets :`n"
-	foreach ($propFile in (Get-ChildItem -Path $WORK_DIR_DEFAULT\$remoteProperties)) {
+	foreach ($propFile in (Get-ChildItem -Path $WORK_DIR_DEFAULT\$propertiesFilter)) {
 		$propFilename = getFilename($propFile.ToString())
 		Write-Host "[$scriptName]   $propFilename"
 	}
 
-	foreach ($propFile in (Get-ChildItem -Path $WORK_DIR_DEFAULT\$remoteProperties)) {
+	foreach ($propFile in (Get-ChildItem -Path $WORK_DIR_DEFAULT\$propertiesFilter)) {
 		$propFilename = getFilename($propFile.ToString())
 
 		write-host "`n[$scriptName]   --- Process Target $propFilename ---`n" -ForegroundColor Green
