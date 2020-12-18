@@ -211,9 +211,9 @@ if ( $containerDeploy ) {
 	# To support environment dependent containerDeploy, e.g. only on the build server, allow setting as variable
 	$containerDeploy = Invoke-Expression "Write-Output `"$containerDeploy`""
 	if ( $containerDeploy ) {
+		${env:CONTAINER_IMAGE} = getProp 'containerImage'
 		${env:CDAF_WORKSPACE} = "$(Get-Location)/${WORK_DIR_DEFAULT}"
 		Set-Location "${env:CDAF_WORKSPACE}"
-		$env:CONTAINER_IMAGE = getProp 'containerImage'
 		Write-Host
 		executeExpression "$containerDeploy"
 		Set-Location "$landingDir"
