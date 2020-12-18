@@ -184,14 +184,14 @@ if ($BUILDNUMBER) {
 }
 
 # Runtime information
-Write-Host "[$scriptName]   pwd              : $(pwd)"
+$landingDir = "$(Get-Location)"
+Write-Host "[$scriptName]   pwd              : $landingDir"
 Write-Host "[$scriptName]   hostname         : $(hostname)" 
 Write-Host "[$scriptName]   whoami           : $(whoami)"
 
 $propertiesFile = "$WORK_DIR_DEFAULT\CDAF.properties"
 $cdafVersion = getProp 'productVersion'
 Write-Host "[$scriptName]   CDAF Version     : $cdafVersion"
-
 
 $propertiesFile = "$WORK_DIR_DEFAULT\manifest.txt"
 $processSequence = getProp 'processSequence'
@@ -202,7 +202,25 @@ if ( $processSequence ) {
 	$processSequence = 'remoteTasks.ps1 localTasks.ps1'
 }
 
-foreach ($step in $processSequence.Split()) {
-	Write-Host
-	executeExpression "& .\$WORK_DIR_DEFAULT\$step '$ENVIRONMENT' '$BUILDNUMBER' '$SOLUTION' '$WORK_DIR_DEFAULT' '$OPT_ARG'"
+# The containerDeploy is an extension to remote tasks, which means recursive call to this script should not happen (unlike containerBuild)
+# containerDeploy example & ${env:CDAF_WORKSPACE}/containerDeploy.ps1 "${ENVIRONMENT}" "${RELEASE}" "${SOLUTION}" "${BUILDNUMBER}" "${REVISION}"
+$containerDeploy = getProp 'containerDeploy'
+$REVISION = getProp 'REVISION'
+if ( $containerDeploy ) {
+	# To support environment dependent containerDeploy, e.g. only on the build server, allow setting as variable
+	$containerDeploy = Invoke-Expression "Write-Output `"$containerDeploy`""
+	if ( $containerDeploy ) {
+		${env:CDAF_WORKSPACE} = "$(Get-Location)/${WORK_DIR_DEFAULT}"
+		Set-Location "${env:CDAF_WORKSPACE}"
+		Write-Host
+		executeExpression "$containerDeploy"
+		Set-Location "$landingDir"
+	}
+}
+
+if (!( $containerDeploy )) {
+	foreach ($step in $processSequence.Split()) {
+		Write-Host
+		executeExpression "& .\$WORK_DIR_DEFAULT\$step '$ENVIRONMENT' '$BUILDNUMBER' '$SOLUTION' '$WORK_DIR_DEFAULT' '$OPT_ARG'"
+	}
 }
