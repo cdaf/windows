@@ -107,7 +107,7 @@ if ( Test-Path automation ) {
 	executeExpression "cp -Recurse automation $imageDir"
 }
 
-executeExpression "cp -Recurse propertiesForLocalTasks $imageDir/propertiesForRemoteTasks"
+executeExpression "cp -Recurse propertiesForLocalTasks $imageDir/properties"
 executeExpression "cp ..\${SOLUTION}-${BUILDNUMBER}.zip $imageDir/deploy.zip"
 executeExpression "cd $imageDir"
 
@@ -120,18 +120,19 @@ executeExpression "${env:CDAF_WORKSPACE}/dockerClean.ps1 ${id} ${BUILDNUMBER}"
 
 Write-Host "[$scriptName] Perform Remote Deployment activity using image ${id}:${BUILDNUMBER}"
 foreach ( $envVar in Get-ChildItem env:) {
-	if ($envVar.Name.Contains('CDAF_CB_')) {
-		${buildCommand} += " --env $(${envVar}.Name)=$(${envVar}.Value)"
+	if ($envVar.Name.Contains('CDAF_CD_')) {
+		${buildCommand} += " --env $(${envVar}.Name.Replace('CDAF_CD_', ''))=$(${envVar}.Value)"
 	}
 }
 
 foreach ( $envVar in Get-ChildItem env:) {
 	if ($envVar.Name.Contains("CDAF_${SOLUTION}_CD_")) {
-		${buildCommand} += " --env $(${envVar}.Name)=$(${envVar}.Value)"
+		${buildCommand} += " --env $(${envVar}.Name.Replace("CDAF_${SOLUTION}_CD_", ''))=$(${envVar}.Value)"
 	}
 }
 
-executeExpression "docker run --tty --volume ${env:USERPROFILE}:C:/solution/home ${buildCommand} --label cdaf.${id}.container.instance=${REVISION} --name ${id} ${id}:${BUILDNUMBER}"
+executeExpression "docker run --tty --volume ${env:USERPROFILE}:C:/solution/home ${buildCommand} --label cdaf.${id}.container.instance=${REVISION} --name ${id} ${id}:${BUILDNUMBER} deploy.bat ${ENVIRONMENT}"
+Write-Host
 executeExpression "${env:CDAF_WORKSPACE}/dockerRun.ps1 ${id}"
 
 Write-Host "`n[$scriptName] List Resulting images...`n"

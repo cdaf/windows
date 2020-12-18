@@ -16,6 +16,7 @@ Import-Module Microsoft.PowerShell.Security
 cmd /c "exit 0"
 $Error.clear()
 $env:CDAF_AUTOMATION_ROOT = ''
+$env:CONTAINER_IMAGE = ''
 $scriptName = 'delivery.ps1'
 
 # Common expression logging and error handling function, copied, not referenced to ensure atomic process
@@ -212,6 +213,7 @@ if ( $containerDeploy ) {
 	if ( $containerDeploy ) {
 		${env:CDAF_WORKSPACE} = "$(Get-Location)/${WORK_DIR_DEFAULT}"
 		Set-Location "${env:CDAF_WORKSPACE}"
+		$env:CONTAINER_IMAGE = getProp 'containerImage'
 		Write-Host
 		executeExpression "$containerDeploy"
 		Set-Location "$landingDir"
