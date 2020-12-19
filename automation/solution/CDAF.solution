@@ -20,3 +20,5 @@ artifactPrefix=0.0
 # gitUserNameEnvVar=${env:GIT_USER}
 # gitUserPassEnvVar=${env:GIT_PASS}
 # gitCustomCleanup=& $AUTOMATIONROOT/buildandpackage/clean.ps1
+
+# containerDeploy=& ${CDAF_WORKSPACE}/containerDeploy.ps1 "${ENVIRONMENT}" "${RELEASE}" "${SOLUTION}" "${BUILDNUMBER}" "${REVISION}" compose/test
