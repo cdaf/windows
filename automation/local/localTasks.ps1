@@ -72,7 +72,7 @@ if ( $localEnvPreDeployTask) {
 # Perform Local Tasks for each target definition file for this environment
 if (-not(Test-Path $propertiesFilter)) {
 
-	Write-Host "[$scriptName][WARN] local properties not found ($propertiesFilter) alter processSequence property to skip" -ForegroundColor Yellow
+	Write-Host "`n[$scriptName][WARN] Properties not found ($propertiesFilter) alter processSequence property to skip" -ForegroundColor Yellow
 
 } else {
 

@@ -38,7 +38,7 @@ $exitStatus = 0
 
 if (-not(Test-Path $WORK_DIR_DEFAULT\$propertiesFilter)) {
 
-	Write-Host "[$scriptName][WARN] local properties not found ($propertiesFilter) alter processSequence property to skip" -ForegroundColor Yellow
+	Write-Host "`n[$scriptName][WARN] Properties not found ($propertiesFilter) alter processSequence property to skip" -ForegroundColor Yellow
 
 } else {
 
