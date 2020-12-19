@@ -185,8 +185,8 @@ if ($BUILDNUMBER) {
 }
 
 # Runtime information
-$landingDir = "$(Get-Location)"
-Write-Host "[$scriptName]   pwd              : $landingDir"
+$env:WORK_SPACE = "$(Get-Location)"
+Write-Host "[$scriptName]   `$env:WORK_SPACE  : $env:WORK_SPACE"
 Write-Host "[$scriptName]   hostname         : $(hostname)" 
 Write-Host "[$scriptName]   whoami           : $(whoami)"
 
@@ -206,4 +206,5 @@ if ( $processSequence ) {
 foreach ($step in $processSequence.Split()) {
 	Write-Host
 	executeExpression "& .\$WORK_DIR_DEFAULT\$step '$ENVIRONMENT' '$BUILDNUMBER' '$SOLUTION' '$WORK_DIR_DEFAULT' '$OPT_ARG'"
+	cd $env:WORK_SPACE
 }
