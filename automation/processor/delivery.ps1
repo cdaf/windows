@@ -204,7 +204,9 @@ if ( $processSequence ) {
 }
 
 foreach ($step in $processSequence.Split()) {
-	Write-Host
-	executeExpression "& .\$WORK_DIR_DEFAULT\$step '$ENVIRONMENT' '$BUILDNUMBER' '$SOLUTION' '$WORK_DIR_DEFAULT' '$OPT_ARG'"
-	cd $env:WORK_SPACE
+	if ( $step ) {
+		Write-Host
+		executeExpression "& .\$WORK_DIR_DEFAULT\$step '$ENVIRONMENT' '$BUILDNUMBER' '$SOLUTION' '$WORK_DIR_DEFAULT' '$OPT_ARG'"
+		cd $env:WORK_SPACE
+	}
 }
