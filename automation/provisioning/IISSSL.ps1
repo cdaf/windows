@@ -4,7 +4,8 @@ Param (
   [string]$port,
   [string]$siteName,
   [string]$location,
-  [string]$placement
+  [string]$placement,
+  [string]$hostHeader
 )
 
 cmd /c "exit 0"
@@ -120,6 +121,12 @@ if ($placement) {
 	Write-Host "[$scriptName] placement  : $placement (default)"
 }
   
+if ($hostHeader) {
+	Write-Host "[$scriptName] hostHeader : $hostHeader (e.g. My, WebHosting)"
+} else {
+	Write-Host "[$scriptName] hostHeader : (not supplied)"
+}
+
 Write-Host
 executeExpression 'import-module WebAdministration'
 
@@ -134,11 +141,21 @@ executeExpression "New-Item 'IIS:\SslBindings\$ip!$port' -Value `$cert"
 if ( $ip -eq '0.0.0.0' ) {
 	$ip = '*'
 }
-$bindCheck = executeReturn "Get-WebBinding -Name '$siteName' -Protocol https"
-if ( $bindCheck ) {
-	executeExpression "Remove-WebBinding -Name '$siteName' -Protocol https"
+
+if ( $hostHeader ) {
+	$bindCheck = executeReturn "Get-WebBinding -Name '$siteName' -HostHeader '$hostHeader' -Protocol https"
+	if ( $bindCheck ) {
+		executeExpression "Remove-WebBinding -Name '$siteName' -HostHeader '$hostHeader' -Protocol https"
+	}
+	executeExpression "New-WebBinding -Name '$siteName' -IP '$ip' -Port '$port' -HostHeader '$hostHeader' -Protocol https"
+} else {
+	$bindCheck = executeReturn "Get-WebBinding -Name '$siteName' -Protocol https"
+	if ( $bindCheck ) {
+		executeExpression "Remove-WebBinding -Name '$siteName' -Protocol https"
+	}
+	executeExpression "New-WebBinding -Name '$siteName' -IP '$ip' -Port '$port' -Protocol https"
 }
-executeExpression "New-WebBinding -Name '$siteName' -IP '$ip' -Port '$port' -Protocol https"
+
 executeExpression "Get-WebBinding -Name '$siteName'"
 
 Write-Host "`n[$scriptName] ---------- stop ----------"
