@@ -37,6 +37,9 @@ function executeExpression ($expression) {
 		}
 	}
 }
+function mask ($value) {
+	return (Get-FileHash -InputStream $([IO.MemoryStream]::new([byte[]][char[]]$value)) -Algorithm MD5).Hash
+}
 
 Write-Host "`n[$scriptName] ---------- start ----------"
 if ( $url ) {
@@ -45,7 +48,7 @@ if ( $url ) {
 	Write-Host "[$scriptName] url             : (not supplied, will just extract the agent software)"
 }
 if ( $pat ) {
-	Write-Host "[$scriptName] pat             : `$pat"
+	Write-Host "[$scriptName] pat             : $(mask $pat) (MD5 mask)"
 } else {
 	Write-Host "[$scriptName] pat             : (not supplied)"
 }
@@ -68,7 +71,7 @@ if ( $serviceAccount ) {
 	Write-Host "[$scriptName] serviceAccount  : (not supplied)"
 }
 if ( $servicePassword ) {
-	Write-Host "[$scriptName] servicePassword : `$servicePassword"
+	Write-Host "[$scriptName] servicePassword : $(mask $servicePassword) (MD5 mask)"
 } else {
 	Write-Host "[$scriptName] servicePassword : (not supplied)"
 }
