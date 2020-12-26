@@ -12,6 +12,7 @@ Param (
 
 cmd /c "exit 0"
 $scriptName = 'installAgent.ps1'
+$error.clear()
 
 # Common expression logging and error handling function, copied, not referenced to ensure atomic process
 function executeExpression ($expression) {
@@ -101,7 +102,7 @@ if (Test-Path "${mediaDirectory}\${mediaFileName}") {
 	if (Test-Path $mediaDirectory) {
 		Write-Host "[$scriptName] Media Directory $mediaDirectory exists"
 	} else {
-		$result = executeExpression "mkdir $mediaDirectory"
+		executeExpression "Write-Host `$(mkdir $mediaDirectory)"
 	}
 	
 	# As per guidance here https://stackoverflow.com/questions/36265534/invoke-webrequest-ssl-fails
@@ -112,10 +113,11 @@ if (Test-Path "${mediaDirectory}\${mediaFileName}") {
 
 Write-Host "`nExtract using default instructions from Microsoft"
 if (Test-Path "C:\agent") {
-	executeExpression "Remove-Item `"C:\agent`" -Recurse -Force"
+	executeExpression 'Remove-Item "C:\agent\**" -Recurse -Force'
+} else {
+	executeExpression 'Write-Host $(mkdir C:\agent)'
 }
-$result = executeExpression "mkdir C:\agent"
-Write-Host "`nCreated directory $result"
+
 executeExpression "[System.IO.Compression.ZipFile]::ExtractToDirectory(`"$mediaDirectory\$mediaFileName`", `"C:\agent`")"
 
 if ( $url ) {

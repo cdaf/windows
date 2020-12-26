@@ -122,15 +122,16 @@ if ($placement) {
 }
   
 if ($hostHeader) {
-	Write-Host "[$scriptName] hostHeader : $hostHeader (e.g. My, WebHosting)"
+	Write-Host "[$scriptName] hostHeader : $hostHeader (e.g. My, WebHosting)`n"
 } else {
-	Write-Host "[$scriptName] hostHeader : (not supplied)"
+	Write-Host "[$scriptName] hostHeader : (not supplied)`n"
 }
 
-Write-Host
 executeExpression 'import-module WebAdministration'
 
-Write-Host
+Write-Host "`n[$scriptName] Existing http.sys bindings`n"
+executeExpression 'Get-ChildItem "IIS:\SslBindings\"'
+
 if (test-path IIS:\SslBindings\$ip!$port) { 
 	executeExpression "Remove-Item IIS:\SslBindings\$ip!$port"
 }
@@ -155,6 +156,9 @@ if ( $hostHeader ) {
 	}
 	executeExpression "New-WebBinding -Name '$siteName' -IP '$ip' -Port '$port' -Protocol https"
 }
+
+Write-Host "`n[$scriptName] http.sys bindings after`n"
+executeExpression 'Get-ChildItem "IIS:\SslBindings\"'
 
 executeExpression "Get-WebBinding -Name '$siteName'"
 
