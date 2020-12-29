@@ -171,6 +171,7 @@ executeExpression "& reg.exe ADD `"HKCU\Software\Sysinternals\SDelete`" /v EulaA
  
 writeLog "Zero unused disk"
 executeExpression "./$secureDeleteExe -z c:"
+executeExpression "slmgr.vbs /rearm"
 
 if ($sysprep -eq 'yes') {
 
