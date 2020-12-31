@@ -171,7 +171,6 @@ executeExpression "& reg.exe ADD `"HKCU\Software\Sysinternals\SDelete`" /v EulaA
  
 writeLog "Zero unused disk"
 executeExpression "./$secureDeleteExe -z c:"
-executeExpression "slmgr.vbs /rearm"
 
 if ($sysprep -eq 'yes') {
 
@@ -189,6 +188,7 @@ if ($sysprep -eq 'yes') {
 	} else {
 	    executeExpression "Add-Content $scriptDir/SetupComplete.cmd `'netsh advfirewall firewall set rule name=`"Windows Remote Management (HTTP-in)`" new action=allow`'"
 	    executeExpression "Add-Content $scriptDir/SetupComplete.cmd `'reg add HKEY_LOCAL_MACHINE\Software\Microsoft\Windows\CurrentVersion\Policies\System /v EnableLUA /d 0 /t REG_DWORD /f /reg:64`'"
+		executeExpression "Add-Content $scriptDir/SetupComplete.cmd `'slmgr.vbs /rearm`'"
 	}
 	executeExpression "cat $scriptDir/SetupComplete.cmd"
 	
