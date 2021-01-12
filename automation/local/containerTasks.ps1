@@ -1,3 +1,11 @@
+Param (
+	[string]$ENVIRONMENT,
+	[string]$BUILD,
+	[string]$SOLUTION,
+	[string]$WORK_DIR_DEFAULT,
+	[string]$OPT_ARG
+)
+
 $Error.clear()
 $scriptName = $myInvocation.MyCommand.Name
 
@@ -15,16 +23,10 @@ Write-Host
 Write-Host "[$scriptName] +-------------------------+"
 Write-Host "[$scriptName] | Process Container Tasks |"
 Write-Host "[$scriptName] +-------------------------+"
-
-$ENVIRONMENT = $args[0]
 Write-Host "[$scriptName]   ENVIRONMENT      : $ENVIRONMENT" 
-$BUILD = $args[1]
 Write-Host "[$scriptName]   BUILD            : $BUILD" 
-$SOLUTION = $args[2]
 Write-Host "[$scriptName]   SOLUTION         : $SOLUTION" 
-$WORK_DIR_DEFAULT = $args[3]
 Write-Host "[$scriptName]   WORK_DIR_DEFAULT : $WORK_DIR_DEFAULT" 
-$OPT_ARG = $args[4]
 Write-Host "[$scriptName]   OPT_ARG          : $OPT_ARG" 
 
 $propertiesFile = ".\$WORK_DIR_DEFAULT\CDAF.properties"
@@ -33,8 +35,9 @@ Write-Host "[$scriptName]   CDAF Version     : $cdafVersion"
 
 # list system info
 Write-Host "[$scriptName]   hostname         : $(hostname)" 
-Write-Host "[$scriptName]   whoami           : $(whoami)" 
-Write-Host "[$scriptName]   pwd              : $(pwd)"
+Write-Host "[$scriptName]   whoami           : $(whoami)"
+$landingDir = pwd
+Write-Host "[$scriptName]   pwd              : $landingDir"
 
 $propertiesFilter = $WORK_DIR_DEFAULT + '\propertiesForContainerTasks\' + "$ENVIRONMENT*"
 if (-not(Test-Path $propertiesFilter)) {
@@ -61,10 +64,10 @@ if (-not(Test-Path $propertiesFilter)) {
 		} else {
 			${env:CONTAINER_IMAGE} = getProp 'containerImage'
 			${CDAF_WORKSPACE} = "$(Get-Location)/${WORK_DIR_DEFAULT}"
-			Set-Location "${CDAF_WORKSPACE}"
+			executeExpression "Set-Location '${CDAF_WORKSPACE}'"
 			Write-Host
 			executeExpression "$containerDeploy"
-			Set-Location "$landingDir"
+			executeExpression "Set-Location '$landingDir'"
 		}
 		if (!( $containerDeploy )) {
 			if ( Test-Path $WORK_DIR_DEFAULT\propertiesForLocalTasks\$ENVIRONMENT* ) {
@@ -76,7 +79,7 @@ if (-not(Test-Path $propertiesFilter)) {
 				}
 				foreach ( $propFile in Get-Childitem $WORK_DIR_DEFAULT\propertiesForContainerTasks\$ENVIRONMENT* ) {
 					executeExpression "cp $propFile $WORK_DIR_DEFAULT\propertiesForLocalTasks\"
-				}				 
+				}
 				executeExpression "& .\$WORK_DIR_DEFAULT\localTasks.ps1 '$ENVIRONMENT' '$BUILDNUMBER' '$SOLUTION' '$WORK_DIR_DEFAULT' '$OPT_ARG'"
 			}
 		}
