@@ -132,7 +132,7 @@ foreach ( $envVar in Get-ChildItem env:) {
 	}
 }
 
-executeExpression "docker run --tty --volume ${env:USERPROFILE}:C:/solution/home ${buildCommand} --label cdaf.${id}.container.instance=${REVISION} --name ${id} ${id}:${BUILDNUMBER} deploy.bat ${ENVIRONMENT}"
+executeExpression "docker run --volume ${env:USERPROFILE}:C:/solution/home ${buildCommand} --label cdaf.${id}.container.instance=${REVISION} --name ${id} ${id}:${BUILDNUMBER} deploy.bat ${ENVIRONMENT}"
 Write-Host
 executeExpression "${CDAF_WORKSPACE}/dockerRun.ps1 ${id}"
 
