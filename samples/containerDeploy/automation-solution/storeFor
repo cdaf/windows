@@ -1,0 +1,5 @@
+# TargetlessCD
+api/target/*.jar -flat
+
+# Container Deploy Maven and AnyPoint CLI
+api/api.zip -flat

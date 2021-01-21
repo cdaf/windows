@@ -1,0 +1,2 @@
+containerDeploy=& ${CDAF_WORKSPACE}/containerDeploy.ps1 "${ENVIRONMENT}" "${RELEASE}" "${SOLUTION}" "${BUILDNUMBER}" "${REVISION}"
+containerImage=mcr.microsoft.com/windows/servercore:ltsc2019@sha256:c09d8edfe68365f519b02827171aacc61ed3451f7863325cee4059b96f41c0ce
