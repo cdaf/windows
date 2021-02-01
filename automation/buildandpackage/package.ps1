@@ -257,6 +257,9 @@ if ( $ACTION -eq "clean" ) {
 		if(!$?){ taskWarning }
 	} catch { exceptionExit("packageLocal.ps1") }
 
+	# 1.7.8 Only create the remote package if there is a remote target folder or a artefact definition list, if folder exists
+	# create the remote package (even if there are no target files within it)
+	# 2.4.0 create remote package for use in container deployment
 	if (( Test-Path "$containerPropertiesDir" -pathtype container) -or ( Test-Path "$remotePropertiesDir" -pathtype container) -or ( Test-Path "$SOLUTIONROOT\storeForRemote" -pathtype leaf) -or ( Test-Path "$SOLUTIONROOT\storeFor" -pathtype leaf)) {
 
 		try {

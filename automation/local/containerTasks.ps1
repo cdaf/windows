@@ -42,10 +42,10 @@ Write-Host "[$scriptName]   pwd              : $landingDir"
 $propertiesFilter = $WORK_DIR_DEFAULT + '\propertiesForContainerTasks\' + "$ENVIRONMENT*"
 if (-not(Test-Path $propertiesFilter)) {
 
-	Write-Host "`n[$scriptName][WARN] Properties not found ($propertiesFilter) alter processSequence property to skip" -ForegroundColor Yellow
+	Write-Host "`n[$scriptName][INFO] Properties directory ($propertiesFilter) not found, alter processSequence property to skip." -ForegroundColor Yellow
 
 } else {
-	# The containerDeploy is an extension to remote tasks, which means recursive call to this script should not happen (unlike containerBuild)
+	# 2.4.0 The containerDeploy is an extension to remote tasks, which means recursive call to this script should not happen (unlike containerBuild)
 	# containerDeploy example & ${CDAF_WORKSPACE}/containerDeploy.ps1 "${ENVIRONMENT}" "${RELEASE}" "${SOLUTION}" "${BUILDNUMBER}" "${REVISION}"
 	$propertiesFile = ".\$WORK_DIR_DEFAULT\manifest.txt"
 	$containerDeploy = getProp 'containerDeploy'

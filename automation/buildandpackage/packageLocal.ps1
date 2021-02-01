@@ -153,11 +153,12 @@ if ( Test-Path ".\$remoteGenPropDir" ) {
 	propMerge $remoteGenPropDir $generatedPropertyFile
 }
 
-# Copy remote properties if directory exists
+# Merge files into directory, i.e. don't replace any properties provided above
 if ( Test-Path $containerPropertiesDir ) {
 	copyDir $containerPropertiesDir $WORK_DIR_DEFAULT
 }
 
+# 2.4.0 extend for container properties, processed locally, but using remote artefacts for execution
 if ( Test-Path ".\$containerGenPropDir" ) {
 	propMerge $containerGenPropDir $generatedPropertyFile
 }

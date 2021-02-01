@@ -282,7 +282,7 @@ if ( $pivotList ) {
 		Write-Host "[$scriptName]   PV Driver       : none ($SOLUTIONROOT\*.pv)"
 }
 
-# Process table with properties as fields and environments as rows
+# Process table with properties as fields and environments as rows, 2.4.0 extend for propertiesForContainerTasks
 foreach ($propertiesDriver in $configManagementList) {
 	Write-Host "`n[$scriptName] Generating properties files from ${propertiesDriver}"
 	$columns = ( -split (Get-Content $SOLUTIONROOT\$propertiesDriver -First 1 ))
@@ -314,7 +314,7 @@ foreach ($propertiesDriver in $configManagementList) {
 	}
 }
 
-# Process table with properties as rows and environments as fields
+# 1.9.3 add pivoted CM table support, with properties as rows and environments as fields, 2.4.0 extend for propertiesForContainerTasks
 foreach ($propertiesDriver in $pivotList) {
 	Write-Host "`n[$scriptName] Generating properties files from ${propertiesDriver}"
 	$rows = Get-Content $SOLUTIONROOT\$propertiesDriver
@@ -327,7 +327,11 @@ foreach ($propertiesDriver in $pivotList) {
 				if ( $paths[$j] -eq 'remote' ) {
 					$cdafPath="./propertiesForRemoteTasks"
 				} else {
-					$cdafPath="./propertiesForLocalTasks"
+					if ( $paths[$j] -eq 'local' ) {
+						$cdafPath="./propertiesForLocalTasks"
+					} else {
+						$cdafPath="./propertiesForContainerTasks"
+					}
 				}
 				if ( ! (Test-Path $cdafPath) ) {
 					Write-Host "[$scriptName]   mkdir $(mkdir $cdafPath)"
