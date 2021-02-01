@@ -62,7 +62,7 @@ Write-Host "`n[$scriptName] ---------- start ----------"
 if ($ENVIRONMENT) {
     Write-Host "[$scriptName] ENVIRONMENT : $ENVIRONMENT"
 } else {
-    Write-Host "[$scriptName] ENVIRONMENT not supplied, exit with `$LASTEXITCODE = 8022"; exit 8021
+    Write-Host "[$scriptName] ENVIRONMENT not supplied, exit with `$LASTEXITCODE = 8021"; exit 8021
 }
 
 if ($RELEASE) {
@@ -75,13 +75,13 @@ if ($SOLUTION) {
 	$SOLUTION = $SOLUTION.ToLower()
     Write-Host "[$scriptName] SOLUTION    : $SOLUTION"
 } else {
-    Write-Host "[$scriptName] SOLUTION not supplied, exit with `$LASTEXITCODE = 8021"; exit 8023
+    Write-Host "[$scriptName] SOLUTION not supplied, exit with `$LASTEXITCODE = 8023"; exit 8023
 }
 
 if ($BUILDNUMBER) {
     Write-Host "[$scriptName] BUILDNUMBER : $BUILDNUMBER"
 } else {
-    Write-Host "[$scriptName] BUILDNUMBER not supplied, exit with `$LASTEXITCODE = 8022"; exit 8024
+    Write-Host "[$scriptName] BUILDNUMBER not supplied, exit with `$LASTEXITCODE = 8024"; exit 8024
 }
 
 if ($REVISION) {
@@ -101,7 +101,8 @@ Write-Host
 
 # Prepare the image build directory
 if (!( Test-Path $imageDir )) {
-	Write-Host "`n$(mkdir $imageDir)"
+	Write-Host "[$scriptName] $imageDir does not exist! Please ensure this is included in your storeFor or stoteForLocal declaration file"
+	exit 8025
 }
 if ( Test-Path automation ) {
 	executeExpression "cp -Recurse automation $imageDir"
@@ -112,7 +113,7 @@ executeExpression "cp ..\${SOLUTION}-${BUILDNUMBER}.zip $imageDir/deploy.zip"
 executeExpression "cd $imageDir"
 
 Write-Host "`n[$scriptName] Remove any remaining deploy containers from previous (failed) deployments"
-$id = "${SOLUTION}_${REVISION}".ToLower() + "${id}_push"
+$id = "${SOLUTION}_${REVISION}_containerdeploy".ToLower()
 executeExpression "${CDAF_WORKSPACE}/dockerRun.ps1 ${id}"
 $env:CDAF_CD_ENVIRONMENT = $ENVIRONMENT
 executeExpression "${CDAF_WORKSPACE}/dockerBuild.ps1 ${id} ${BUILDNUMBER}"
@@ -133,10 +134,8 @@ foreach ( $envVar in Get-ChildItem env:) {
 }
 
 executeExpression "docker run --volume ${env:USERPROFILE}:C:/solution/home ${buildCommand} --label cdaf.${id}.container.instance=${REVISION} --name ${id} ${id}:${BUILDNUMBER} deploy.bat ${ENVIRONMENT}"
+
 Write-Host
 executeExpression "${CDAF_WORKSPACE}/dockerRun.ps1 ${id}"
-
-Write-Host "`n[$scriptName] List Resulting images...`n"
-executeExpression "docker images -f label=cdaf.${SOLUTION}.image.REVISION"
 
 Write-Host "`n[$scriptName] --- end ---"

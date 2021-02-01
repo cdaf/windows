@@ -36,6 +36,7 @@ if ($imageName) {
     Write-Host "[$scriptName] imageName not supplied, exit with `$LASTEXITCODE = 1"; exit 1
 }
 
+# 2.4.0 Centralise docker operations by supporting implicit clean function
 if (!($dockerExpose)) {
     Write-Host "[$scriptName] dockerExpose  : (not supplied, will only clean running containers)"
 } else {
