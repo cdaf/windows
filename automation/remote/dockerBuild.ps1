@@ -113,7 +113,7 @@ $buildCommand = 'docker build'
 
 foreach ( $envVar in Get-ChildItem env:) {
 	if ($envVar.Name.Contains('CDAF_IB_')) {
-		$buildCommand += " --build-arg $(${envVar}.Name)=$(${envVar}.Value)"
+		${buildCommand} += " --build-arg $(${envVar}.Name.Replace('CDAF_IB_', ''))=$(${envVar}.Value)"
 	}
 }
 
