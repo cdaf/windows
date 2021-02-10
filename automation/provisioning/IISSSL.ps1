@@ -19,7 +19,7 @@ function executeReturn ($expression) {
 		$output = Invoke-Expression "$expression 2> `$null"
 	    if(!$?) { Write-Host "[$scriptName] `$? = $?"; $error ; exit 1111 }
 	} catch {
-		Write-Host "[$scriptName][EXCEPTION] List exception and error array (if populated) and exit with LASTEXITCIDE 1112" -ForegroundColor Red
+		Write-Host "[$scriptName][EXCEPTION] List exception and error array (if populated) and exit with LASTEXITCODE 1112" -ForegroundColor Red
 		Write-Host $_.Exception|format-list -force
 		if ( $error ) { Write-Host "[$scriptName][EXCEPTION] `$Error = $Error" ; $Error.clear() }
 		exit 1112
@@ -55,7 +55,7 @@ function executeExpression ($expression) {
 		Invoke-Expression "$expression 2> `$null"
 	    if(!$?) { Write-Host "[$scriptName] `$? = $?"; $error ; exit 1111 }
 	} catch {
-		Write-Host "[$scriptName][EXCEPTION] List exception and error array (if populated) and exit with LASTEXITCIDE 1112" -ForegroundColor Red
+		Write-Host "[$scriptName][EXCEPTION] List exception and error array (if populated) and exit with LASTEXITCODE 1112" -ForegroundColor Red
 		Write-Host $_.Exception|format-list -force
 		if ( $error ) { Write-Host "[$scriptName][EXCEPTION] `$Error = $Error" ; $Error.clear() }
 		exit 1112

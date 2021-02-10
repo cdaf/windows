@@ -14,7 +14,7 @@ function executeExpression ($expression) {
 		Invoke-Expression "$expression 2> `$null"
 	    if(!$?) { Write-Host "[$scriptName] `$? = $?"; $error ; exit 1211 }
 	} catch {
-		Write-Host "[$scriptName][EXCEPTION] List exception and error array (if populated) and exit with LASTEXITCIDE 1212" -ForegroundColor Red
+		Write-Host "[$scriptName][EXCEPTION] List exception and error array (if populated) and exit with LASTEXITCODE 1212" -ForegroundColor Red
 		Write-Host $_.Exception|format-list -force
 		if ( $error ) { Write-Host "[$scriptName][ERROR] `$Error = $Error" ; $Error.clear() }
 		exit 1212
