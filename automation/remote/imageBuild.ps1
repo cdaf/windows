@@ -127,6 +127,7 @@ if (!( $id )) {
 	dockerLogin
 } else {
 	$id = $id.ToLower()
+	$SOLUTION = ($id.Split('_'))[0]  # Use solution name for temp directory name
 	Write-Host "[$scriptName]   id                  : $id"
 
 	if (!( $buildNumber )) {
@@ -216,7 +217,7 @@ if (!( $id )) {
 		$workspace = $(Get-Location)
 		Write-Host "[$scriptName]   workspace           : ${workspace}`n"
 
-		$transient = "$env:TEMP\buildImage\${id}"
+		$transient = "$env:TEMP\${SOLUTION}\${id}"
 
 		if ( Test-Path "${transient}" ) {
 			if (Test-Path "${transient}" -PathType "Leaf") {
