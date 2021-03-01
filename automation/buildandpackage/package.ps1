@@ -79,13 +79,13 @@ function copySet ($item, $from, $to) {
 
 	Write-Host "[$scriptName]   $from\$item --> $to" 
 	Copy-Item $from\$item $to -Force
-	if(!$?){ taskFailure ("Copy remote script $from\$item --> $to") }
+	if(!$?){ $error ; taskFailure "[$scriptName (copySet)] copy $from\$item to $to failed" }
 	if ( Test-Path $to -pathType container ) {
 		Set-ItemProperty $to\$item -name IsReadOnly -value $false
-		if(!$?){ taskFailure ("remove read only from $to\$item") }
+		if(!$?){ $error ; taskFailure "[$scriptName (copySet)] remove read only from $to\$item" }
 	} else {
 		Set-ItemProperty $to -name IsReadOnly -value $false
-		if(!$?){ taskFailure ("remove read only from $to") }
+		if(!$?){ $error ; taskFailure "[$scriptName (copySet)] remove read only from $to" }
 	}
 }
 

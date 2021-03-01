@@ -77,49 +77,53 @@ function REMOVE ($itemPath) {
 # Recursive copy function to behave like cp -vR in linux
 function VECOPY ($from, $to, $notFirstRun) {
 	try {
+		if ( Test-Path $from ) {
 	
-		if (Test-Path $from -PathType "Container") {
-	
-			if ( Test-Path $to ) {
-			
-				# If this is the first call, i.e. at the root of the source and the target exists, and is a folder,
-				# recursive copy into a subfolder, else recursive call into root of the target 
-				if (Test-Path $to -PathType "Container") {
+			if (Test-Path $from -PathType "Container") {
+		
+				if ( Test-Path $to ) {
 				
-					# Only create a subdirectory if the root exists, otherwise copy into the root
-					if (! ($notFirstRun)) {
-						$fromLeaf = Split-Path "$from" -Leaf
-						$to = "$to\$fromLeaf"
-					}
+					# If this is the first call, i.e. at the root of the source and the target exists, and is a folder,
+					# recursive copy into a subfolder, else recursive call into root of the target 
+					if (Test-Path $to -PathType "Container") {
 					
-				} else {
-				
-					# The existing path is a file, not a directory, delete the file and replace with a directory
-					Remove-Item $to -Recurse -Force
-					if(!$?) {taskFailure "[$scriptName (VECOPY)] Remove-Item $to -Recurse -Force" }
-					Write-Host "  $from --> $to (replace file with directory)" 
-					mkdir $to > $null
-					if(!$?) {taskFailure "[$scriptName (VECOPY)] (replace) $to Creation failed" }
+						# Only create a subdirectory if the root exists, otherwise copy into the root
+						if (! ($notFirstRun)) {
+							$fromLeaf = Split-Path "$from" -Leaf
+							$to = "$to\$fromLeaf"
+						}
+						
+					} else {
+					
+						# The existing path is a file, not a directory, delete the file and replace with a directory
+						Remove-Item $to -Recurse -Force
+						if(!$?) {taskFailure "[$scriptName (VECOPY)] Remove-Item $to -Recurse -Force" }
+						Write-Host "  $from --> $to (replace file with directory)" 
+						mkdir $to > $null
+						if(!$?) {taskFailure "[$scriptName (VECOPY)] (replace) $to Creation failed" }
+					}
 				}
+				
+				# Previous process may have changed the target, so retest and if still not existing, create it	
+				if ( ! (Test-Path $to)) {
+					Write-Host "  $from --> $to"
+					mkdir $to > $null
+					if(!$?) {taskFailure "[$scriptName (VECOPY)] $to Creation failed" }
+				}
+		
+				foreach ($child in (Get-ChildItem -Path "$from" -Name )) {
+					VECOPY "$from\$child" "$to\$child" $true
+				}
+				
+			} else {
+		
+				Write-Host "  $from --> $to" 
+				Copy-Item $from $to -force -recurse
+				if(!$?){ $error ; taskFailure "[$scriptName (VECOPY)] Copy remote script $from --> $to" }
+				
 			}
-			
-			# Previous process may have changed the target, so retest and if still not existing, create it	
-			if ( ! (Test-Path $to)) {
-				Write-Host "  $from --> $to"
-				mkdir $to > $null
-				if(!$?) {taskFailure "[$scriptName (VECOPY)] $to Creation failed" }
-			}
-	
-			foreach ($child in (Get-ChildItem -Path "$from" -Name )) {
-				VECOPY "$from\$child" "$to\$child" $true
-			}
-			
 		} else {
-	
-			Write-Host "  $from --> $to" 
-			Copy-Item $from $to -force -recurse
-			if(!$?){ taskFailure ("[$scriptName (VECOPY)] Copy remote script $from --> $to") }
-			
+			taskException "VECOPY_SOURCE_NOT_FOUND $from"
 		}
 	} catch { taskException "VECOPY_TRAP" $_ }
 }
