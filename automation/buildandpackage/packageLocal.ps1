@@ -1,3 +1,12 @@
+Param (
+	[string]$SOLUTION,
+	[string]$BUILDNUMBER,
+	[string]$REVISION,
+	[string]$WORK_DIR_DEFAULT,
+	[string]$SOLUTIONROOT,
+	[string]$AUTOMATIONROOT
+)
+
 function taskFailure ($taskName) {
     write-host
     write-host "[$scriptName] Failure excuting $taskName :" -ForegroundColor Red
@@ -20,13 +29,6 @@ function propMerge ($generatedPropDir, $generatedPropertyFile) {
 	}
 }
 
-$SOLUTION = $args[0]
-$BUILDNUMBER = $args[1]
-$REVISION = $args[2]
-$WORK_DIR_DEFAULT = $args[3]
-$SOLUTIONROOT = $args[4]
-$AUTOMATIONROOT = $args[5]
-
 $scriptName = $MyInvocation.MyCommand.Name
 
 $localArtifactListFile    = "$SOLUTIONROOT\storeForLocal"
@@ -47,43 +49,43 @@ Write-Host
 Write-Host "[$scriptName] ---------------------------------------------------------------" 
 Write-Host "[$scriptName]   WORK_DIR_DEFAULT                : $WORK_DIR_DEFAULT" 
 
-Write-Host –NoNewLine "[$scriptName]   Local Artifact List             : " 
+Write-Host -NoNewLine "[$scriptName]   Local Artifact List             : " 
 pathTest $localArtifactListFile
 
-Write-Host –NoNewLine "[$scriptName]   Generic Artifact List           : " 
+Write-Host -NoNewLine "[$scriptName]   Generic Artifact List           : " 
 pathTest $genericArtifactList
 
-Write-Host –NoNewLine "[$scriptName]   Local Tasks Properties List     : " 
+Write-Host -NoNewLine "[$scriptName]   Local Tasks Properties List     : " 
 pathTest $localPropertiesDir
 
-Write-Host –NoNewLine "[$scriptName]   Generated local properties      : " 
+Write-Host -NoNewLine "[$scriptName]   Generated local properties      : " 
 pathTest $localGenPropDir
 
-Write-Host –NoNewLine "[$scriptName]   Local Environment Properties    : " 
+Write-Host -NoNewLine "[$scriptName]   Local Environment Properties    : " 
 pathTest $localEnvironmentPath
 
-Write-Host –NoNewLine "[$scriptName]   Local Tasks Encrypted Data      : " 
+Write-Host -NoNewLine "[$scriptName]   Local Tasks Encrypted Data      : " 
 pathTest $localCryptDir
 
-Write-Host –NoNewLine "[$scriptName]   Common Encrypted Data           : " 
+Write-Host -NoNewLine "[$scriptName]   Common Encrypted Data           : " 
 pathTest $cryptDir
 
-Write-Host –NoNewLine "[$scriptName]   Local Tasks Custom Scripts      : " 
+Write-Host -NoNewLine "[$scriptName]   Local Tasks Custom Scripts      : " 
 pathTest $localCustomDir
 
-Write-Host –NoNewLine "[$scriptName]   Common Custom Scripts           : " 
+Write-Host -NoNewLine "[$scriptName]   Common Custom Scripts           : " 
 pathTest $commonCustomDir
 
-Write-Host –NoNewLine "[$scriptName]   Remote Tasks Properties List    : " 
+Write-Host -NoNewLine "[$scriptName]   Remote Tasks Properties List    : " 
 pathTest $remotePropertiesDir
 
-Write-Host –NoNewLine "[$scriptName]   Generated remote properties     : " 
+Write-Host -NoNewLine "[$scriptName]   Generated remote properties     : " 
 pathTest $remoteGenPropDir
 
-Write-Host –NoNewLine "[$scriptName]   Container Tasks Properties List : " 
+Write-Host -NoNewLine "[$scriptName]   Container Tasks Properties List : " 
 pathTest $containerPropertiesDir
 
-Write-Host –NoNewLine "[$scriptName]   Generated Container properties  : " 
+Write-Host -NoNewLine "[$scriptName]   Generated Container properties  : " 
 pathTest $containerGenPropDir
 
 # Create the workspace directory
@@ -214,9 +216,8 @@ try {
 
 if ( "$zipLocal" -eq 'yes' ) {
 
-	ZipFiles "$(pwd)\${SOLUTION}-local-${BUILDNUMBER}.zip" "$(pwd)\$WORK_DIR_DEFAULT"
+	ZipFiles "$(Get-Location)\${SOLUTION}-local-${BUILDNUMBER}.zip" "$(Get-Location)\$WORK_DIR_DEFAULT"
 
 } else {
-	Write-Host
-	Write-Host "[$scriptName] zipLocal property not found in manifest.txt (CDAF.solution), no further action required."
+	Write-Host "`n[$scriptName] zipLocal property not found in manifest.txt (CDAF.solution), no further action required."
 }

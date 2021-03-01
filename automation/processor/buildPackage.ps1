@@ -35,17 +35,19 @@ function executeExpression ($expression) {
 			exit $LASTEXITCODE
 		} else {
 			if ( $error ) {
-				Write-Host "[$scriptName][WARN] $Error array populated by `$LASTEXITCODE = $LASTEXITCODE error follows...`n" -ForegroundColor Yellow
 				Write-Host "[$scriptName][WARN] `$Error = $Error" ; $Error.clear()
+				Write-Host "[$scriptName][WARN] $Error array populated but `$LASTEXITCODE = $LASTEXITCODE so continuing ...`n" -ForegroundColor Yellow
 			}
 		} 
 	} else {
 	    if ( $error ) {
-	    	if ( $env:CDAF_IGNORE_WARNING -eq 'no' ) {
-				Write-Host "[$scriptName][ERROR] `$Error = $error"; $Error.clear()
-				Write-Host "[$scriptName][ERROR] `$env:CDAF_IGNORE_WARNING is 'no' so exiting with LASTEXITCODE 1113 ..."; exit 1113
+	    	if ( $env:CDAF_IGNORE_STANDARD_ERROR -eq 'yes' ) {
+				Write-Host "[$scriptName][WARN] `$Error = $error"
+				$Error.clear()
+				Write-Host "[$scriptName][WARN] `$env:CDAF_IGNORE_STANDARD_ERROR is 'yes' so continuing ..." -ForegroundColor Yellow
 	    	} else {
-		    	Write-Host "[$scriptName][WARN] `$Error = $error" ; $Error.clear()
+		    	Write-Host "[$scriptName][ERROR] `$Error = $error" ; $Error.clear()
+				Write-Host "[$scriptName][ERROR] `$env:CDAF_IGNORE_STANDARD_ERROR is $env:CDAF_IGNORE_STANDARD_ERROR, exiting with error code 1113 ..."  -ForegroundColor Red ; exit 1113
 	    	}
 		}
 	}
@@ -431,21 +433,13 @@ if (( $containerBuild ) -and ( $ACTION -ne 'packageonly' )) {
 			Write-Host "`n[$scriptName] ACTION is $ACTION so skipping build process" -ForegroundColor Yellow
 		}
 	} else {
-		& $AUTOMATIONROOT\buildandpackage\buildProjects.ps1 $SOLUTION $BUILDNUMBER $REVISION $AUTOMATIONROOT $SOLUTIONROOT $ACTION
-		if($LASTEXITCODE -ne 0){
-			exitWithCode "BUILD_NON_ZERO_EXIT $AUTOMATIONROOT\buildandpackage\buildProjects.ps1 $SOLUTION $BUILDNUMBER $REVISION $AUTOMATIONROOT $SOLUTIONROOT $ACTION" $LASTEXITCODE
-		}
-		if(!$?){ taskWarning "buildProjects.ps1" }
+		executeExpression "& $AUTOMATIONROOT\buildandpackage\buildProjects.ps1 $SOLUTION $BUILDNUMBER $REVISION $AUTOMATIONROOT $SOLUTIONROOT $ACTION"
 	}
 	
 	if ( $ACTION -eq 'buildonly' ) {
 		Write-Host "`n[$scriptName] Action is $ACTION so skipping package process" -ForegroundColor Yellow
 	} else {
-		& $AUTOMATIONROOT\buildandpackage\package.ps1 $SOLUTION $BUILDNUMBER $REVISION $AUTOMATIONROOT $SOLUTIONROOT $LOCAL_WORK_DIR $REMOTE_WORK_DIR $ACTION
-		if($LASTEXITCODE -ne 0){
-			exitWithCode "PACKAGE_NON_ZERO_EXIT $AUTOMATIONROOT\buildandpackage\package.ps1 $SOLUTION $BUILDNUMBER $REVISION $AUTOMATIONROOT $SOLUTIONROOT $LOCAL_WORK_DIR $REMOTE_WORK_DIR $ACTION" $LASTEXITCODE
-		}
-		if(!$?){ taskWarning "package.ps1" }
+		executeExpression "& $AUTOMATIONROOT\buildandpackage\package.ps1 $SOLUTION $BUILDNUMBER $REVISION $AUTOMATIONROOT $SOLUTIONROOT $LOCAL_WORK_DIR $REMOTE_WORK_DIR $ACTION"
 	}
 }
 
