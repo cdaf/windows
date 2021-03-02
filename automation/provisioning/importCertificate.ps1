@@ -80,6 +80,10 @@ function executeExpression ($expression) {
 	}
 }
 
+function mask ($value) {
+	return (Get-FileHash -InputStream $([IO.MemoryStream]::new([byte[]][char[]]$value)) -Algorithm MD5).Hash
+}
+
 Write-Host "`n[$scriptName] Requires elevated privilages"
 Write-Host "`n[$scriptName] ---------- start ----------"
 if ($certPath) {
@@ -90,7 +94,7 @@ if ($certPath) {
 }
 
 if ($pfxPassword) {
-	Write-Host "[$scriptName] pfxPassword : $pfxPassword"
+	Write-Host "[$scriptName] pfxPassword : $(mask $pfxPassword) (MD5 mask)"
 } else {
 	Write-Host "[$scriptName] pfxPassword not supplied!"; exit 8611
 }
