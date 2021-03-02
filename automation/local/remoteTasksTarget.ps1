@@ -135,7 +135,6 @@ try {
 
 write-host "`n[$scriptName] Transfer control to the remote host`n" -ForegroundColor Blue
 try {
-	$env:WORK_DIR_DEFAULT = $WORK_DIR_DEFAULT
 	Invoke-Command -session $session -File $WORK_DIR_DEFAULT\deploy.ps1 -Args $DEPLOY_TARGET,$deployLand\$SOLUTION-$BUILD,$warnondeployerror,$OPT_ARG
 } catch { 
 	$exceptionCode = Write-Output $_.tostring()

@@ -20,14 +20,12 @@ function exceptionExit ($exception) {
 }
 
 # Not used in this script because called from DOS, but defined here for all child scripts
-function taskFailure ($taskName, $exitCode) {
-    if (!( $exitCode )) {
-        $exitCode 510
-    }
-    write-host "`n[$scriptName] Failure occured! Code returned ... $taskName" -ForegroundColor Red
-    write-host "[$scriptName] Returning errorlevel ($exitCode) to DOS" -ForegroundColor Magenta
-    $host.SetShouldExit($exitCode)
-	exit $exitCode
+function taskFailure ($taskName) {
+    write-host
+    write-host "[$scriptName] Failure occured! Code returned ... $taskName" -ForegroundColor Red
+    write-host "[$scriptName] Returning errorlevel (510) to DOS" -ForegroundColor Magenta
+    $host.SetShouldExit(510)
+	exit 510
 }
 
 function taskWarning { 
