@@ -7,7 +7,7 @@ function taskException ($taskName, $exception) {
     write-host "[$scriptName (taskException)] Caught an exception excuting $taskName :" -ForegroundColor Red
     write-host "     Exception Type: $($exception.Exception.GetType().FullName)" -ForegroundColor Red
     write-host "     Exception Message: $($exception.Exception.Message)" -ForegroundColor Red
-	exit 3
+	exit 9991
 }
 
 function executeExpression ($expression) {
@@ -17,13 +17,13 @@ function executeExpression ($expression) {
 	    if(!$?) {
 			Write-Host "`n[$scriptName][TRAP] `$? = $?"
 			if ( $error ) { Write-Host "[$scriptName][TRAP]   `$Error[] = $Error" ; $Error.clear() }
-			exit 1111
+			exit 9992
 		}
 	} catch {
 		Write-Host "`n[$scriptName][EXCEPTION] List exception and error array (if populated) and exit with LASTEXITCODE 1112" -ForegroundColor Red
 		Write-Host $_.Exception|format-list -force
 		if ( $error ) { Write-Host "[$scriptName][EXCEPTION]   `$Error[] = $Error" ; $Error.clear() }
-		exit 1112
+		exit 9993
 	}
     if ( $LASTEXITCODE ) {
     	if ( $LASTEXITCODE -ne 0 ) {
@@ -40,7 +40,7 @@ function executeExpression ($expression) {
 	    if ( $error ) {
 	    	if ( $env:CDAF_IGNORE_WARNING -eq 'no' ) {
 				Write-Host "`n[$scriptName][ERROR] `$Error[] = $error"; $Error.clear()
-				Write-Host "[$scriptName][ERROR]   `$env:CDAF_IGNORE_WARNING is 'no' so exiting with LASTEXITCODE 1113 ..."; exit 1113
+				Write-Host "[$scriptName][ERROR]   `$env:CDAF_IGNORE_WARNING is 'no' so exiting with LASTEXITCODE 9994 ..."; exit 9994
 	    	} else {
 		    	Write-Host "[$scriptName][WARN] `$Error[] = $error" ; $Error.clear()
 	    	}
@@ -55,13 +55,13 @@ function MAKDIR ($itemPath) {
 			write-host "[$scriptName (MAKDIR)] $itemPath exists"
 		} else {
 			Remove-Item $itemPath -Recurse -Force
-			if(!$?) { taskFailure "[$scriptName (MAKDIR)] Remove-Item $itemPath -Recurse -Force" }
+			if(!$?) { taskFailure "[$scriptName (MAKDIR)] Remove-Item $itemPath -Recurse -Force" 10002 }
 			mkdir $itemPath > $null
-			if(!$?) { taskFailure "[$scriptName (MAKDIR)] (replace) $itemPath Creation failed" }
+			if(!$?) { taskFailure "[$scriptName (MAKDIR)] (replace) $itemPath Creation failed" 10003 }
 		}	
 	} else {
 		mkdir $itemPath > $null
-		if(!$?) { taskFailure "[$scriptName (MAKDIR)] $itemPath Creation failed" }
+		if(!$?) { taskFailure "[$scriptName (MAKDIR)] $itemPath Creation failed" 10005 }
 	}
 }
 
@@ -70,56 +70,60 @@ function REMOVE ($itemPath) {
 	if ( Test-Path $itemPath ) {
 		write-host "[REMOVE] Delete $itemPath"
 		Remove-Item $itemPath -Recurse -Force
-		if(!$?) { taskFailure "[$scriptName (REMOVE)] Remove-Item $itemPath -Recurse -Force" }
+		if(!$?) { taskFailure "[$scriptName (REMOVE)] Remove-Item $itemPath -Recurse -Force" 10006 }
 	}
 }
 
 # Recursive copy function to behave like cp -vR in linux
 function VECOPY ($from, $to, $notFirstRun) {
 	try {
+		if ( Test-Path $from ) {
 	
-		if (Test-Path $from -PathType "Container") {
-	
-			if ( Test-Path $to ) {
-			
-				# If this is the first call, i.e. at the root of the source and the target exists, and is a folder,
-				# recursive copy into a subfolder, else recursive call into root of the target 
-				if (Test-Path $to -PathType "Container") {
+			if (Test-Path $from -PathType "Container") {
+		
+				if ( Test-Path $to ) {
 				
-					# Only create a subdirectory if the root exists, otherwise copy into the root
-					if (! ($notFirstRun)) {
-						$fromLeaf = Split-Path "$from" -Leaf
-						$to = "$to\$fromLeaf"
-					}
+					# If this is the first call, i.e. at the root of the source and the target exists, and is a folder,
+					# recursive copy into a subfolder, else recursive call into root of the target 
+					if (Test-Path $to -PathType "Container") {
 					
-				} else {
-				
-					# The existing path is a file, not a directory, delete the file and replace with a directory
-					Remove-Item $to -Recurse -Force
-					if(!$?) {taskFailure "[$scriptName (VECOPY)] Remove-Item $to -Recurse -Force" }
-					Write-Host "  $from --> $to (replace file with directory)" 
-					mkdir $to > $null
-					if(!$?) {taskFailure "[$scriptName (VECOPY)] (replace) $to Creation failed" }
+						# Only create a subdirectory if the root exists, otherwise copy into the root
+						if (! ($notFirstRun)) {
+							$fromLeaf = Split-Path "$from" -Leaf
+							$to = "$to\$fromLeaf"
+						}
+						
+					} else {
+					
+						# The existing path is a file, not a directory, delete the file and replace with a directory
+						Remove-Item $to -Recurse -Force
+						if(!$?) {taskFailure "[$scriptName (VECOPY)] Unable to remove existing file $to to replace with directory!" 10007 }
+						Write-Host "  $from --> $to (replace file with directory)" 
+						mkdir $to > $null
+						if(!$?) {taskFailure "[$scriptName (VECOPY)] (replace) $to Creation failed" 10008 }
+					}
 				}
+				
+				# Previous process may have changed the target, so retest and if still not existing, create it	
+				if ( ! (Test-Path $to)) {
+					Write-Host "  $from --> $to"
+					mkdir $to > $null
+					if(!$?) {taskFailure "[$scriptName (VECOPY)] $to Creation failed" 10009 }
+				}
+		
+				foreach ($child in (Get-ChildItem -Path "$from" -Name )) {
+					VECOPY "$from\$child" "$to\$child" $true
+				}
+				
+			} else {
+		
+				Write-Host "  $from --> $to" 
+				Copy-Item $from $to -force -recurse
+				if(!$?){ executeExpression "dir $from" ; executeExpression "dir $to" ; taskFailure "[$scriptName (VECOPY)] Copy remote script $from --> $to" 10010 }
+				
 			}
-			
-			# Previous process may have changed the target, so retest and if still not existing, create it	
-			if ( ! (Test-Path $to)) {
-				Write-Host "  $from --> $to"
-				mkdir $to > $null
-				if(!$?) {taskFailure "[$scriptName (VECOPY)] $to Creation failed" }
-			}
-	
-			foreach ($child in (Get-ChildItem -Path "$from" -Name )) {
-				VECOPY "$from\$child" "$to\$child" $true
-			}
-			
 		} else {
-	
-			Write-Host "  $from --> $to" 
-			Copy-Item $from $to -force -recurse
-			if(!$?){ taskFailure ("[$scriptName (VECOPY)] Copy remote script $from --> $to") }
-			
+			taskException "VECOPY_SOURCE_NOT_FOUND $from"
 		}
 	} catch { taskException "VECOPY_TRAP" $_ }
 }
@@ -173,7 +177,7 @@ function CMPRSS( $zipfilename, $sourcedir )
 		}
 	} else {
         Write-Host "`n[$scriptName] ZIP_SOURCE_DIR_NOT_FOUND, exit with LASTEXITCODE = 700" -ForegroundColor Red
-		exit 700
+		exit 9995
 	}
 }
 
@@ -278,7 +282,7 @@ function ELEVAT ($command) {
 						return $false
 					} else {
 						Write-Verbose "Not an Elevated Session!"
-						exit 5524
+						exit 9996
 					}
 				}
                 GetScript = { return @{ 'Result' = 'RUN' } }
@@ -318,8 +322,8 @@ function IMGTXT ($imageFile, $palette) {
 	if ( Test-Path $imageFile ) {
 		$imageFile = $(Get-Item background.jng).FullName
 	} else {
-		Write-Host "imageToText imageFile $imageFile not found! Exit with 6028."
-		exit 6028
+		Write-Host "imageToText imageFile $imageFile not found! Exit with 9997."
+		exit 9997
 	}
 	$palettes = @{ 
 		"ascii" = " .,:;=|iI+hHOE#`$" 
@@ -542,13 +546,13 @@ Foreach ($line in get-content $TASK_LIST) {
 					Invoke-Expression "$expression 2> `$null"
 					if(!$?) { Write-Host "`n[$scriptName][TRAP] `$? = $?"
 						if ( $error ) { Write-Host "[$scriptName][TRAP]   `$error[] = $error" ; $Error.clear() }
-						exit 1011
+						exit 9999
 					}
 				} catch {
 					Write-Host "`n[$scriptName][EXCEPTION] List exception and error array (if populated) and exit with LASTEXITCODE 1012"
 					Write-Host $_.Exception|format-list -force
 					if ( $error ) { Write-Host "[$scriptName][EXCEPTION]   `$error[] = $error" ; $Error.clear()}
-					exit 1012	
+					exit 10000	
 				}
 				if ( $LASTEXITCODE ) {
 			    	if ( $LASTEXITCODE -ne 0 ) {
@@ -565,8 +569,8 @@ Foreach ($line in get-content $TASK_LIST) {
 				    if ( $error ) {
 				    	if ( $env:CDAF_IGNORE_WARNING -eq 'no' ) {
 					    	Write-Host "`n[$scriptName][ERROR] `$error[] = $error"; $Error.clear()
-							Write-Host "[$scriptName][ERROR]   `$env:CDAF_IGNORE_WARNING is 'no' so exiting with LASTEXITCODE 1013 ..."
-							exit 1013
+							Write-Host "[$scriptName][ERROR]   `$env:CDAF_IGNORE_WARNING is 'no' so exiting with LASTEXITCODE 10001 ..."
+							exit 10001
 				    	} else {
 					    	Write-Host "[$scriptName][WARN] `$Error[] = $Error"; $Error.clear()
 				    	}
