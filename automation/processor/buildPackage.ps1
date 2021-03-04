@@ -137,6 +137,33 @@ function dockerStart {
 		exit 8910
 	}
 }
+
+function writeProperties {
+	if ( $args[0] -ne 'context' ) {
+		if ( $args[0] -eq 'remote' ) {
+			$cdafPath="./propertiesForRemoteTasks"
+		} elseif ( $args[0] -eq 'local' ) {
+			$cdafPath="./propertiesForLocalTasks"
+		} else {
+			$cdafPath="./propertiesForContainerTasks"
+		}
+		if ( ! (Test-Path $cdafPath) ) {
+			Write-Host "[$scriptName]   mkdir $(mkdir $cdafPath)"
+		}
+		Write-Host "[$scriptName]   Generating ${cdafPath}/$($args[1])"
+		foreach ($field in $columns) {
+			if ( $columns.IndexOf($field) -gt 1 ) { # do not create entries for context and target
+				if ( $($args[$columns.IndexOf($field)]) ) { # Only write properties that are populated
+					Add-Content "${cdafPath}/$($args[1])" "${field}=$($args[$columns.IndexOf($field)])"
+				}
+			}
+		}
+		if ( ! ( Test-Path ${cdafPath}/$($args[1]) )) {
+			Write-Host "[$scriptName]   [WARN] Property file ${cdafPath}/$($args[1]) not created as containers definition contains no properties."
+		}
+	}
+}
+
 # Load automation root out of sequence as needed for solution root derivation
 if (!($AUTOMATIONROOT)) {
 	$scriptPath = split-path -parent $MyInvocation.MyCommand.Definition
@@ -289,30 +316,7 @@ foreach ($propertiesDriver in $configManagementList) {
 	Write-Host "`n[$scriptName] Generating properties files from ${propertiesDriver}"
 	$columns = ( -split (Get-Content $SOLUTIONROOT\$propertiesDriver -First 1 ))
 	foreach ( $line in (Get-Content $SOLUTIONROOT\$propertiesDriver )) {
-		$arr = (-split $line)
-		if ( $arr[0] -ne 'context' ) {
-			if ( $arr[0] -eq 'remote' ) {
-				$cdafPath="./propertiesForRemoteTasks"
-			} elseif ( $arr[0] -eq 'local' ) {
-				$cdafPath="./propertiesForLocalTasks"
-			} else {
-				$cdafPath="./propertiesForContainerTasks"
-			}
-			if ( ! (Test-Path $cdafPath) ) {
-				Write-Host "[$scriptName]   mkdir $(mkdir $cdafPath)"
-			}
-			Write-Host "[$scriptName]   Generating ${cdafPath}/$($arr[1])"
-			foreach ($field in $columns) {
-				if ( $columns.IndexOf($field) -gt 1 ) { # do not create entries for context and target
-					if ( $($arr[$columns.IndexOf($field)]) ) { # Only write properties that are populated
-						Add-Content "${cdafPath}/$($arr[1])" "${field}=$($arr[$columns.IndexOf($field)])"
-					}
-				}
-			}
-			if ( ! ( Test-Path ${cdafPath}/$($arr[1]) )) {
-				Write-Host "[$scriptName]   [WARN] Property file ${cdafPath}/$($arr[1]) not created as containers definition contains no properties."
-			}
-		}
+		Invoke-Expression "writeProperties $line"
 	}
 }
 
