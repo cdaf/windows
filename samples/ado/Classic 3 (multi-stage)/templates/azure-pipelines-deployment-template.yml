@@ -1,0 +1,33 @@
+jobs:
+  - deployment: Deploy
+    displayName: ${{ parameters.execution }}
+    environment: ${{ parameters.environment }}
+    pool: Stack
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - task: DownloadBuildArtifacts@0
+            displayName: Download the build artifacts
+            inputs:
+              buildType: current
+              downloadType: single
+              artifactName: drop
+
+          # - task: PowerShell@2
+          #   displayName: Diag
+          #   inputs:
+          #     workingDirectory: $(System.ArtifactsDirectory)/drop
+          #     targetType: inline
+          #     script: dir ; systeminfo
+
+          - task: PowerShell@2
+            displayName: Execute Loosely Coupled Deployment
+            env: 
+              CONNECTION_STRING: $(connectionString)
+              DATABASE_PASSWORD: $(databasePassword)
+            inputs:
+              workingDirectory: $(System.ArtifactsDirectory)/drop
+              targetType: filePath
+              filePath: $(System.ArtifactsDirectory)/drop/release.ps1
+              arguments: ${{ parameters.environment }}
