@@ -138,7 +138,8 @@ function dockerStart {
 	}
 }
 
-function writeProperties {
+# 2.4.1 Use the function call to separate fields, this allows support for whitespace and quote wrapped values
+function cmProperties {
 	if ( $args[0] -ne 'context' ) {
 		if ( $args[0] -eq 'remote' ) {
 			$cdafPath="./propertiesForRemoteTasks"
@@ -160,6 +161,30 @@ function writeProperties {
 		}
 		if ( ! ( Test-Path ${cdafPath}/$($args[1]) )) {
 			Write-Host "[$scriptName]   [WARN] Property file ${cdafPath}/$($args[1]) not created as containers definition contains no properties."
+		}
+	}
+}
+
+# 2.4.1 Use the function call to separate fields, this allows support for whitespace and quote wrapped values
+function pvProperties {
+	for ($j=1; $j -le $args.Count; $j++) {
+		if (( $script:pvContext[$j] ) -and ( $args[$j] )) {
+			if ( $script:pvContext[$j] -eq 'remote' ) {
+				$cdafPath="./propertiesForRemoteTasks"
+			} else {
+				if ( $script:pvContext[$j] -eq 'local' ) {
+					$cdafPath="./propertiesForLocalTasks"
+				} else {
+					$cdafPath="./propertiesForContainerTasks"
+				}
+			}
+			if ( ! (Test-Path $cdafPath) ) {
+				Write-Host "[$scriptName]   mkdir $(mkdir $cdafPath)"
+			}
+			if ( ! ( Test-Path "${cdafPath}/$($script:pvtarget[$j])" )) {
+				Write-Host "[$scriptName]   Generating ${cdafPath}/$($script:pvtarget[$j])"
+			}
+			Add-Content "${cdafPath}/$($script:pvtarget[$j])" "$($args[0])=$($args[$j])"
 		}
 	}
 }
@@ -316,7 +341,7 @@ foreach ($propertiesDriver in $configManagementList) {
 	Write-Host "`n[$scriptName] Generating properties files from ${propertiesDriver}"
 	$columns = ( -split (Get-Content $SOLUTIONROOT\$propertiesDriver -First 1 ))
 	foreach ( $line in (Get-Content $SOLUTIONROOT\$propertiesDriver )) {
-		Invoke-Expression "writeProperties $line"
+		Invoke-Expression "cmProperties $line"
 	}
 }
 
@@ -324,30 +349,10 @@ foreach ($propertiesDriver in $configManagementList) {
 foreach ($propertiesDriver in $pivotList) {
 	Write-Host "`n[$scriptName] Generating properties files from ${propertiesDriver}"
 	$rows = Get-Content $SOLUTIONROOT\$propertiesDriver
-	$columns = -split $rows[0]
-	$paths = -split $rows[1]
+	$script:pvContext = -split $rows[0]
+	$script:pvtarget = -split $rows[1]
     for ($i=2; $i -le $rows.Count; $i++) {
-		$arr = (-split $rows[$i])
-		for ($j=1; $j -le $arr.Count; $j++) {
-			if (( $columns[$j] ) -and ( $arr[$j] )) {
-				if ( $paths[$j] -eq 'remote' ) {
-					$cdafPath="./propertiesForRemoteTasks"
-				} else {
-					if ( $paths[$j] -eq 'local' ) {
-						$cdafPath="./propertiesForLocalTasks"
-					} else {
-						$cdafPath="./propertiesForContainerTasks"
-					}
-				}
-				if ( ! (Test-Path $cdafPath) ) {
-					Write-Host "[$scriptName]   mkdir $(mkdir $cdafPath)"
-				}
-				if ( ! ( Test-Path "${cdafPath}/$($columns[$j])" )) {
-					Write-Host "[$scriptName]   Generating ${cdafPath}/$($columns[$j])"
-				}
-				Add-Content "${cdafPath}/$($columns[$j])" "$($arr[0])=$($arr[$j])"
-			}
-		}
+		Invoke-Expression "pvProperties $($rows[$i])"
 	}
 }
 
