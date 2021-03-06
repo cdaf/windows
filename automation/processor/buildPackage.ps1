@@ -140,27 +140,32 @@ function dockerStart {
 
 # 2.4.1 Use the function call to separate fields, this allows support for whitespace and quote wrapped values
 function cmProperties {
-	if ( $args[0] -ne 'context' ) {
-		if ( $args[0] -eq 'remote' ) {
-			$cdafPath="./propertiesForRemoteTasks"
-		} elseif ( $args[0] -eq 'local' ) {
-			$cdafPath="./propertiesForLocalTasks"
-		} else {
-			$cdafPath="./propertiesForContainerTasks"
-		}
-		if ( ! (Test-Path $cdafPath) ) {
-			Write-Host "[$scriptName]   mkdir $(mkdir $cdafPath)"
-		}
-		Write-Host "[$scriptName]   Generating ${cdafPath}/$($args[1])"
-		foreach ($field in $columns) {
-			if ( $columns.IndexOf($field) -gt 1 ) { # do not create entries for context and target
-				if ( $($args[$columns.IndexOf($field)]) ) { # Only write properties that are populated
-					Add-Content "${cdafPath}/$($args[1])" "${field}=$($args[$columns.IndexOf($field)])"
+	if ( $args[0] ) {
+		if ( $args[0] -ne 'context' ) { # Colum header
+			if ( $args[0] -eq 'remote' ) {
+				$cdafPath="./propertiesForRemoteTasks"
+			} elseif ( $args[0] -eq 'local' ) {
+				$cdafPath="./propertiesForLocalTasks"
+			} elseif ( $args[0] -eq 'container' ) {
+				$cdafPath="./propertiesForContainerTasks"
+			} else {
+				Write-Host "[$scriptName] Unknown CM context $($args[0]), supported contexts are rempote, local or container"
+				exit 5922
+			}
+			if ( ! (Test-Path $cdafPath) ) {
+				Write-Host "[$scriptName]   mkdir $(mkdir $cdafPath)"
+			}
+			Write-Host "[$scriptName]   Generating ${cdafPath}/$($args[1])"
+			foreach ($field in $columns) {
+				if ( $columns.IndexOf($field) -gt 1 ) { # do not create entries for context and target
+					if ( $($args[$columns.IndexOf($field)]) ) { # Only write properties that are populated
+						Add-Content "${cdafPath}/$($args[1])" "${field}=$($args[$columns.IndexOf($field)])"
+					}
 				}
 			}
-		}
-		if ( ! ( Test-Path ${cdafPath}/$($args[1]) )) {
-			Write-Host "[$scriptName]   [WARN] Property file ${cdafPath}/$($args[1]) not created as containers definition contains no properties."
+			if ( ! ( Test-Path ${cdafPath}/$($args[1]) )) {
+				Write-Host "[$scriptName]   [WARN] Property file ${cdafPath}/$($args[1]) not created as containers definition contains no properties."
+			}
 		}
 	}
 }
@@ -171,12 +176,13 @@ function pvProperties {
 		if (( $script:pvContext[$j] ) -and ( $args[$j] )) {
 			if ( $script:pvContext[$j] -eq 'remote' ) {
 				$cdafPath="./propertiesForRemoteTasks"
+			} elseif ( $script:pvContext[$j] -eq 'local' ) {
+				$cdafPath="./propertiesForLocalTasks"
+			} elseif ( $script:pvContext[$j] -eq 'container' )  {
+				$cdafPath="./propertiesForContainerTasks"
 			} else {
-				if ( $script:pvContext[$j] -eq 'local' ) {
-					$cdafPath="./propertiesForLocalTasks"
-				} else {
-					$cdafPath="./propertiesForContainerTasks"
-				}
+				Write-Host "[$scriptName] Unknown PV context $($script:pvContext[$j]), supported contexts are rempote, local or container"
+				exit 5923
 			}
 			if ( ! (Test-Path $cdafPath) ) {
 				Write-Host "[$scriptName]   mkdir $(mkdir $cdafPath)"
@@ -341,6 +347,7 @@ foreach ($propertiesDriver in $configManagementList) {
 	Write-Host "`n[$scriptName] Generating properties files from ${propertiesDriver}"
 	$columns = ( -split (Get-Content $SOLUTIONROOT\$propertiesDriver -First 1 ))
 	foreach ( $line in (Get-Content $SOLUTIONROOT\$propertiesDriver )) {
+		$line = $line.Replace('$', '`$')
 		Invoke-Expression "cmProperties $line"
 	}
 }
@@ -348,11 +355,15 @@ foreach ($propertiesDriver in $configManagementList) {
 # 1.9.3 add pivoted CM table support, with properties as rows and environments as fields, 2.4.0 extend for propertiesForContainerTasks
 foreach ($propertiesDriver in $pivotList) {
 	Write-Host "`n[$scriptName] Generating properties files from ${propertiesDriver}"
-	$rows = Get-Content $SOLUTIONROOT\$propertiesDriver
-	$script:pvContext = -split $rows[0]
-	$script:pvtarget = -split $rows[1]
-    for ($i=2; $i -le $rows.Count; $i++) {
-		Invoke-Expression "pvProperties $($rows[$i])"
+	$pvRows = Get-Content $SOLUTIONROOT\$propertiesDriver
+	$script:pvContext = -split $pvRows[0]
+	$script:pvtarget = -split $pvRows[1]
+    for ($i=2; $i -le $pvRows.Count; $i++) {
+    	$line = $pvRows[$i]
+    	if ( $line ) {
+			$line = $line.Replace('$', '`$')
+			Invoke-Expression "pvProperties $line"
+		}
 	}
 }
 
