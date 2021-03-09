@@ -1,0 +1,26 @@
+jobs:
+  - job: 'Build'
+    displayName: "MSBuild and NuGet"
+    pool:
+      vmImage: 'windows-2019'
+#    pool:
+#      name: 'Self-hosted Pool Name'
+    steps:
+      # - task: PowerShell@2
+      #   displayName: Diag
+      #   inputs:
+      #     workingDirectory: $(System.ArtifactsDirectory)/drop
+      #     targetType: inline
+      #     script: dir ; systeminfo
+
+      - task: PowerShell@2
+        displayName: Execute Loosely Coupled Deployment
+        env: 
+          GIT_USER: $(gitUser)
+          GIT_PASS: $(gitPass)
+        inputs:
+          targetType: filePath
+          filePath: ./automation/entry.ps1
+          arguments: $(Build.BuildNumber) $(Build.SourceBranch) staging@$(Build.ArtifactStagingDirectory)
+
+      - task: PublishBuildArtifacts@1

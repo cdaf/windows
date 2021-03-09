@@ -20,18 +20,18 @@ IF [%AUTOMATIONROOT%] == [] (
 echo.
 echo [%~nx0] --------------------
 echo [%~nx0] Git workspace processing
-echo [%~nx0]   AUTOMATIONROOT : %AUTOMATIONROOT%
 echo [%~nx0]   BUILDNUMBER    : %BUILDNUMBER%
 echo [%~nx0]   BRANCH         : %BRANCH%
 echo [%~nx0]   ACTION         : %ACTION%
+echo [%~nx0]   AUTOMATIONROOT : %AUTOMATIONROOT%
 
 REM Launcher script that overides execution policy
 REM cannot elevate powershell
 
-call powershell -NoProfile -NonInteractive -ExecutionPolicy ByPass -command %AUTOMATIONROOT%\processor\entry.ps1 %AUTOMATIONROOT% %BUILDNUMBER% %BRANCH% %ACTION%
+call powershell -NoProfile -NonInteractive -ExecutionPolicy ByPass -command %AUTOMATIONROOT%\processor\gitProcess.ps1 %AUTOMATIONROOT% %BUILDNUMBER% %BRANCH% %ACTION%
 set result=%errorlevel%
 if %result% NEQ 0 (
-	echo [%~nx0] DELIVERY_ERROR call powershell -NoProfile -NonInteractive -ExecutionPolicy ByPass -command %AUTOMATIONROOT%\processor\entry.ps1 %AUTOMATIONROOT% %BUILDNUMBER% %BRANCH% %ACTION%
+	echo [%~nx0] DELIVERY_ERROR call powershell -NoProfile -NonInteractive -ExecutionPolicy ByPass -command %AUTOMATIONROOT%\processor\gitProcess.ps1 %AUTOMATIONROOT% %BUILDNUMBER% %BRANCH% %ACTION%
 	echo [%~nx0]   Return LASTEXITCODE %result% 
 	exit /b %result%
 )

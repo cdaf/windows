@@ -11,7 +11,7 @@ Import-Module Microsoft.PowerShell.Security
 
 cmd /c "exit 0"
 $error.clear()
-$scriptName = 'entry.ps1'
+$scriptName = 'gitProcess.ps1'
 
 # Common expression logging and error handling function, copied, not referenced to ensure atomic process
 function executeExpression ($expression) {

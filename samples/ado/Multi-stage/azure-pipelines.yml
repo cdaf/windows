@@ -8,33 +8,38 @@ trigger:
 stages:
 - stage: DEV
   displayName: ASP.NET Build
+  variables:
+  - group: Git Reader
   jobs:
   - template: templates/azure-pipelines-build-template.yml
+    parameters:
+      GIT_USER: $[variables.GIT_USER]
+      GIT_PASS: $[variables.GIT_PASS]
 
 - stage: TEST
   displayName: User Acceptence Test
   condition: and(succeeded(), eq(variables['build.sourceBranch'], 'refs/heads/master'))
   dependsOn: DEV
   variables:
-    - group: Web Deploy Test
+  - group: Web Deploy Test
   jobs:
   - template: templates/azure-pipelines-deployment-template.yml
     parameters:
       execution: IIS Deployment Group
       environment: TEST
-      connectionString: $[variables.connectionString]
-      databasePassword: $[variables.databasePassword]
+      CONNECTION_STRING: $[variables.CONNECTION_STRING]
+      DATABASE_PASSWORD: $[variables.DATABASE_PASSWORD]
 
 - stage: PROD
   displayName: Production Gated Deployment
   condition: and(succeeded(), eq(variables['build.sourceBranch'], 'refs/heads/master'))
   dependsOn: TEST
   variables:
-    - group: Web Deploy Production
+  - group: Web Deploy Production
   jobs:
   - template: templates/azure-pipelines-deployment-template.yml
     parameters:
       execution: IIS Deployment Group
       environment: PROD
-      connectionString: $[variables.connectionString]
-      databasePassword: $[variables.databasePassword]
+      CONNECTION_STRING: $[variables.CONNECTION_STRING]
+      DATABASE_PASSWORD: $[variables.DATABASE_PASSWORD]
