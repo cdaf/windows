@@ -360,6 +360,10 @@ function IMGTXT ($imageFile, $palette) {
 	  } 
 }
 
+function MD5MSK ($value) {
+	(Get-FileHash -InputStream $([IO.MemoryStream]::new([byte[]][char[]]$value)) -Algorithm MD5).Hash
+}
+
 $SOLUTION    = $args[0]
 $BUILDNUMBER = $args[1]
 $TARGET      = $args[2]
