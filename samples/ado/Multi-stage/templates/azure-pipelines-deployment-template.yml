@@ -1,6 +1,6 @@
 jobs:
   - deployment: Deploy
-    displayName: ${{ parameters.execution }}
+    displayName: ${{ parameters.displayName }}
     environment: ${{ parameters.environment }}
     pool:
       vmImage: 'windows-2019'
