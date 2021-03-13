@@ -16,8 +16,8 @@ jobs:
       - task: PowerShell@2
         displayName: Execute Loosely Coupled Deployment
         env: 
-          GIT_USER: $(gitUser)
-          GIT_PASS: $(gitPass)
+          GIT_USER: $(GIT_USER)
+          GIT_PASS: $(GIT_PASS)
         inputs:
           targetType: filePath
           filePath: ./automation/entry.ps1
