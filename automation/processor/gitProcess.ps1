@@ -13,36 +13,56 @@ cmd /c "exit 0"
 $error.clear()
 $scriptName = 'gitProcess.ps1'
 
+# Consolidated Error processing function
+function errorClear ($message, $exitcode) {
+	if ( $exitcode ) {
+		Write-Host "`n[$scriptName]$message" -ForegroundColor Red
+	} else {
+		Write-Host "`n[$scriptName]$message" -ForegroundColor Yellow
+	}
+	if ( $error ) {
+		$i = 0
+		foreach ( $item in $Error )
+		{
+			Write-Host "`$Error[$i] $item"
+			$i++
+		}
+		$Error.clear()
+	}
+	if ( $exitcode ) {
+		Write-Host "`n[$scriptName] Exit with LASTEXITCODE = $exitcode`n" -ForegroundColor Red
+		exit $exitcode
+	}
+}
+
 # Common expression logging and error handling function, copied, not referenced to ensure atomic process
 function executeExpression ($expression) {
 	Write-Host "[$(Get-Date)] $expression"
 	try {
-		Invoke-Expression "$expression 2> `$null"
-	    if(!$?) { Write-Host "[$scriptName] `$? = $?"; $error ; exit 1211 }
+		Invoke-Expression "$expression"
+	    if(!$?) { errorClear "[TRAP] `$? = $?" 1211 }
 	} catch {
-		Write-Host "[$scriptName][EXCEPTION] List exception and error array (if populated) and exit with LASTEXITCODE 1212" -ForegroundColor Red
-		Write-Host $_.Exception|format-list -force
-		if ( $error ) { Write-Host "[$scriptName][ERROR] `$Error = $Error" ; $Error.clear() }
-		exit 1212
+		$message = $_.Exception.Message
+		if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) {
+			errorClear "[EXCEPTION] $message" $LASTEXITCODE
+		} else {
+			errorClear "[EXCEPTION] $message" 1212
+		}
 	}
     if ( $LASTEXITCODE ) {
     	if ( $LASTEXITCODE -ne 0 ) {
-			Write-Host "[$scriptName] `$LASTEXITCODE = $LASTEXITCODE " -ForegroundColor Red
-			if ( $error ) { Write-Host "[$scriptName][ERROR] `$Error = $Error" ; $Error.clear() }
-			exit $LASTEXITCODE
+			errorClear "[EXIT]" $LASTEXITCODE
 		} else {
 			if ( $error ) {
-				Write-Host "[$scriptName][WARN] $Error array populated by `$LASTEXITCODE = $LASTEXITCODE error follows...`n" -ForegroundColor Yellow
-				Write-Host "[$scriptName][WARN] `$Error = $Error" ; $Error.clear()
+				errorClear "[WARN] `$LASTEXITCODE is $LASTEXITCODE, but standard error populated"
 			}
 		} 
 	} else {
 	    if ( $error ) {
 	    	if ( $env:CDAF_IGNORE_WARNING -eq 'no' ) {
-				Write-Host "[$scriptName][ERROR] `$Error = $error"; $Error.clear()
-				Write-Host "[$scriptName][ERROR] `$env:CDAF_IGNORE_WARNING is 'no' so exiting with LASTEXITCODE 1213 ..."; exit 1213
+				errorClear "[ERROR] `$env:CDAF_IGNORE_WARNING is 'no' so exiting" 1213
 	    	} else {
-		    	Write-Host "$error" ; $Error.clear()
+				errorClear "[WARN] `$LASTEXITCODE not set, but standard error populated"
 	    	}
 		}
 	}
@@ -50,13 +70,37 @@ function executeExpression ($expression) {
 
 # Common expression logging and error handling function, copied, not referenced to ensure atomic process
 function executeSuppress ($expression) {
-    Write-Host "[$(Get-Date)] $expression"
-    try {
-        Invoke-Expression "$expression 2> `$null"
-        if(!$?) { Write-Host "[$scriptName][TRAP] `$? = $?"; exit 1 }
-    } catch { $error.clear() }
-    $error.clear()
-    if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) { $error.clear(); cmd /c "exit 0" } # reset LASTEXITCODE
+	Write-Host "[$(Get-Date)] $expression"
+	try {
+		Invoke-Expression "$expression"
+	    if(!$?) { errorClear "[TRAP] `$? = $?" }
+	} catch {
+		errorClear "[EXCEPTION] ScriptStackTrace"
+		Write-Host $_.ScriptStackTrace -Foreground "DarkGray"
+		$message = $_.Exception.Message
+		if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) {
+			errorClear "[EXCEPTION] $message"
+		} else {
+			errorClear "[EXCEPTION] $message"
+		}
+	}
+    if ( $LASTEXITCODE ) {
+    	if ( $LASTEXITCODE -ne 0 ) {
+			errorClear "[EXIT] $LASTEXITCODE"
+		} else {
+			if ( $error ) {
+				errorClear "[WARN] `$LASTEXITCODE is $LASTEXITCODE, but standard error populated"
+			}
+		} 
+	} else {
+	    if ( $error ) {
+			errorClear "[WARN] `$LASTEXITCODE not set, but standard error populated"
+		}
+	}
+}
+
+function mask ($value) {
+	return (Get-FileHash -InputStream $([IO.MemoryStream]::new([byte[]][char[]]$value)) -Algorithm MD5).Hash
 }
 
 Write-Host "`n[$scriptName] ---------- start ----------"
@@ -216,11 +260,13 @@ if ( $skipBranchCleanup ) {
 				} else {
 					$userName = $userName.replace("@","%40")
 					if (!( $gitUserPassEnvVar )) { Write-Error "[$scriptName]   gitUserNameEnvVar defined, but gitUserPassEnvVar not defined in $SOLUTIONROOT/CDAF.solution!"; exit 6921 }
+					Write-Host "[$scriptName][DEBUG]   `$gitUserPassEnvVar = $gitUserPassEnvVar"
 					$userPass = Invoke-Expression "Write-Output ${gitUserPassEnvVar}"
 					if (!( $userPass )) {
 						Write-Host "[$scriptName]   $gitUserPassEnvVar contains no value, relying on current workspace being up to date"
 					} else {
 						$urlWithCreds = "https://${userName}:${userPass}@$($gitRemoteURL.Replace('https://', ''))"
+						Write-Host "[$scriptName][DEBUG]   `$userPass = $(mask $userPass) (MD5MASK)"
 					}
 				}
 			}
@@ -232,10 +278,10 @@ if ( $skipBranchCleanup ) {
 
 			if (!( $headAttached )) {
 				if (!( $userName )) {
-					Write-Host "[$scriptName] Workspace is not a Git repository or has detached head, but git credentials not set, skipping ...`n"
+					Write-Host "[$scriptName] Workspace is not a Git repository or has detached head, but git credentials not set, skipping branch clean-up ...`n"
 					$skipRemoteBranchCheck = 'yes'
 				} else {
-					Write-Host "[$scriptName] Workspace is not a Git repository or has detached head, skip branch clean-up and work with cache clone ...`n"
+					Write-Host "[$scriptName] Workspace is not a Git repository or has detached head, work with cache clone ...`n"
 					if ( $env:USERPROFILE ) {
 						$cacheDir = "$env:USERPROFILE\.cdaf-cache"
 					} else {
@@ -249,7 +295,9 @@ if ( $skipBranchCleanup ) {
 					if ( Test-Path $cacheDir ) {
 						executeExpression "cd $cacheDir"
 					} else {
-						executeExpression "mkdir -p $tempParent"
+						if (!( Test-Path $tempParent )) {
+							executeExpression "mkdir -p $tempParent"
+						}
 						executeExpression "cd $tempParent"
 						executeExpression "git clone '${urlWithCreds}'"
 						executeExpression "cd $repoName"
