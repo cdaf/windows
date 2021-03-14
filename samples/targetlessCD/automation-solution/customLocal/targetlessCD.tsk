@@ -6,7 +6,8 @@ $workspace = $(pwd)
 $env:WORK_SPACE = Split-Path -parent $workspace
 Write-host $env:WORK_SPACE
 
-# Copy any artefacts needed into specific images here
+# Copy any artefacts needed into specific images here, example brings in remoteTasks package
+# VECOPY ..\${SOLUTION}-${BUILDNUMBER}.zip compose/target/deploy.zip
 
 cd compose
 ..\imageBuild.ps1 ${id} ${BUILDNUMBER} ${containerImage}
