@@ -128,6 +128,9 @@ if ( $env:http_proxy ) {
     executeExpression "[system.net.webrequest]::defaultwebproxy = new-object system.net.webproxy('$env:http_proxy')"
 }
 
+Write-Host "`n[$scriptName] Set TLS to version 1.2 or higher"
+executeExpression "[System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]'Tls11,Tls12'"
+
 $imageLog = "$(Get-Location)\atlasPackage_${hypervisor}.txt"
 if (Test-Path "$imageLog") {
     Write-Host "`n[$scriptName] Logfile exists ($imageLog), delete for new run."
