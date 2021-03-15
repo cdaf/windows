@@ -31,15 +31,15 @@ try {
 	& $AUTOMATIONROOT\processor\gitProcess.ps1 $AUTOMATIONROOT $BUILDNUMBER $BRANCH $ACTION
 	if(!$?) { Write-Host "[$scriptName] `$? = $?"; $error ; exit 1211 }
 } catch {
-	Write-Host "[$scriptName][EXCEPTION] List exception and error array (if populated) and exit with LASTEXITCODE 1212" -ForegroundColor Red
+	Write-Host "[$scriptName][CDAF_DELIVERY_FAILURE][EXCEPTION] List exception and error array (if populated) and exit with LASTEXITCODE 1212" -ForegroundColor Red
 	Write-Host $_.Exception|format-list -force
-	if ( $error ) { Write-Host "[$scriptName][ERROR] `$Error = $Error" ; $Error.clear() }
+	if ( $error ) { Write-Host "[$scriptName][CDAF_DELIVERY_FAILURE][ERROR] `$Error = $Error" ; $Error.clear() }
 	exit 1212
 }
 if ( $LASTEXITCODE ) {
 	if ( $LASTEXITCODE -ne 0 ) {
 		Write-Host "[$scriptName] `$LASTEXITCODE = $LASTEXITCODE " -ForegroundColor Red
-		if ( $error ) { Write-Host "[$scriptName][ERROR] `$Error = $Error" ; $Error.clear() }
+		if ( $error ) { Write-Host "[$scriptName][CDAF_DELIVERY_FAILURE][ERROR] `$Error = $Error" ; $Error.clear() }
 		exit $LASTEXITCODE
 	} else {
 		if ( $error ) {
@@ -50,8 +50,8 @@ if ( $LASTEXITCODE ) {
 } else {
 	if ( $error ) {
 		if ( $env:CDAF_IGNORE_WARNING -eq 'no' ) {
-			Write-Host "[$scriptName][ERROR] `$Error = $error"; $Error.clear()
-			Write-Host "[$scriptName][ERROR] `$env:CDAF_IGNORE_WARNING is 'no' so exiting with LASTEXITCODE 1213 ..."; exit 1213
+			Write-Host "[$scriptName][CDAF_DELIVERY_FAILURE][ERROR] `$Error = $error"; $Error.clear()
+			Write-Host "[$scriptName][CDAF_DELIVERY_FAILURE][ERROR] `$env:CDAF_IGNORE_WARNING is 'no' so exiting with LASTEXITCODE 1213 ..."; exit 1213
 		} else {
 			Write-Host "$error" ; $Error.clear()
 		}

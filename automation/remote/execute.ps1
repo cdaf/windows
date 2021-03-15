@@ -10,39 +10,57 @@ function taskException ($taskName, $exception) {
 	exit 9991
 }
 
+
+# Consolidated Error processing function
+function ERRMSG ($message, $exitcode) {
+	if ( $exitcode ) {
+		Write-Host "`n[$scriptName]$message" -ForegroundColor Red
+	} else {
+		Write-Host "`n[$scriptName]$message" -ForegroundColor Yellow
+	}
+	if ( $error ) {
+		$i = 0
+		foreach ( $item in $Error )
+		{
+			Write-Host "`$Error[$i] $item"
+			$i++
+		}
+		$Error.clear()
+	}
+	if ( $exitcode ) {
+		Write-Host "`n[$scriptName] Exit with LASTEXITCODE = $exitcode`n" -ForegroundColor Red
+		exit $exitcode
+	}
+}
+
+# Common expression logging and error handling function, copied, not referenced to ensure atomic process
 function executeExpression ($expression) {
 	Write-Host "[$(Get-Date)] $expression"
 	try {
-		Invoke-Expression "$expression 2> `$null"
-	    if(!$?) {
-			Write-Host "`n[$scriptName][TRAP] `$? = $?"
-			if ( $error ) { Write-Host "[$scriptName][TRAP]   `$Error[] = $Error" ; $Error.clear() }
-			exit 9992
-		}
+		Invoke-Expression "$expression"
+	    if(!$?) { ERRMSG "[TRAP] `$? = $?" 1211 }
 	} catch {
-		Write-Host "`n[$scriptName][EXCEPTION] List exception and error array (if populated) and exit with LASTEXITCODE 1112" -ForegroundColor Red
-		Write-Host $_.Exception|format-list -force
-		if ( $error ) { Write-Host "[$scriptName][EXCEPTION]   `$Error[] = $Error" ; $Error.clear() }
-		exit 9993
+		$message = $_.Exception.Message
+		if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) {
+			ERRMSG "[EXCEPTION] $message" $LASTEXITCODE
+		} else {
+			ERRMSG "[EXCEPTION] $message" 1212
+		}
 	}
     if ( $LASTEXITCODE ) {
     	if ( $LASTEXITCODE -ne 0 ) {
-			Write-Host "`n[$scriptName][EXIT] `$LASTEXITCODE = $LASTEXITCODE " -ForegroundColor Red
-			if ( $error ) { Write-Host "[$scriptName][EXIT]   `$Error[] = $Error" ; $Error.clear() }
-			exit $LASTEXITCODE
+			ERRMSG "[EXIT]" $LASTEXITCODE
 		} else {
 			if ( $error ) {
-				Write-Host "[$scriptName][WARN] $Error array populated by `$LASTEXITCODE = $LASTEXITCODE error follows...`n" -ForegroundColor Yellow
-				Write-Host "[$scriptName][WARN]   `$Error[] = $Error" ; $Error.clear()
+				ERRMSG "[WARN] `$LASTEXITCODE is $LASTEXITCODE, but standard error populated"
 			}
 		} 
 	} else {
 	    if ( $error ) {
 	    	if ( $env:CDAF_IGNORE_WARNING -eq 'no' ) {
-				Write-Host "`n[$scriptName][ERROR] `$Error[] = $error"; $Error.clear()
-				Write-Host "[$scriptName][ERROR]   `$env:CDAF_IGNORE_WARNING is 'no' so exiting with LASTEXITCODE 9994 ..."; exit 9994
+				ERRMSG "[ERROR] `$env:CDAF_IGNORE_WARNING is 'no' so exiting" 1213
 	    	} else {
-		    	Write-Host "[$scriptName][WARN] `$Error[] = $error" ; $Error.clear()
+				ERRMSG "[WARN] `$LASTEXITCODE not set, but standard error populated"
 	    	}
 		}
 	}

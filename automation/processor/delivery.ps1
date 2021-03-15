@@ -24,17 +24,17 @@ function executeExpression ($expression) {
 	Write-Host "[$(Get-Date)] $expression"
 	try {
 		Invoke-Expression "$expression 2> `$null"
-	    if(!$?) { Write-Host "`n[$scriptName][TRAP] `$? = $?"; $error ; exit 1311 }
+	    if(!$?) { Write-Host "`n[$scriptName][CDAF_DELIVERY_FAILURE][TRAP] `$? = $?"; $error ; exit 1311 }
 	} catch {
-		Write-Host "`n[$scriptName][EXCEPTION] List exception and error array (if populated) and exit with LASTEXITCODE 1312" -ForegroundColor Red
+		Write-Host "`n[$scriptName][CDAF_DELIVERY_FAILURE][EXCEPTION] List exception and error array (if populated) and exit with LASTEXITCODE 1312" -ForegroundColor Red
 		Write-Host $_.Exception|format-list -force
-		if ( $error ) { Write-Host "[$scriptName][ERROR]   `$Error = $Error" ; $Error.clear() }
+		if ( $error ) { Write-Host "[$scriptName][CDAF_DELIVERY_FAILURE][ERROR]   `$Error = $Error" ; $Error.clear() }
 		exit 1312
 	}
     if ( $LASTEXITCODE ) {
     	if ( $LASTEXITCODE -ne 0 ) {
-			Write-Host "`n[$scriptName][EXIT] `$LASTEXITCODE = $LASTEXITCODE " -ForegroundColor Red
-			if ( $error ) { Write-Host "[$scriptName][EXIT]   `$Error = $Error" ; $Error.clear() }
+			Write-Host "`n[$scriptName][CDAF_DELIVERY_FAILURE][EXIT] `$LASTEXITCODE = $LASTEXITCODE " -ForegroundColor Red
+			if ( $error ) { Write-Host "[$scriptName][CDAF_DELIVERY_FAILURE][EXIT]   `$Error = $Error" ; $Error.clear() }
 			exit $LASTEXITCODE
 		} else {
 			if ( $error ) {
@@ -45,8 +45,8 @@ function executeExpression ($expression) {
 	} else {
 	    if ( $error ) {
 	    	if ( $env:CDAF_IGNORE_WARNING -eq 'no' ) {
-				Write-Host "`n[$scriptName][ERROR] `$Error = $error"; $Error.clear()
-				Write-Host "[$scriptName][ERROR]   `$env:CDAF_IGNORE_WARNING is 'no' so exiting with LASTEXITCODE 1313 ..."; exit 1313
+				Write-Host "`n[$scriptName][CDAF_DELIVERY_FAILURE][ERROR] `$Error = $error"; $Error.clear()
+				Write-Host "[$scriptName][CDAF_DELIVERY_FAILURE][ERROR]   `$env:CDAF_IGNORE_WARNING is 'no' so exiting with LASTEXITCODE 1313 ..."; exit 1313
 	    	} else {
 		    	Write-Host "[$scriptName][WARN] `$Error = $error" ; $Error.clear()
 	    	}
