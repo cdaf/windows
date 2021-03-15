@@ -7,9 +7,6 @@ MAINTAINER Jules Clements
 ARG proxy
 ENV http_proxy=$proxy
 
-ARG CP_COMPOSE_KEEP
-ENV CP_COMPOSE_KEEP=$CP_COMPOSE_KEEP
-
 # Create root, i.e. C:\solution
 WORKDIR solution
 
