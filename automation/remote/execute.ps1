@@ -41,6 +41,8 @@ function executeExpression ($expression) {
 	    if(!$?) { ERRMSG "[TRAP] `$? = $?" 1211 }
 	} catch {
 		$message = $_.Exception.Message
+		$_.Exception | format-list -force
+		$_.Exception.StackTrace
 		if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) {
 			ERRMSG "[EXCEPTION] $message" $LASTEXITCODE
 		} else {
@@ -172,7 +174,7 @@ function REFRSH ( $arg1, $arg2 )
 # Compress to file (Requires PowerShell v3 or above)
 #  required : file, relative to current workspace
 #  required : source directory, relative to current workspace
-function CMPRSS( $zipfilename, $sourcedir )
+function CMPRSS ( $zipfilename, $sourcedir )
 {
 	$currentDir = $(Get-Location)
 	if (!( $sourcedir )) {
@@ -201,7 +203,7 @@ function CMPRSS( $zipfilename, $sourcedir )
 
 # Decompress from file (Requires PowerShell v3 or above, pass zip file without .zip suffix)
 #  required : file, relative to current workspace
-function DCMPRS( $packageFile, $packagePath )
+function DCMPRS ( $packageFile, $packagePath )
 {
     if (!( $packagePath )) {
 		$packagePath = $pwd
@@ -219,8 +221,11 @@ function DCMPRS( $packageFile, $packagePath )
 #  required : file name relative to current workspace
 #  required : the token to be replaced or an array of name/value pairs
 #  optional : the replacement value (not passed if name is array)
-function REPLAC( $fileName, $tokenOrArray, $value )
+function REPLAC ( $fileName, $tokenOrArray, $value )
 {
+	if (!( Test-Path $fileName )) {
+		ERRMSG "REPLAC_FILE_NOT_FOUND $fileName" 1214
+	}
 	try {
 		(Get-Content $fileName | ForEach-Object { $_ -replace [regex]::Escape($tokenOrArray), "$value" } ) | Set-Content $fileName
 	    if(!$?) { taskException "REPLAC_EXIT" }
@@ -231,7 +236,7 @@ function REPLAC( $fileName, $tokenOrArray, $value )
 }
 
 # Use the Decryption helper script
-function DECRYP( $encryptedFile, $thumbprint, $location )
+function DECRYP ( $encryptedFile, $thumbprint, $location )
 {
 	./decryptKey.ps1 $encryptedFile $thumbprint $location
 }
@@ -239,7 +244,7 @@ function DECRYP( $encryptedFile, $thumbprint, $location )
 # Use the the transofrm helper script to perform detokenisation
 #  required : tokenised file, relative to current workspace
 #  option : properties file, if not passed, target will be used
-function DETOKN( $tokenFile, $properties, $aeskey )
+function DETOKN ( $tokenFile, $properties, $aeskey )
 {
     if ($properties) {
     	if ( $aeskey ) {
@@ -262,25 +267,23 @@ function IGNORE ($expression) {
 	if ( $expression ) {
 		Write-Host "[$(Get-Date)] $expression"
 		try {
-			Invoke-Expression "$expression 2> `$null"
+			Invoke-Expression "$expression"
 			if(!$?) {
-				Write-Host "[IGNORE][ERROR] `$? = $?"
-				if ( $error ) { Write-Host "[IGNORE][ERROR] `$Error[] = $Error" ; $Error.clear() }
+				ERRMSG "[IGNORE][ERROR] `$? = $?"
 			}
 		} catch {
-			Write-Host "[IGNORE][EXCEPTION] $_.Exception"
-			if ( $error ) { Write-Host "[IGNORE][ERROR] `$Error[] = $Error" ; $Error.clear() }
+			$_.Exception | format-list -force
+			$_.Exception.StackTrace
+			ERRMSG "[IGNORE][EXCEPTION] $_.Exception"
 		}
 		if ( $LASTEXITCODE ) {
 			if ( $LASTEXITCODE -ne 0 ) {
-				Write-Host "[IGNORE][LASTEXITCODE] `$LASTEXITCODE = $LASTEXITCODE`n"
-				if ( $error ) { Write-Host "[IGNORE][ERROR] `$Error[] = $Error" ; $Error.clear() }
+				ERRMSG "[IGNORE][LASTEXITCODE] `$LASTEXITCODE = $LASTEXITCODE`n"
 				cmd /c "exit 0"
 			}
 		}
 		if ( $error ) {
-			Write-Host "[IGNORE][WARN] `$Error[] = $Error"
-			$Error.clear()
+			ERRMSG "[IGNORE][WARN] `$Error[] = $Error"
 		}
 	}
 }
@@ -558,47 +561,41 @@ Foreach ($line in get-content $TASK_LIST) {
 # This leaks secrets, but I have left it should someone need to temporarilty use it for debugging			    
 #			    	$escapeAssign = $expression -replace '^\$', '`$'
 #					$ExecutionContext.InvokeCommand.ExpandString($escapeAssign)
-					Write-Host "$expression"
+					Write-Host "[$(Get-Date)] $expression"
 			    }
 
 	            # Execute expression and trap powershell exceptions, do not use executeExpression function of variables will go out of scope
             	$Error.clear()
-
 				try {
-					Invoke-Expression "$expression 2> `$null"
-					if(!$?) { Write-Host "`n[$scriptName][TRAP] `$? = $?"
-						if ( $error ) { Write-Host "[$scriptName][TRAP]   `$error[] = $error" ; $Error.clear() }
-						exit 9999
-					}
+					Invoke-Expression "$expression"
+					if(!$?) { ERRMSG "[TRAP] `$? = $?" 1211 }
 				} catch {
-					Write-Host "`n[$scriptName][EXCEPTION] List exception and error array (if populated) and exit with LASTEXITCODE 1012"
-					Write-Host $_.Exception|format-list -force
-					if ( $error ) { Write-Host "[$scriptName][EXCEPTION]   `$error[] = $error" ; $Error.clear()}
-					exit 10000	
+					$message = $_.Exception.Message
+					$_.Exception | format-list -force
+					$_.Exception.StackTrace
+					if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) {
+						ERRMSG "[EXCEPTION] $message" $LASTEXITCODE
+					} else {
+						ERRMSG "[EXCEPTION] $message" 1212
+					}
 				}
 				if ( $LASTEXITCODE ) {
-			    	if ( $LASTEXITCODE -ne 0 ) {
-						Write-Host "`n[$scriptName][EXIT] `$LASTEXITCODE = $LASTEXITCODE " -ForegroundColor Red
-						if ( $error ) { Write-Host "[$scriptName][EXIT]   `$error[] = $error" ; $Error.clear() }
-						exit $LASTEXITCODE
+					if ( $LASTEXITCODE -ne 0 ) {
+						ERRMSG "[EXIT]" $LASTEXITCODE
 					} else {
 						if ( $error ) {
-							Write-Host "[$scriptName][WARN] `$LASTEXITCODE = $LASTEXITCODE but `$Error array populated`n" -ForegroundColor Yellow
-					    	Write-Host "[$scriptName][WARN]   `$Error[] = $Error. "; $Error.clear()
+							ERRMSG "[WARN] `$LASTEXITCODE is $LASTEXITCODE, but standard error populated"
 						}
 					} 
 				} else {
-				    if ( $error ) {
-				    	if ( $env:CDAF_IGNORE_WARNING -eq 'no' ) {
-					    	Write-Host "`n[$scriptName][ERROR] `$error[] = $error"; $Error.clear()
-							Write-Host "[$scriptName][ERROR]   `$env:CDAF_IGNORE_WARNING is 'no' so exiting with LASTEXITCODE 10001 ..."
-							exit 10001
-				    	} else {
-					    	Write-Host "[$scriptName][WARN] `$Error[] = $Error"; $Error.clear()
-				    	}
+					if ( $error ) {
+						if ( $env:CDAF_IGNORE_WARNING -eq 'no' ) {
+							ERRMSG "[ERROR] `$env:CDAF_IGNORE_WARNING is 'no' so exiting" 1213
+						} else {
+							ERRMSG "[WARN] `$LASTEXITCODE not set, but standard error populated"
+						}
 					}
 				}
-
 		    }
         }
     }
