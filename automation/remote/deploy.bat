@@ -17,7 +17,12 @@ call powershell -NoProfile -NonInteractive -ExecutionPolicy ByPass -command %cd%
 set result=%errorlevel%
 if %result% NEQ 0 (
 	echo.
-	echo [%~nx0] DEPLOY_ERROR call powershell -NoProfile -NonInteractive -ExecutionPolicy ByPass -command %cd%\%WORK_DIR_DEFAULT%\executeTasks.ps1 %TARGET% %WORKSPACE% %OPT_ARG%
+	echo [%~nx0] CDAF_DELIVERY_FAILURE call powershell -NoProfile -NonInteractive -ExecutionPolicy ByPass -command %cd%\%WORK_DIR_DEFAULT%\executeTasks.ps1 %TARGET% %WORKSPACE% %OPT_ARG%
 	echo [%~nx0]   Return LASTEXITCODE %result% 
 	exit /b %result%
 )
+
+echo.
+echo [%~nx0] ------------------------------------
+echo [%~nx0]        Deployment Complete
+echo [%~nx0] ------------------------------------

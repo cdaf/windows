@@ -463,7 +463,7 @@ Foreach ($line in get-content $TASK_LIST) {
 	            if ( $feature -eq 'EXITIF ' ) {
 		            $exitVar = $expression.Substring(7)
 		            Write-Host "$expression ==> if ( $exitVar ) then exit" -NoNewline
-		            $expression = "if ( $exitVar ) { Write-Host `"`n`n ... controlled exit due to criteria met.`"; Write-Host `"`n~~~~~ Shutdown Execution Engine ~~~~~~`"; exit 0}" }
+		            $expression = "if ( $exitVar ) { Write-Host `"`n`n~~~~~ controlled exit due to criteria met ~~~~~~`"; exit 0}" }
 					
 				# Load Properties from file as variables
 	            if ( $feature -eq 'PROPLD ' ) {
@@ -602,3 +602,4 @@ Foreach ($line in get-content $TASK_LIST) {
 }
 
 Write-Host "`n~~~~~ Shutdown Execution Engine ~~~~~~"
+exit 0

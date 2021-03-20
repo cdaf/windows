@@ -207,6 +207,9 @@ foreach ($step in $processSequence.Split()) {
 	if ( $step ) {
 		Write-Host
 		executeExpression "& .\$WORK_DIR_DEFAULT\$step '$ENVIRONMENT' '$BUILDNUMBER' '$SOLUTION' '$WORK_DIR_DEFAULT' '$OPT_ARG'"
-		cd $env:WORK_SPACE
+		Set-Location $env:WORK_SPACE
 	}
 }
+
+Write-Host "`n[$scriptName] ========================================="
+Write-Host "[$scriptName]        Delivery Process Complete"
