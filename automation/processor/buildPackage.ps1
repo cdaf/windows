@@ -518,14 +518,14 @@ if ( $ACTION -ne 'container_build' ) {
 			exit 2548
 		}
 		executeExpression 'Add-Type -AssemblyName System.IO.Compression.FileSystem'
-		executeExpression "[System.IO.Compression.ZipFile]::CreateFromDirectory('$artifactID', '$artifactID.zip', 'Optimal', `$false)"
+		executeExpression "[System.IO.Compression.ZipFile]::CreateFromDirectory('$(Get-Location)\$artifactID', '$(Get-Location)\$artifactID.zip', 'Optimal', `$false)"
 
 		$NewFileToAdd = "${SOLUTION}-${BUILDNUMBER}.zip"
 		if ( Test-Path $NewFileToAdd ) {
 			Write-Host "[$scriptName]   Include remote package in $artifactID.zip"
-			$zip = [System.IO.Compression.ZipFile]::Open("$artifactID.zip","Update")
+			$zip = [System.IO.Compression.ZipFile]::Open("$(Get-Location)\$artifactID.zip","Update")
 			$FileName = [System.IO.Path]::GetFileName($NewFileToAdd)
-			[System.IO.Compression.ZipFileExtensions]::CreateEntryFromFile($zip, $NewFileToAdd , $FileName , "Optimal") | Out-Null
+			executeExpression "[System.IO.Compression.ZipFileExtensions]::CreateEntryFromFile(`$zip, '$(Get-Location)\$NewFileToAdd' , '$FileName') | Out-Null"
 			$Zip.Dispose()
 		}
 
