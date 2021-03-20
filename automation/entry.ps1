@@ -109,14 +109,6 @@ if (!( $env:CDAF_COMMAND_SHELL )) {
 
 Write-Host "[$scriptName]     Start PowerShell Execution"
 Write-Host "[$scriptName] ----------------------------------"
-if ($AUTOMATIONROOT) {
-    Write-Host "[$scriptName]   AUTOMATIONROOT : $AUTOMATIONROOT"
-} else {
-	$AUTOMATIONROOT = split-path -parent $MyInvocation.MyCommand.Definition
-    Write-Host "[$scriptName]   AUTOMATIONROOT : $AUTOMATIONROOT (not supplied, derived from invocation)"
-}
-$env:CDAF_AUTOMATION_ROOT = $AUTOMATIONROOT
-
 if ($BUILDNUMBER) {
     Write-Host "[$scriptName]   BUILDNUMBER    : $BUILDNUMBER"
 } else {
@@ -171,6 +163,15 @@ if ($ACTION) {
 } else {
     Write-Host "[$scriptName]   ACTION         : (not passed)"
 }
+
+if ($AUTOMATIONROOT) {
+    Write-Host "[$scriptName]   AUTOMATIONROOT : $AUTOMATIONROOT"
+} else {
+	$AUTOMATIONROOT = split-path -parent $MyInvocation.MyCommand.Definition
+    Write-Host "[$scriptName]   AUTOMATIONROOT : $AUTOMATIONROOT (not supplied, derived from invocation)"
+}
+$env:CDAF_AUTOMATION_ROOT = $AUTOMATIONROOT
+
 
 # Check for user defined solution folder, i.e. outside of automation root, if found override solution root
 Write-Host "[$scriptName]   SOLUTIONROOT   : " -NoNewline
@@ -375,6 +376,9 @@ if ( $skipBranchCleanup ) {
 	}
 }
 
-Write-Host "`n[$scriptName]   PowerShell Execution Complete"
 Write-Host "`n[$scriptName] ----------------------------------"
+Write-Host "[$scriptName]   PowerShell Execution Complete"
+if (!( $env:CDAF_COMMAND_SHELL )) {
+	Write-Host "`n[$scriptName] ----------------------------------"
+}
 exit 0
