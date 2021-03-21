@@ -23,8 +23,8 @@ jobs:
       - name: Artifact Retention
         uses: actions/upload-artifact@v1
         with:
-          name: TasksLocal
-          path: TasksLocal
+          name: release.ps1
+          path: release.ps1
 
   deliver:
     if: github.ref == 'refs/heads/master'
@@ -35,7 +35,9 @@ jobs:
       - name: Download Artifacts
         uses: actions/download-artifact@v1
         with:
-          name: TasksLocal
+          name: release.ps1
     
       - name: DOCKER
-        run: .\TasksLocal\delivery.bat DOCKER
+        run: |
+          cd ${env:GITHUB_WORKSPACE}
+          .\release.ps1 DOCKER
