@@ -23,7 +23,7 @@ jobs:
       - name: Artifact Retention
         uses: actions/upload-artifact@v1
         with:
-          name: release.ps1
+          name: deploy
           path: release.ps1
 
   deliver:
@@ -35,9 +35,10 @@ jobs:
       - name: Download Artifacts
         uses: actions/download-artifact@v1
         with:
-          name: release.ps1
+          name: deploy
     
       - name: DOCKER
+        shell: powershell # pwsh for PowerShell Core
         run: |
-          cd ${env:GITHUB_WORKSPACE}
+          cd ${env:GITHUB_WORKSPACE}\deploy
           .\release.ps1 DOCKER
