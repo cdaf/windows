@@ -51,7 +51,7 @@ function executeExpression ($expression) {
 	}
     if ( $LASTEXITCODE ) {
     	if ( $LASTEXITCODE -ne 0 ) {
-			ERRMSG "[EXIT]" $LASTEXITCODE
+			ERRMSG "[EXIT] `$LASTEXITCODE is $LASTEXITCODE" $LASTEXITCODE
 		} else {
 			if ( $error ) {
 				ERRMSG "[WARN] `$LASTEXITCODE is $LASTEXITCODE, but standard error populated"
@@ -581,7 +581,7 @@ Foreach ($line in get-content $TASK_LIST) {
 				}
 				if ( $LASTEXITCODE ) {
 					if ( $LASTEXITCODE -ne 0 ) {
-						ERRMSG "[EXIT]" $LASTEXITCODE
+						ERRMSG "[EXIT] `$LASTEXITCODE is $LASTEXITCODE" $LASTEXITCODE
 					} else {
 						if ( $error ) {
 							ERRMSG "[WARN] `$LASTEXITCODE is $LASTEXITCODE, but standard error populated"
