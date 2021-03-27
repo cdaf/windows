@@ -16,15 +16,16 @@ jobs:
           git fetch --prune --unshallow
 
       - name: Feature Branch Targetless CD
+        shell: powershell # pwsh for PowerShell Core
         run: |
           cd ${env:GITHUB_WORKSPACE}
-          .\automation\entry.bat ${env:GITHUB_RUN_NUMBER} ${env:GITHUB_REF}
+          .\automation\entry.ps1 ${env:GITHUB_RUN_NUMBER} ${env:GITHUB_REF}
 
       - name: Artifact Retention
         uses: actions/upload-artifact@v1
         with:
-          name: TasksLocal
-          path: TasksLocal
+          name: deploy
+          path: release.ps1
 
   deliver:
     if: github.ref == 'refs/heads/master'
@@ -35,7 +36,10 @@ jobs:
       - name: Download Artifacts
         uses: actions/download-artifact@v1
         with:
-          name: TasksLocal
+          name: deploy
     
       - name: DOCKER
-        run: .\TasksLocal\delivery.bat DOCKER
+        shell: powershell # pwsh for PowerShell Core
+        run: |
+          cd ${env:GITHUB_WORKSPACE}\deploy
+          .\release.ps1 DOCKER
