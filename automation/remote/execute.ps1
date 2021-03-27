@@ -27,6 +27,10 @@ function ERRMSG ($message, $exitcode) {
 		}
 		$Error.clear()
 	}
+	if ( $env:CDAF_ERROR_DIAG ) {
+		Write-Host "`n[$scriptName] Invoke custom diag `$env:CDAF_ERROR_DIAG = $env:CDAF_ERROR_DIAG`n"
+		Invoke-Expression $env:CDAF_ERROR_DIAG
+	}
 	if ( $exitcode ) {
 		Write-Host "`n[$scriptName] Exit with LASTEXITCODE = $exitcode`n" -ForegroundColor Red
 		exit $exitcode
@@ -37,7 +41,7 @@ function ERRMSG ($message, $exitcode) {
 function executeExpression ($expression) {
 	Write-Host "[$(Get-Date)] $expression"
 	try {
-		Invoke-Expression "$expression"
+		Invoke-Expression $expression
 	    if(!$?) { ERRMSG "[TRAP] `$? = $?" 1211 }
 	} catch {
 		$message = $_.Exception.Message
