@@ -42,7 +42,6 @@ executeExpression  "~\automation\provisioning\base.ps1 'adoptopenjdk11 maven ecl
 executeExpression  "~\automation\provisioning\base.ps1 'nuget.commandline azure-cli visualstudio2019enterprise vscode'"
 
 executeExpression  "~\automation\provisioning\base.ps1 'nodejs.install git svn vnc-viewer putty winscp postman insomnia-rest-api-client'"
-executeExpression  "~\automation\provisioning\base.ps1 'citrix-receiver zoom'"
 executeExpression  "~\automation\provisioning\base.ps1 'googlechrome' -checksum ignore" # Google does not provide a static download, so checksum can briefly fail on new releases
 
 executeExpression  "~\automation\provisioning\base.ps1 'vagrant' -autoReboot yes"
