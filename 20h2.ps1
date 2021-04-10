@@ -50,7 +50,11 @@ function executeExpression ($expression) {
 	}
     if ( $LASTEXITCODE ) {
     	if ( $LASTEXITCODE -ne 0 ) {
-			ERRMSG "[EXIT] `$LASTEXITCODE is $LASTEXITCODE" $LASTEXITCODE
+			if ( $LASTEXITCODE -ne 3010 ) {
+				ERRMSG "[WARN] Pending Reboot, `$LASTEXITCODE is $LASTEXITCODE"
+			} else {
+				ERRMSG "[EXIT] `$LASTEXITCODE is $LASTEXITCODE" $LASTEXITCODE
+			}
 		} else {
 			if ( $error ) {
 				ERRMSG "[WARN] `$LASTEXITCODE is $LASTEXITCODE, but standard error populated"
@@ -75,14 +79,14 @@ $scriptName = 'dev.ps1'
 
 Write-Host "`n[$scriptName] ---------- start ----------"
 if ($virtualisation) {
-    writeLog "virtualisation : $virtualisation"
+    Write-Host "virtualisation : $virtualisation"
 } else {
-    writeLog "virtualisation : (not specified, developer configuration)"
+    Write-Host "virtualisation : (not specified, developer configuration)"
 }
 if ($vagrantPass) {
-    writeLog "vagrantPass    : $(MD5MSK $vagrantPass) (MD5 mask)"
+    Write-Host "vagrantPass    : $(MD5MSK $vagrantPass) (MD5 mask)"
 } else {
-    writeLog "vagrantPass    : (not specified)"
+    Write-Host "vagrantPass    : (not specified)"
 }
 
 if ( $env:http_proxy ) {
