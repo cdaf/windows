@@ -376,6 +376,29 @@ if ( $skipBranchCleanup ) {
 	}
 }
 
+if ( $purgeFeatureBranch ) {
+	if ( ! (( $branch -eq $defaultBranch ) -or ( $branch -eq "refs/heads/$defaultBranch" ))) {
+		Write-Host "`n[$scriptName] Purge artifacts for feature branches"
+		if ( Test-Path './release.ps1' ) {
+			executeExpression "Remove-Item -Force ./release.ps1"
+			executeExpression "Add-Content ./release.ps1 `"Write-Host 'Dummy artifact created by entry.ps1 for feature branch $branch'`""
+		} else {
+			$zipPackage = (Get-Item '*.zip').Name
+			if ( $zipPackage ) {
+				executeExpression "Remove-Item -Force $zipPackage"
+				executeExpression "New-Item -Name $zipPackage -ItemType File"
+			}
+		
+			$dirPackage = (Get-Item 'TasksLocal').Name
+			if ( $dirPackage ) {
+				executeExpression "Remove-Item -Recurse -Force $dirPackage"
+				executeExpression "New-Item -Name $dirPackage -ItemType Directory"
+				executeExpression "Add-Content ${dirPackage}\readme.md 'Dummy artifact created by entry.ps1 for feature branch $branch'"
+			}
+		}
+	}
+}
+
 Write-Host "`n[$scriptName] ----------------------------------"
 Write-Host "[$scriptName]   PowerShell Execution Complete"
 if (!( $env:CDAF_COMMAND_SHELL )) {
