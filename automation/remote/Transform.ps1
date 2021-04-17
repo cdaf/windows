@@ -3,34 +3,36 @@ $PROPFILE   = $args[0]
 $TOKENFILE  = $args[1]
 $aeskey     = $args[2]
 
-function taskException ($taskName) {
-    write-host "[$scriptName] Caught an exception executing $taskName :" -ForegroundColor Red
-    write-host "     Exception Type: $($_.Exception.GetType().FullName)" -ForegroundColor Red
-    write-host "     Exception Message: $($_.Exception.Message)" -ForegroundColor Red
-    write-host
-    throw "$scriptName HALT"
-}
-
-function throwErrorlevel ($taskName, $trappedExit) {
-    write-host "[$scriptName] Trapped DOS exit code : $trappedExit" -ForegroundColor Red
-
-    If ($RELEASE -eq "remote") {
-        write-host
-        write-host "[$scriptName] Called from DOS, returning exit code as errorlevel" -ForegroundColor Blue
-        $host.SetShouldExit($trappedExit)
-    } else {
-        write-host
-        write-host "[$scriptName] Called from PowerShell, throwing error" -ForegroundColor Blue
-        throw "$taskName $trappedExit"
-    }
+# Consolidated Error processing function
+function ERRMSG ($message, $exitcode) {
+	if ( $exitcode ) {
+		Write-Host "`n[$scriptName]$message" -ForegroundColor Red
+	} else {
+		Write-Host "`n[$scriptName]$message" -ForegroundColor Yellow
+	}
+	if ( $error ) {
+		$i = 0
+		foreach ( $item in $Error )
+		{
+			Write-Host "`$Error[$i] $item"
+			$i++
+		}
+		$Error.clear()
+	}
+	if ( $env:CDAF_ERROR_DIAG ) {
+		Write-Host "`n[$scriptName] Invoke custom diag `$env:CDAF_ERROR_DIAG = $env:CDAF_ERROR_DIAG`n"
+		Invoke-Expression $env:CDAF_ERROR_DIAG
+	}
+	if ( $exitcode ) {
+		Write-Host "`n[$scriptName] Exit with LASTEXITCODE = $exitcode`n" -ForegroundColor Red
+		exit $exitcode
+	}
 }
 
 $scriptName = $myInvocation.MyCommand.Name 
 write-host "`n[$scriptName] PROPFILE  : $PROPFILE"
 if (-Not (Test-Path $PROPFILE) ) {
-    $exitCode=61
-    write-host "[$scriptName] PROPFILE ($PROPFILE) not found, returning exit $exitCode"
-    throwErrorlevel "PROPFILE_NOT_FOUND" $exitCode
+    ERRMSG "[PROPFILE_NOT_FOUND] PROPFILE ($PROPFILE) not found" 4456
 } else {
 	if ($aeskey) {
 	    $key = @()
@@ -49,9 +51,7 @@ if ($TOKENFILE) {
         $TOKENFILE = (Get-ChildItem $TOKENFILE).FullName
         $transformed = @(Get-Content $TOKENFILE)
     } else {
-        $exitCode=62
-        write-host "[$scriptName] TOKENFILE ($TOKENFILE) not found, returning exit $exitCode"
-        throwErrorlevel "TOKENFILE_NOT_FOUND" $exitCode
+	    ERRMSG "[TOKENFILE_NOT_FOUND] TOKENFILE ($TOKENFILE) not found" 4457
     }
 }
 
@@ -109,10 +109,17 @@ Foreach ($line in $propertiesArray) {
 } 
 
 # High performing file write https://blogs.technet.microsoft.com/gbordier/2009/05/05/powershell-and-writing-files-how-fast-can-you-write-to-a-file/
-if ($TOKENFILE) {
-    $stream = [System.IO.StreamWriter] $TOKENFILE
-    foreach ($record in $transformed) {
-          $stream.WriteLine($record)
-    }
-    $stream.close()
+if ( $TOKENFILE ) {
+	try {
+	    $stream = [System.IO.StreamWriter] $TOKENFILE
+	    foreach ($record in $transformed) {
+	          $stream.WriteLine($record)
+	    }
+	    $stream.close()
+	} catch {
+		$message = $_.Exception.Message
+		$_.Exception | format-list -force
+		$_.Exception.StackTrace
+		ERRMSG "[TRANSFORM_TOKEN_ERROR] Failure in High performing file write $TOKENFILE" 4458
+	}
 }
