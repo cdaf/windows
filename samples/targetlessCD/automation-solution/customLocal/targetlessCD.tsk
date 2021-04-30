@@ -50,3 +50,6 @@ if ( $env:COMPOSE_KEEP ) { docker ps } else { docker-compose down; docker-compos
 & $env:WORK_SPACE\TasksLocal\dockerClean.ps1 ${id}_test ${BUILDNUMBER}
 
 cd $workspace
+
+echo "Clean-up Transient Directory Created by imageBuild.sh"
+REMOVE $env:TEMP/${SOLUTION}
