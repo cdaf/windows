@@ -96,12 +96,8 @@ Foreach ($line in $propertiesArray) {
                     $i++
                 }
             } else { # If token file is not supplied, echo strings for instantiating as variables (cannot instantiate here as they will be out of scope)
-            	if ( $value.LastIndexOf("-") -gt 0 ) {
-	                $loadVariable = "`$$name = `"$value`""
-            	} else {
-	                $loadVariable = "`$$name = '$value'"
-	            }
-                Write-Output "$loadVariable"
+				$loadVariable = "`$$name = '$value'"
+				Write-Output "$loadVariable"
                 write-host "[$scriptName]   $name = $value"
             }
         }

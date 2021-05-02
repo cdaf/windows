@@ -265,13 +265,13 @@ if ( $skipBranchCleanup ) {
 				} else {
 					$userName = $userName.replace("@","%40")
 					if (!( $gitUserPassEnvVar )) { Write-Error "[$scriptName]   gitUserNameEnvVar defined, but gitUserPassEnvVar not defined in $SOLUTIONROOT/CDAF.solution!"; exit 6921 }
-					Write-Host "[$scriptName][DEBUG]   `$gitUserPassEnvVar = $gitUserPassEnvVar"
+					# Write-Host "[$scriptName][DEBUG]   `$gitUserPassEnvVar = $gitUserPassEnvVar"
 					$userPass = Invoke-Expression "Write-Output ${gitUserPassEnvVar}"
 					if (!( $userPass )) {
 						Write-Host "[$scriptName]   $gitUserPassEnvVar contains no value, relying on current workspace being up to date"
 					} else {
 						$urlWithCreds = "https://${userName}:${userPass}@$($gitRemoteURL.Replace('https://', ''))"
-						Write-Host "[$scriptName][DEBUG]   `$userPass = $(mask $userPass) (MD5MASK)"
+						# Write-Host "[$scriptName][DEBUG]   `$userPass = $(mask $userPass) (MD5MASK)"
 					}
 				}
 			}
