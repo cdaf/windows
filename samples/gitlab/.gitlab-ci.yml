@@ -8,7 +8,7 @@ cdaf-ci:
   stage: build
   tags:
     - batch
-  script: "automation/ci.bat %CI_BUILD_ID% %CI_BUILD_REF_NAME%"
+  script: "automation/entry.bat %CI_BUILD_ID% %CI_BUILD_REF_NAME%"
   artifacts:
     paths:
     - release.ps1
@@ -21,6 +21,8 @@ cd:
   environment: "${CI_STAGE_NAME}"
   dependencies:
     - cdaf-ci
+  only:
+    - master
 
 test:
   stage: manual test
