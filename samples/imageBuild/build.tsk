@@ -1,0 +1,17 @@
+echo "Clean project workspace"
+REMOVE bin
+REMOVE obj
+
+EXITIF $ACTION -eq 'clean'
+
+Write-Host "Verify dependencies explicitly (from dotnet 2.0 this is optional)`n"
+dotnet restore
+
+Write-Host "Publish the console application`n"
+dotnet publish --configuration Release
+
+Write-Host "Create tarball, not zip, to ADD to container image`n"
+$workspace = $(pwd)
+cd .\Angular\bin\Release\netcoreapp3.1\publish
+tar -zcf $workspace\angular.tar.gz .
+cd $workspace

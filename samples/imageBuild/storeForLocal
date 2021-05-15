@@ -1,1 +1,10 @@
-automation
+# Image Provisioning
+automation/remote/capabilities.ps1
+automation/provisioning/installDotNetCore.ps1
+automation/provisioning/runner.bat
+
+# Application
+angular.tar.gz
+
+# TargetlessCD
+compose

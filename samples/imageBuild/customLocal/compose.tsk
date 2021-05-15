@@ -1,0 +1,58 @@
+Write-Host "`nLoad the branch (REVISION) and container image from the manifest, placed here by package.tsk`n"
+PROPLD manifest.txt
+
+$id = $("${SOLUTION}_${REVISION}").ToLower()
+
+$workspace = $(pwd)
+$env:WORK_SPACE = Split-Path -parent $workspace
+Write-host $env:WORK_SPACE
+
+# Copy any artefacts needed into specific images here
+
+cd compose
+..\imageBuild.ps1 ${id} ${BUILDNUMBER} ${containerImage}
+cd ..
+
+Write-Host "`nLogin to private registry for non-feature branch execution only after local image build is complete`n"
+if ( ${REVISION} -eq 'master') { ./imageBuild.ps1 }
+
+$composePersist = "${env:TEMP}\${id}"
+MAKDIR $composePersist
+VECOPY compose\docker-compose.yml $composePersist
+cd $composePersist
+
+Write-Host "List containers current state`n"
+docker ps
+
+Write-Host "`nCleanup from previously test`n"
+if ( ${REVISION} -eq 'master' ) { $env:TARGET_TAG = "cdaf/${SOLUTION}" } else { $env:TARGET_TAG = "${id}_taskslocal" }
+$env:TEST_TAG = "${id}_test"
+
+docker-compose down --remove-orphans
+docker-compose rm -f
+
+Write-Host "Set the build number to use`n"
+if ( ${REVISION} -eq 'master' ) { $env:TARGET_TAG = "cdaf/${SOLUTION}:${BUILDNUMBER}" } else { $env:TARGET_TAG = "${id}_taskslocal:${BUILDNUMBER}" }
+$env:TEST_TAG = "${id}_test:${BUILDNUMBER}"
+
+docker-compose up -d target
+
+Write-Host "Deploy to target`n"
+$containerID = $(docker ps -aq --filter "ancestor=$env:TARGET_TAG")
+& $env:WORK_SPACE\TasksLocal\dockerLog.ps1 $containerID 'Application started.'
+
+docker-compose up -d test
+
+Write-Host "Execute tests (allow 5 minutes to complete)`n"
+$containerID = $(docker ps -aq --filter "ancestor=$env:TEST_TAG")
+& $env:WORK_SPACE\TasksLocal\dockerLog.ps1 $containerID 'Automated Test Execution completed successfully.' 300
+
+Write-Host "`nTear down if not explicit variable to retain`n"
+if ( $env:COMPOSE_KEEP ) { docker ps } else { docker-compose down; docker-compose rm -f }
+
+& $env:WORK_SPACE\TasksLocal\dockerClean.ps1 ${id}_target ${BUILDNUMBER}
+& $env:WORK_SPACE\TasksLocal\dockerClean.ps1 ${id}_test ${BUILDNUMBER}
+
+cd $workspace
+
+if ( ${REVISION} -eq 'master') { ./imageBuild.ps1 quickstart/${SOLUTION}:${BUILDNUMBER} }
