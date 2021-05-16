@@ -1,15 +1,10 @@
-imageBuild=& $AUTOMATIONROOT/remote/imageBuild.ps1 ${SOLUTION}_${REVISION} ${BUILDNUMBER} $runtimeImage TasksLocal
+solutionName=imagebuild
 
-# If not set, will use containerImage
-runtimeImage=mcr.microsoft.com/windows/servercore:ltsc2019@sha256:acae9dedd8ce6fbc624e8c4b52555a9d3201eb47aacd45b4a00e0d81083b4cab
+artifactPrefix=0.1
 
-# Private Registry
-# CDAF_REGISTRY_URL=`$env:CI_REGISTRY
-# CDAF_REGISTRY_TAG=`$env:CI_REGISTRY/groupname/`${SOLUTION}:`$BUILDNUMBER
-# CDAF_REGISTRY_USER=`$env:CI_REGISTRY_USER
-# CDAF_REGISTRY_TOKEN=`$env:CI_JOB_TOKEN
+defaultBranch=none
+imageBuild=$AUTOMATIONROOT/remote/imageBuild.sh ${SOLUTION}_${REVISION} ${BUILDNUMBER} $runtimeImage TasksLocal
+runtimeImage=mcr.microsoft.com/windows/servercore/iis
 
-# Docker Hub (do not define URL)
-CDAF_REGISTRY_TAG=cdaf/`${SOLUTION}:`$BUILDNUMBER
-CDAF_REGISTRY_USER=`$env:bamboo_DOCKER_HUB_USER
-CDAF_REGISTRY_TOKEN=`$env:bamboo_DOCKER_HUB_PASSWORD
+# Test container (compose)
+testImage=mcr.microsoft.com/windows/servercore:ltsc2019@sha256:30f8f12fc7a3da27e2b9e8c6c7f564f78a7610594713ae49143e5808e1fe7b36

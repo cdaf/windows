@@ -3,14 +3,13 @@ PROPLD manifest.txt
 
 $id = $("${SOLUTION}_${REVISION}").ToLower()
 
-$workspace = $(pwd)
 $env:WORK_SPACE = Split-Path -parent $workspace
 Write-host $env:WORK_SPACE
 
 # Copy any artefacts needed into specific images here
 
 cd compose
-..\imageBuild.ps1 ${id} ${BUILDNUMBER} ${containerImage}
+..\imageBuild.ps1 ${id} ${BUILDNUMBER} ${testImage}
 cd ..
 
 Write-Host "`nLogin to private registry for non-feature branch execution only after local image build is complete`n"
@@ -55,4 +54,11 @@ if ( $env:COMPOSE_KEEP ) { docker ps } else { docker-compose down; docker-compos
 
 cd $workspace
 
-if ( ${REVISION} -eq 'master') { ./imageBuild.ps1 quickstart/${SOLUTION}:${BUILDNUMBER} }
+# echo "Only push from master, i.e. use Pull/Merge Request as gating mechanism"
+# if ( $REVISION -eq 'master' ) { then echo $env:DOKERHUB_TOKEN | docker login --username cdaf --password-stdin }
+# if ( $REVISION -eq 'master' ) { then docker tag ${TARGET_TAG} cdaf/terraform:${BUILDNUMBER} }
+# if ( $REVISION -eq 'master' ) { then docker push cdaf/terraform:${BUILDNUMBER} }
+# if ( $REVISION -eq 'master' ) { then docker tag ${TARGET_TAG} cdaf/terraform:${productVersion} }
+# if ( $REVISION -eq 'master' ) { then docker push cdaf/terraform:${productVersion} }
+# if ( $REVISION -eq 'master' ) { then docker tag ${TARGET_TAG} cdaf/terraform:latest }
+# if ( $REVISION -eq 'master' ) { then docker push cdaf/terraform:latest }
