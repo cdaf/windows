@@ -6,14 +6,13 @@ $id = $("${SOLUTION}_${REVISION}").ToLower()
 $env:WORK_SPACE = Split-Path -parent $workspace
 Write-host $env:WORK_SPACE
 
-# Copy any artefacts needed into specific images here
+# Copy any artefacts needed into specific images here, alternative is to filter scripts in storeForLocal and just copy automation directory
+VECOPY base.ps1 compose/test
+VECOPY capabilities.ps1 compose/test
 
 cd compose
 ..\imageBuild.ps1 ${id} ${BUILDNUMBER} ${testImage}
 cd ..
-
-Write-Host "`nLogin to private registry for non-feature branch execution only after local image build is complete`n"
-if ( ${REVISION} -eq 'master') { ./imageBuild.ps1 }
 
 $composePersist = "${env:TEMP}\${id}"
 MAKDIR $composePersist
@@ -24,14 +23,14 @@ Write-Host "List containers current state`n"
 docker ps
 
 Write-Host "`nCleanup from previously test`n"
-if ( ${REVISION} -eq 'master' ) { $env:TARGET_TAG = "cdaf/${SOLUTION}" } else { $env:TARGET_TAG = "${id}_taskslocal" }
+$env:TARGET_TAG = "${id}_taskslocal"
 $env:TEST_TAG = "${id}_test"
 
 docker-compose down --remove-orphans
 docker-compose rm -f
 
 Write-Host "Set the build number to use`n"
-if ( ${REVISION} -eq 'master' ) { $env:TARGET_TAG = "cdaf/${SOLUTION}:${BUILDNUMBER}" } else { $env:TARGET_TAG = "${id}_taskslocal:${BUILDNUMBER}" }
+$env:TARGET_TAG = "${id}_taskslocal:${BUILDNUMBER}"
 $env:TEST_TAG = "${id}_test:${BUILDNUMBER}"
 
 docker-compose up -d target

@@ -1,7 +1,7 @@
 # Container image used for both containerBuild and containerDeploy if runtimeImage not specified
 containerImage=mcr.microsoft.com/windows/servercore:ltsc2019@sha256:c09d8edfe68365f519b02827171aacc61ed3451f7863325cee4059b96f41c0ce
 
-# runtimeImage=mcr.microsoft.com/windows/servercore:ltsc2019@sha256:30f8f12fc7a3da27e2b9e8c6c7f564f78a7610594713ae49143e5808e1fe7b36
+# runtimeImage=mcr.microsoft.com/windows/servercore:ltsc2019@sha256:acae9dedd8ce6fbc624e8c4b52555a9d3201eb47aacd45b4a00e0d81083b4cab
 
 # Use the default build folder, containerDeploy
 containerDeploy=& ${CDAF_WORKSPACE}/containerDeploy.ps1 "${ENVIRONMENT}" "${RELEASE}" "${SOLUTION}" "${BUILDNUMBER}" "${REVISION}"

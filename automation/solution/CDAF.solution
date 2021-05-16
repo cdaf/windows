@@ -2,10 +2,10 @@ solutionName=myproduct
 # productName=My Product Name
 
 # containerBuild=& $AUTOMATIONROOT/processor/containerBuild.ps1 ${SOLUTION} ${BUILDNUMBER} ${REVISION}
-# containerImage=mcr.microsoft.com/windows/servercore:ltsc2019@sha256:30f8f12fc7a3da27e2b9e8c6c7f564f78a7610594713ae49143e5808e1fe7b36
+# containerImage=mcr.microsoft.com/windows/servercore:ltsc2019@sha256:acae9dedd8ce6fbc624e8c4b52555a9d3201eb47aacd45b4a00e0d81083b4cab
 
 # imageBuild=& $AUTOMATIONROOT/remote/imageBuild.ps1 ${SOLUTION}_${REVISION} ${BUILDNUMBER} $runtimeImage TasksLocal dockerhub
-# runtimeImage=mcr.microsoft.com/windows/servercore:ltsc2019@sha256:30f8f12fc7a3da27e2b9e8c6c7f564f78a7610594713ae49143e5808e1fe7b36
+# runtimeImage=mcr.microsoft.com/windows/servercore:ltsc2019@sha256:acae9dedd8ce6fbc624e8c4b52555a9d3201eb47aacd45b4a00e0d81083b4cab
 # CDAF_REGISTRY_URL=${env:CI_REGISTRY}
 # CDAF_REGISTRY_TAG=${env:CI_REGISTRY}/linux/${env:SOLUTION}:$BUILDNUMBER
 # CDAF_REGISTRY_USER=${env:CI_REGISTRY_USER}

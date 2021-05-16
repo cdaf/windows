@@ -1,0 +1,3 @@
+context  target     deployTaskOverride
+local    DOCKER     compose.tsk
+local    AUTO_TEST  containerTest.tsk
