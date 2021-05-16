@@ -1,6 +1,6 @@
 echo "What's available at build time?"
 
-$AUTOMATIONROOT/remote/capabilities.ps1
+# & $AUTOMATIONROOT/remote/capabilities.ps1
 
 echo "Do not create the artifact in the root directory or the package process will clean it"
 

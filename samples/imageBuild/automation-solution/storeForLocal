@@ -1,10 +1,9 @@
-# Image Provisioning
-automation/remote/capabilities.ps1
-automation/provisioning/installDotNetCore.ps1
-automation/provisioning/runner.bat
+# Application Code
+app/content.tar.gz -flat
 
-# Application
-angular.tar.gz
-
-# TargetlessCD
+# Targetless CD
 compose
+
+# Provisioning Required for Test Container
+$AUTOMATIONROOT/provisioning/base.ps1 -flat
+$AUTOMATIONROOT/remote/capabilities.ps1 -flat
