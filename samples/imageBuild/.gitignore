@@ -3,3 +3,5 @@
 /manifest.txt
 /storeForLocal_manifest.txt
 /app/
+/imagebuild-*.zip
+/release.ps1

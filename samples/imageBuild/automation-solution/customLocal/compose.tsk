@@ -37,7 +37,9 @@ docker-compose up -d target
 
 Write-Host "Deploy to target`n"
 $containerID = $(docker ps -aq --filter "ancestor=$env:TARGET_TAG")
-& $env:WORK_SPACE\TasksLocal\dockerLog.ps1 $containerID 'Application started.'
+
+# There is no usable output from the Microsoft IIS container, so this cannot be used until I build a custom one
+# & $env:WORK_SPACE\TasksLocal\dockerLog.ps1 $containerID 'Application started.'
 
 docker-compose up -d test
 

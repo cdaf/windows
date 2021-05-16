@@ -39,6 +39,9 @@ if ( Test-Path ".\automation\remote\capabilities.ps1" ) {
 }
 Write-Host "[$scriptName] `$atomicPath = $atomicPath"
 
+executeExpression "Import-Module -Name WebAdministration"
+executeExpression "Set-ItemProperty -Path 'IIS:\Sites\Default Web Site' -Name Logfile.enabled -Value $True"
+
 Write-Host "[$scriptName] List components of the base image`n"
 executeExpression "$atomicPath\automation\remote\capabilities.ps1"
 

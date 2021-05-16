@@ -1,3 +1,3 @@
 echo "Test that the expected build has been deployed as a smoke test"
 
-curl.exe -s localhost | findstr $BUILDNUMBER
+curl.exe -s target | findstr $BUILDNUMBER
