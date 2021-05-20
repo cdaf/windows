@@ -407,8 +407,8 @@ Write-Host "[$scriptName]  ACTION      : $ACTION"
 $TMPDIR = [Environment]::GetEnvironmentVariable("TEMP","Machine")
 Write-Host "[$scriptName]  TMPDIR      : $TMPDIR"
 
-$workspace = (Get-Location).Path
-Write-Host "[$scriptName]  workspace   : $workspace"
+$WORKSPACE = (Get-Location).Path
+Write-Host "[$scriptName]  WORKSPACE   : $WORKSPACE"
 
 if ( $PROJECT ) {
 	Write-Host "[$scriptName]  PROJECT     : $PROJECT"
