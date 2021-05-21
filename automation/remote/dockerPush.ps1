@@ -52,14 +52,14 @@ $error.clear()
 
 Write-Host "`n[$scriptName] ---------- start ----------"
 if ( $imageTag ) {
-	Write-Host "[$scriptName]   imageTag        : $imageTag (can be space separated list)"
+	Write-Host "[$scriptName]   imageTag        : $imageTag"
 } else {
 	Write-Host "[$scriptName]   imageTag not supplied!"
 	exit 2501
 }
 
 if ( $registryContext ) {
-	Write-Host "[$scriptName]   registryContext : $registryContext (can be space separated list)"
+	Write-Host "[$scriptName]   registryContext : $registryContext"
 } else {
 	Write-Host "[$scriptName]   registryContext not supplied!"
 	exit 2502
