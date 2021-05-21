@@ -41,40 +41,6 @@ function executeExpression ($expression) {
 	}
 }
 
-function executeRetry ($expression) {
-	$exitCode = 1
-	$wait = 10
-	$retryMax = 3
-	$retryCount = 0
-	while (( $retryCount -le $retryMax ) -and ($exitCode -ne 0)) {
-		$exitCode = 0
-		$error.clear()
-		Write-Host "[$retryCount] $expression"
-		try {
-			$output = Invoke-Expression $expression
-		    if(!$?) { Write-Host "[$scriptName] `$? = $?"; $exitCode = 1 }
-		} catch { Write-Host $_.Exception | format-list -force; $exitCode = 2 }
-	    if ( $error[0] ) { Write-Host "[$scriptName] Warning, message in `$error[0] = $error" ;$error.clear(); docker-compose logs }
-	    if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) { $exitCode = $LASTEXITCODE; Write-Host "[$scriptName] `$lastExitCode = $exitCode" }
-	    if ($exitCode -ne 0) {
-			if ($retryCount -ge $retryMax ) {
-				Write-Host "[$scriptName] Retry maximum ($retryCount) reached, listing docker images and processes for diagnostics and exiting with `$LASTEXITCODE = $exitCode.`n"
-				Write-Host "[$scriptName] docker images`n"
-				docker images
-				Write-Host "[$scriptName] `ndocker ps`n"
-				docker ps
-				exit $exitCode
-			} else {
-				$retryCount += 1
-				Write-Host "[$scriptName] Wait $wait seconds, then retry $retryCount of $retryMax"
-				Start-Sleep $wait
-				$wait = $wait + $wait
-			}
-		}
-    }
-    return $output
-}
-
 function dockerLogin {
 	if ( Test-Path manifest.txt ) {
 		Write-Host "`n[$scriptName] Loading registry properties from manifest.txt..."
@@ -122,7 +88,7 @@ $scriptName = 'imageBuild.ps1'
 cmd /c "exit 0"
 $error.clear()
 
-Write-Host "`n[$scriptName] ---------- start ----------`n"
+Write-Host "`n[$scriptName] ---------- start ----------"
 if (!( $id )) {
 	dockerLogin
 } else {
