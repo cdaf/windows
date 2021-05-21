@@ -108,8 +108,8 @@ if ( $registryURL ) {
 }
 
 foreach ( $tag in $registryTags.Split() ) {
-	echo "docker tag ${imageTag} ${registryContext}:$tag"
-	echo "docker push ${registryContext}:$tag"
+	executeExpression "docker tag ${imageTag} ${registryContext}:$tag"
+	executeExpression "docker push ${registryContext}:$tag"
 }
 
 Write-Host "`n[$scriptName] ---------- stop ----------"
