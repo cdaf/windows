@@ -1,10 +1,10 @@
 Param (
 	[string]$imageTag,
 	[string]$registryContext,
-	[string]$registryUser,
-	[string]$registryToken,
 	[string]$registryTags,
-	[string]$registryURL
+	[string]$registryURL,
+	[string]$registryUser,
+	[string]$registryToken
 )
 
 # Common expression logging and error handling function, copied, not referenced to ensure atomic process
@@ -65,31 +65,34 @@ if ( $registryContext ) {
 	exit 2502
 }
 
+if ( $registryTags ) {
+	Write-Host "[$scriptName]   registryTags    : $registryTags (can be space separated list)"
+} else {
+	Write-Host "[$scriptName]   registryTags not supplied!"
+	exit 2503
+}
+
+if ( $registryURL ) {
+	if ( $registryURL -eq 'DOCKER-HUB' ) {
+		Write-Host  "[$scriptName]   registryURL     : $registryURL (will be set to blank)"
+		$registryURL = ''
+	} else {
+		Write-Host  "[$scriptName]   registryURL     : $registryURL"
+	}
+} else {
+	Write-Host  "[$scriptName]   registryURL     : (not supplied, do not set when pushing to Dockerhub, can also set to DOCKER-HUB to ignore)"
+}
+
 if ( $registryUser ) {
 	Write-Host "[$scriptName]   registryUser    : $registryUser"
 } else {
-	Write-Host "[$scriptName]   registryUser not supplied!"
-	exit 2503
+	Write-Host "[$scriptName]   registryUser    : (not supplied, login will not be attempted)"
 }
 
 if ( $registryToken ) {
 	Write-Host "[$scriptName]   registryToken   : $(MD5MSK $registryToken) (MD5 mask)"
 } else {
-	Write-Host "[$scriptName]   registryToken not supplied!"
-	exit 2504
-}
-
-if ( $registryTags ) {
-	Write-Host "[$scriptName]   registryTags    : $registryTags (can be space separated list)"
-} else {
-	Write-Host "[$scriptName]   registryTags not supplied!"
-	exit 2505
-}
-
-if ( $registryURL ) {
-	Write-Host  "[$scriptName]   registryURL     : $registryURL"
-} else {
-	Write-Host  "[$scriptName]   registryURL     : (not supplied, do not set when pushing to Dockerhub)"
+	Write-Host "[$scriptName]   registryToken   : (not supplied, login will not be attempted)"
 }
 
 # DockerHub example
@@ -102,12 +105,8 @@ if ( $registryURL ) {
 #   docker tag iis_master:666 https://private.registry/iis:666
 #   docker push https://private.registry/iis:666
 
-echo "echo `$registryToken | docker login --username $registryUser --password-stdin $registryURL"
-echo $registryToken | docker login --username $registryUser --password-stdin $registryURL
-if ( $LASTEXITCODE -ne 0 ) {
-	Write-Host "[$scriptName] `$LASTEXITCODE = $LASTEXITCODE " -ForegroundColor Red
-	if ( $error ) { Write-Host "[$scriptName][ERROR] `$Error = $Error" ; $Error.clear() }
-	exit $LASTEXITCODE
+if (( $registryUser ) -and ( $registryToken )) {
+	executeExpression "echo `$registryToken | docker login --username $registryUser --password-stdin $registryURL"
 }
 
 if ( $registryURL ) {
