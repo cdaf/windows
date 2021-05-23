@@ -102,14 +102,14 @@ if ( $registryURL ) {
 #   docker tag iis_master:666 https://private.registry/iis:666
 #   docker push https://private.registry/iis:666
 
-executeExpression "echo `$registryToken | docker login --username $registryUser --password-stdin $registryURL"
+executeExpression "echo `"`$registryToken`" | docker login --username $registryUser --password-stdin $registryURL"
 if ( $registryURL ) {
 	$registryContext = $registryURL + '/' + $registryContext
 }
 
 foreach ( $tag in $registryTags.Split() ) {
-	executeExpression "docker tag ${imageTag} ${registryContext}:$tag"
-	executeExpression "docker push ${registryContext}:$tag"
+	echo "docker tag ${imageTag} ${registryContext}:$tag"
+	echo "docker push ${registryContext}:$tag"
 }
 
 Write-Host "`n[$scriptName] ---------- stop ----------"
