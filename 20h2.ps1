@@ -128,17 +128,19 @@ if ( $virtualisation -eq 'hyperv' ) {
 	
 } else {
 	executeExpression  "cd ~"
+	executeExpression ". { iwr -useb http://cdaf.io/static/app/downloads/cdaf.ps1 } | iex"
 
 	executeExpression  "(Get-WmiObject Win32_TerminalServiceSetting -Namespace root\cimv2\TerminalServices).SetAllowTsConnections(1,1) | Out-Null"
 	executeExpression  "(Get-WmiObject -Class 'Win32_TSGeneralSetting' -Namespace root\cimv2\TerminalServices -Filter `"TerminalName='RDP-tcp'`").SetUserAuthenticationRequired(0) | Out-Null"
 	executeExpression  "Get-NetFirewallRule -DisplayName `"Remote Desktop*`" | Set-NetFirewallRule -enabled true"
 
-	executeExpression  "base.ps1 'adoptopenjdk11 maven eclipse'"
-	executeExpression  "base.ps1 'nuget.commandline azure-cli visualstudio2019enterprise vscode'"
+	executeExpression  ".\automation\provisioning\base.ps1 'adoptopenjdk11 maven eclipse'"
+	executeExpression  ".\automation\provisioning\base.ps1 'nuget.commandline azure-cli visualstudio2019enterprise vscode'"
 
-	executeExpression  "base.ps1 'nodejs.install git svn vnc-viewer putty winscp postman'"
-	executeExpression  "base.ps1 'googlechrome' -checksum ignore" # Google does not provide a static download, so checksum can briefly fail on new releases
+	executeExpression  ".\automation\provisioning\base.ps1 'nodejs.install git svn vnc-viewer putty winscp postman'"
+	executeExpression  ".\automation\provisioning\base.ps1 'googlechrome' -checksum ignore" # Google does not provide a static download, so checksum can briefly fail on new releases
 
+	executeExpression  "Remove-Item -Recurse -Force automation"
 	executeExpression  "mkdir git"
 	executeExpression  "cd .\git\"
 	executeExpression  "git clone https://github.com/cdaf/windows.git"
