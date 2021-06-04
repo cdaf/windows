@@ -95,18 +95,23 @@ if ( $env:http_proxy ) {
     executeExpression '(New-Object System.Net.WebClient).Proxy.Credentials =[System.Net.CredentialCache]::DefaultNetworkCredentials' 
 }
 
+executeExpression  "cd ~"
+executeExpression ". { iwr -useb http://cdaf.io/static/app/downloads/cdaf.ps1 } | iex"
+
 if ( $virtualisation -eq 'hyperv' ) {
 
-    executeExpression "setenv.ps1 VAGRANT_DEFAULT_PROVIDER hyperv"
-    executeExpression "setenv.ps1 VAGRANT_SMB_USER $env:USERNAME"
+    executeExpression ".\automation\provisioning\setenv.ps1 VAGRANT_DEFAULT_PROVIDER hyperv"
+    executeExpression ".\automation\provisioning\setenv.ps1 VAGRANT_SMB_USER $env:USERNAME"
 	if ($vagrantPass) {
-		executeExpression "setenv.ps1 VAGRANT_SMB_PASS $vagrantPass"
+		executeExpression ".\automation\provisioning\setenv.ps1 VAGRANT_SMB_PASS $vagrantPass"
 	}
  
     executeExpression "Dism /online /enable-feature /all /featurename:Microsoft-Hyper-V /NoRestart"
     executeExpression "Enable-WindowsOptionalFeature -Online -FeatureName Containers -All -NoRestart"
-    executeExpression "base.ps1 'docker-desktop wsl2'"
-    executeExpression  "base.ps1 'vagrant' -autoReboot no"
+    executeExpression ".\automation\provisioning\base.ps1 'docker-desktop wsl2'"
+    executeExpression ".\automation\provisioning\base.ps1 'vagrant' -autoReboot no"
+    executeExpression  "Remove-Item -Recurse -Force automation"
+
     executeExpression "reboot /r /t 0"
 
 } elseif ( $virtualisation -eq 'virtualbox' ) {
@@ -122,13 +127,13 @@ if ( $virtualisation -eq 'hyperv' ) {
     executeExpression "addHOSTS.ps1 172.16.17.102 windows-2.mshome.net"
     executeExpression "addHOSTS.ps1 172.16.17.103 app.mshome.net"
  
-    executeExpression "base.ps1 'virtualbox'"
-    executeExpression "base.ps1 'vagrant' -autoReboot no"
+    executeExpression ".\automation\provisioning\base.ps1 'virtualbox'"
+    executeExpression ".\automation\provisioning\base.ps1 'vagrant' -autoReboot no"
+    executeExpression  "Remove-Item -Recurse -Force automation"
+
     executeExpression "reboot /r /t 0"
 	
 } else {
-	executeExpression  "cd ~"
-	executeExpression ". { iwr -useb http://cdaf.io/static/app/downloads/cdaf.ps1 } | iex"
 
 	executeExpression  "(Get-WmiObject Win32_TerminalServiceSetting -Namespace root\cimv2\TerminalServices).SetAllowTsConnections(1,1) | Out-Null"
 	executeExpression  "(Get-WmiObject -Class 'Win32_TSGeneralSetting' -Namespace root\cimv2\TerminalServices -Filter `"TerminalName='RDP-tcp'`").SetUserAuthenticationRequired(0) | Out-Null"
