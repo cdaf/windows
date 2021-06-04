@@ -127,12 +127,11 @@ if ( $virtualisation -eq 'hyperv' ) {
     executeExpression "reboot /r /t 0"
 	
 } else {
+	executeExpression  "cd ~"
 
 	executeExpression  "(Get-WmiObject Win32_TerminalServiceSetting -Namespace root\cimv2\TerminalServices).SetAllowTsConnections(1,1) | Out-Null"
 	executeExpression  "(Get-WmiObject -Class 'Win32_TSGeneralSetting' -Namespace root\cimv2\TerminalServices -Filter `"TerminalName='RDP-tcp'`").SetUserAuthenticationRequired(0) | Out-Null"
 	executeExpression  "Get-NetFirewallRule -DisplayName `"Remote Desktop*`" | Set-NetFirewallRule -enabled true"
-
-	executeExpression  "cd ~"
 
 	executeExpression  "base.ps1 'adoptopenjdk11 maven eclipse'"
 	executeExpression  "base.ps1 'nuget.commandline azure-cli visualstudio2019enterprise vscode'"
@@ -140,7 +139,6 @@ if ( $virtualisation -eq 'hyperv' ) {
 	executeExpression  "base.ps1 'nodejs.install git svn vnc-viewer putty winscp postman'"
 	executeExpression  "base.ps1 'googlechrome' -checksum ignore" # Google does not provide a static download, so checksum can briefly fail on new releases
 
-	executeExpression  "cd ~"
 	executeExpression  "mkdir git"
 	executeExpression  "cd .\git\"
 	executeExpression  "git clone https://github.com/cdaf/windows.git"
