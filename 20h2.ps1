@@ -106,6 +106,7 @@ if ( $virtualisation -eq 'hyperv' ) {
     executeExpression "Dism /online /enable-feature /all /featurename:Microsoft-Hyper-V /NoRestart"
     executeExpression "Enable-WindowsOptionalFeature -Online -FeatureName Containers -All -NoRestart"
     executeExpression "base.ps1 'docker-desktop wsl2'"
+    executeExpression  "base.ps1 'vagrant' -autoReboot no"
     executeExpression "reboot /r /t 0"
 
 } elseif ( $virtualisation -eq 'virtualbox' ) {
@@ -122,6 +123,7 @@ if ( $virtualisation -eq 'hyperv' ) {
     executeExpression "addHOSTS.ps1 172.16.17.103 app.mshome.net"
  
     executeExpression "base.ps1 'virtualbox'"
+    executeExpression "base.ps1 'vagrant' -autoReboot no"
     executeExpression "reboot /r /t 0"
 	
 } else {
@@ -131,21 +133,19 @@ if ( $virtualisation -eq 'hyperv' ) {
 	executeExpression  "Get-NetFirewallRule -DisplayName `"Remote Desktop*`" | Set-NetFirewallRule -enabled true"
 
 	executeExpression  "cd ~"
+
+	executeExpression  "base.ps1 'adoptopenjdk11 maven eclipse'"
+	executeExpression  "base.ps1 'nuget.commandline azure-cli visualstudio2019enterprise vscode'"
+
+	executeExpression  "base.ps1 'nodejs.install git svn vnc-viewer putty winscp postman'"
+	executeExpression  "base.ps1 'googlechrome' -checksum ignore" # Google does not provide a static download, so checksum can briefly fail on new releases
+
+	executeExpression  "cd ~"
 	executeExpression  "mkdir git"
 	executeExpression  "cd .\git\"
 	executeExpression  "git clone https://github.com/cdaf/windows.git"
 	executeExpression  "& ${env:USERPROFILE}\git\windows\automation\provisioning\addPath.ps1 ${env:USERPROFILE}\git\windows\automation\provisioning User"
 	executeExpression  "& ${env:USERPROFILE}\git\windows\automation\provisioning\addPath.ps1 ${env:USERPROFILE}\git\windows\automation User"
-
-	executeExpression  "cd ~"
-
-	executeExpression  "base.ps1 'adoptopenjdk11 maven eclipse'"
-	executeExpression  "base.ps1 'nuget.commandline azure-cli visualstudio2019enterprise vscode'"
-
-	executeExpression  "base.ps1 'nodejs.install git svn vnc-viewer putty winscp postman insomnia-rest-api-client'"
-	executeExpression  "base.ps1 'googlechrome' -checksum ignore" # Google does not provide a static download, so checksum can briefly fail on new releases
-
-	executeExpression  "base.ps1 'vagrant' -autoReboot yes"
 }
 
 Write-Host "`n[$scriptName] ---------- stop ----------"
