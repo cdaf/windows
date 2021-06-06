@@ -158,7 +158,23 @@ if ( $LASTEXITCODE -ne 0 ) {
 	Write-Host "  Docker                  : not installed"
 } else {
 	$array = $versionTest.split(" ")
-	Write-Host "  Docker                  : $($array[2])"
+	Write-Host "  Docker                  : $($array[2].TrimEnd(','))"
+}
+
+$versionTest = cmd /c docker-compose --version 2`>`&1
+if ( $LASTEXITCODE -ne 0 ) {
+	Write-Host "  docker-compose          : not installed"
+} else {
+	$array = $versionTest.split(" ")
+	Write-Host "  docker-compose          : $($array[2].TrimEnd(','))"
+}
+
+$versionTest = cmd /c terraform --version 2`>`&1
+if ( $LASTEXITCODE -ne 0 ) {
+	Write-Host "  terraform               : not installed"
+} else {
+	$array = $versionTest.split(" ")
+	Write-Host "  terraform               : $($array[1].TrimStart('v'))"
 }
 
 $versionTest = cmd /c python --version 2`>`&1
