@@ -139,12 +139,18 @@ if ($BRANCH) {
 		$skipBranchCleanup = 'yes'
 	    Write-Host "[$scriptName]   BRANCH         : $BRANCH (not supplied, derived from `$env:CDAF_BRANCH_NAME)"
 	} else {
-		$BRANCH=$(git rev-parse --abbrev-ref HEAD)
-		if ($BRANCH) {
-			Write-Host "[$scriptName]   BRANCH         : $BRANCH (determined from workspace)"
-		} else {
+		$versionTest = cmd /c git --version 2`>`&1
+		if ( $LASTEXITCODE -ne 0 ) {
 			$BRANCH = 'targetlesscd'
-			Write-Host "[$scriptName]   BRANCH         : $BRANCH (not supplied, set to default)"
+			Write-Host "[$scriptName]   BRANCH         : $BRANCH (Git not installed, this entry point is intended for Git workspaces, set to default)"
+		} else {
+			$BRANCH=$(git rev-parse --abbrev-ref HEAD)
+			if ($BRANCH) {
+				Write-Host "[$scriptName]   BRANCH         : $BRANCH (determined from workspace)"
+			} else {
+				$BRANCH = 'targetlesscd'
+				Write-Host "[$scriptName]   BRANCH         : $BRANCH (not supplied, set to default)"
+			}
 		}
 	}
 }
