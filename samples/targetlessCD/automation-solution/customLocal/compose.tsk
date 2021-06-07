@@ -13,6 +13,11 @@ cd compose
 ..\imageBuild.ps1 ${id} ${BUILDNUMBER} ${containerImage}
 cd ..
 
+ASSIGN $env:TARGET_TAG = "${id}_target"
+ASSIGN $env:TEST_TAG = "${id}_test"
+.\dockerClean.ps1 $env:TARGET_TAG ${BUILDNUMBER}
+.\dockerClean.ps1 $env:TEST_TAG ${BUILDNUMBER}
+
 ASSIGN $composePersist = "${env:TEMP}\${id}"
 MAKDIR $composePersist
 VECOPY compose\docker-compose.yml $composePersist
@@ -22,34 +27,29 @@ Write-Host "List containers current state`n"
 docker ps
 
 Write-Host "`nCleanup from previously test`n"
-ASSIGN $env:TARGET_TAG = "${id}_target"
-ASSIGN $env:TEST_TAG = "${id}_test"
 docker-compose down --remove-orphans
 docker-compose rm -f
 
 Write-Host "Set the build number to use`n"
-ASSIGN $env:TARGET_TAG = "${id}_target:${BUILDNUMBER}"
-ASSIGN $env:TEST_TAG = "${id}_test:${BUILDNUMBER}"
+ASSIGN $env:TARGET_TAG = "${env:TARGET_TAG}:${BUILDNUMBER}"
+ASSIGN $env:TEST_TAG = "${env:TEST_TAG}:${BUILDNUMBER}"
 
 docker-compose up -d target
 
 Write-Host "Deploy to target (allow up to 2 minutes)`n"
 ASSIGN $containerID = $(docker ps -aq --filter "ancestor=$env:TARGET_TAG")
-& $env:WORK_SPACE\TasksLocal\dockerLog.ps1 $containerID 'Watch log to keep container alive' 120
+& $WORKSPACE\dockerLog.ps1 $containerID 'Watch log to keep container alive' 120
 
 docker-compose up -d test
 
 Write-Host "Execute tests (allow 5 minutes to complete)`n"
 ASSIGN $containerID = $(docker ps -aq --filter "ancestor=$env:TEST_TAG")
-& $env:WORK_SPACE\TasksLocal\dockerLog.ps1 $containerID 'Automated Test Execution completed successfully.' 300
+& $WORKSPACE\dockerLog.ps1 $containerID 'Automated Test Execution completed successfully.' 300
 
 Write-Host "`nTear down if not explicit varaible to retain`n"
 if ( $env:COMPOSE_KEEP ) { docker ps } else { docker-compose down; docker-compose rm -f }
 
-& $env:WORK_SPACE\TasksLocal\dockerClean.ps1 ${id}_target ${BUILDNUMBER}
-& $env:WORK_SPACE\TasksLocal\dockerClean.ps1 ${id}_test ${BUILDNUMBER}
-
-cd $workspace
+cd $WORKSPACE
 
 echo "Clean-up Transient Directory Created by imageBuild.sh"
 REMOVE $env:TEMP/${SOLUTION}
