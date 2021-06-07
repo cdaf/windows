@@ -467,13 +467,14 @@ if ( $ACTION -ne 'container_build' ) {
 
 	# 2.2.0 Image Build as an incorperated function, no longer conditional on containerBuild, but do not attempt if within containerbuild
 	if ( $imageBuild ) {
+		Write-Host "[$scriptName] Execute image build..."
 		$runtimeImage = getProp 'runtimeImage' "$SOLUTIONROOT\CDAF.solution"
 		if ( $runtimeImage ) {
-			Write-Host "[$scriptName] Execute image build (available runtimeImage = $runtimeImage)"
+			Write-Host "[$scriptName]   runtimeImage  = $runtimeImage"
 		} else {
 			$runtimeImage = getProp 'containerImage' "$SOLUTIONROOT\CDAF.solution"
 			if ( $runtimeImage ) {
-				Write-Host "[$scriptName] Execute image build (available runtimeImage = $runtimeImage, runtimeImage not found, using containerImage)"
+				Write-Host "[$scriptName]   runtimeImage  = $runtimeImage (runtimeImage not found, using containerImage)"
 			} else {
 				if ( $Env:CONTAINER_IMAGE ) {
 					Write-Host "[$scriptName][WARN] neither runtimeImage nor containerImage defined in $SOLUTIONROOT/CDAF.solution, assuming a hardcoded image will be used."
@@ -483,8 +484,21 @@ if ( $ACTION -ne 'container_build' ) {
 				}
 			}
 		}
+
+		$constructor = getProp 'constructor' "$SOLUTIONROOT\CDAF.solution"
+		if ( $constructor ) {
+			Write-Host "[$scriptName]   constructor   = $constructor"
+		}
+
+		$defaultBranch = getProp 'defaultBranch' "$SOLUTIONROOT\CDAF.solution"
+		if ( $defaultBranch ) {
+			Write-Host "[$scriptName]   defaultBranch = $defaultBranch"
+		} else {
+			$defaultBranch = 'master'
+		}
+
 		# 2.2.0 Integrated Function using environment variables
-		if ( $REVISION -eq 'master' ) {
+		if ( $REVISION -eq $defaultBranch ) {
 			$value = & $AUTOMATIONROOT\remote\getProperty.ps1 "$SOLUTIONROOT/CDAF.solution" "CDAF_REGISTRY_URL"
 			if ( $value ) {
 				$env:CDAF_REGISTRY_URL = Invoke-Expression "Write-Output $value"
