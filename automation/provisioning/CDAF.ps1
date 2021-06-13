@@ -69,7 +69,7 @@ if ($action) {
 if ($env:CDAF_AUTOMATION_ROOT) {
 	Write-Host "[$scriptName] CDAF_AUTOMATION_ROOT : $env:CDAF_AUTOMATION_ROOT"
 } else {
-	$env:CDAF_AUTOMATION_ROOT = '.\automation'
+	$env:CDAF_AUTOMATION_ROOT = (Get-Item .\automation).FullName
 	Write-Host "[$scriptName] CDAF_AUTOMATION_ROOT : $env:CDAF_AUTOMATION_ROOT (default)"
 }
 
