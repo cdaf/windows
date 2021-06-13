@@ -92,7 +92,7 @@ function MAKDIR ($itemPath) {
 function REMOVE ($itemPath) { 
 # If item exists, and is not a directory, remove read only and delete, if a directory then just delete
 	if ( Test-Path $itemPath ) {
-		write-host "[REMOVE] Delete $itemPath"
+		write-host "[REMOVE] Remove-Item $itemPath -Recurse -Force"
 		Remove-Item $itemPath -Recurse -Force
 		if(!$?) { taskFailure "[$scriptName (REMOVE)] Remove-Item $itemPath -Recurse -Force" 10006 }
 	}

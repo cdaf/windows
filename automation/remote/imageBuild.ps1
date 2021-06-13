@@ -112,9 +112,9 @@ function dockerLogin {
 function REMOVE ($itemPath) { 
 	# If item exists, and is not a directory, remove read only and delete, if a directory then just delete
 		if ( Test-Path $itemPath ) {
-			write-host "[REMOVE] Delete $itemPath"
+			write-host "[REMOVE] Remove-Item $itemPath -Recurse -Force"
 			Remove-Item $itemPath -Recurse -Force
-			if(!$?) { ERRMSG "[REMOVE] Remove-Item $itemPath Failed" 10006 }
+			if(!$?) { ERRMSG "[REMOVE] Remove-Item $itemPath -Recurse -Force Failed" 10006 }
 		}
 	}
 	
