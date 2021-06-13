@@ -247,9 +247,7 @@ if (!( $id )) {
 			if ( Test-Path ../automation ) {
 				executeExpression "cp -Recurse ../automation ${transient}\${image}"
 			} else {
-				if (! ( $constructor )) {
-					Write-Host "`n[$scriptName][WARN] CDAF not found in ../automation`n"
-				}
+				Write-Host "`n[$scriptName][WARN] CDAF not found in ../automation`n"
 			}
 			if ( Test-Path ../dockerBuild.ps1 ) {
 				executeExpression "cp ../dockerBuild.ps1 ${transient}\${image}"
