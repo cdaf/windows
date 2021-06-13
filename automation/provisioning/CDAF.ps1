@@ -69,13 +69,7 @@ if ($action) {
 if ($env:CDAF_AUTOMATION_ROOT) {
 	Write-Host "[$scriptName] CDAF_AUTOMATION_ROOT : $env:CDAF_AUTOMATION_ROOT"
 } else {
-	$defaultPath = '.\automation'
-	if ( Test-Path $defaultPath ) {
-		$env:CDAF_AUTOMATION_ROOT = (Get-Item $defaultPath).FullName
-	} else {
-		Write-Host "[$scriptName] `$env:CDAF_AUTOMATION_ROOT note set and $defaultPath not found!"
-		exit 11090
-	}
+	$env:CDAF_AUTOMATION_ROOT = '.\automation'
 	Write-Host "[$scriptName] CDAF_AUTOMATION_ROOT : $env:CDAF_AUTOMATION_ROOT (default)"
 }
 
