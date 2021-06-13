@@ -9,22 +9,22 @@ $scriptName = 'CDAF.ps1'
 # Common expression logging and error handling function, copied, not referenced to ensure atomic process
 function executeExpression ($expression) {
 	$error.clear()
-	Write-Host "[executeExpression][$(date)] $expression"
+	Write-Host "[executeExpression][$(Get-date)] $expression"
 	try {
 		Invoke-Expression $expression
 	    if(!$?) { Write-Host "[$scriptName] `$? = $?"; exit 10 }
-	} catch { echo $_.Exception|format-list -force; exit 11 }
+	} catch { Write-Output $_.Exception|format-list -force; exit 11 }
     if ( $error[0] ) { Write-Host "[$scriptName] `$error[0] = $error"; exit 12 }
     if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) { Write-Host "[$scriptName] `$LASTEXITCODE = $LASTEXITCODE "; exit $LASTEXITCODE }
 }
 
 function executeReturn ($expression) {
 	$error.clear()
-	Write-Host "[executeReturn][$(date)] $expression"
+	Write-Host "[executeReturn][$(Get-date)] $expression"
 	try {
 		$output = Invoke-Expression $expression
 	    if(!$?) { Write-Host "[$scriptName] `$? = $?"; exit 10 }
-	} catch { echo $_.Exception|format-list -force; exit 11 }
+	} catch { Write-Output $_.Exception|format-list -force; exit 11 }
     if ( $error[0] ) { Write-Host "[$scriptName] `$error[0] = $error"; exit 12 }
     if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) { Write-Host "[$scriptName] `$LASTEXITCODE = $LASTEXITCODE "; exit $LASTEXITCODE }
     return $output
@@ -69,7 +69,13 @@ if ($action) {
 if ($env:CDAF_AUTOMATION_ROOT) {
 	Write-Host "[$scriptName] CDAF_AUTOMATION_ROOT : $env:CDAF_AUTOMATION_ROOT"
 } else {
-	$env:CDAF_AUTOMATION_ROOT = (Get-Item .\automation).FullName
+	$defaultPath = '.\automation'
+	if ( Test-Path $defaultPath ) {
+		$env:CDAF_AUTOMATION_ROOT = (Get-Item $defaultPath).FullName
+	} else {
+		Write-Host "[$scriptName] `$env:CDAF_AUTOMATION_ROOT note set and $defaultPath not found!"
+		exit 11090
+	}
 	Write-Host "[$scriptName] CDAF_AUTOMATION_ROOT : $env:CDAF_AUTOMATION_ROOT (default)"
 }
 
@@ -83,14 +89,14 @@ if ($userName) {
 	Write-Host "[$scriptName] Invoke-Command -ComputerName localhost -Credential `$cred -ScriptBlock $script"
 	try {
 		Invoke-Command -ComputerName localhost -Credential $cred -ScriptBlock $script
-	    if(!$?) { Write-Host "[$scriptName] `$? = $?"; exit 1090 }
-	} catch { echo $_.Exception|format-list -force; exit 1190 }
+	    if(!$?) { Write-Host "[$scriptName] `$? = $?"; exit 11091 }
+	} catch { echo $_.Exception|format-list -force; exit 11092 }
 	
 	Write-Host "[$scriptName] `$LASTEXITCODE = Invoke-Command -ComputerName localhost -Credential `$cred -ScriptBlock { [Environment]::GetEnvironmentVariable('PREVIOUS_EXIT_CODE', 'User')} "
 	try {
 	$LASTEXITCODE = Invoke-Command -ComputerName localhost -Credential $cred -ScriptBlock { [Environment]::GetEnvironmentVariable('PREVIOUS_EXIT_CODE', 'User')}
-	    if(!$?) { Write-Host "[$scriptName] `$? = $?"; exit 1091 }
-	} catch { echo $_.Exception|format-list -force; exit 1191 }
+	    if(!$?) { Write-Host "[$scriptName] `$? = $?"; exit 11092 }
+	} catch { Write-Output $_.Exception|format-list -force; exit 11093 }
     if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) { Write-Host "[$scriptName] `$LASTEXITCODE = $LASTEXITCODE "; exit $LASTEXITCODE }
 
 } else {
