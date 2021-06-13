@@ -110,13 +110,12 @@ function dockerLogin {
 }
 
 function REMOVE ($itemPath) { 
-	# If item exists, and is not a directory, remove read only and delete, if a directory then just delete
-		if ( Test-Path $itemPath ) {
-			write-host "[REMOVE] Remove-Item $itemPath -Recurse -Force"
-			Remove-Item $itemPath -Recurse -Force
-			if(!$?) { ERRMSG "[REMOVE] Remove-Item $itemPath -Recurse -Force Failed" 10006 }
-		}
+	if ( Test-Path $itemPath ) {
+		write-host "[REMOVE] Remove-Item $itemPath -Recurse -Force"
+		Remove-Item $itemPath -Recurse -Force
+		if(!$?) { ERRMSG "[REMOVE] Remove-Item $itemPath -Recurse -Force Failed" 10006 }
 	}
+}
 	
 $scriptName = 'imageBuild.ps1'
 cmd /c "exit 0"

@@ -73,7 +73,7 @@ function executeExpression ($expression) {
 }
 
 function MAKDIR ($itemPath) { 
-# If directory already exists, just report, otherwise create the directory and report
+	# If directory already exists, just report, otherwise create the directory and report
 	if ( Test-Path $itemPath ) {
 		if (Test-Path $itemPath -PathType "Container") {
 			write-host "[$scriptName (MAKDIR)] $itemPath exists"
@@ -90,7 +90,6 @@ function MAKDIR ($itemPath) {
 }
 
 function REMOVE ($itemPath) { 
-# If item exists, and is not a directory, remove read only and delete, if a directory then just delete
 	if ( Test-Path $itemPath ) {
 		write-host "[REMOVE] Remove-Item $itemPath -Recurse -Force"
 		Remove-Item $itemPath -Recurse -Force
