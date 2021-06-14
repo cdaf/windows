@@ -524,6 +524,9 @@ if ( $ACTION -ne 'container_build' ) {
 	if ( $artifactPrefix ) {
 		$artifactID = "${SOLUTION}-${artifactPrefix}.${BUILDNUMBER}"
 		Write-Host "[$scriptName] artifactPrefix = $artifactID, generate single file artefact ..."
+		if ( Test-Path $artifactID ) {
+			executeExpression "Remove-Item '$artifactID' -Recurse -Force"
+		}
 		Write-Host "[$scriptName]   Created $(mkdir "$artifactID")"
 		if ( Test-Path .\TasksLocal ) { 
 			executeExpression "Move-Item '.\TasksLocal' '.\$artifactID'"
