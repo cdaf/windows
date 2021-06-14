@@ -140,7 +140,8 @@ if ( $virtualisation -eq 'hyperv' ) {
 	executeExpression  "Get-NetFirewallRule -DisplayName `"Remote Desktop*`" | Set-NetFirewallRule -enabled true"
 
 	executeExpression  ".\automation\provisioning\base.ps1 'adoptopenjdk11 maven eclipse'"
-	executeExpression  ".\automation\provisioning\base.ps1 'nuget.commandline azure-cli visualstudio2019enterprise vscode'"
+	executeExpression  ".\automation\provisioning\base.ps1 'nuget.commandline' -verion 5.8.1" # 5.9 is broken
+	executeExpression  ".\automation\provisioning\base.ps1 'azure-cli visualstudio2019enterprise vscode'"
 
 	executeExpression  ".\automation\provisioning\base.ps1 'nodejs.install git svn vnc-viewer putty winscp postman'"
 	executeExpression  ".\automation\provisioning\base.ps1 'googlechrome' -checksum ignore" # Google does not provide a static download, so checksum can briefly fail on new releases

@@ -6,6 +6,31 @@ Param (
 	[string]$optionalArgs
 )
 
+function ERRMSG ($message, $exitcode) {
+	if ( $exitcode ) {
+		Write-Host "`n[$scriptName]$message" -ForegroundColor Red
+	} else {
+		Write-Host "`n[$scriptName]$message" -ForegroundColor Yellow
+	}
+	if ( $error ) {
+		$i = 0
+		foreach ( $item in $Error )
+		{
+			Write-Host "`$Error[$i] $item"
+			$i++
+		}
+		$Error.clear()
+	}
+	if ( $env:CDAF_ERROR_DIAG ) {
+		Write-Host "`n[$scriptName] Invoke custom diag `$env:CDAF_ERROR_DIAG = $env:CDAF_ERROR_DIAG`n"
+		Invoke-Expression $env:CDAF_ERROR_DIAG
+	}
+	if ( $exitcode ) {
+		Write-Host "`n[$scriptName] Exit with LASTEXITCODE = $exitcode`n" -ForegroundColor Red
+		exit $exitcode
+	}
+}
+
 # Common expression logging and error handling function, copied, not referenced to ensure atomic process
 function executeExpression ($expression) {
 	Write-Host "[$(Get-Date)] $expression"
@@ -84,6 +109,14 @@ function dockerLogin {
 	executeExpression "echo `$env:CDAF_REGISTRY_TOKEN | docker login --username $env:CDAF_REGISTRY_USER --password-stdin $env:CDAF_REGISTRY_URL"
 }
 
+function REMOVE ($itemPath) { 
+	if ( Test-Path $itemPath ) {
+		write-host "[REMOVE] Remove-Item $itemPath -Recurse -Force"
+		Remove-Item $itemPath -Recurse -Force
+		if(!$?) { ERRMSG "[REMOVE] Remove-Item $itemPath -Recurse -Force Failed" 10006 }
+	}
+}
+	
 $scriptName = 'imageBuild.ps1'
 cmd /c "exit 0"
 $error.clear()
@@ -207,16 +240,14 @@ if (!( $id )) {
 			Write-Host "    ${image}"    
 			Write-Host "----------------------`n"
 			if ( Test-Path "${transient}\${image}" ) {
-				executeExpression "rm -Recurse ${transient}\${image}"
+				executeExpression "REMOVE ${transient}\${image}"
 			}
 			executeExpression "cp -Recurse .\${image} ${transient}"
 			$image = $image.ToLower()
 			if ( Test-Path ../automation ) {
 				executeExpression "cp -Recurse ../automation ${transient}\${image}"
 			} else {
-				if (! ( $constructor )) {
-					Write-Host "`n[$scriptName][WARN] CDAF not found in ../automation`n"
-				}
+				Write-Host "`n[$scriptName][WARN] CDAF not found in ../automation`n"
 			}
 			if ( Test-Path ../dockerBuild.ps1 ) {
 				executeExpression "cp ../dockerBuild.ps1 ${transient}\${image}"

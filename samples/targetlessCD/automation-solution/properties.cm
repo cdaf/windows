@@ -1,5 +1,5 @@
 context  target      deployTaskOverride  deployHost            deployLand            remoteUser  remoteCred        decryptThb
-local    DOCKER      targetlessCD.tsk
+local    DOCKER      compose.tsk
 local    TARGETLESS  containerTest.tsk   localhost
 
 local    WINDOWS     containerTest.tsk   localhost

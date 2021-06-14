@@ -246,12 +246,19 @@ if ($REVISION) {
 		$REVISION = $env:CDAF_BRANCH_NAME
 	    Write-Host "[$scriptName]   REVISION        : $REVISION (not supplied, derived from `$env:CDAF_BRANCH_NAME)"
 	} else {
-		$REVISION=$(git rev-parse --abbrev-ref HEAD)
-		if ($REVISION) {
-			Write-Host "[$scriptName]   REVISION        : $REVISION (determined from workspace)"
+		$versionTest = cmd /c git --version 2`>`&1
+		if ( $LASTEXITCODE -ne 0 ) {
+			cmd /c "exit 0"
+			$REVISION = 'nogit'
+			Write-Host "[$scriptName]   REVISION         : $REVISION (Git not installed, so cannot determine from branch name"
 		} else {
-			$REVISION = 'targetlesscd'
-			Write-Host "[$scriptName]   REVISION        : $REVISION (not supplied, set to default)"
+			$REVISION=$(git rev-parse --abbrev-ref HEAD)
+			if ($REVISION) {
+				Write-Host "[$scriptName]   REVISION        : $REVISION (determined from workspace)"
+			} else {
+				$REVISION = 'notworkspace'
+				Write-Host "[$scriptName]   REVISION        : not set, Git installed but not a Git workspace"
+			}
 		}
 	}
 }

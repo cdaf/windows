@@ -16,6 +16,7 @@ artifactPrefix=0.0
 # productVersion=0.0.0
 
 # defaultBranch=main
+# defaultEnvironment=windows
 
 # gitRemoteURL=https://github.com/cdaf/${SOLUTION}.git
 # gitUserNameEnvVar=${env:GIT_USER}

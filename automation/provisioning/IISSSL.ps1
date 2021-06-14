@@ -130,7 +130,8 @@ if ($hostHeader) {
 executeExpression 'import-module WebAdministration'
 
 Write-Host "`n[$scriptName] Existing http.sys bindings`n"
-executeExpression 'Get-ChildItem "IIS:\SslBindings\"'
+Write-Host 'Get-ChildItem "IIS:\SslBindings\"'
+Get-ChildItem "IIS:\SslBindings\"
 
 if (test-path IIS:\SslBindings\$ip!$port) { 
 	executeExpression "Remove-Item IIS:\SslBindings\$ip!$port"
