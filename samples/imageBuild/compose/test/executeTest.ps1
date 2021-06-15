@@ -59,12 +59,14 @@ Write-Host "`n[$scriptName] Automated Test Execution completed successfully."
 
 
 if ( $env:COMPOSE_KEEP -eq 'yes' ) {
-	$logFile = "$env:TEMP\psd.log"
-	Add-Content $logFile '[START] ---------- Watch log to keep container alive ----------'
-	Add-Content $logFile "[START] $(date)"
-	Write-Host "[$scriptName] Get-Content $logFile -Wait -Tail 1000"
-	
-	Get-Content $logFile -Wait -Tail 1000
+	Write-Host "`n[$scriptName] ---------- Watch log to keep container alive ----------"
+	$idx = (get-eventlog -LogName System -Newest 1).Index
+	while ($true) {
+		$idx2  = (Get-EventLog -LogName System -newest 1).index
+		get-eventlog -logname system -newest ($idx2 - $idx) |  Sort-Object index | Format-List -Property *
+		$idx = $idx2
+		start-sleep -Seconds 5
+	}
 
 } else {
 	Write-Host "`n[$scriptName] ---------- stop ----------"
