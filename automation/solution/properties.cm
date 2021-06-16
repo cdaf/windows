@@ -1,5 +1,5 @@
-context  target     deployHost         remoteUser             remotePass
-remote   VAGRANT    target.mshome.net  $env:CDAF_PS_USERNAME  $env:CDAF_PS_USERPASS
+context  target     deployHost            remoteUser             remotePass
+remote   VAGRANT    windows-1.mshome.net  $env:CDAF_PS_USERNAME  $env:CDAF_PS_USERPASS
 local    VAGRANT    localhost
 local    WINDOWS    localhost
 local    WORKGROUP  localhost
