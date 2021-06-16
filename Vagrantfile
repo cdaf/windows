@@ -15,14 +15,6 @@ else
   MAX_SERVER_TARGETS = 1
 end
 
-if ENV['SCALE_FACTOR']
-  SCALE_FACTOR = ENV['SCALE_FACTOR'].to_i
-else
-  SCALE_FACTOR = 1
-end
-vRAM = 1024 * SCALE_FACTOR
-vCPU = SCALE_FACTOR
-
 Vagrant.configure(2) do |allhosts|
 
   (1..MAX_SERVER_TARGETS).each do |i|
@@ -36,8 +28,6 @@ Vagrant.configure(2) do |allhosts|
       # Vagrant specific for WinRM
       windows.vm.provision 'shell', path: '.\automation\provisioning\CredSSP.ps1', args: 'server'
       windows.vm.provider 'virtualbox' do |virtualbox, override|
-        virtualbox.memory = "#{vRAM}"
-        virtualbox.cpus = "#{vCPU}"
         override.vm.network 'private_network', ip: "172.16.17.10#{i}"
         override.vm.network 'forwarded_port', guest: 80, host: 80, auto_correct: true
 		    override.vm.synced_folder ".", "/vagrant", disabled: true
@@ -48,8 +38,6 @@ Vagrant.configure(2) do |allhosts|
 
       # Set environment variable VAGRANT_DEFAULT_PROVIDER to 'hyperv'
       windows.vm.provider 'hyperv' do |hyperv, override|
-        hyperv.memory = "#{vRAM}"
-        hyperv.cpus = "#{vCPU}"
         override.vm.hostname = "windows-#{i}"
     		override.vm.synced_folder ".", "/vagrant", disabled: true
         if ENV['SYNCED_FOLDER']
@@ -74,9 +62,6 @@ Vagrant.configure(2) do |allhosts|
 
     # Oracle VirtualBox, relaxed configuration for Desktop environment
     build.vm.provider 'virtualbox' do |virtualbox, override|
-      virtualbox.gui = false
-      virtualbox.memory = "#{vRAM}"
-      virtualbox.cpus = "#{vCPU}"
       override.vm.network 'private_network', ip: '172.16.17.100'
       (1..MAX_SERVER_TARGETS).each do |s|
         override.vm.provision 'shell', path: '.\automation\provisioning\addHOSTS.ps1', args: "172.16.17.10#{s} windows-#{s}"
@@ -86,8 +71,6 @@ Vagrant.configure(2) do |allhosts|
 
     # Set environment variable VAGRANT_DEFAULT_PROVIDER to 'hyperv'
     build.vm.provider 'hyperv' do |hyperv, override|
-      hyperv.memory = "#{vRAM}"
-      hyperv.cpus = "#{vCPU}"
       override.vm.hostname = 'build'
       override.vm.synced_folder ".", "/vagrant", type: "smb", smb_username: "#{ENV['VAGRANT_SMB_USER']}", smb_password: "#{ENV['VAGRANT_SMB_PASS']}"
       override.vm.provision 'shell', path: '.\automation\provisioning\CDAF.ps1'
