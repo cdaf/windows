@@ -212,6 +212,10 @@ if ($sysprep -eq 'yes') {
 	    executeExpression "Copy-Item $PWD\unattend.xml $scriptDir"
 	}
 	executeExpression "cat $scriptDir\unattend.xml"
+
+	emailProgress "Trial Evaluation license rearming"
+	executeExpression 'cscript /Nologo "$env:SystemRoot\system32\slmgr.vbs" /rearm'
+
 	emailProgress "last comms, starting sysprep"
 	executeExpression "& C:\windows\system32\sysprep\sysprep.exe /generalize /oobe /shutdown /unattend:$scriptDir\unattend.xml"
 	
