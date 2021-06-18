@@ -12,7 +12,7 @@ node {
 
   try {
 
-    stage ('Test the CDAF sample Vagrantfile') {
+    stage ('Test the CDAF sample on Windows Server 2019') {
 
       checkout scm
   
@@ -23,6 +23,14 @@ node {
       bat 'IF EXIST .vagrant vagrant destroy -f'
       bat 'IF EXIST .vagrant vagrant box list'
       bat 'vagrant up'
+    }
+
+    stage ('Test the CDAF sample on Windows Server 2016') {
+      bat 'vagrant destroy -f'
+      bat '''
+      	SET OVERRIDE_IMAGE=cdaf/WindowsServer
+      	vagrant up
+      '''
     }
 
   } catch (e) {
