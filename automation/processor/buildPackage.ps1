@@ -380,8 +380,9 @@ if ( $ACTION -eq 'container_build' ) {
 } else {
 	$containerBuild = getProp 'containerBuild' "$SOLUTIONROOT\CDAF.solution"
 	if ( $containerBuild ) {
-		$versionTest = cmd /c docker --version 2`>`&1; cmd /c "exit 0"
-		if ($versionTest -like '*not recognized*') {
+		$versionTest = cmd /c docker --version 2`>`&1
+		if ( $LASTEXITCODE -ne 0 ) {
+			cmd /c "exit 0"
 			Write-Host "[$scriptName]   containerBuild  : containerBuild defined in $SOLUTIONROOT\CDAF.solution, but Docker not installed, will attempt to execute natively"
 			Clear-Variable -Name 'containerBuild'
 			$executeNative = $true
@@ -401,7 +402,7 @@ if ( $ACTION -eq 'container_build' ) {
 			            Write-Host "[$scriptName] Process dockerd is not running..."
 			        }
 			    }
-			    if (( $dockerStatus -ne 'Running' ) -and ( $dockerdProcess -eq $null )){
+			    if (( $dockerStatus -ne 'Running' ) -and ( $null -eq $dockerdProcess )){
 			    	if ( $env:CDAF_DOCKER_REQUIRED ) {
 						dockerStart
 					} else {			    
@@ -436,9 +437,37 @@ if ( $ACTION -eq 'container_build' ) {
 # 2.2.0 Image Build as incorperated function
 $imageBuild = getProp 'imageBuild' "$SOLUTIONROOT\CDAF.solution"
 if ( $imageBuild ) {
+	$versionTest = cmd /c docker --version 2`>`&1
+	if ( $LASTEXITCODE -ne 0 ) {
+		cmd /c "exit 0"
+		$skipImageBuild = "imageBuild defined in $SOLUTIONROOT\CDAF.solution, but Docker not in use, imageBuild will not be attempted"
+		Write-Host "[$scriptName]   imageBuild      : $skipImageBuild"
+	} else {
+		If (Get-Service Docker -ErrorAction SilentlyContinue) {
+			$dockerStatus = executeReturn '(Get-Service Docker).Status'
+			$dockerStatus
+			if ( $dockerStatus -ne 'Running' ) {
+				if ( $dockerdProcess = Get-Process dockerd -ea SilentlyContinue ) {
+					Write-Host "[$scriptName] Process dockerd is running..."
+				} else {
+					Write-Host "[$scriptName] Process dockerd is not running..."
+				}
+			}
+			if (( $dockerStatus -ne 'Running' ) -and ( $null -eq $dockerdProcess )){
+				if ( $env:CDAF_DOCKER_REQUIRED ) {
+					dockerStart
+				} else {			    
+					Write-Host "[$scriptName] Docker installed but not running, will attempt to execute natively (set `$env:CDAF_DOCKER_REQUIRED if docker is mandatory)"
+					cmd /c "exit 0"
+					Clear-Variable -Name 'containerBuild'
+					$executeNative = $true
+				}
+			}
+		}
+	}
+
 	if ( $executeNative ) { # docker test already performed
-		Write-Host "[$scriptName]   imageBuild      : containerBuild defined in $SOLUTIONROOT\CDAF.solution, but Docker not in use, imageBuild will not be attempted"
-		Clear-Variable -Name 'imageBuild'
+		Write-Host "[$scriptName]   imageBuild      : imageBuild defined in $SOLUTIONROOT\CDAF.solution, but Docker not in use, imageBuild will not be attempted"
 	} else {
 		Write-Host "[$scriptName]   imageBuild      : $imageBuild"
 	}
@@ -474,56 +503,61 @@ if ( $ACTION -ne 'container_build' ) {
 
 	# 2.2.0 Image Build as an incorperated function, no longer conditional on containerBuild, but do not attempt if within containerbuild
 	if ( $imageBuild ) {
+
 		Write-Host "[$scriptName] Execute image build..."
-		$runtimeImage = getProp 'runtimeImage' "$SOLUTIONROOT\CDAF.solution"
-		if ( $runtimeImage ) {
-			Write-Host "[$scriptName]   runtimeImage  = $runtimeImage"
+		if ( $skipImageBuild ) { # docker test already performed
+			Write-Host "[$scriptName] $skipImageBuild"
 		} else {
-			$runtimeImage = getProp 'containerImage' "$SOLUTIONROOT\CDAF.solution"
+			$runtimeImage = getProp 'runtimeImage' "$SOLUTIONROOT\CDAF.solution"
 			if ( $runtimeImage ) {
-				Write-Host "[$scriptName]   runtimeImage  = $runtimeImage (runtimeImage not found, using containerImage)"
+				Write-Host "[$scriptName]   runtimeImage  = $runtimeImage"
 			} else {
-				if ( $Env:CONTAINER_IMAGE ) {
-					Write-Host "[$scriptName][WARN] neither runtimeImage nor containerImage defined in $SOLUTIONROOT/CDAF.solution, assuming a hardcoded image will be used."
+				$runtimeImage = getProp 'containerImage' "$SOLUTIONROOT\CDAF.solution"
+				if ( $runtimeImage ) {
+					Write-Host "[$scriptName]   runtimeImage  = $runtimeImage (runtimeImage not found, using containerImage)"
 				} else {
-					Write-Host "[$scriptName][WARN] neither runtimeImage nor containerImage defined in $SOLUTIONROOT/CDAF.solution, however Environment Variable CONTAINER_IMAGE set to $CONTAINER_IMAGE, overrides image passed to dockerBuild."
-					$runtimeImage = $env:CONTAINER_IMAGE
+					if ( $Env:CONTAINER_IMAGE ) {
+						Write-Host "[$scriptName][WARN] neither runtimeImage nor containerImage defined in $SOLUTIONROOT/CDAF.solution, assuming a hardcoded image will be used."
+					} else {
+						Write-Host "[$scriptName][WARN] neither runtimeImage nor containerImage defined in $SOLUTIONROOT/CDAF.solution, however Environment Variable CONTAINER_IMAGE set to $CONTAINER_IMAGE, overrides image passed to dockerBuild."
+						$runtimeImage = $env:CONTAINER_IMAGE
+					}
 				}
 			}
-		}
 
-		$constructor = getProp 'constructor' "$SOLUTIONROOT\CDAF.solution"
-		if ( $constructor ) {
-			Write-Host "[$scriptName]   constructor   = $constructor"
-		}
+			$constructor = getProp 'constructor' "$SOLUTIONROOT\CDAF.solution"
+			if ( $constructor ) {
+				Write-Host "[$scriptName]   constructor   = $constructor"
+			}
 
-		$defaultBranch = getProp 'defaultBranch' "$SOLUTIONROOT\CDAF.solution"
-		if ( $defaultBranch ) {
-			Write-Host "[$scriptName]   defaultBranch = $defaultBranch"
-		} else {
-			$defaultBranch = 'master'
-		}
+			$defaultBranch = getProp 'defaultBranch' "$SOLUTIONROOT\CDAF.solution"
+			if ( $defaultBranch ) {
+				Write-Host "[$scriptName]   defaultBranch = $defaultBranch"
+			} else {
+				$defaultBranch = 'master'
+			}
 
-		# 2.2.0 Integrated Function using environment variables
-		if ( $REVISION -eq $defaultBranch ) {
-			$value = & $AUTOMATIONROOT\remote\getProperty.ps1 "$SOLUTIONROOT/CDAF.solution" "CDAF_REGISTRY_URL"
-			if ( $value ) {
-				$env:CDAF_REGISTRY_URL = Invoke-Expression "Write-Output $value"
+			# 2.2.0 Integrated Function using environment variables
+			if ( $REVISION -eq $defaultBranch ) {
+				$value = & $AUTOMATIONROOT\remote\getProperty.ps1 "$SOLUTIONROOT/CDAF.solution" "CDAF_REGISTRY_URL"
+				if ( $value ) {
+					$env:CDAF_REGISTRY_URL = Invoke-Expression "Write-Output $value"
+				}
+				$value = & $AUTOMATIONROOT\remote\getProperty.ps1 "$SOLUTIONROOT/CDAF.solution" "CDAF_REGISTRY_TAG"
+				if ( $value ) {
+					$env:CDAF_REGISTRY_TAG = Invoke-Expression "Write-Output $value"
+				}
+				$value = & $AUTOMATIONROOT\remote\getProperty.ps1 "$SOLUTIONROOT/CDAF.solution" "CDAF_REGISTRY_USER"
+				if ( $value ) {
+					$env:CDAF_REGISTRY_USER = Invoke-Expression "Write-Output $value"
+				}
+				$value = & $AUTOMATIONROOT\remote\getProperty.ps1 "$SOLUTIONROOT/CDAF.solution" "CDAF_REGISTRY_TOKEN"
+				if ( $value ) {
+					$env:CDAF_REGISTRY_TOKEN = Invoke-Expression "Write-Output $value"
+				}
 			}
-			$value = & $AUTOMATIONROOT\remote\getProperty.ps1 "$SOLUTIONROOT/CDAF.solution" "CDAF_REGISTRY_TAG"
-			if ( $value ) {
-				$env:CDAF_REGISTRY_TAG = Invoke-Expression "Write-Output $value"
-			}
-			$value = & $AUTOMATIONROOT\remote\getProperty.ps1 "$SOLUTIONROOT/CDAF.solution" "CDAF_REGISTRY_USER"
-			if ( $value ) {
-				$env:CDAF_REGISTRY_USER = Invoke-Expression "Write-Output $value"
-			}
-			$value = & $AUTOMATIONROOT\remote\getProperty.ps1 "$SOLUTIONROOT/CDAF.solution" "CDAF_REGISTRY_TOKEN"
-			if ( $value ) {
-				$env:CDAF_REGISTRY_TOKEN = Invoke-Expression "Write-Output $value"
-			}
+			executeExpression "$imageBuild"
 		}
-		executeExpression "$imageBuild"
 	}
 
 	# CDAF 2.1.0 Self-extracting Script Artifact
