@@ -66,22 +66,22 @@ Vagrant.configure(2) do |allhosts|
       (1..MAX_SERVER_TARGETS).each do |s|
         override.vm.provision 'shell', path: '.\automation\provisioning\addHOSTS.ps1', args: "172.16.17.10#{s} windows-#{s}.mshome.net"
       end
-      override.vm.provision 'shell', path: '.\automation\provisioning\CDAF.ps1', args: '-workspace c:\vagrant\automation'
-      override.vm.provision 'shell', path: '.\automation\provisioning\CDAF.ps1', args: '-workspace c:\vagrant\automation -action buildonly'
-      override.vm.provision 'shell', path: '.\automation\provisioning\CDAF.ps1', args: '-workspace c:\vagrant\automation -action packageonly'
-      override.vm.provision 'shell', path: '.\automation\provisioning\CDAF.ps1', args: '-workspace c:\vagrant\automation -action cionly'
-      override.vm.provision 'shell', path: '.\automation\provisioning\CDAF.ps1', args: '-workspace c:\vagrant\automation -action cdonly'
+      override.vm.provision 'shell', path: '.\automation\provisioning\CDAF.ps1'
+      override.vm.provision 'shell', path: '.\automation\provisioning\CDAF.ps1', args: '-action buildonly'
+      override.vm.provision 'shell', path: '.\automation\provisioning\CDAF.ps1', args: '-action packageonly'
+      override.vm.provision 'shell', path: '.\automation\provisioning\CDAF.ps1', args: '-action cionly'
+      override.vm.provision 'shell', path: '.\automation\provisioning\CDAF.ps1', args: '-action cdonly'
     end
 
     # Set environment variable VAGRANT_DEFAULT_PROVIDER to 'hyperv'
     build.vm.provider 'hyperv' do |hyperv, override|
       override.vm.hostname = 'build'
       override.vm.synced_folder ".", "/vagrant", type: "smb", smb_username: "#{ENV['VAGRANT_SMB_USER']}", smb_password: "#{ENV['VAGRANT_SMB_PASS']}"
-      override.vm.provision 'shell', path: '.\automation\provisioning\CDAF.ps1', args: '-workspace c:\vagrant\automation'
-      override.vm.provision 'shell', path: '.\automation\provisioning\CDAF.ps1', args: '-workspace c:\vagrant\automation -action buildonly'
-      override.vm.provision 'shell', path: '.\automation\provisioning\CDAF.ps1', args: '-workspace c:\vagrant\automation -action packageonly'
-      override.vm.provision 'shell', path: '.\automation\provisioning\CDAF.ps1', args: '-workspace c:\vagrant\automation -action cionly'
-      override.vm.provision 'shell', path: '.\automation\provisioning\CDAF.ps1', args: '-workspace c:\vagrant\automation -action cdonly'
+      override.vm.provision 'shell', path: '.\automation\provisioning\CDAF.ps1'
+      override.vm.provision 'shell', path: '.\automation\provisioning\CDAF.ps1', args: '-action buildonly'
+      override.vm.provision 'shell', path: '.\automation\provisioning\CDAF.ps1', args: '-action packageonly'
+      override.vm.provision 'shell', path: '.\automation\provisioning\CDAF.ps1', args: '-action cionly'
+      override.vm.provision 'shell', path: '.\automation\provisioning\CDAF.ps1', args: '-action cdonly'
     end
   end
 
