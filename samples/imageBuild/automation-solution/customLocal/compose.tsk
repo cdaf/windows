@@ -23,7 +23,7 @@ Write-Host "List containers current state`n"
 docker ps
 
 Write-Host "`nCleanup from previously test`n"
-$env:TARGET_TAG = "${id}_${constructor}"
+$env:TARGET_TAG = "${id}_$(${constructor}.ToLower())"
 $env:TEST_TAG = "${id}_test"
 & $WORKSPACE\dockerClean.ps1 ${env:TARGET_TAG} ${BUILDNUMBER}
 & $WORKSPACE\dockerClean.ps1 ${env:TEST_TAG} ${BUILDNUMBER}
