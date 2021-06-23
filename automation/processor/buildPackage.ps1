@@ -380,7 +380,7 @@ if ( $ACTION -eq 'container_build' ) {
 } else {
 	$containerBuild = getProp 'containerBuild' "$SOLUTIONROOT\CDAF.solution"
 	if ( $containerBuild ) {
-		if ( $ACTION -eq 'skip_container_build' ) {
+		if (( $env:CDAF_SKIP_CONTAINER_BUILD ) -or ( $ACTION -eq 'skip_container_build' )) {
 			Write-Host "`n[$scriptName] `$ACTION = $ACTION, container build defined (${containerBuild}) but skipped ...`n"
 			Clear-Variable -Name 'containerBuild'
 		} else {
