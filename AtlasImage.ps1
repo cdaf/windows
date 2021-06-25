@@ -174,31 +174,33 @@ executeExpression "./$secureDeleteExe -z c:"
 
 if ($sysprep -eq 'yes') {
 
-	$scriptDir = "$env:windir/setup/scripts"
+	$scriptDir = "$env:windir\setup\scripts"
 	if (Test-Path "$scriptDir") {
 	    writeLog "$scriptDir exists, skip create."
 	} else {
 	    executeExpression "mkdir -Path $scriptDir"
 	}
 	
-	# This script will be run once for sysprep'd machine 
-	$setupCommand = "$scriptDir/SetupComplete.cmd"
+	writeLog "This script will be run once for sysprep'd machine https://docs.microsoft.com/en-us/previous-versions/windows/it-pro/windows-7/dd744268(v=ws.10)?redirectedfrom=MSDN"
+	$setupCommand = "$scriptDir\SetupComplete.cmd"
 	if (Test-Path "$setupCommand") {
 	    writeLog "$setupCommand exists, skip create."
 	} else {
-	    executeExpression "Add-Content $scriptDir/SetupComplete.cmd `'netsh advfirewall firewall set rule name=`"Windows Remote Management (HTTP-in)`" new action=allow`'"
-	    executeExpression "Add-Content $scriptDir/SetupComplete.cmd `'reg add HKEY_LOCAL_MACHINE\Software\Microsoft\Windows\CurrentVersion\Policies\System /v EnableLUA /d 0 /t REG_DWORD /f /reg:64`'"
-		executeExpression "Add-Content $scriptDir/SetupComplete.cmd `'slmgr.vbs /rearm`'"
+	    executeExpression "Add-Content $scriptDir\SetupComplete.cmd `'netsh advfirewall firewall set rule name=`"Windows Remote Management (HTTP-in)`" new action=allow`'"
+	    executeExpression "Add-Content $scriptDir\SetupComplete.cmd `'reg add HKEY_LOCAL_MACHINE\Software\Microsoft\Windows\CurrentVersion\Policies\System /v EnableLUA /d 0 /t REG_DWORD /f /reg:64`'"
+		executeExpression "Add-Content $scriptDir\SetupComplete.cmd `'cscript /Nologo slmgr.vbs /rearm`'"
 	}
-	executeExpression "cat $scriptDir/SetupComplete.cmd"
-	
-	# Close the WinRM port now, so Vagrant does not manage to connect during the system prep phase
+	executeExpression "cat $scriptDir\SetupComplete.cmd"
+	writeLog "$(cat $scriptDir\SetupComplete.cmd)"
+		
+	writeLog "Close the WinRM port now, so Vagrant does not manage to connect during the system prep phase"
+	writeLog "$scriptDir\SetupComplete.cmd will reverse this once sysprep is complete"
 	executeExpression "netsh advfirewall firewall set rule name=`'Windows Remote Management (HTTP-in)`' new action=block"
 	
-	writeLog "As per this URL there are implicit places windows looks for unattended files, I'm using C:\Windows\Panther\Unattend"
+	$scriptDir = "C:\Windows\Panther\Unattend"
+	writeLog "Windows looks for unattended answer files in $scriptDir"
 	executeExpression "(New-Object System.Net.WebClient).DownloadFile(`'http://cdaf.io/static/app/downloads/unattend.xml`', `"$PWD\unattend.xml`")"
 	
-	$scriptDir = "C:\Windows\Panther\Unattend"
 	if (Test-Path "$scriptDir") {
 	    writeLog "$scriptDir exists, skip create."
 	} else {
@@ -212,9 +214,6 @@ if ($sysprep -eq 'yes') {
 	    executeExpression "Copy-Item $PWD\unattend.xml $scriptDir"
 	}
 	executeExpression "cat $scriptDir\unattend.xml"
-
-	emailProgress "Trial Evaluation license rearming"
-	executeExpression 'cscript /Nologo "$env:SystemRoot\system32\slmgr.vbs" /rearm'
 
 	emailProgress "last comms, starting sysprep"
 	executeExpression "& C:\windows\system32\sysprep\sysprep.exe /generalize /oobe /shutdown /unattend:$scriptDir\unattend.xml"
