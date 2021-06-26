@@ -67,6 +67,9 @@ Write-Host "`n[$scriptName] Set TLS to version 1.2 or higher"
 executeExpression "[System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]'Tls11,Tls12'"
 
 executeExpression "cd C:\"
+if ( Test-Path windows-master ) {
+	executeExpression "Remove-Item -Force -Recurse windows-master"
+}
 executeExpression "mkdir windows-master"
 executeExpression "cd windows-master"
 $zipFile = "WU-CDAF.zip"
