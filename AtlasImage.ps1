@@ -183,13 +183,9 @@ if ($sysprep -eq 'yes') {
 	
 	writeLog "This script will be run once for sysprep'd machine https://docs.microsoft.com/en-us/previous-versions/windows/it-pro/windows-7/dd744268(v=ws.10)?redirectedfrom=MSDN"
 	$setupCommand = "$scriptDir\SetupComplete.cmd"
-	if (Test-Path "$setupCommand") {
-	    writeLog "$setupCommand exists, skip create."
-	} else {
-	    executeExpression "Add-Content $scriptDir\SetupComplete.cmd `'netsh advfirewall firewall set rule name=`"Windows Remote Management (HTTP-in)`" new action=allow`'"
-	    executeExpression "Add-Content $scriptDir\SetupComplete.cmd `'reg add HKEY_LOCAL_MACHINE\Software\Microsoft\Windows\CurrentVersion\Policies\System /v EnableLUA /d 0 /t REG_DWORD /f /reg:64`'"
-		executeExpression "Add-Content $scriptDir\SetupComplete.cmd `'cscript /Nologo slmgr.vbs /rearm`'"
-	}
+    executeExpression "Set-Content $scriptDir\SetupComplete.cmd `'netsh advfirewall firewall set rule name=`"Windows Remote Management (HTTP-in)`" new action=allow`'"
+    executeExpression "Add-Content $scriptDir\SetupComplete.cmd `'reg add HKEY_LOCAL_MACHINE\Software\Microsoft\Windows\CurrentVersion\Policies\System /v EnableLUA /d 0 /t REG_DWORD /f /reg:64`'"
+	executeExpression "Add-Content $scriptDir\SetupComplete.cmd `'cscript /Nologo slmgr.vbs /rearm`'"
 	executeExpression "cat $scriptDir\SetupComplete.cmd"
 	writeLog "$(cat $scriptDir\SetupComplete.cmd)"
 		
