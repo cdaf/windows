@@ -19,8 +19,13 @@ jobs:
           GIT_USER: $(GIT_USER)
           GIT_PASS: $(GIT_PASS)
         inputs:
-          targetType: filePath
-          filePath: ./automation/entry.ps1
-          arguments: $(Build.BuildNumber) $(Build.SourceBranch) staging@$(Build.ArtifactStagingDirectory)
+          targetType: 'inline' # Optional. Options: filePath, inline
+          script: |
+            entry $(Build.BuildNumber) $(Build.SourceBranch) staging@$(Build.ArtifactStagingDirectory)
+
+#          "In-source" implemenation
+#          targetType: filePath
+#          filePath: ./automation/entry.ps1
+#          arguments: $(Build.BuildNumber) $(Build.SourceBranch) staging@$(Build.ArtifactStagingDirectory)
 
       - task: PublishBuildArtifacts@1
