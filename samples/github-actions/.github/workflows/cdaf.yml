@@ -19,7 +19,14 @@ jobs:
         shell: powershell # pwsh for PowerShell Core
         run: |
           cd ${env:GITHUB_WORKSPACE}
-          .\automation\entry.ps1 ${env:GITHUB_RUN_NUMBER} ${env:GITHUB_REF}
+
+          # Using CDAF Edge
+          curl.exe -s https://codeload.github.com/cdaf/windows/zip/refs/heads/master -o windows.zip
+          Expand-Archive .\windows.zip .
+          .\windows-master\automation\entry.ps1 ${env:GITHUB_RUN_NUMBER} ${env:GITHUB_REF}
+
+          # CDAF installed in repo
+          # .\automation\entry.ps1 ${env:GITHUB_RUN_NUMBER} ${env:GITHUB_REF}
 
       - name: Artifact Retention
         uses: actions/upload-artifact@v1
@@ -29,7 +36,7 @@ jobs:
 
   deliver:
     if: github.ref == 'refs/heads/master'
-    name: CD
+    name: Continuous Delivery
     needs: build
     runs-on: Windows-latest
     steps:
@@ -43,3 +50,26 @@ jobs:
         run: |
           cd ${env:GITHUB_WORKSPACE}\deploy
           .\release.ps1 DOCKER
+
+  registry:
+    if: github.ref == 'refs/heads/master'
+    name: Push to Registry
+    needs: build
+    runs-on: Windows-latest
+    env:
+      DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+    steps:
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v1
+        if: ${{ env.DOCKERHUB_TOKEN }} != null
+        with:
+          username: cdaf
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: PUSH
+        if: ${{ env.DOCKERHUB_TOKEN }} != null
+        run: |
+          cd ${GITHUB_WORKSPACE}/deploy
+          chmod +x release.sh
+          ./release.sh PUSH

@@ -2,7 +2,6 @@ Write-Host "`nLoad the branch (REVISION) and container image from the manifest, 
 PROPLD manifest.txt
 
 ASSIGN $id = $("${SOLUTION}_${REVISION}").ToLower()
-$workspace = $(pwd)
 $env:WORK_SPACE = Split-Path -parent $workspace
 Write-host $env:WORK_SPACE
 
@@ -47,7 +46,7 @@ ASSIGN $containerID = $(docker ps -aq --filter "ancestor=$env:TEST_TAG")
 & $WORKSPACE\dockerLog.ps1 $containerID 'Automated Test Execution completed successfully.' 300
 
 Write-Host "`nTear down if not explicit varaible to retain`n"
-if ( $env:COMPOSE_KEEP ) { docker ps } else { docker-compose down; docker-compose rm -f }
+if ( $env:COMPOSE_KEEP ) { inspect -f '{{.Name}} - {{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' $(docker ps -aq) } else { docker-compose down; docker-compose rm -f }
 
 cd $WORKSPACE
 
