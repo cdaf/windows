@@ -41,6 +41,5 @@ jobs:
       - name: PUSH
         if: ${{ env.DOCKERHUB_TOKEN }} && ( github.ref == 'refs/heads/master' )
         run: |
-          cd ${GITHUB_WORKSPACE}/deploy
-          chmod +x release.sh
-          ./release.sh PUSH
+          cd ${env:GITHUB_WORKSPACE}
+          .\release.ps1 PUSH
