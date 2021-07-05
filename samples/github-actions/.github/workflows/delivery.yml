@@ -1,0 +1,69 @@
+name: CDAF Targetless CD using hosted agent
+# This workflow is triggered on pushes to the repository.
+on: [push]
+
+jobs:
+  build:
+    name: Continuous Integration & Feature Branch Testing
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Fetch all history for all tags and branches
+        run: |
+          git config remote.origin.url https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}
+          git fetch --prune --unshallow
+
+      - name: Feature Branch Targetless CD
+        shell: powershell # pwsh for PowerShell Core
+        run: |
+          cd ${env:GITHUB_WORKSPACE}
+
+          # Using CDAF Edge
+          curl.exe -s https://codeload.github.com/cdaf/windows/zip/refs/heads/master -o windows.zip
+          Expand-Archive .\windows.zip .
+          .\windows-master\automation\entry.ps1 ${env:GITHUB_RUN_NUMBER} ${env:GITHUB_REF}
+
+          # CDAF installed in repo
+          # .\automation\entry.ps1 ${env:GITHUB_RUN_NUMBER} ${env:GITHUB_REF}
+
+      - name: Artifact Retention
+        uses: actions/upload-artifact@v1
+        with:
+          name: deploy
+          path: release.ps1
+
+  test:
+    if: github.ref == 'refs/heads/master'
+    name: Compose Test
+    needs: build
+    runs-on: windows-latest
+    steps:
+      - name: Download Artifacts
+        uses: actions/download-artifact@v1
+        with:
+          name: deploy
+    
+      - name: DOCKER
+        run: |
+          cd ${env:GITHUB_WORKSPACE}\deploy
+          .\release.ps1 DOCKER
+
+  # As at Jul 2021 there is no gating capability in GitHub Actions
+  prod:
+    if: github.ref == 'refs/heads/master'
+    name: Continuous Delivery
+    needs: build
+    runs-on: windows-latest
+    steps:
+      - name: Download Artifacts
+        uses: actions/download-artifact@v1
+        with:
+          name: deploy
+    
+      - name: PROD
+        shell: powershell # pwsh for PowerShell Core
+        run: |
+          cd ${env:GITHUB_WORKSPACE}\deploy
+          .\release.ps1 PROD
