@@ -57,13 +57,20 @@ while (( $retryCount -le $retryMax ) -and ($exitCode -ne 0)) {
 	Write-Host "[$scriptName][$retryCount] $expression"
 	try {
 		Invoke-Expression $expression
-	    if(!$?) { ERRMSG "[HALT] `$? = $?" 1 }
-	} catch { ERRMSG "[EXCEPTION] $_" 2 }
+	    if(!$?) {
+			ERRMSG "[HALT] `$? = $?"
+			$exitCode = 1
+		}
+	} catch {
+		ERRMSG "[EXCEPTION] $_"
+		$exitCode = 2
+	}
 	if ( $error ) {
 		ERRMSG "[WARN] `$LASTEXITCODE is $LASTEXITCODE, but standard error populated"
 	}
     if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) {
-		ERRMSG "[EXIT] `$lastExitCode = $lastExitCode" $lastExitCode
+		ERRMSG "[EXIT] `$lastExitCode = $lastExitCode"
+		$exitCode = $lastExitCode
 	}
     if ($exitCode -ne 0) {
 		if ($retryCount -ge $retryMax ) {
