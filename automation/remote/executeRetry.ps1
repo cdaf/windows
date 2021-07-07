@@ -62,7 +62,9 @@ while (( $retryCount -le $retryMax ) -and ($exitCode -ne 0)) {
 			$exitCode = 1
 		}
 	} catch {
-		ERRMSG "[EXCEPTION] $_"
+		ERRMSG "[EXCEPTION] $_.Exception.Message"
+		$_.Exception | format-list -force
+		$_.Exception.StackTrace
 		$exitCode = 2
 	}
 	if ( $error ) {
