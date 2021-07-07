@@ -56,7 +56,7 @@ while (( $retryCount -le $retryMax ) -and ($exitCode -ne 0)) {
 	if ( $container -eq 'DOCKER-COMPOSE' ) {
 		$output = $(docker-compose logs)
 	} else {
-		$output = $(docker logs $container)
+		$output = $(docker logs $container 2>&1)
 	}
 	if ( $output ) {
 		$lineCount = 1
