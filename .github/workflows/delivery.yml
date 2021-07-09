@@ -1,0 +1,61 @@
+name: CDAF Targetless CD using hosted agent
+# This workflow is triggered on pushes to the repository.
+on: [push]
+
+jobs:
+  build:
+    name: Continuous Integration & Feature Branch Testing
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Fetch all history for all tags and branches
+        run: |
+          git config remote.origin.url https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}
+          git fetch --prune --unshallow
+
+      - name: Feature Branch Targetless CD
+        shell: powershell # pwsh for PowerShell Core
+        run: |
+          cd ${env:GITHUB_WORKSPACE}
+          .\automation\entry.ps1 ${env:GITHUB_RUN_NUMBER} ${env:GITHUB_REF}
+
+      - name: Artifact Retention
+        uses: actions/upload-artifact@v1
+        with:
+          name: deploy
+          path: release.ps1
+
+  NO_PROP:
+    if: github.ref == 'refs/heads/master'
+    name: Compose Test
+    needs: build
+    runs-on: windows-latest
+    steps:
+      - name: Download Artifacts
+        uses: actions/download-artifact@v1
+        with:
+          name: deploy
+    
+      - name: NO_PROP
+        run: |
+          cd ${env:GITHUB_WORKSPACE}\deploy
+          .\release.ps1 NO_PROP
+
+  WINDOWS:
+    if: github.ref == 'refs/heads/master'
+    name: Continuous Delivery
+    needs: [build, NO_PROP]
+    runs-on: windows-latest
+    steps:
+      - name: Download Artifacts
+        uses: actions/download-artifact@v1
+        with:
+          name: deploy
+    
+      - name: WINDOWS
+        shell: powershell # pwsh for PowerShell Core
+        run: |
+          cd ${env:GITHUB_WORKSPACE}\deploy
+          .\release.ps1 WINDOWS
