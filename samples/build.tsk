@@ -1,4 +1,4 @@
-echo "List Agent/Runner capabilites"
+echo "List Agent/Runner capabilities"
 $AUTOMATIONROOT/remote/capabilites.ps1
 
 echo "Clean Build workspace (not solution)"

@@ -29,7 +29,7 @@ jobs:
 
   NO_PROP:
     if: github.ref == 'refs/heads/master'
-    name: Compose Test
+    name: Verify nothing attempted when unknown Environment supplied
     needs: build
     runs-on: windows-latest
     steps:
@@ -45,7 +45,7 @@ jobs:
 
   WINDOWS:
     if: github.ref == 'refs/heads/master'
-    name: Continuous Delivery
+    name: Decryption Test from Sample
     needs: [build, NO_PROP]
     runs-on: windows-latest
     steps:
