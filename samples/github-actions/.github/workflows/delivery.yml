@@ -46,6 +46,7 @@ jobs:
           name: deploy
     
       - name: DOCKER
+        shell: powershell # pwsh for PowerShell Core
         run: |
           cd ${env:GITHUB_WORKSPACE}\deploy
           .\release.ps1 DOCKER

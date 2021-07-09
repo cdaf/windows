@@ -39,6 +39,7 @@ jobs:
           name: deploy
     
       - name: NO_PROP
+        shell: powershell # pwsh for PowerShell Core
         run: |
           cd ${env:GITHUB_WORKSPACE}\deploy
           .\release.ps1 NO_PROP

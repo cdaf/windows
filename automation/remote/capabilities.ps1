@@ -40,7 +40,7 @@ foreach($sProperty in $sOS) {
 	write-host "  ServicePackMajorVersion : $($sProperty.ServicePackMajorVersion)"
 }
 
-write-host "  PowerShell              : $($PSVersionTable.PSVersion.Major).$($PSVersionTable.PSVersion.Minor) $($PSVersionTable.PSEdition)"
+write-host "  PowerShell              : $($PSVersionTable.PSVersion.Major).$($PSVersionTable.PSVersion.Minor)"
 
 #Write-Host "`n[$scriptName] List the enabled roles`n"
 #$tempFile = "$env:temp\tempName.log"
