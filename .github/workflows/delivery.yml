@@ -31,7 +31,7 @@ jobs:
     if: github.ref == 'refs/heads/master'
     name: Compose Test
     needs: build
-    runs-on: windows-latest
+    runs-on: windows-2016
     steps:
       - name: Download Artifacts
         uses: actions/download-artifact@v1
@@ -47,7 +47,7 @@ jobs:
     if: github.ref == 'refs/heads/master'
     name: Continuous Delivery
     needs: [build, NO_PROP]
-    runs-on: windows-latest
+    runs-on: windows-2016
     steps:
       - name: Download Artifacts
         uses: actions/download-artifact@v1
