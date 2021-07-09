@@ -606,7 +606,8 @@ if ( $ACTION -ne 'container_build' ) {
 		Add-Content "release.ps1" 'if ( Test-Path "TasksLocal" ) { Remove-Item -Recurse TasksLocal }'
 		Add-Content "release.ps1" "Remove-Item ${SOLUTION}*.zip"
 		Add-Content "release.ps1" '$Content = [System.Convert]::FromBase64String($Base64)'
-		Add-Content "release.ps1" "Set-Content -Path '${SOLUTION}-${artifactPrefix}.${BUILDNUMBER}.zip' -Value `$Content -Encoding Byte"
+#		Add-Content "release.ps1" "Set-Content -Path '${SOLUTION}-${artifactPrefix}.${BUILDNUMBER}.zip' -Value `$Content -Encoding Byte"
+		Add-Content "release.ps1" "Set-Content -Path '${SOLUTION}-${artifactPrefix}.${BUILDNUMBER}.zip' -Value `$Content -AsByteStream"
 		Add-Content "release.ps1" 'Add-Type -AssemblyName System.IO.Compression.FileSystem'
 		Add-Content "release.ps1" "[System.IO.Compression.ZipFile]::ExtractToDirectory(`"`$PWD\${SOLUTION}-${artifactPrefix}.${BUILDNUMBER}.zip`", `"`$PWD`")"
 		Add-Content "release.ps1" '.\TasksLocal\delivery.bat "$ENVIRONMENT" "$RELEASE" "$OPT_ARG"'
