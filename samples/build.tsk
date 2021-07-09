@@ -1,5 +1,5 @@
 echo "List Agent/Runner capabilities"
-$AUTOMATIONROOT/remote/capabilites.ps1
+& $AUTOMATIONROOT\remote\capabilites.ps1
 
 echo "Clean Build workspace (not solution)"
 remove *.binary
