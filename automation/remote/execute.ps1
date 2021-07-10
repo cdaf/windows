@@ -80,11 +80,11 @@ function MAKDIR ($itemPath) {
 		} else {
 			Remove-Item $itemPath -Recurse -Force
 			if(!$?) { taskFailure "[$scriptName (MAKDIR)] Remove-Item $itemPath -Recurse -Force" 10002 }
-			mkdir $itemPath > $null
+			New-Item $itemPath -ItemType Directory > $null
 			if(!$?) { taskFailure "[$scriptName (MAKDIR)] (replace) $itemPath Creation failed" 10003 }
 		}	
 	} else {
-		mkdir $itemPath > $null
+		New-Item $itemPath -ItemType Directory > $null
 		if(!$?) { taskFailure "[$scriptName (MAKDIR)] $itemPath Creation failed" 10005 }
 	}
 }
@@ -120,18 +120,18 @@ function VECOPY ($from, $to, $notFirstRun) {
 					
 						# The existing path is a file, not a directory, delete the file and replace with a directory
 						Remove-Item $to -Recurse -Force
-						if(!$?) {taskFailure "[$scriptName (VECOPY)] Unable to remove existing file $to to replace with directory!" 10007 }
+						if(!$?) { ERRMSG "[REPLACE_FILE_WITH_DIR] Unable to remove existing file $to to replace with directory!" 10007 }
 						Write-Host "  $from --> $to (replace file with directory)" 
-						mkdir $to > $null
-						if(!$?) {taskFailure "[$scriptName (VECOPY)] (replace) $to Creation failed" 10008 }
+						New-Item $to -ItemType Directory > $null
+						if(!$?) { ERRMSG "[REPLACE_DIR_HALT] $to Creation failed" 10008 }
 					}
 				}
 				
 				# Previous process may have changed the target, so retest and if still not existing, create it	
 				if ( ! (Test-Path $to)) {
 					Write-Host "  $from --> $to"
-					mkdir $to > $null
-					if(!$?) {taskFailure "[$scriptName (VECOPY)] $to Creation failed" 10009 }
+					New-Item $to -ItemType Directory > $null
+					if(!$?) { ERRMSG "[MAKE_DIR_HALT] $to Creation failed" 10009 }
 				}
 		
 				foreach ($child in (Get-ChildItem -Path "$from" -Name )) {
@@ -139,16 +139,21 @@ function VECOPY ($from, $to, $notFirstRun) {
 				}
 				
 			} else {
-		
+
+				$toParent = Split-Path $to
+				if (( $toParent ) -and ( ! (Test-Path $toParent))) { # do not try to create directory is $to is root (c:\) or current directory (.)
+					New-Item $toParent -ItemType Directory > $null
+				}
+
 				Write-Host "  $from --> $to" 
 				Copy-Item $from $to -force -recurse
-				if(!$?){ executeExpression "dir $from" ; executeExpression "dir $to" ; taskFailure "[$scriptName (VECOPY)] Copy remote script $from --> $to" 10010 }
+				if(!$?){ executeExpression "dir $from" ; executeExpression "dir $to" ; ERRMSG "[COPY_HALT] Copy remote script $from --> $to" 10010 }
 				
 			}
 		} else {
-			taskException "VECOPY_SOURCE_NOT_FOUND $from"
+			ERRMSG "[VECOPY_SOURCE_NOT_FOUND] $from" 100011
 		}
-	} catch { taskException "VECOPY_TRAP" $_ }
+	} catch { ERRMSG "[VECOPY_TRAP] $($_.Exception.Message)" 100012 }
 }
 
 
