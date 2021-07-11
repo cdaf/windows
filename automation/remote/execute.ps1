@@ -145,9 +145,19 @@ function VECOPY ($from, $to, $notFirstRun) {
 					New-Item $toParent -ItemType Directory > $null
 				}
 
-				Write-Host "  $from --> $to" 
-				Copy-Item $from $to -force -recurse
-				if(!$?){ executeExpression "dir $from" ; executeExpression "dir $to" ; ERRMSG "[COPY_HALT] Copy remote script $from --> $to" 10010 }
+				if ( Test-Path $to ) {
+					if ( (Get-Item $from).FullName -eq (Get-Item $to).FullName ) {
+						Write-Host "  $from --> $to are the same, do not attempt to copy file over itself" 
+					} else {
+						Write-Host "  $from --> $to (replace)" 
+						Copy-Item $from $to -force -recurse
+						if(!$?){ executeExpression "dir $from" ; executeExpression "dir $to" ; ERRMSG "[COPY_HALT] Copy remote script $from --> $to" 10010 }
+					}
+				} else {
+					Write-Host "  $from --> $to" 
+					Copy-Item $from $to -force -recurse
+					if(!$?){ executeExpression "dir $from" ; executeExpression "dir $to" ; ERRMSG "[COPY_HALT] Copy remote script $from --> $to" 10010 }
+				}
 				
 			}
 		} else {
