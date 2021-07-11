@@ -104,7 +104,6 @@ function VECOPY ($from, $to, $notFirstRun) {
 
 			if (Test-Path $from -PathType "Container") {
 
-				Write-host "DEBUG Directory Copy"
 				if ( Test-Path $to ) {
 
 					# If this is the first call, i.e. at the root of the source and the target exists, and is a folder,
@@ -141,15 +140,12 @@ function VECOPY ($from, $to, $notFirstRun) {
 
 			} else {
 
-				Write-host "DEBUG File Copy"
-
 				$toParent = Split-Path $to
 				if (( $toParent ) -and ( ! (Test-Path $toParent))) { # do not try to create directory is $to is root (c:\) or current directory (.)
 					New-Item $toParent -ItemType Directory > $null
 				}
 
 				if ( Test-Path $to ) {
-					Write-host "DEBUG $((Get-Item $from).FullName) -eq $((Get-Item $to).FullName)"
 					if ( (Get-Item $from).FullName -eq (Get-Item $to).FullName ) {
 						Write-Host "  $from --> $to are the same, do not attempt to copy file over itself" 
 					} else {
