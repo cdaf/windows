@@ -101,23 +101,24 @@ function REMOVE ($itemPath) {
 function VECOPY ($from, $to, $notFirstRun) {
 	try {
 		if ( Test-Path $from ) {
-	
+
 			if (Test-Path $from -PathType "Container") {
-		
+
+				Write-host "DEBUG Directory Copy"
 				if ( Test-Path $to ) {
-				
+
 					# If this is the first call, i.e. at the root of the source and the target exists, and is a folder,
 					# recursive copy into a subfolder, else recursive call into root of the target 
 					if (Test-Path $to -PathType "Container") {
-					
+
 						# Only create a subdirectory if the root exists, otherwise copy into the root
 						if (! ($notFirstRun)) {
 							$fromLeaf = Split-Path "$from" -Leaf
 							$to = "$to\$fromLeaf"
 						}
-						
+
 					} else {
-					
+
 						# The existing path is a file, not a directory, delete the file and replace with a directory
 						Remove-Item $to -Recurse -Force
 						if(!$?) { ERRMSG "[REPLACE_FILE_WITH_DIR] Unable to remove existing file $to to replace with directory!" 10007 }
@@ -126,23 +127,22 @@ function VECOPY ($from, $to, $notFirstRun) {
 						if(!$?) { ERRMSG "[REPLACE_DIR_HALT] $to Creation failed" 10008 }
 					}
 				}
-				
+
 				# Previous process may have changed the target, so retest and if still not existing, create it	
 				if ( ! (Test-Path $to)) {
 					Write-Host "  $from --> $to"
 					New-Item $to -ItemType Directory > $null
 					if(!$?) { ERRMSG "[MAKE_DIR_HALT] $to Creation failed" 10009 }
 				}
-		
+
 				foreach ($child in (Get-ChildItem -Path "$from" -Name )) {
 					VECOPY "$from\$child" "$to\$child" $true
 				}
-				
+
 			} else {
 
-
 				Write-host "DEBUG File Copy"
-			
+
 				$toParent = Split-Path $to
 				if (( $toParent ) -and ( ! (Test-Path $toParent))) { # do not try to create directory is $to is root (c:\) or current directory (.)
 					New-Item $toParent -ItemType Directory > $null
@@ -162,14 +162,13 @@ function VECOPY ($from, $to, $notFirstRun) {
 					Copy-Item $from $to -force -recurse
 					if(!$?){ ERRMSG "[COPY_HALT] Copy remote script $from --> $to" 10010 }
 				}
-				
+
 			}
 		} else {
 			ERRMSG "[VECOPY_SOURCE_NOT_FOUND] $from" 100011
 		}
 	} catch { ERRMSG "[VECOPY_TRAP] $($_.Exception.Message)" 100012 }
 }
-
 
 # Refresh Directory, function arguments differ depending on number passed
 function REFRSH ( $arg1, $arg2 )
