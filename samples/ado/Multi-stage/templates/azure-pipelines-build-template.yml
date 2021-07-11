@@ -21,7 +21,9 @@ jobs:
         inputs:
           targetType: 'inline' # Optional. Options: filePath, inline
           script: |
-            entry $(Build.BuildNumber) $(Build.SourceBranch) staging@$(Build.ArtifactStagingDirectory)
+            $env:CDAF_PATH = '.\automation'
+            . { iwr -useb https://raw.githubusercontent.com/cdaf/windows/master/installCDAF.ps1 } | iex
+            .\automation\entry.ps1 $(Build.BuildNumber) $(Build.SourceBranch) staging@$(Build.ArtifactStagingDirectory)
 
 #          "In-source" implemenation
 #          targetType: filePath
