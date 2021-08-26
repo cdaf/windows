@@ -10,7 +10,6 @@ function taskException ($taskName, $exception) {
 	exit 9991
 }
 
-
 # Consolidated Error processing function
 function ERRMSG ($message, $exitcode) {
 	if ( $exitcode ) {

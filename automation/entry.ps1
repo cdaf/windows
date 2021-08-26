@@ -12,6 +12,7 @@ Import-Module Microsoft.PowerShell.Security
 cmd /c "exit 0"
 $error.clear()
 $scriptName = 'entry.ps1'
+$env:CDAF_DEBUG_LOGGING = "[$(Get-Date)] Debug Logging Started`n"
 
 # Consolidated Error processing function
 function errorClear ($message, $exitcode) {
@@ -35,37 +36,106 @@ function errorClear ($message, $exitcode) {
 	}
 }
 
+# Consolidated Error processing function
+function ERRMSG ($message, $exitcode) {
+	if ( $exitcode ) {
+		Write-Host "`n[$scriptName]$message" -ForegroundColor Red
+	} else {
+		Write-Host "`n[$scriptName]$message" -ForegroundColor Yellow
+	}
+
+	if ( $env:CDAF_DEBUG_LOGGING ) {
+		Write-Host "`n[$scriptName] Print Debug Logging `$env:CDAF_DEBUG_LOGGING`n"
+		Write-HOst $env:CDAF_DEBUG_LOGGING
+	}
+
+	if ( $error ) {
+		$i = 0
+		foreach ( $item in $Error )
+		{
+			Write-Host "`$Error[$i] $item"
+			$i++
+		}
+		$Error.clear()
+	}
+	if ( $env:CDAF_ERROR_DIAG ) {
+		Write-Host "`n[$scriptName] Invoke custom diag `$env:CDAF_ERROR_DIAG = $env:CDAF_ERROR_DIAG`n"
+		Invoke-Expression $env:CDAF_ERROR_DIAG
+	}
+	if ( $exitcode ) {
+		Write-Host "`n[$scriptName] Exit with LASTEXITCODE = $exitcode`n" -ForegroundColor Red
+		exit $exitcode
+	}
+}
+
 # Common expression logging and error handling function, copied, not referenced to ensure atomic process
 function executeExpression ($expression) {
 	Write-Host "[$(Get-Date)] $expression"
 	try {
-		Invoke-Expression "$expression"
-	    if(!$?) { errorClear "[TRAP] `$? = $?" 1211 }
+		Invoke-Expression $expression
+	    if(!$?) { ERRMSG "[TRAP] `$? = $?" 1211 }
 	} catch {
 		$message = $_.Exception.Message
+		$_.Exception | format-list -force
+		$_.Exception.StackTrace
 		if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) {
-			errorClear "[EXCEPTION] $message" $LASTEXITCODE
+			ERRMSG "[EXCEPTION] $message" $LASTEXITCODE
 		} else {
-			errorClear "[EXCEPTION] $message" 1212
+			ERRMSG "[EXCEPTION] $message" 1212
 		}
 	}
     if ( $LASTEXITCODE ) {
     	if ( $LASTEXITCODE -ne 0 ) {
-			errorClear "[EXIT]" $LASTEXITCODE
+			ERRMSG "[EXIT] `$LASTEXITCODE is $LASTEXITCODE" $LASTEXITCODE
 		} else {
 			if ( $error ) {
-				errorClear "[WARN] `$LASTEXITCODE is $LASTEXITCODE, but standard error populated"
+				ERRMSG "[WARN] `$LASTEXITCODE is $LASTEXITCODE, but standard error populated"
 			}
 		} 
 	} else {
 	    if ( $error ) {
 	    	if ( $env:CDAF_IGNORE_WARNING -eq 'no' ) {
-				errorClear "[ERROR] `$env:CDAF_IGNORE_WARNING is 'no' so exiting" 1213
+				ERRMSG "[ERROR] `$env:CDAF_IGNORE_WARNING is 'no' so exiting" 1213
 	    	} else {
-				errorClear "[WARN] `$LASTEXITCODE not set, but standard error populated"
+				ERRMSG "[WARN] `$LASTEXITCODE not set, but standard error populated"
 	    	}
 		}
 	}
+}
+
+function executeReturn ($expression) {
+	Write-Host "[$(Get-Date)] $expression"
+	try {
+		$return = Invoke-Expression $expression
+	    if(!$?) { ERRMSG "[RET_TRAP] `$? = $?" 1211 }
+	} catch {
+		$message = $_.Exception.Message
+		$_.Exception | format-list -force
+		$_.Exception.StackTrace
+		if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) {
+			ERRMSG "[RET_EXCEPTION] $message" $LASTEXITCODE
+		} else {
+			ERRMSG "[RET_EXCEPTION] $message" 1212
+		}
+	}
+    if ( $LASTEXITCODE ) {
+    	if ( $LASTEXITCODE -ne 0 ) {
+			ERRMSG "[RET_EXIT] `$LASTEXITCODE is $LASTEXITCODE" $LASTEXITCODE
+		} else {
+			if ( $error ) {
+				ERRMSG "[RET_WARN] `$LASTEXITCODE is $LASTEXITCODE, but standard error populated"
+			}
+		} 
+	} else {
+	    if ( $error ) {
+	    	if ( $env:CDAF_IGNORE_WARNING -eq 'no' ) {
+				ERRMSG "[RET_ERROR] `$env:CDAF_IGNORE_WARNING is 'no' so exiting" 1213
+	    	} else {
+				ERRMSG "[RET_WARN] `$LASTEXITCODE not set, but standard error populated"
+	    	}
+		}
+	}
+	return $return
 }
 
 # Common expression logging and error handling function, copied, not referenced to ensure atomic process
@@ -256,6 +326,7 @@ if ( $skipBranchCleanup ) {
 		if ( $gitRemoteURL.contains('$')) {
 			$gitRemoteURL = Invoke-Expression "Write-Output ${gitRemoteURL}"
 		}
+		$env:CDAF_DEBUG_LOGGING += "[LOAD_URL] gitRemoteURL = $gitRemoteURL`n"
 
 		if (!( $gitRemoteURL )) {
 			Write-Host "[$scriptName] gitRemoteURL defined in $SOLUTIONROOT/CDAF.solution but not unresolved, skipping clean-up ..."
@@ -266,18 +337,20 @@ if ( $skipBranchCleanup ) {
 				Write-Host "[$scriptName]   gitRemoteURL defined, but gitUserNameEnvVar not defined, relying on current workspace being up to date"
 			} else {
 				$userName = Invoke-Expression "Write-Output ${gitUserNameEnvVar}"
+				$env:CDAF_DEBUG_LOGGING += "[USERNAME_LOADED] userName = $userName`n"
 				if (!( $userName )) {
 					Write-Host "[$scriptName]   $gitUserNameEnvVar contains no value, relying on current workspace being up to date"
 				} else {
 					$userName = $userName.replace("@","%40")
 					if (!( $gitUserPassEnvVar )) { Write-Error "[$scriptName]   gitUserNameEnvVar defined, but gitUserPassEnvVar not defined in $SOLUTIONROOT/CDAF.solution!"; exit 6921 }
-					# Write-Host "[$scriptName][DEBUG]   `$gitUserPassEnvVar = $gitUserPassEnvVar"
+					$env:CDAF_DEBUG_LOGGING += "[PASSLOADER] gitUserPassEnvVar = $gitUserPassEnvVar`n"
 					$userPass = Invoke-Expression "Write-Output ${gitUserPassEnvVar}"
+					$env:CDAF_DEBUG_LOGGING += "[PASS_SET] userPass = $(mask $userPass) (MD5MSK)`n"
 					if (!( $userPass )) {
 						Write-Host "[$scriptName]   $gitUserPassEnvVar contains no value, relying on current workspace being up to date"
 					} else {
 						$urlWithCreds = "https://${userName}:${userPass}@$($gitRemoteURL.Replace('https://', ''))"
-						# Write-Host "[$scriptName][DEBUG]   `$userPass = $(mask $userPass) (MD5MASK)"
+						$env:CDAF_DEBUG_LOGGING += "[SET_URL] urlWithCreds = $urlWithCreds`n"
 					}
 				}
 			}
@@ -299,6 +372,7 @@ if ( $skipBranchCleanup ) {
 						$cacheDir = "$env:TEMP\.cdaf-cache"
 					}
 					$gitRemoteURL = $gitRemoteURL.Trim('/') # remove trailing /                                          # remove trailing /
+					$env:CDAF_DEBUG_LOGGING += "[DETACHED_HEAD_URL] gitRemoteURL = $gitRemoteURL`n"
 					$tempParent = (Split-Path -Path $gitRemoteURL -Parent).Replace('https:\', $cacheDir) # retain parent directory for create if required
 					$repoName = $gitRemoteURL.Split('/')[-1].Split('.')[0]                               # retrieve basename and remove extension
 					$cacheDir = $tempParent + '\' + $repoName                                            # ensure cache directory is unique by using URI
@@ -322,10 +396,9 @@ if ( $skipBranchCleanup ) {
 						}
 					}
 					executeExpression "git fetch --prune '${urlWithCreds}'"
-					$usingCache = $(git log -n 1 --pretty=%d HEAD 2>$null)
+					$usingCache = executeReturn 'git log -n 1 --pretty=%d HEAD 2>$null'
 					if ( $LASTEXITCODE -ne 0 ) { Write-Error "[$scriptName] Git cache update failed!"; exit 6924 }			
-					Write-Host "[$scriptName] Load Remote branches using cache (git ls-remote --heads origin)`n"
-					$lsRemote = $(git ls-remote --heads origin)
+					$lsRemote = executeReturn "git ls-remote --heads '${urlWithCreds}'"
 				}
 
 			} else {
@@ -334,12 +407,10 @@ if ( $skipBranchCleanup ) {
 				Write-Host "[$scriptName] Refresh Remote branches`n"
 				if (!($userName)) {
 					executeExpression "git fetch --prune"
-					Write-Host "[$scriptName] Load Remote branches (git ls-remote --heads origin)`n"
-					$lsRemote = $(git ls-remote --heads origin)
+					$lsRemote = executeReturn "git ls-remote --heads origin"
 				} else {
 					executeExpression "git fetch --prune '${urlWithCreds}'"
-					Write-Host "[$scriptName] Load Remote branches (git ls-remote --heads ${urlWithCreds})`n"
-					$lsRemote = $(git ls-remote --heads "${urlWithCreds}")
+					$lsRemote = executeReturn "git ls-remote --heads '${urlWithCreds}'"
 				}
 
 			}
@@ -351,7 +422,7 @@ if ( $skipBranchCleanup ) {
 						$remoteArray += $remoteBranch.Split('/')[-1]
 					}
 				}
-				if (!( $remoteArray )) { Write-Error "[$scriptName] git ls-remote --heads origin provided no branches!"; exit 6925 }
+				if (!( $remoteArray )) { Write-Error "[$scriptName] git ls-remote --heads provided no branches!"; exit 6925 }
 				foreach ($remoteBranch in $remoteArray) { # verify array contents
 					Write-Host "  $remoteBranch"
 				}
