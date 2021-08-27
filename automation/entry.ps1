@@ -323,10 +323,9 @@ if ( $skipBranchCleanup ) {
 	if (!( $gitRemoteURL )) {
 		Write-Host "[$scriptName] gitRemoteURL not defined in $SOLUTIONROOT/CDAF.solution, skipping clean-up ..."
 	} else {
-		if ( $gitRemoteURL.contains('$')) {
-			$gitRemoteURL = Invoke-Expression "Write-Output ${gitRemoteURL}"
-		}
-		$env:CDAF_DEBUG_LOGGING += "[LOAD_URL] gitRemoteURL = $gitRemoteURL`n"
+		$env:CDAF_DEBUG_LOGGING += "[URL_VAR] gitRemoteURL = $gitRemoteURL`n"
+		$gitRemoteURL = Invoke-Expression "Write-Output ${gitRemoteURL}"
+		$env:CDAF_DEBUG_LOGGING += "[URL_LOADED] gitRemoteURL = $gitRemoteURL`n"
 
 		if (!( $gitRemoteURL )) {
 			Write-Host "[$scriptName] gitRemoteURL defined in $SOLUTIONROOT/CDAF.solution but not unresolved, skipping clean-up ..."
@@ -336,6 +335,7 @@ if ( $skipBranchCleanup ) {
 			if (!( $gitUserNameEnvVar )) {
 				Write-Host "[$scriptName]   gitRemoteURL defined, but gitUserNameEnvVar not defined, relying on current workspace being up to date"
 			} else {
+				$env:CDAF_DEBUG_LOGGING += "[USERNAME_VAR] gitUserNameEnvVar = $gitUserNameEnvVar`n"
 				$userName = Invoke-Expression "Write-Output ${gitUserNameEnvVar}"
 				$env:CDAF_DEBUG_LOGGING += "[USERNAME_LOADED] userName = $userName`n"
 				if (!( $userName )) {
@@ -343,9 +343,9 @@ if ( $skipBranchCleanup ) {
 				} else {
 					$userName = $userName.replace("@","%40")
 					if (!( $gitUserPassEnvVar )) { Write-Error "[$scriptName]   gitUserNameEnvVar defined, but gitUserPassEnvVar not defined in $SOLUTIONROOT/CDAF.solution!"; exit 6921 }
-					$env:CDAF_DEBUG_LOGGING += "[PASSLOADER] gitUserPassEnvVar = $gitUserPassEnvVar`n"
+					$env:CDAF_DEBUG_LOGGING += "[PASS_VAR] gitUserPassEnvVar = $gitUserPassEnvVar`n"
 					$userPass = Invoke-Expression "Write-Output ${gitUserPassEnvVar}"
-					$env:CDAF_DEBUG_LOGGING += "[PASS_SET] userPass = $userPass`n"
+					$env:CDAF_DEBUG_LOGGING += "[PASS_LOADED] userPass = $userPass`n"
 					$env:CDAF_DEBUG_LOGGING += "[PASS_MASK] userPass = $(mask $userPass) (MD5MSK)`n"
 					if (!( $userPass )) {
 						Write-Host "[$scriptName]   $gitUserPassEnvVar contains no value, relying on current workspace being up to date"

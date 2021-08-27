@@ -12,6 +12,7 @@ stages:
   - group: Git Reader
   jobs:
   - template: templates/azure-pipelines-build-template.yml
+    # Secrets can be passed as parameters, making then variables in template, therefore loadable as environment variables
     parameters:
       GIT_USER: $[variables.GIT_USER]
       GIT_PASS: $[variables.GIT_PASS]

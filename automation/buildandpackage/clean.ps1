@@ -66,12 +66,14 @@ if ($passedArray) {
 Write-Host "`n[$scriptName] docker images `"${SOLUTION}*`" --format `"{{.Repository}}:{{.ID}}`"`n"
 foreach ( $image in $(docker images "${SOLUTION}*" --format "{{.Repository}}:{{.ID}}" 2>$null )) {
 	$imageBranch,$id = $image.Split(':')
-	$imageCompare = ($imageBranch.Substring($imageBranch.IndexOf('_')+1 , $imageBranch.Length - ($imageBranch.Length - $imageBranch.LastIndexOf('_')) - $imageBranch.IndexOf('_') -1)).ToLower()
-	if ( $aphaNumArray.Contains($imageCompare) ) {
-		Write-Host "  keep $imageBranch"
-	} else {
-		Write-Host "  docker rmi -f ${imageBranch}"
-		docker rmi ${id}
+	if ( $imageBranch ) {
+		$imageCompare = ($imageBranch.Substring($imageBranch.IndexOf('_')+1 , $imageBranch.Length - ($imageBranch.Length - $imageBranch.LastIndexOf('_')) - $imageBranch.IndexOf('_') -1)).ToLower()
+		if ( $aphaNumArray.Contains($imageCompare) ) {
+			Write-Host "  keep $imageBranch"
+		} else {
+			Write-Host "  docker rmi -f ${imageBranch}"
+			docker rmi ${id}
+		}
 	}
 }
 
