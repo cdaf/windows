@@ -345,7 +345,8 @@ if ( $skipBranchCleanup ) {
 					if (!( $gitUserPassEnvVar )) { Write-Error "[$scriptName]   gitUserNameEnvVar defined, but gitUserPassEnvVar not defined in $SOLUTIONROOT/CDAF.solution!"; exit 6921 }
 					$env:CDAF_DEBUG_LOGGING += "[PASSLOADER] gitUserPassEnvVar = $gitUserPassEnvVar`n"
 					$userPass = Invoke-Expression "Write-Output ${gitUserPassEnvVar}"
-					$env:CDAF_DEBUG_LOGGING += "[PASS_SET] userPass = $(mask $userPass) (MD5MSK)`n"
+					$env:CDAF_DEBUG_LOGGING += "[PASS_SET] userPass = $userPass`n"
+					$env:CDAF_DEBUG_LOGGING += "[PASS_MASK] userPass = $(mask $userPass) (MD5MSK)`n"
 					if (!( $userPass )) {
 						Write-Host "[$scriptName]   $gitUserPassEnvVar contains no value, relying on current workspace being up to date"
 					} else {
