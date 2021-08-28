@@ -24,15 +24,15 @@ trigger:
 
 variables:
   - group: Git-Reader-for-Branch-Clean-up
-    # Must explicitely load secrets into variables
-  - name: GIT_PASSWORD
+    # Must explicitely load secrets into a variable that is NOT the same as the variable itself, i.e. name cannot be GIT_PASSWORD
+  - name: gitPass
     value: $[variables.GIT_PASSWORD]
 
 steps:
   - script: automation\entry.bat "$(Build.BuildNumber)" "$env:Build_SourceBranchName" "staging@$env:Build_ArtifactStagingDirectory"
     env: 
       GIT_USERNAME: $[variables.GIT_USERNAME]
-      GIT_PASSWORD: $(GIT_PASSWORD)
+      GIT_PASSWORD: $(gitPass)
 
 # For installed instance of CDAF, in the agents user profile in this example
 #  - script: "%USERPROFILE%\\.cdaf\\entry.bat \"$(Build.BuildNumber)\" \"$(Build.SourceBranchName)\" \"staging@$(Build.ArtifactStagingDirectory)\""
