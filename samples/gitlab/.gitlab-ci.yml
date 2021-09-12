@@ -8,7 +8,9 @@ cdaf-ci:
   stage: build
   tags:
     - batch
-  script: "automation/entry.bat %CI_BUILD_ID% %CI_BUILD_REF_NAME%"
+  script: |
+    . { iwr -useb https://cdaf.io/static/app/downloads/cdaf.ps1 } | iex
+    ./automation/entry.bat %CI_BUILD_ID% %CI_BUILD_REF_NAME%
   artifacts:
     paths:
     - release.ps1
