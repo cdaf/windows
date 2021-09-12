@@ -285,6 +285,14 @@ if ($environment) {
 	}
 }
 
+if ( $defaultBranch ) {
+	$defaultBranch = Invoke-Expression "Write-Output $defaultBranch"
+	Write-Host "[$scriptName]   defaultBranch  : $defaultBranch"
+} else {
+	$defaultBranch = 'master'
+	Write-Host "[$scriptName]   defaultBranch  : $defaultBranch (not set, default applied)"
+}
+
 if ( ${solutionName} ) {
 	$SOLUTION = $solutionName
 	Write-Host "[$scriptName]   SOLUTION       : $SOLUTION"
@@ -300,16 +308,10 @@ Write-Host "[$scriptName]   whoami         : $(whoami)`n"
 
 executeExpression "$AUTOMATIONROOT\processor\buildPackage.ps1 '$BUILDNUMBER' '$BRANCH' '$ACTION' -AUTOMATIONROOT '$AUTOMATIONROOT'"
 
-if ( $defaultBranch ) {
-	$defaultBranch = Invoke-Expression "Write-Output $defaultBranch"
-} else {
-	$defaultBranch = 'master'
-}
-
 if ( $BRANCH -eq $defaultBranch ) {
 	Write-Host "[$scriptName] Only perform container test in CI for branches, $defaultBranch execution in CD pipeline"
 } else {
-	Write-Host "[$scriptName] Only perform container test in CI for feature branches, CD for branch $BRANCH"
+	Write-Host "[$scriptName] Performing container test in CI for feature branch ($BRANCH), CD for branch $defaultBranch"
 	if ( $artifactPrefix ) {
 		executeExpression ".\release.ps1 $environment"
 	} else {
