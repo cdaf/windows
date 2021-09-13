@@ -357,7 +357,7 @@ function IMGTXT ($imageFile, $palette) {
 	if (!($palette)) { $palette = "shade" } # choose a palette, "ascii" or "shade" 
 	$ratio = 1.5        # 1.5 means char height is 1.5 x width
 	if ( Test-Path $imageFile ) {
-		$imageFile = $(Get-Item background.jng).FullName
+		$imageFile = $(Get-Item $imageFile).FullName
 	} else {
 		Write-Host "imageToText imageFile $imageFile not found! Exit with 9997."
 		exit 9997
