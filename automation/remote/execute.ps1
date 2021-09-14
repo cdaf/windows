@@ -358,6 +358,7 @@ function IMGTXT ($imageFile, $palette) {
 	$ratio = 1.5        # 1.5 means char height is 1.5 x width
 	if ( Test-Path $imageFile ) {
 		$imageFile = $(Get-Item $imageFile).FullName
+		Write-Host "  $imageFile ...`n"
 	} else {
 		Write-Host "imageToText imageFile $imageFile not found! Exit with 9997."
 		exit 9997
