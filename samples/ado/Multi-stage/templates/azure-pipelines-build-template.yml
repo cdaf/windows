@@ -20,6 +20,11 @@ jobs:
           GIT_PASS: $(GIT_PASS)
         inputs:
           targetType: 'inline' # Optional. Options: filePath, inline
+
+#          script: |
+#            . { iwr -useb https://cdaf.io/static/app/downloads/cdaf.ps1 } | iex
+#            ./automation/entry.bat %CI_BUILD_ID% %CI_BUILD_REF_NAME%
+
           script: |
             $env:CDAF_PATH = '.\automation'
             . { iwr -useb https://raw.githubusercontent.com/cdaf/windows/master/installCDAF.ps1 } | iex

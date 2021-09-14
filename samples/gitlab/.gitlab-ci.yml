@@ -8,6 +8,12 @@ cdaf-ci:
   stage: build
   tags:
     - batch
+
+#  script: |
+#    $env:CDAF_PATH = '.\automation'
+#    . { iwr -useb https://raw.githubusercontent.com/cdaf/windows/master/installCDAF.ps1 } | iex
+#    .\automation\entry.ps1 $(Build.BuildNumber) $(Build.SourceBranch) staging@$(Build.ArtifactStagingDirectory)
+
   script: |
     . { iwr -useb https://cdaf.io/static/app/downloads/cdaf.ps1 } | iex
     ./automation/entry.bat %CI_BUILD_ID% %CI_BUILD_REF_NAME%
