@@ -297,6 +297,22 @@ if ( $REMOTE_WORK_DIR ) {
 	Write-Host "[$scriptName]   REMOTE_WORK_DIR : $REMOTE_WORK_DIR (default)"
 }
 
+$prebuild = "$SOLUTIONROOT\prebuild.tsk"
+Write-Host -NoNewLine "[$scriptName]   Pre-build Task  : " 
+if (Test-Path "$prebuild") {
+	Write-Host "found ($prebuild)"
+} else {
+	Write-Host "none ($prebuild)"
+}
+
+$postbuild = "$SOLUTIONROOT\postbuild.tsk"
+Write-Host -NoNewLine "[$scriptName]   Post-build Task : " 
+if (Test-Path "$postbuild") {
+	Write-Host "found ($postbuild)"
+} else {
+	Write-Host "none ($postbuild)"
+}
+
 # Load automation root as environment variable
 $env:CDAF_AUTOMATION_ROOT = $AUTOMATIONROOT
 Write-Host "[$scriptName]   AUTOMATIONROOT  : $AUTOMATIONROOT" 
@@ -308,6 +324,13 @@ Write-Host "[$scriptName]   whoami          : $(whoami)"
 
 $cdafVersion = getProp 'productVersion' "$AUTOMATIONROOT\CDAF.windows"
 Write-Host "[$scriptName]   CDAF Version    : $cdafVersion"
+
+# Process optional post-packaging tasks (Task driver support added in release 2.4.4)
+if (Test-Path "$prebuild") {
+	Write-Host "`n[$scriptName] Process Pre-Build Task ...`n"
+	& $AUTOMATIONROOT\remote\execute.ps1 $SOLUTION $BUILDNUMBER "package" "$prebuild" $ACTION
+	if(!$?){ exceptionExit ".$AUTOMATIONROOT\remote\execute.ps1 $SOLUTION $BUILDNUMBER `"package`" `"$prebuild`" $ACTION" }
+}
 
 $containerImage = getProp 'containerImage' "$SOLUTIONROOT\CDAF.solution"
 if ( $containerImage ) {
@@ -378,6 +401,14 @@ foreach ($propertiesDriver in $pivotList) {
 if ( $ACTION -eq 'container_build' ) {
 	Write-Host "`n[$scriptName] `$ACTION = $ACTION, container build detection skipped ...`n"
 } else {
+
+	# Process optional post-packaging tasks (Task driver support added in release 2.4.4)
+	if (Test-Path "$postbuild") {
+		Write-Host "`n[$scriptName] Process Post-Build Task ...`n"
+		& $AUTOMATIONROOT\remote\execute.ps1 $SOLUTION $BUILDNUMBER "package" "$postbuild" $ACTION
+		if(!$?){ exceptionExit ".$AUTOMATIONROOT\remote\execute.ps1 $SOLUTION $BUILDNUMBER `"package`" `"$postbuild`" $ACTION" }
+	}
+
 	$containerBuild = getProp 'containerBuild' "$SOLUTIONROOT\CDAF.solution"
 	if ( $containerBuild ) {
 		if (( $env:CDAF_SKIP_CONTAINER_BUILD ) -or ( $ACTION -eq 'skip_container_build' )) {

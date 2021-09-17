@@ -73,6 +73,9 @@ Runtime variables, automatically set
 
 buildProjects: (optional, all directories containing build.ps1 or build.tsk will be processed). The build sequence can be controlled using the optional file, buildProjects. Note: build projects entries needs to be the directory name and not the project name.
 
+	prebuild.tsk : optional pre-build tasks definition (2.4.4)
+	postbuild.tsk : optional pre-build tasks definition (2.4.4)
+
 Linear Deploy requires properties file for workstation (default is DEV) to be a match (not partial match as per repeatable deploy). Transform.ps1 utility can be used to load all defined properties.
 
 Package: (files maybe empty or non-existent)
