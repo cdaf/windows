@@ -590,17 +590,6 @@ Foreach ($line in get-content $TASK_LIST) {
 					Invoke-Expression "$expression"
 					if(!$?) { ERRMSG "[TRAP] `$? = $?" 1211 }
 				} catch {
-
-					if ( $error ) {
-						$i = 0
-						foreach ( $item in $Error )
-						{
-							Write-Host "`$Error[$i] $item"
-							$i++
-						}
-						$Error.clear()
-					}
-									
 					$message = $_.Exception.Message
 					$_.Exception | format-list -force
 					$_.Exception.StackTrace
