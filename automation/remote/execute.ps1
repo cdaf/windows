@@ -47,25 +47,25 @@ function executeExpression ($expression) {
 		$_.Exception | format-list -force
 		$_.Exception.StackTrace
 		if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) {
-			ERRMSG "[EXCEPTION] $message" $LASTEXITCODE
+			ERRMSG "[EXEC][EXCEPTION] $message" $LASTEXITCODE
 		} else {
-			ERRMSG "[EXCEPTION] $message" 1212
+			ERRMSG "[EXEC][EXCEPTION] $message" 1212
 		}
 	}
     if ( $LASTEXITCODE ) {
     	if ( $LASTEXITCODE -ne 0 ) {
-			ERRMSG "[EXIT] `$LASTEXITCODE is $LASTEXITCODE" $LASTEXITCODE
+			ERRMSG "[EXEC][EXIT] `$LASTEXITCODE is $LASTEXITCODE" $LASTEXITCODE
 		} else {
 			if ( $error ) {
-				ERRMSG "[WARN] `$LASTEXITCODE is $LASTEXITCODE, but standard error populated"
+				ERRMSG "[EXEC][WARN] `$LASTEXITCODE is $LASTEXITCODE, but standard error populated"
 			}
 		} 
 	} else {
 	    if ( $error ) {
 	    	if ( $env:CDAF_IGNORE_WARNING -eq 'no' ) {
-				ERRMSG "[ERROR] `$env:CDAF_IGNORE_WARNING is 'no' so exiting" 1213
+				ERRMSG "[EXEC][ERROR] `$env:CDAF_IGNORE_WARNING is 'no' so exiting" 1213
 	    	} else {
-				ERRMSG "[WARN] `$LASTEXITCODE not set, but standard error populated"
+				ERRMSG "[EXEC][WARN] `$LASTEXITCODE not set, but standard error populated"
 	    	}
 		}
 	}
@@ -590,6 +590,17 @@ Foreach ($line in get-content $TASK_LIST) {
 					Invoke-Expression "$expression"
 					if(!$?) { ERRMSG "[TRAP] `$? = $?" 1211 }
 				} catch {
+
+					if ( $error ) {
+						$i = 0
+						foreach ( $item in $Error )
+						{
+							Write-Host "`$Error[$i] $item"
+							$i++
+						}
+						$Error.clear()
+					}
+									
 					$message = $_.Exception.Message
 					$_.Exception | format-list -force
 					$_.Exception.StackTrace
