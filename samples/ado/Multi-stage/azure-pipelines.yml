@@ -12,10 +12,6 @@ stages:
   - group: Git Reader
   jobs:
   - template: templates/azure-pipelines-build-template.yml
-    # Secrets can be passed as parameters, making then variables in template, therefore loadable as environment variables
-    parameters:
-      GIT_USER: $[variables.GIT_USER]
-      GIT_PASS: $[variables.GIT_PASS]
 
 - stage: TEST
   displayName: User Acceptence Test
@@ -28,8 +24,6 @@ stages:
     parameters:
       displayName: IIS Deployment Group
       environment: TEST
-      CONNECTION_STRING: $[variables.CONNECTION_STRING]
-      DATABASE_PASSWORD: $[variables.DATABASE_PASSWORD]
 
 - stage: PROD
   displayName: Production Gated Deployment
@@ -42,5 +36,3 @@ stages:
     parameters:
       displayName: IIS Deployment Group
       environment: PROD
-      CONNECTION_STRING: $[variables.CONNECTION_STRING]
-      DATABASE_PASSWORD: $[variables.DATABASE_PASSWORD]
