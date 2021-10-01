@@ -348,10 +348,10 @@ if ( $skipBranchCleanup ) {
 					$env:CDAF_DEBUG_LOGGING += "[PASS_VAR] gitUserPassEnvVar = $gitUserPassEnvVar`n"
 					$userPass = Invoke-Expression "Write-Output ${gitUserPassEnvVar}"
 					$env:CDAF_DEBUG_LOGGING += "[PASS_LOADED] userPass = $userPass`n"
-					$env:CDAF_DEBUG_LOGGING += "[PASS_MASK] userPass = $(mask $userPass) (MD5MSK)`n"
 					if (!( $userPass )) {
 						Write-Host "[$scriptName]   $gitUserPassEnvVar contains no value, relying on current workspace being up to date"
 					} else {
+						$env:CDAF_DEBUG_LOGGING += "[PASS_MASK] userPass = $(mask $userPass) (MD5MSK)`n"
 						$urlWithCreds = "https://${userName}:${userPass}@$($gitRemoteURL.Replace('https://', ''))"
 						$env:CDAF_DEBUG_LOGGING += "[SET_URL] urlWithCreds = $urlWithCreds`n"
 					}
