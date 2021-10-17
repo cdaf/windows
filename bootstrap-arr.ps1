@@ -2,17 +2,65 @@ Param (
 	[string]$port
 )
 
+# Consolidated Error processing function
+function ERRMSG ($message, $exitcode) {
+	if ( $exitcode ) {
+		Write-Host "`n[$scriptName]$message" -ForegroundColor Red
+	} else {
+		Write-Host "`n[$scriptName]$message" -ForegroundColor Yellow
+	}
+	if ( $error ) {
+		$i = 0
+		foreach ( $item in $Error )
+		{
+			Write-Host "`$Error[$i] $item"
+			$i++
+		}
+		$Error.clear()
+	}
+	if ( $env:CDAF_ERROR_DIAG ) {
+		Write-Host "`n[$scriptName] Invoke custom diag `$env:CDAF_ERROR_DIAG = $env:CDAF_ERROR_DIAG`n"
+		Invoke-Expression $env:CDAF_ERROR_DIAG
+	}
+	if ( $exitcode ) {
+		Write-Host "`n[$scriptName] Exit with LASTEXITCODE = $exitcode`n" -ForegroundColor Red
+		exit $exitcode
+	}
+}
+
 # Common expression logging and error handling function, copied, not referenced to ensure atomic process
 function executeExpression ($expression) {
-	$error.clear()
-	Write-Host "[$(date)] $expression"
+	Write-Host "[$(Get-Date)] $expression"
 	try {
-		$output = Invoke-Expression $expression
-	    if(!$?) { Write-Host "[$scriptName] `$? = $?"; exit 1 }
-	} catch { echo $_.Exception|format-list -force; exit 2 }
-    if ( $error ) { Write-Host "[$scriptName] `$error[0] = $error"; exit 3 }
-    if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) { Write-Host "[$scriptName] `$LASTEXITCODE = $LASTEXITCODE "; exit $LASTEXITCODE }
-    return $output
+		Invoke-Expression $expression
+	    if(!$?) { ERRMSG "[TRAP] `$? = $?" 1211 }
+	} catch {
+		$message = $_.Exception.Message
+		$_.Exception | format-list -force
+		$_.Exception.StackTrace
+		if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) {
+			ERRMSG "[EXCEPTION] $message" $LASTEXITCODE
+		} else {
+			ERRMSG "[EXCEPTION] $message" 1212
+		}
+	}
+    if ( $LASTEXITCODE ) {
+    	if ( $LASTEXITCODE -ne 0 ) {
+			ERRMSG "[EXIT] `$LASTEXITCODE is $LASTEXITCODE" $LASTEXITCODE
+		} else {
+			if ( $error ) {
+				ERRMSG "[WARN] `$LASTEXITCODE is $LASTEXITCODE, but standard error populated"
+			}
+		} 
+	} else {
+	    if ( $error ) {
+	    	if ( $env:CDAF_IGNORE_WARNING -eq 'no' ) {
+				ERRMSG "[ERROR] `$env:CDAF_IGNORE_WARNING is 'no' so exiting" 1213
+	    	} else {
+				ERRMSG "[WARN] `$LASTEXITCODE not set, but standard error populated"
+	    	}
+		}
+	}
 }
 
 $scriptName = 'bootstrap-arr.ps1'
@@ -32,9 +80,12 @@ if ( Test-Path ".\automation\CDAF.windows" ) {
   Write-Host "[$scriptName] CDAF directories found in workspace"
   $atomicPath = (Get-Location).Path
 } else {
-  if ( Test-Path "/vagrant" ) {
+  if ( Test-Path "C:\vagrant\automation\provisioning\InstallIIS.ps1" ) {
     $atomicPath = 'C:\vagrant'
     Write-Host "[$scriptName] CDAF directories found in vagrant mount"
+  } elseif (Test-Path ".\automation\provisioning\InstallIIS.ps1") {
+	$atomicPath = (Get-Location).Path
+    Write-Host "[$scriptName] CDAF directories found in current working directory"
   } else {
     Write-Host "[$scriptName] Cannot find CDAF directories in workspace or /vagrant, so downloading from internet"
     Write-Host "[$scriptName] Download Continuous Delivery Automation Framework"

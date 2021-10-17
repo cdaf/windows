@@ -131,14 +131,27 @@ executeExpression 'import-module WebAdministration'
 
 Write-Host "`n[$scriptName] Existing http.sys bindings`n"
 Write-Host 'Get-ChildItem "IIS:\SslBindings\"'
-Get-ChildItem "IIS:\SslBindings\"
+try {
+	Get-ChildItem "IIS:\SslBindings\"
+} catch {
+	$_.ErrorDetails.Message.message
+}
 
-if (test-path IIS:\SslBindings\$ip!$port) { 
-	executeExpression "Remove-Item IIS:\SslBindings\$ip!$port"
+$binding = "IIS:\SslBindings\$ip!$port"
+try {
+	if ( test-path $binding ) { 
+		Write-Host "DEBUG Remove-Item '$binding'"
+		executeExpression "Remove-Item '$binding'"
+	}
+} catch {
+	Write-Host "DEBUG test-path $binding threw exception, this is likely a bitwise issue, with PowerShell falling back to 32bit."
+	Write-Host $_.Exception|format-list -force
 }
 
 $cert = executeReturn "Get-ChildItem -Path Cert:\$location\$placement\$thumbPrint"
-executeExpression "New-Item 'IIS:\SslBindings\$ip!$port' -Value `$cert"
+
+
+executeExpression "New-Item '$binding' -Value `$cert"
 
 if ( $ip -eq '0.0.0.0' ) {
 	$ip = '*'
