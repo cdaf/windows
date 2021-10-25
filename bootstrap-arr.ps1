@@ -76,6 +76,8 @@ if ($port) {
 Write-Host "[$scriptName] pwd    = $(pwd)"
 Write-Host "[$scriptName] whoami = $(whoami)"
 
+executeExpression "[System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]'Tls11,Tls12'"
+
 if ( Test-Path ".\automation\CDAF.windows" ) {
   Write-Host "[$scriptName] CDAF directories found in workspace"
   $atomicPath = (Get-Location).Path
