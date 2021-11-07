@@ -234,7 +234,7 @@ Clear-Content $logFile
 # if processed as a list and any item other than the last fails, choco will return a false possitive
 Write-Host "[$scriptName] Process each package separately to trap failures`n"
 $install.Split(" ") | ForEach {
-	executeExpression "choco upgrade -y $_ --force --no-progress --fail-on-standard-error $checksum $version $otherArgs"
+	executeExpression "choco upgrade -y $_ --no-progress --fail-on-standard-error $checksum $version $otherArgs"
 	Write-Host "`n[$scriptName] Reload the path`n"
 	executeExpression '$env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")'
 }
