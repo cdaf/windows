@@ -104,7 +104,7 @@ if ( Test-Path ".\automation\CDAF.windows" ) {
 }
 Write-Host "[$scriptName] `$atomicPath = $atomicPath"
 
-executeExpression "$atomicPath\automation\provisioning\InstallIIS.ps1 -management yes"
+executeExpression "DISM /Online /Enable-Feature /all /FeatureName:IIS-WebServerRole /FeatureName:IIS-WebServer"
 
 if ( Test-Path 'C:\.provision' ) {
 	$mediaPath = 'C:\.provision'
