@@ -13,7 +13,10 @@ stages:
 Build Job:
   tasks:
     - script:
-        - "automation\\entry.bat ${bamboo.buildNumber} ${bamboo.repository.branch.name}"
+        interpreter: powershell
+        scripts:
+          - . { iwr -useb https://cdaf.io/static/app/downloads/cdaf.ps1 } | iex
+          - .\\automation\\entry.bat ${bamboo.buildNumber} ${bamboo.repository.branch.name}
 
   artifacts:
     - name: Package
