@@ -16,18 +16,20 @@ node {
 
       checkout scm
   
-      bat 'type Jenkinsfile'
-      bat 'type Vagrantfile'
-      bat 'type automation\\CDAF.windows | findstr "productVersion"'
+      bat '''
+        type Jenkinsfile
+        type Vagrantfile
+        type automation\\CDAF.windows | findstr "productVersion"
 
-      bat 'IF EXIST .vagrant vagrant destroy -f'
-      bat 'IF EXIST .vagrant vagrant box list'
-      bat 'vagrant up'
+        IF EXIST .vagrant vagrant destroy -f & verify >nul
+        IF EXIST .vagrant vagrant box list & verify >nul
+        vagrant up
+      '''
     }
 
     stage ('Test the CDAF sample on Windows Server 2016') {
-      bat 'vagrant destroy -f'
       bat '''
+        vagrant destroy -f
       	SET OVERRIDE_IMAGE=cdaf/WindowsServer
       	vagrant up
       '''
