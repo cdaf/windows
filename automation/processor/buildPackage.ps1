@@ -528,8 +528,8 @@ if (( $containerBuild ) -and ( $ACTION -ne 'packageonly' )) {
 		executeExpression "& $AUTOMATIONROOT\buildandpackage\buildProjects.ps1 $SOLUTION $BUILDNUMBER $REVISION $AUTOMATIONROOT $SOLUTIONROOT $ACTION"
 	}
 	
-	if ( $ACTION -eq 'buildonly' ) {
-		Write-Host "`n[$scriptName] Action is $ACTION so skipping package process" -ForegroundColor Yellow
+	if (( $ACTION -eq 'buildonly' ) -or ( $ACTION -eq 'clean' )) {
+		Write-Host "`n[$scriptName] ACTION is $ACTION so skipping package process" -ForegroundColor Yellow
 	} else {
 		executeExpression "& $AUTOMATIONROOT\buildandpackage\package.ps1 $SOLUTION $BUILDNUMBER $REVISION $AUTOMATIONROOT $SOLUTIONROOT $LOCAL_WORK_DIR $REMOTE_WORK_DIR $ACTION"
 	}
@@ -599,51 +599,55 @@ if ( $ACTION -ne 'container_build' ) {
 	# CDAF 2.1.0 Self-extracting Script Artifact
 	$artifactPrefix = getProp 'artifactPrefix' "$SOLUTIONROOT\CDAF.solution"
 	if ( $artifactPrefix ) {
-		$artifactID = "${SOLUTION}-${artifactPrefix}.${BUILDNUMBER}"
-		Write-Host "[$scriptName] artifactPrefix = $artifactID, generate single file artefact ..."
-		if ( Test-Path $artifactID ) {
-			executeExpression "Remove-Item '$artifactID' -Recurse -Force"
-		}
-		Write-Host "[$scriptName]   Created $(mkdir "$artifactID")"
-		if ( Test-Path .\TasksLocal ) { 
-			executeExpression "Move-Item '.\TasksLocal' '.\$artifactID'"
+		if (( $ACTION -eq 'buildonly' ) -or ( $ACTION -eq 'clean' )) {
+			Write-Host "`n[$scriptName] artifactPrefix set ($artifactPrefix), but ACTION is $ACTION so skipping package process" -ForegroundColor Yellow
 		} else {
-			Write-Host "[$scriptName] package output .\TasksLocal missing! ABORTING with LASTEXITCODE 2548."
-			exit 2548
+			$artifactID = "${SOLUTION}-${artifactPrefix}.${BUILDNUMBER}"
+			Write-Host "[$scriptName] artifactPrefix = $artifactID, generate single file artefact ..."
+			if ( Test-Path $artifactID ) {
+				executeExpression "Remove-Item '$artifactID' -Recurse -Force"
+			}
+			Write-Host "[$scriptName]   Created $(mkdir "$artifactID")"
+			if ( Test-Path .\TasksLocal ) { 
+				executeExpression "Move-Item '.\TasksLocal' '.\$artifactID'"
+			} else {
+				Write-Host "[$scriptName] package output .\TasksLocal missing! ABORTING with LASTEXITCODE 2548."
+				exit 2548
+			}
+			executeExpression 'Add-Type -AssemblyName System.IO.Compression.FileSystem'
+			executeExpression "[System.IO.Compression.ZipFile]::CreateFromDirectory('$(Get-Location)\$artifactID', '$(Get-Location)\$artifactID.zip', 'Optimal', `$false)"
+	
+			$NewFileToAdd = "${SOLUTION}-${BUILDNUMBER}.zip"
+			if ( Test-Path $NewFileToAdd ) {
+				Write-Host "[$scriptName]   Include remote package in $artifactID.zip"
+				$zip = [System.IO.Compression.ZipFile]::Open("$(Get-Location)\$artifactID.zip","Update")
+				$FileName = [System.IO.Path]::GetFileName($NewFileToAdd)
+				executeExpression "[System.IO.Compression.ZipFileExtensions]::CreateEntryFromFile(`$zip, '$(Get-Location)\$NewFileToAdd' , '$FileName') | Out-Null"
+				$Zip.Dispose()
+			}
+	
+			Write-Host "[$scriptName]   Create single script artefact release.ps1"
+			$SourceFile = (get-item "$artifactID.zip").FullName
+			
+			[IO.File]::WriteAllBytes("$pwd\release.ps1",[char[]][Convert]::ToBase64String([IO.File]::ReadAllBytes($SourceFile)))
+	
+			$scriptLines = @('Param (', '[string]$ENVIRONMENT,' ,'[string]$RELEASE,','[string]$OPT_ARG',')','Import-Module Microsoft.PowerShell.Utility','Import-Module Microsoft.PowerShell.Management','Import-Module Microsoft.PowerShell.Security')
+			$scriptLines += "Write-Host 'Launching release.ps1 (${artifactPrefix}.${BUILDNUMBER}) ...'"
+			$scriptLines += '$Base64 = "'
+			$scriptLines + (get-content "release.ps1") | set-content "release.ps1"
+	
+			Add-Content "release.ps1" '"'
+			Add-Content "release.ps1" 'if ( Test-Path "TasksLocal" ) { Remove-Item -Recurse TasksLocal }'
+			Add-Content "release.ps1" "Remove-Item ${SOLUTION}*.zip"
+			Add-Content "release.ps1" '$Content = [System.Convert]::FromBase64String($Base64)'
+			Add-Content "release.ps1" "Set-Content -Path '${SOLUTION}-${artifactPrefix}.${BUILDNUMBER}.zip' -Value `$Content -Encoding Byte"
+			# TODO conditional for PS core in the future Add-Content "release.ps1" "Set-Content -Path '${SOLUTION}-${artifactPrefix}.${BUILDNUMBER}.zip' -Value `$Content -AsByteStream"
+			Add-Content "release.ps1" 'Add-Type -AssemblyName System.IO.Compression.FileSystem'
+			Add-Content "release.ps1" "[System.IO.Compression.ZipFile]::ExtractToDirectory(`"`$PWD\${SOLUTION}-${artifactPrefix}.${BUILDNUMBER}.zip`", `"`$PWD`")"
+			Add-Content "release.ps1" '.\TasksLocal\delivery.bat "$ENVIRONMENT" "$RELEASE" "$OPT_ARG"'
+			Add-Content "release.ps1" 'exit $LASTEXITCODE'
+			$artefactList = @('release.ps1')
 		}
-		executeExpression 'Add-Type -AssemblyName System.IO.Compression.FileSystem'
-		executeExpression "[System.IO.Compression.ZipFile]::CreateFromDirectory('$(Get-Location)\$artifactID', '$(Get-Location)\$artifactID.zip', 'Optimal', `$false)"
-
-		$NewFileToAdd = "${SOLUTION}-${BUILDNUMBER}.zip"
-		if ( Test-Path $NewFileToAdd ) {
-			Write-Host "[$scriptName]   Include remote package in $artifactID.zip"
-			$zip = [System.IO.Compression.ZipFile]::Open("$(Get-Location)\$artifactID.zip","Update")
-			$FileName = [System.IO.Path]::GetFileName($NewFileToAdd)
-			executeExpression "[System.IO.Compression.ZipFileExtensions]::CreateEntryFromFile(`$zip, '$(Get-Location)\$NewFileToAdd' , '$FileName') | Out-Null"
-			$Zip.Dispose()
-		}
-
-		Write-Host "[$scriptName]   Create single script artefact release.ps1"
-		$SourceFile = (get-item "$artifactID.zip").FullName
-		
-		[IO.File]::WriteAllBytes("$pwd\release.ps1",[char[]][Convert]::ToBase64String([IO.File]::ReadAllBytes($SourceFile)))
-
-		$scriptLines = @('Param (', '[string]$ENVIRONMENT,' ,'[string]$RELEASE,','[string]$OPT_ARG',')','Import-Module Microsoft.PowerShell.Utility','Import-Module Microsoft.PowerShell.Management','Import-Module Microsoft.PowerShell.Security')
-		$scriptLines += "Write-Host 'Launching release.ps1 (${artifactPrefix}.${BUILDNUMBER}) ...'"
-		$scriptLines += '$Base64 = "'
-		$scriptLines + (get-content "release.ps1") | set-content "release.ps1"
-
-		Add-Content "release.ps1" '"'
-		Add-Content "release.ps1" 'if ( Test-Path "TasksLocal" ) { Remove-Item -Recurse TasksLocal }'
-		Add-Content "release.ps1" "Remove-Item ${SOLUTION}*.zip"
-		Add-Content "release.ps1" '$Content = [System.Convert]::FromBase64String($Base64)'
-		Add-Content "release.ps1" "Set-Content -Path '${SOLUTION}-${artifactPrefix}.${BUILDNUMBER}.zip' -Value `$Content -Encoding Byte"
-# TODO conditional for PS core in the future Add-Content "release.ps1" "Set-Content -Path '${SOLUTION}-${artifactPrefix}.${BUILDNUMBER}.zip' -Value `$Content -AsByteStream"
-		Add-Content "release.ps1" 'Add-Type -AssemblyName System.IO.Compression.FileSystem'
-		Add-Content "release.ps1" "[System.IO.Compression.ZipFile]::ExtractToDirectory(`"`$PWD\${SOLUTION}-${artifactPrefix}.${BUILDNUMBER}.zip`", `"`$PWD`")"
-		Add-Content "release.ps1" '.\TasksLocal\delivery.bat "$ENVIRONMENT" "$RELEASE" "$OPT_ARG"'
-		Add-Content "release.ps1" 'exit $LASTEXITCODE'
-		$artefactList = @('release.ps1')
 	} else {
 		$artefactList = @(Get-ChildItem *.zip)
 		$artefactList += "$(Get-Location)\TasksLocal\"
@@ -685,4 +689,8 @@ if ( $ACTION -ne 'container_build' ) {
 	}
 }
 
-Write-Host "[$scriptName][$(Get-Date)] Process complete, artefacts [$artefactList] placed in $stageTarget"
+if (( $ACTION -eq 'buildonly' ) -or ( $ACTION -eq 'clean' )) {
+	Write-Host "`n[$scriptName][$(Get-Date)] $ACTION complete." -ForegroundColor Green
+} else {
+	Write-Host "`n[$scriptName][$(Get-Date)] Process complete, artefacts [$artefactList] placed in $stageTarget" -ForegroundColor Green
+}
