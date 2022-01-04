@@ -50,22 +50,21 @@ timeout(time: 80, unit: 'MINUTES') {
       }
     }
   }
+}
 
-  def notifyFailed() {
+def notifyFailed() {
 
+  emailext (
+    recipientProviders: [[$class: 'DevelopersRecipientProvider']],
+    subject: "Jenkins Job [${env.JOB_NAME}] Build [${env.BUILD_NUMBER}] failure",
+    body: "Check console output at ${env.BUILD_URL}"
+  )
+
+  if (env.DEFAULT_NOTIFICATION) {
     emailext (
-      recipientProviders: [[$class: 'DevelopersRecipientProvider']],
-      subject: "Jenkins Job [${env.JOB_NAME}] Build [${env.BUILD_NUMBER}] failure",
+      to: "${env.DEFAULT_NOTIFICATION}",
+      subject: "Jenkins Default FAILURE Notification for [${env.JOB_NAME}] Build [${env.BUILD_NUMBER}]",
       body: "Check console output at ${env.BUILD_URL}"
     )
-
-    if (env.DEFAULT_NOTIFICATION) {
-      emailext (
-        to: "${env.DEFAULT_NOTIFICATION}",
-        subject: "Jenkins Default FAILURE Notification for [${env.JOB_NAME}] Build [${env.BUILD_NUMBER}]",
-        body: "Check console output at ${env.BUILD_URL}"
-      )
-    }
-
   }
 }
