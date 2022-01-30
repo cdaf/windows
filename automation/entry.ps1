@@ -14,6 +14,13 @@ $error.clear()
 $scriptName = 'entry.ps1'
 $env:CDAF_DEBUG_LOGGING = "[$(Get-Date)] Debug Logging Started`n"
 
+function taskException ($taskName, $exception) {
+    write-host "[$scriptName (taskException)] Caught an exception excuting $taskName :" -ForegroundColor Red
+    write-host "     Exception Type: $($exception.Exception.GetType().FullName)" -ForegroundColor Red
+    write-host "     Exception Message: $($exception.Exception.Message)" -ForegroundColor Red
+	exit 9991
+}
+
 # Consolidated Error processing function
 function errorClear ($message, $exitcode) {
 	if ( $exitcode ) {
@@ -311,6 +318,31 @@ executeExpression "$AUTOMATIONROOT\processor\buildPackage.ps1 '$BUILDNUMBER' '$B
 if ( $BRANCH -eq $defaultBranch ) {
 	Write-Host "[$scriptName] Only perform container test in CI for branches, $defaultBranch execution in CD pipeline"
 } else {
+	if ( Test-Path "$SOLUTIONROOT\feature-branch.properties" ) {
+		Write-Host "[$scriptName] Found $SOLUTIONROOT\feature-branch.properties, test for feature branch prefix match...`n"
+		try {
+			$propList = & $AUTOMATIONROOT\remote\Transform.ps1 "$SOLUTIONROOT\feature-branch.properties"
+			foreach ( $featureProp in $propList ) {
+				$featurePrefix, $featureEnv = $featureProp -split '=', 2
+				$featurePrefix = $featurePrefix.substring(1) # trim off the $ prefix applied by Transform.ps1
+				$processEnv = Invoke-Expression "if ( '$BRANCH' -match '$featurePrefix*' ) { write-output $featureEnv }"
+				if ( $processEnv ) {
+					$featureBranchProcess = 'yes'
+					if ( $artifactPrefix ) {
+						executeExpression ".\release.ps1 $processEnv"
+					} else {
+						executeExpression ".\TasksLocal\delivery.ps1 $processEnv"
+					}
+				} else {
+					Write-Host "  Skip feature branch prefix $featurePrefix"
+				}
+			}
+			if(!$?) { taskException "FEATURE_BRANCH_PROPLD_TRAP" }
+		} catch { taskException "FEATURE_BRANCH_PROPLD_EXCEPTION" $_ }
+	}
+}
+
+if ( ! $featureBranchProcess ) {
 	Write-Host "[$scriptName] Performing container test in CI for feature branch ($BRANCH), CD for branch $defaultBranch"
 	if ( $artifactPrefix ) {
 		executeExpression ".\release.ps1 $environment"
