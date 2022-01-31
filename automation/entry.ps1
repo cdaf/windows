@@ -313,7 +313,7 @@ if ( $BRANCH -eq $defaultBranch ) {
 	Write-Host "[$scriptName] Only perform container test in CI for branches, $defaultBranch execution in CD pipeline"
 } else {
 	if ( Test-Path "$SOLUTIONROOT\feature-branch.properties" ) {
-		Write-Host "[$scriptName] Found $SOLUTIONROOT\feature-branch.properties, test for feature branch prefix match...`n"
+		Write-Host "[$scriptName] Found $SOLUTIONROOT\feature-branch.properties, test for match with '$BRANCH' ...`n"
 		try {
 			$propList = & $AUTOMATIONROOT\remote\Transform.ps1 "$SOLUTIONROOT\feature-branch.properties"
 			foreach ( $featureProp in $propList ) {
@@ -321,6 +321,7 @@ if ( $BRANCH -eq $defaultBranch ) {
 				$featurePrefix = $featurePrefix.substring(1) # trim off the $ prefix applied by Transform.ps1
 				$processEnv = Invoke-Expression "if ( '$BRANCH' -match '$featurePrefix*' ) { write-output $featureEnv }"
 				if ( $processEnv ) {
+					Write-Host "  Deploy feature branch prefix '$featurePrefix'"
 					$featureBranchProcess = 'yes'
 					if ( $artifactPrefix ) {
 						executeExpression ".\release.ps1 $processEnv"
@@ -328,7 +329,7 @@ if ( $BRANCH -eq $defaultBranch ) {
 						executeExpression ".\TasksLocal\delivery.ps1 $processEnv"
 					}
 				} else {
-					Write-Host "  Skip feature branch prefix $featurePrefix"
+					Write-Host "  Skip feature branch prefix '$featurePrefix'"
 				}
 			}
 			if(!$?) { taskException "FEATURE_BRANCH_PROPLD_TRAP" }
