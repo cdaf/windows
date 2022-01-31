@@ -231,12 +231,6 @@ if ($BRANCH) {
 		}
 	}
 }
-if ( $BRANCH -match '/' ) {
-	$branchBase = $BRANCH.Split('/')[-1]
-} else {
-	$branchBase = $BRANCH
-}
-$BRANCH = ($branchBase -replace '[^a-zA-Z0-9]', '').ToLower()
 
 if ($ACTION) {
 	if ( $ACTION.contains('$')) {
