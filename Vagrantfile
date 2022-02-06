@@ -6,7 +6,7 @@ if ENV['OVERRIDE_IMAGE']
   puts "OVERRIDE_IMAGE specified, using box #{OVERRIDE_IMAGE}" 
 else
   OVERRIDE_IMAGE = 'cdaf/WindowsServerStandard' # Server 2019 Desktop Experience
-  puts "OVERRIDE_IMAGE not specified, box is #{OVERRIDE_IMAGE}" 
+  puts "OVERRIDE_IMAGE not specified, use default box #{OVERRIDE_IMAGE}" 
 end
 
 if ENV['MAX_SERVER_TARGETS']
