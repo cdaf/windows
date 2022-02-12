@@ -402,6 +402,63 @@ function MD5MSK ($value) {
 	(Get-FileHash -InputStream $([IO.MemoryStream]::new([byte[]][char[]]$value)) -Algorithm MD5).Hash
 }
 
+function VARCHK ($propertiesFile) {
+	if ( -not ( Test-Path $propertiesFile )) {
+		ERRMSG "[VARCHK_PROP_FILE_NOT_FOUND] $propertiesFile not found" 7781
+	}
+
+	$failureCount = 0
+	try {
+		$propList = & $transform "$propertiesFile"
+		Write-Host
+		foreach ( $variableProp in $propList ) {
+			$variableName, $variableValidation = $variableProp -split '=' , 2           # Transform returns $ prefix applied to variable name with two leading spaces, null value will be returned as empty string ''
+			$variableValidation = Invoke-Expression "write-output $variableValidation"  # 
+			$variableValue = Invoke-Expression "write-output $variableName"
+			if ( ! $variableValidation ) {
+				Write-Host "  $variableName = '$variableValue'"
+			} elseif ( $variableValidation -eq 'optional' ) {
+				if ( $variableValue ) {
+					Write-Host "  $variableName = $(MD5MSK $variableValue) (MD5MSK optional secret)"
+				} else {
+					Write-Host "  $variableName = (optional secret not set)"
+				}
+			} elseif ( $variableValidation -eq 'required' ) {
+				if ( $variableValue ) {
+					Write-Host "  $variableName = '$variableValue'"
+				} else {
+					Write-Host "  $variableName = [REQUIRED VARIABLE NOT SET]"
+					$failureCount++
+				}
+			} elseif ( $variableValidation -eq 'secret' ) {
+				if ( $variableValue ) {
+					Write-Host "  $variableName = $(MD5MSK $variableValue) (MD5MSK required secret)"
+				} else {
+					Write-Host "  $variableName = [REQUIRED SECRET NOT SET]"
+					$failureCount++
+				}
+			} else {
+				if ( $variableValue ) {
+					if ( (MD5MSK $variableValue) -eq $variableValidation ) {
+						Write-Host "  $variableName = $(MD5MSK $variableValue) (MD5MSK check success with $variableValidation)"
+					} else {
+						Write-Host "  $variableName = $(MD5MSK $variableValue) [MD5 CHECK FAILED FOR $variableValidation]"
+						$failureCount++
+					}
+				} else {
+					Write-Host "  $variableName = [REQUIRED SECRET NOT SET FOR MD5 CHECK NOT SET]"
+					$failureCount++
+				}
+			}
+		}
+		if(!$?) { ERRMSG "[VARCHK_PROPLD_TRAP]" 7782 }
+	} catch { ERRMSG "[VARCHK_PROPLD_EXCEPTION] $_ " 7783}
+
+	if ( $failureCount -gt 0 ) {
+		ERRMSG "[VARCHK_FAILURE_COUNT] Validation Failures = $failureCount" $failureCount
+	}
+}
+
 $SOLUTION    = $args[0]
 $BUILDNUMBER = $args[1]
 $TARGET      = $args[2]
