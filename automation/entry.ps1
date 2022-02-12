@@ -334,15 +334,26 @@ if ( $BRANCH -eq $defaultBranch ) {
 			}
 			if(!$?) { taskException "FEATURE_BRANCH_PROPLD_TRAP" }
 		} catch { taskException "FEATURE_BRANCH_PROPLD_EXCEPTION" $_ }
-	}
-}
 
-if ( ! $featureBranchProcess ) {
-	Write-Host "[$scriptName] Performing container test in CI for feature branch ($BRANCH), CD for branch $defaultBranch"
-	if ( $artifactPrefix ) {
-		executeExpression ".\release.ps1 $environment"
+		if ( ! $featureBranchProcess ) {
+			if ( $defaultEnvironment ) {
+				Write-Host "[$scriptName] Performing container test in CI for feature branch ($BRANCH), CD for branch $defaultBranch"
+				if ( $artifactPrefix ) {
+					executeExpression ".\release.ps1 $environment"
+				} else {
+					executeExpression ".\TasksLocal\delivery.ps1 $environment"
+				}
+			} else {
+				Write-Host "[$scriptName] No feature branches processed and defaultEnvironment not set, feature branch delivery not attempted."
+			}
+		}	
 	} else {
-		executeExpression ".\TasksLocal\delivery.ps1 $environment"
+		Write-Host "[$scriptName] $SOLUTIONROOT\feature-branch.properties not found, performing container test in CI for feature branch ($BRANCH), CD for branch $defaultBranch"
+		if ( $artifactPrefix ) {
+			executeExpression ".\release.ps1 $environment"
+		} else {
+			executeExpression ".\TasksLocal\delivery.ps1 $environment"
+		}
 	}
 }
 
