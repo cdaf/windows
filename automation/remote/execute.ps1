@@ -412,9 +412,9 @@ function VARCHK ($propertiesFile) {
 		$propList = & $transform "$propertiesFile"
 		Write-Host
 		foreach ( $variableProp in $propList ) {
-			$variableName, $variableValidation = $variableProp -split '=' , 2           # Transform returns $ prefix applied to variable name with two leading spaces, null value will be returned as empty string ''
-			$variableValidation = Invoke-Expression "write-output $variableValidation"  # 
-			$variableValue = Invoke-Expression "write-output $variableName"
+			$variableName, $variableValidation = $variableProp -split '=' , 2           # Transform returns $ prefix applied to variable name with two leading spaces
+			$variableValidation = Invoke-Expression "Write-Output $variableValidation"  # Transform returns null value as empty string, e.g. $variableValidation = '', resolve this to null
+			$variableValue = Invoke-Expression "Write-Output $variableName"
 			if ( ! $variableValidation ) {
 				Write-Host "  $variableName = '$variableValue'"
 			} elseif ( $variableValidation -eq 'optional' ) {
@@ -439,10 +439,12 @@ function VARCHK ($propertiesFile) {
 				}
 			} else {
 				if ( $variableValue ) {
-					if ( (MD5MSK $variableValue) -eq $variableValidation ) {
-						Write-Host "  $variableName = $(MD5MSK $variableValue) (MD5MSK check success with $variableValidation)"
+					$variableValidation = Invoke-Expression "Write-Output $variableValidation"  # Resolve value containing a variable name, e.g. $variableValidation = '$env:SECRET_VALUE_MD5'
+					$variableValueMD5 = MD5MSK $variableValue
+					if ( $variableValueMD5 -eq $variableValidation ) {
+						Write-Host "  $variableName = $variableValueMD5 (MD5MSK check success with $variableValidation)"
 					} else {
-						Write-Host "  $variableName = $(MD5MSK $variableValue) [MD5 CHECK FAILED FOR $variableValidation]"
+						Write-Host "  $variableName = $variableValueMD5 [MD5 CHECK FAILED FOR $variableValidation]"
 						$failureCount++
 					}
 				} else {
