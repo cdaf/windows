@@ -398,10 +398,12 @@ function IMGTXT ($imageFile, $palette) {
 	  } 
 }
 
+# Return MD5 as uppercase Hexadecimal
 function MD5MSK ($value) {
 	(Get-FileHash -InputStream $([IO.MemoryStream]::new([byte[]][char[]]$value)) -Algorithm MD5).Hash
 }
 
+# Validate Variables (2.4.6)
 function VARCHK ($propertiesFile) {
 	if ( -not ( Test-Path $propertiesFile )) {
 		ERRMSG "[VARCHK_PROP_FILE_NOT_FOUND] $propertiesFile not found" 7781
