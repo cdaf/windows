@@ -11,6 +11,8 @@ function taskException ($taskName, $exception) {
 }
 
 # Consolidated Error processing function
+#  required : error message
+#  optional : exit code, if not supplied only error message is written
 function ERRMSG ($message, $exitcode) {
 	if ( $exitcode ) {
 		Write-Host "`n[$scriptName]$message" -ForegroundColor Red
