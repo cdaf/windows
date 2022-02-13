@@ -444,9 +444,9 @@ function VARCHK ($propertiesFile) {
 					$variableValidation = Invoke-Expression "Write-Output $variableValidation"  # Resolve value containing a variable name, e.g. $variableValidation = '$env:SECRET_VALUE_MD5'
 					$variableValueMD5 = MD5MSK $variableValue
 					if ( $variableValueMD5 -eq $variableValidation ) {
-						Write-Host "  $variableName = $variableValueMD5 (MD5MSK check success with $variableValidation)"
+						Write-Host "  $variableName = $variableValueMD5 (MD5MSK check success with '$variableValidation')"
 					} else {
-						Write-Host "  $variableName = $variableValueMD5 [MD5 CHECK FAILED FOR $variableValidation]"
+						Write-Host "  $variableName = $variableValueMD5 [MD5 CHECK FAILED FOR '$variableValidation']"
 						$failureCount++
 					}
 				} else {
