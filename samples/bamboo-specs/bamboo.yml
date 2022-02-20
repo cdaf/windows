@@ -14,9 +14,17 @@ Build Job:
   tasks:
     - script:
         interpreter: powershell
-        scripts:
-          - . { iwr -useb https://cdaf.io/static/app/downloads/cdaf.ps1 } | iex
-          - .\\automation\\entry.bat ${bamboo.buildNumber} ${bamboo.repository.branch.name}
+        scripts: | # Use latest Published CDAF
+          . { iwr -useb https://cdaf.io/static/app/downloads/cdaf.ps1 } | iex
+          .\\automation\\entry.bat ${bamboo.buildNumber} ${bamboo.repository.branch.name}
+
+#        scripts: | # Edge version from GitHub
+#          $env:CDAF_PATH = '.\automation'
+#          . { iwr -useb https://raw.githubusercontent.com/cdaf/windows/master/installCDAF.ps1 } | iex
+#          .\\automation\\entry.bat ${bamboo.buildNumber} ${bamboo.repository.branch.name}
+
+#        scripts: | # "In-source" implemenation
+#          .\\automation\\entry.bat ${bamboo.buildNumber} ${bamboo.repository.branch.name}
 
   artifacts:
     - name: Package
