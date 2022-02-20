@@ -176,5 +176,5 @@ Only available when using Git aware entry.ps1. If file feature-branch.properties
     bugfix=DEV2
 
     # Hotfixes deploy to all environments
-    hotfix-DEV1
-    hotfix-DEV2
+    hotfix=DEV1
+    hotfix=DEV2
