@@ -7,12 +7,13 @@ defaultBranch=none
 constructor=TasksLocal
 runtimeImage=mcr.microsoft.com/windows/servercore/iis
 
-# Build Image and push to DockerHub
 imageBuild=& $AUTOMATIONROOT/remote/imageBuild.ps1 ${SOLUTION}_${REVISION} ${BUILDNUMBER} $runtimeImage $constructor
-CDAF_REGISTRY_URL=DOCKER-HUB
-CDAF_REGISTRY_TAG=repo/${SOLUTION}:$BUILDNUMBER
-CDAF_REGISTRY_USER=pat
-CDAF_REGISTRY_TOKEN=${ACCESS_TOKEN}
+
+# Build Image and push to DockerHub
+# CDAF_REGISTRY_URL=DOCKER-HUB
+# CDAF_REGISTRY_TAG=repo/${SOLUTION}:$BUILDNUMBER
+# CDAF_REGISTRY_USER=pat
+# CDAF_REGISTRY_TOKEN=${ACCESS_TOKEN}
 
 # push to registry other than DockerHub
 # CDAF_REGISTRY_URL=myregistry.io/repo
