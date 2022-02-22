@@ -79,7 +79,12 @@ function dockerLogin {
 		$env:CDAF_REGISTRY_URL = Invoke-Expression "Write-Output $value"
 	}
 	if ( $env:CDAF_REGISTRY_URL ) {
-		Write-Host  "[$scriptName]  CDAF_REGISTRY_URL   = $env:CDAF_REGISTRY_URL"
+		if ( $registryURL -eq 'DOCKER-HUB' ) {
+			Write-Host  "[$scriptName]  CDAF_REGISTRY_URL   = $env:CDAF_REGISTRY_URL (will be set to blank)"
+			$env:CDAF_REGISTRY_URL = ''
+		} else {
+			Write-Host  "[$scriptName]  CDAF_REGISTRY_URL   = $env:CDAF_REGISTRY_URL"
+		}
 	} else {
 		Write-Host  "[$scriptName]  CDAF_REGISTRY_URL   = (not supplied, do not set when pushing to Dockerhub)"
 	}
