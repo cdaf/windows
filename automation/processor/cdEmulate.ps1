@@ -147,43 +147,6 @@ Write-Host "[$scriptName]   workDirLocal        : $workDirLocal (default, see re
 
 if ( $ACTION ) { # Do not list configuration instructions when an action is passed
 	write-host "`n[$scriptName] Action is $ACTION" -ForegroundColor "Blue"
-} else {
-	write-host "`n[$scriptName] ---------- CI Toolset Configuration Guide -------------`n"
-    write-host 'For TeamCity ...'
-    write-host "  Command Executable  : call $ciProcess %build.counter%"
-    write-host "  When feature branches are enable, the branch name can be passed (will queue if used before first feature branch run)"
-    write-host "  Command Executable  : call $ciProcess %build.counter% %teamcity.build.branch%"
-    write-host
-    write-host 'For Bamboo ...'
-    write-host "  Script file         : $ciProcess"
-    write-host "  Argument            : `${bamboo.buildNumber} `${bamboo.repository.branch.name}"
-    write-host
-    write-host 'For Jenkins ...'
-    write-host "  Command : $ciProcess %BUILD_NUMBER% %SVN_REVISION%"
-    write-host
-    write-host 'For BuildMaster ... (use "Get Source from Git Repository" to download to $WorkingDirectory, then "PSExec" as follows)'
-	write-host '  Set workspace       : cd $WorkingDirectory'
-	write-host "  Run CI Process      : $ciProcess `${BuildNumber}"
-    write-host
-    write-host 'For Azure DevOps/Server (formerly Visual Studio Team Services (VSTS)/Team Foundation Server (TFS))'
-    write-host '  Recommend using azure-pipelines (see samples folder)'
-    write-host '    Use the visual studio template and delete the nuget and VS tasks.'
-	write-host '    NOTE: The BUILD DEFINITION NAME must not contain spaces in the name as it is the directory.'
-	write-host '          recommend using solution name, then the Release instructions can be used unchanged.'
-	write-host '          Set the build number $(rev:r)'
-	write-host '    Recommend using the navigation UI to find the entry script.'
-    write-host "    Command Filename  : $ciProcess"
-    write-host "    Command arguments : %BUILD_BUILDNUMBER% %BUILD_SOURCEBRANCHNAME%"
-    write-host
-    write-host 'For GitLab (requires shell runner) ...'
-    write-host '  In .gitlab-ci.yml (in the root of the repository) add the following hook into the CI job, see example in sample folder'
-    write-host "    script: `"automation/processor/buildPackage.bat %CI_BUILD_ID% %CI_BUILD_REF_NAME%`""
-    write-host
-    write-host 'For GitHub Actions ...'
-    write-host '  Copy the sample coded pipeline file from GitHub'
-    write-host '  https://github.com/cdaf/windows/tree/master/samples/github-actions'
-    write-host
-	write-host "[$scriptName] -------------------------------------------------------"
 }
 # Process Build and Package
 if ( $ACTION -eq "cdonly" ) { # Case insensitive
@@ -219,70 +182,6 @@ if ( $ACTION ) {
 	}
 } else {
 	$execCD = 'yes'
-	write-host "`n[$scriptName] ---------- Artefact Configuration Guide -------------`n"
-	write-host 'Configure artefact retention patterns to retain package and local tasks'
-    write-host
-    write-host 'For TeamCity ...'
-    write-host "  Artifact paths : TasksLocal => TasksLocal"
-    write-host "                 : *.zip"
-    write-host
-    write-host 'For Go ...'
-    write-host '  Source        | Destination | Type'
-	write-host '  *.gz          | package     | Build Artifact'
-    write-host '  TasksLocal/** |             | Build Artifact'
-	write-host
-	write-host 'For Bamboo ...'
-	write-host '  Name    : TasksLocal'
-	write-host '  Pattern : TasksLocal/**'
-	write-host '  Name    : Package '
-	write-host '  Pattern : *.zip'
-	write-host
-    write-host 'For Azure DevOps/Server (formerly Visual Studio Team Services (VSTS)/Team Foundation Server (TFS))'
-    write-host '  Recommend using azure-pipelines (see samples folder), use following if configuring manually'
-	write-host '    Use the combination of Copy files and Retain Artefacts from Visual Studio Solution Template'
-	write-host '    Source Folder   : $(Agent.BuildDirectory)\s'
-	write-host '    Copy files task : TasksLocal/**'
-	write-host '                      *.zip'
-
-	write-host "`n[$scriptName] ---------- CD Toolset Configuration Guide -------------`n"
-	write-host
-	write-host 'For TeamCity ...'
-	write-host '  Choose "Deployment" build'
-	write-host '  "Use Finish Build" trigger (branch filter +:<default>)'
-	write-host '  Configure artifact dependency using "Build from the same chain"'
-	write-host '  Add a Configuration parameter from build.vcs.number to %env.BUILD_NUMBER%'
-	write-host '  Add Command Line build step'
-	write-host "    Custom script       : $cdProcess %env.TEAMCITY_BUILDCONF_NAME% %build.number%"
-	write-host
-	write-host 'For Bamboo ...'
-	write-host "  Script file           : `${bamboo.build.working.directory}\$cdProcess"
-	write-host "  Argument              : `${bamboo.deploy.environment} `${bamboo.deploy.release}"
-	write-host
-	write-host 'For Jenkins (each environment requires a literal definition) ...'
-	write-host "  Command               : $cdProcess <environment literal> %SVN_REVISION%"
-	write-host
-	write-host 'For BuildMaster ... (Use "Deploy Artifact" to download to $WorkingDirectory, then use "PSExec" as follows)'
-	write-host '  Set workspace         : cd $WorkingDirectory'
-	write-host "  Run Delivery          : $cdProcess `${EnvironmentName} `${ReleaseNumber}"
-	write-host
-    write-host 'For Azure DevOps/Server (formerly Visual Studio Team Services (VSTS)/Team Foundation Server (TFS))'
-	write-host '  Verify the queue for each Environment definition, and ensure Environment names do not contain spaces.'
-	write-host '  Run an build with artefacts initially to load the workspace, which can then be navigated to for following configuration.'
-	write-host '  From an empty release configuration, bind to the existing build and within the stage, add a "PowerShell" step.'
-	write-host "    Command Filename    : `$(System.DefaultWorkingDirectory)/$solutionName/drop/$cdProcess"
-	write-host '    Command arguments   : "$(Release.EnvironmentName)" "$(Release.ReleaseName)"'
-	write-host "    Working folder      : `$(System.DefaultWorkingDirectory)/$solutionName/drop"
-	write-host '    Release name format : $(Release.DefinitionName)-$(Build.BuildNumber)'
-	write-host '      For re-release    : $(Release.DefinitionName)-$(Build.BuildNumber)-$(rev:r)'
-	write-host
-    write-host 'For GitLab (requires shell runner) ...'
-    write-host '  If using the sample .gitlab-ci.yml simply clone and change the Environment literal'
-	write-host '  variables:'
-	write-host '    ENV: "<environment>"'
-    write-host "    script: `"$cdProcess `${ENV} `${CI_PIPELINE_ID}`""
-	write-host '    environment: <environment>'
-   	write-host
-	write-host "[$scriptName] -------------------------------------------------------`n"
 }
 
 if ( $execCD -eq 'yes' ) {
