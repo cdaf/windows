@@ -83,5 +83,7 @@ if (-not(Test-Path $propertiesFilter)) {
 				executeExpression "& .\$WORK_DIR_DEFAULT\localTasks.ps1 '$ENVIRONMENT' '$BUILDNUMBER' '$SOLUTION' '$WORK_DIR_DEFAULT' '$OPT_ARG'"
 			}
 		}
+	} else {
+		ERRMSG "Container Property defined but containerDeploy is not set in CDAF.solution." 2567
 	}
 }
