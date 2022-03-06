@@ -152,7 +152,7 @@ if ( $buildImage ) {
 			}
 		}
 
-		${prefix} = ${SOLUTION}.ToUpper()
+		${prefix} = (${SOLUTION}.ToUpper()).replace('-','_')
 		foreach ( $envVar in Get-ChildItem env:) {
 			if ($envVar.Name.Contains("CDAF_${prefix}_CB_")) {
 				${buildCommand} += " --env $(${envVar}.Name.Replace("CDAF_${prefix}_CB_", ''))=$(${envVar}.Value)"
