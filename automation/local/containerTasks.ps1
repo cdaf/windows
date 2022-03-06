@@ -9,7 +9,7 @@ Param (
 $Error.clear()
 $scriptName = $myInvocation.MyCommand.Name
 
-function getProp ($propName) {
+function getProp ($propertiesFile, $propName) {
 
 	try {
 		$propValue=$(& $WORK_DIR_DEFAULT\getProperty.ps1 $propertiesFile $propName)
@@ -28,9 +28,8 @@ Write-Host "[$scriptName]   BUILD            : $BUILD"
 Write-Host "[$scriptName]   SOLUTION         : $SOLUTION" 
 Write-Host "[$scriptName]   WORK_DIR_DEFAULT : $WORK_DIR_DEFAULT" 
 Write-Host "[$scriptName]   OPT_ARG          : $OPT_ARG" 
-
-$propertiesFile = ".\$WORK_DIR_DEFAULT\CDAF.properties"
-$propName = getProp "productVersion"
+ 
+$propName = getProp ".\$WORK_DIR_DEFAULT\CDAF.properties" "productVersion"
 Write-Host "[$scriptName]   CDAF Version     : $cdafVersion"
 
 # list system info
@@ -48,8 +47,8 @@ if (-not(Test-Path $propertiesFilter)) {
 	# 2.4.0 The containerDeploy is an extension to remote tasks, which means recursive call to this script should not happen (unlike containerBuild)
 	# containerDeploy example & ${CDAF_WORKSPACE}/containerDeploy.ps1 "${ENVIRONMENT}" "${RELEASE}" "${SOLUTION}" "${BUILDNUMBER}" "${REVISION}"
 	$propertiesFile = ".\$WORK_DIR_DEFAULT\manifest.txt"
-	$containerDeploy = getProp 'containerDeploy'
-	$REVISION = getProp 'REVISION'
+	$containerDeploy = getProp $propertiesFile 'containerDeploy'
+	$REVISION = getProp $propertiesFile 'REVISION'
 	if ( $containerDeploy ) {
 		try { $instances = docker ps 2>$null } catch {
 			Write-Host "[$scriptName]   containerDeploy  : containerDeploy defined in $WORK_DIR_DEFAULT\manifest.txt, but Docker not installed, will attempt to execute natively`n"
@@ -62,7 +61,7 @@ if (-not(Test-Path $propertiesFilter)) {
 			$Error.clear()
 			cmd /c "exit 0"
 		} else {
-			${env:CONTAINER_IMAGE} = getProp 'containerImage'
+			${env:CONTAINER_IMAGE} = getProp $propertiesFile 'containerImage'
 			${CDAF_WORKSPACE} = "$(Get-Location)/${WORK_DIR_DEFAULT}"
 			executeExpression "Set-Location '${CDAF_WORKSPACE}'"
 			Write-Host
