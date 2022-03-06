@@ -213,8 +213,7 @@ foreach ($item in (Get-ChildItem -Path ".")) {
 if ($SOLUTIONROOT) {
 	write-host "$SOLUTIONROOT (override $SOLUTIONROOT\CDAF.solution found)"
 } else {
-	$SOLUTIONROOT="$AUTOMATIONROOT\solution"
-	write-host "$SOLUTIONROOT (default, project directory containing CDAF.solution not found)"
+	exitWithCode "No directory found containing CDAF.solution, please create a single occurance of this file." 7612
 }
 $SOLUTIONROOT = (Get-Item $SOLUTIONROOT).FullName
 
