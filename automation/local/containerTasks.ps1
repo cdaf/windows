@@ -51,7 +51,7 @@ if (-not(Test-Path $propertiesFilter)) {
 	$REVISION = getProp $propertiesFile 'REVISION'
 	if ( ! $containerDeploy ) {
 		Write-Host "`n[$scriptName][INFO] containerDeploy not set in CDAF.solution, using default." -ForegroundColor Yellow
-		containerDeploy = '& ${CDAF_WORKSPACE}/containerDeploy.ps1 "${ENVIRONMENT}" "${RELEASE}" "${SOLUTION}" "${BUILDNUMBER}" "${REVISION}"'
+		$containerDeploy = '& ${CDAF_WORKSPACE}/containerDeploy.ps1 "${ENVIRONMENT}" "${RELEASE}" "${SOLUTION}" "${BUILDNUMBER}" "${REVISION}"'
 	}
 	try { $instances = docker ps 2>$null } catch {
 		Write-Host "[$scriptName]   containerDeploy  : containerDeploy defined in $WORK_DIR_DEFAULT\manifest.txt, but Docker not installed, will attempt to execute natively`n"
