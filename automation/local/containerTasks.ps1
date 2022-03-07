@@ -49,40 +49,40 @@ if (-not(Test-Path $propertiesFilter)) {
 	$propertiesFile = ".\$WORK_DIR_DEFAULT\manifest.txt"
 	$containerDeploy = getProp $propertiesFile 'containerDeploy'
 	$REVISION = getProp $propertiesFile 'REVISION'
-	if ( $containerDeploy ) {
-		try { $instances = docker ps 2>$null } catch {
-			Write-Host "[$scriptName]   containerDeploy  : containerDeploy defined in $WORK_DIR_DEFAULT\manifest.txt, but Docker not installed, will attempt to execute natively`n"
-			Clear-Variable -Name 'containerDeploy'
-			$Error.clear()
-		}
-		if ( $LASTEXITCODE -ne 0 ) {
-			Write-Host "[$scriptName]   containerDeploy  : containerDeploy defined in $WORK_DIR_DEFAULT\manifest.txt, but Docker not running, will attempt to execute natively`n"
-			Clear-Variable -Name 'containerDeploy'
-			$Error.clear()
-			cmd /c "exit 0"
-		} else {
-			${env:CONTAINER_IMAGE} = getProp $propertiesFile 'containerImage'
-			${CDAF_WORKSPACE} = "$(Get-Location)/${WORK_DIR_DEFAULT}"
-			executeExpression "Set-Location '${CDAF_WORKSPACE}'"
-			Write-Host
-			executeExpression "$containerDeploy"
-			executeExpression "Set-Location '$landingDir'"
-		}
-		if (!( $containerDeploy )) {
-			if ( Test-Path $WORK_DIR_DEFAULT\propertiesForLocalTasks\$ENVIRONMENT* ) {
-				Write-Host "[$scriptName]   Cannot use container properties for local execution as existing local definition exits"
-			} else {
-				Write-Host "[$scriptName]   Use container properties for local execution"
-				if (!( Test-Path $WORK_DIR_DEFAULT\propertiesForLocalTasks\ )) {
-					Write-Host "  Created $(mkdir $WORK_DIR_DEFAULT\propertiesForLocalTasks\)"
-				}
-				foreach ( $propFile in Get-Childitem $WORK_DIR_DEFAULT\propertiesForContainerTasks\$ENVIRONMENT* ) {
-					executeExpression "cp $propFile $WORK_DIR_DEFAULT\propertiesForLocalTasks\"
-				}
-				executeExpression "& .\$WORK_DIR_DEFAULT\localTasks.ps1 '$ENVIRONMENT' '$BUILDNUMBER' '$SOLUTION' '$WORK_DIR_DEFAULT' '$OPT_ARG'"
-			}
-		}
+	if ( ! $containerDeploy ) {
+		Write-Host "`n[$scriptName][INFO] containerDeploy not set in CDAF.solution, using default." -ForegroundColor Yellow
+		containerDeploy = '& ${CDAF_WORKSPACE}/containerDeploy.ps1 "${ENVIRONMENT}" "${RELEASE}" "${SOLUTION}" "${BUILDNUMBER}" "${REVISION}"'
+	}
+	try { $instances = docker ps 2>$null } catch {
+		Write-Host "[$scriptName]   containerDeploy  : containerDeploy defined in $WORK_DIR_DEFAULT\manifest.txt, but Docker not installed, will attempt to execute natively`n"
+		Clear-Variable -Name 'containerDeploy'
+		$Error.clear()
+	}
+	if ( $LASTEXITCODE -ne 0 ) {
+		Write-Host "[$scriptName]   containerDeploy  : containerDeploy defined in $WORK_DIR_DEFAULT\manifest.txt, but Docker not running, will attempt to execute natively`n"
+		Clear-Variable -Name 'containerDeploy'
+		$Error.clear()
+		cmd /c "exit 0"
 	} else {
-		ERRMSG "Container Property defined but containerDeploy is not set in CDAF.solution." 2567
+		${env:CONTAINER_IMAGE} = getProp $propertiesFile 'containerImage'
+		${CDAF_WORKSPACE} = "$(Get-Location)/${WORK_DIR_DEFAULT}"
+		executeExpression "Set-Location '${CDAF_WORKSPACE}'"
+		Write-Host
+		executeExpression "$containerDeploy"
+		executeExpression "Set-Location '$landingDir'"
+	}
+	if (!( $containerDeploy )) {
+		if ( Test-Path $WORK_DIR_DEFAULT\propertiesForLocalTasks\$ENVIRONMENT* ) {
+			Write-Host "[$scriptName]   Cannot use container properties for local execution as existing local definition exits"
+		} else {
+			Write-Host "[$scriptName]   Use container properties for local execution"
+			if (!( Test-Path $WORK_DIR_DEFAULT\propertiesForLocalTasks\ )) {
+				Write-Host "  Created $(mkdir $WORK_DIR_DEFAULT\propertiesForLocalTasks\)"
+			}
+			foreach ( $propFile in Get-Childitem $WORK_DIR_DEFAULT\propertiesForContainerTasks\$ENVIRONMENT* ) {
+				executeExpression "cp $propFile $WORK_DIR_DEFAULT\propertiesForLocalTasks\"
+			}
+			executeExpression "& .\$WORK_DIR_DEFAULT\localTasks.ps1 '$ENVIRONMENT' '$BUILDNUMBER' '$SOLUTION' '$WORK_DIR_DEFAULT' '$OPT_ARG'"
+		}
 	}
 }
