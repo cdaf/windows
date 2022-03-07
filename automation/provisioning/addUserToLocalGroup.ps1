@@ -1,20 +1,38 @@
+Param (
+	[string]$group,
+	[string]$userName,
+	[string]$domain
+)
+
+cmd /c "exit 0"
+$Error.Clear()
+
 # Common expression logging and error handling function, copied, not referenced to ensure atomic process
 function executeExpression ($expression) {
-	$error.clear()
-	Write-Host "$expression"
+	Write-Host "[$(Get-Date)] $expression"
 	try {
-		$output = Invoke-Expression $expression
-	    if(!$?) { Write-Host "[$scriptName] `$? = $?"; exit 1 }
-	} catch { echo $_.Exception|format-list -force; exit 2 }
-    if ( $error ) { Write-Host "[$scriptName] `$error[0] = $error"; exit 3 }
-    if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) { Write-Host "[$scriptName] `$LASTEXITCODE = $LASTEXITCODE "; exit $LASTEXITCODE }
-    return $output
+		Invoke-Expression $expression
+	    if(!$?) { Write-Host "[$scriptName] `$? = $?"; $error ; exit 1111 }
+	} catch { Write-Output $_.Exception|format-list -force; $error ; exit 1112 }
+    if ( $LASTEXITCODE ) {
+    	if ( $LASTEXITCODE -ne 0 ) {
+			Write-Host "[$scriptName] `$LASTEXITCODE = $LASTEXITCODE " -ForegroundColor Red ; $error ; exit $LASTEXITCODE
+		} else {
+			if ( $error ) {
+				Write-Host "[$scriptName][WARN] $Error array populated by `$LASTEXITCODE = $LASTEXITCODE error follows...`n" -ForegroundColor Yellow
+				$error
+			}
+		} 
+	} else {
+	    if ( $error ) {
+			Write-Host "[$scriptName] `$error[] = $error"; exit 1113
+		}
+	}
 }
 
 $scriptName = 'addUserToLocalGroup.ps1'
-Write-Host
-Write-Host "[$scriptName] ---------- start ----------"
-$group = $args[0]
+
+Write-Host "`n[$scriptName] ---------- start ----------"
 if ($group) {
     Write-Host "[$scriptName] group    : $group"
 } else {
@@ -22,7 +40,6 @@ if ($group) {
     Write-Host "[$scriptName] group    : $group (default)"
 }
 
-$userName = $args[1]
 if ($userName) {
     Write-Host "[$scriptName] userName : $userName"
 } else {
@@ -30,7 +47,6 @@ if ($userName) {
     Write-Host "[$scriptName] userName : $userName (default)"
 }
 
-$domain = $args[2]
 if ($domain) {
     Write-Host "[$scriptName] domain   : $domain"
 } else {
@@ -56,5 +72,4 @@ if ($domain) {
 	}
 }
 
-Write-Host
-Write-Host "[$scriptName] ---------- stop ----------"
+Write-Host "`n[$scriptName] ---------- stop ----------"

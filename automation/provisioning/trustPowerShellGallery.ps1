@@ -60,6 +60,47 @@ function executeRetry ($expression) {
 }
 
 Write-Host "`n[$scriptName] ---------- start ----------`n"
+if ($env:http_proxy) {
+    Write-Host "[$scriptName] `$env:http_proxy : $env:http_proxy`n"
+    $env:https_proxy = $env:http_proxy
+    executeExpression "[system.net.webrequest]::defaultwebproxy = new-object system.net.webproxy('$env:http_proxy')"
+
+    # http://raghablog.blogspot.com/2014/12/powershell-scripts-for-changing-proxy.html
+    # https://gallery.technet.microsoft.com/scriptcenter/PowerShell-function-Get-cba2abf5
+	$protocol,$prefix,$port = $env:http_proxy.split(':')
+	$address = $prefix.Replace('/', '')
+	$regKey = "HKCU:\Software\Microsoft\Windows\CurrentVersion\Internet Settings"
+	executeExpression "Set-ItemProperty -path '$regKey' ProxyEnable -value 1"
+	executeExpression "Set-ItemProperty -path '$regKey' ProxyServer -value '${address}:${port}'"
+	executeExpression "Set-ItemProperty -path '$regKey' ProxyOverride -value '<local>;target;10.*'"	
+	executeExpression "Get-ItemProperty '$regKey'"
+
+    # https://parsiya.net/blog/2017-10-08-thick-client-proxying---part-8---notes-on-proxying-windows-services/
+	Write-Host "`n[$scriptName] List current settings before changing`n"
+	executeExpression "netsh winhttp show proxy"
+	executeExpression "netsh winhttp set proxy proxy-server=`"http=${address}:${port};https=${address}:${port}`" bypass-list=`"target;localhost`""
+	# executeExpression "netsh winhttp import proxy source=ie"
+
+    # https://www.techazine.com/2015/08/11/configuring-system-wide-proxy-for-net-web-applications-including-sharepoint/
+    [xml]$xmldata = get-content 'C:\Windows\Microsoft.NET\Framework\v4.0.30319\Config\web.config'
+	Write-Host "`n[$scriptName] .NET Framework web.config usesystemdefault : $($xmldata.configuration.'system.net'.defaultProxy.proxy.usesystemdefault)"
+
+    [xml]$xmldata = get-content 'C:\Windows\Microsoft.NET\Framework64\v4.0.30319\Config\web.config'
+	Write-Host "[$scriptName] .NET Framework64 web.config usesystemdefault : $($xmldata.configuration.'system.net'.defaultProxy.proxy.usesystemdefault)"
+
+} else {
+    Write-Host "[$scriptName] `$env:http_proxy : (not set)`n"
+}
+
+executeExpression "[System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]'Tls11,Tls12'"
+
+# Found these repositories unreliable so included retry logic
+$galleryAvailable = Get-PSRepository -Name PSGallery*
+if ($galleryAvailable) {
+	Write-Host "[$scriptName] $((Get-PSRepository -Name PSGallery).Name) is already available"
+} else {
+	executeRetry "Register-PSRepository -Default"
+}
 
 executeReinstall "Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.201 -Force"
 

@@ -64,7 +64,7 @@ if ($install) {
 if ($mediaDir) {
     Write-Host "[$scriptName] mediaDir : $mediaDir"
 } else {
-	$mediaDir = 'C:\.provision'
+	$mediaDir = "$env:TEMP"
     Write-Host "[$scriptName] mediaDir : $mediaDir (default)"
 }
 
@@ -92,9 +92,7 @@ if ( Test-Path $fullpath ) {
 	$proxy.Credentials = [System.Net.CredentialCache]::DefaultCredentials
 	$wc = new-object system.net.WebClient
 	$wc.proxy = $proxy
-	Write-Host "`$AllProtocols = [System.Net.SecurityProtocolType]'Tls11,Tls12'"
-	$AllProtocols = [System.Net.SecurityProtocolType]'Tls11,Tls12'
-	executeExpression '[System.Net.ServicePointManager]::SecurityProtocol = $AllProtocols'
+	executeExpression "[System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]'Tls11,Tls12'"
 	executeRetry "`$wc.DownloadFile('$uri', '$fullpath')" 
 	if ($md5) {
 		$hashValue = executeExpression "Get-FileHash '$fullpath' -Algorithm MD5"

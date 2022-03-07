@@ -24,7 +24,11 @@ IF [%WORK_DIR_DEFAULT%] == [] (
 call powershell -NoProfile -NonInteractive -ExecutionPolicy ByPass -command %cd%\%workDirLocal%\delivery.ps1 %ENVIRONMENT% %RELEASE% %OPT_ARG% %WORK_DIR_DEFAULT% %SOLUTION% %BUILDNUMBER% %AUTOMATION_ROOT%
 set result=%errorlevel%
 if %result% NEQ 0 (
-	echo [%~nx0] DELIVERY_ERROR call powershell -NoProfile -NonInteractive -ExecutionPolicy ByPass -command %cd%\%workDirLocal%\delivery.ps1 %ENVIRONMENT% %RELEASE% %OPT_ARG% %WORK_DIR_DEFAULT% %SOLUTION% %BUILDNUMBER% %AUTOMATION_ROOT%
+	echo [%~nx0] CDAF_DELIVERY_FAILURE call powershell -NoProfile -NonInteractive -ExecutionPolicy ByPass -command %cd%\%workDirLocal%\delivery.ps1 %ENVIRONMENT% %RELEASE% %OPT_ARG% %WORK_DIR_DEFAULT% %SOLUTION% %BUILDNUMBER% %AUTOMATION_ROOT%
 	echo [%~nx0]   Return LASTEXITCODE %result% 
 	exit /b %result%
 )
+
+echo [%~nx0] =========================================
+echo.
+exit 0

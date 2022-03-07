@@ -177,9 +177,10 @@ foreach ( $sqlVersions in Get-ChildItem "C:\Program Files\Microsoft SQL Server\"
 		    Write-Host "`n[$scriptName] Process output ..."
 			$proc | format-list 
 		    
-		    Write-Host "`n[$scriptName] `'Failed:`' found in $logPath, first 40 lines follow ..."
-			Get-Content $logPath | select -First 40
-		    Write-Host "`n[$scriptName] Exit with LASTEXITCODE = 20"; exit 20
+		    Write-Host "`n[$scriptName] `'Failed:`' found in $logPath, listings follows ..."
+			Get-Content $logPath
+			Write-Host "`n[$scriptName] ... $logPath listing comeplete. Exit with LASTEXITCODE = 20"
+			exit 20
 		}
 	} 
 }

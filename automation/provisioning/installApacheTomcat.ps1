@@ -34,7 +34,7 @@ if ( $tomcat_version ) {
 if ( $sourceInstallDir ) {
 	Write-Host "[$scriptName] sourceInstallDir      : $sourceInstallDir"
 } else {
-	$sourceInstallDir = 'C:\.provision'
+	$sourceInstallDir = "$env:TEMP"
 	Write-Host "[$scriptName] sourceInstallDir      : $sourceInstallDir (default)"
 }
 

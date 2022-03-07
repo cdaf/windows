@@ -13,20 +13,31 @@ $scriptName = 'installRunner.ps1'
 
 # Common expression logging and error handling function, copied, not referenced to ensure atomic process
 function executeExpression ($expression) {
-	$error.clear()
-	Write-Host "$expression"
+	Write-Host "[$(Get-Date)] $expression"
 	try {
-		$output = Invoke-Expression $expression
-	    if(!$?) { Write-Host "[$scriptName] `$? = $?"; exit 1 }
-	} catch { echo $_.Exception|format-list -force; exit 2 }
-    if ( $error ) { Write-Host "[$scriptName] `$error[0] = $error"; exit 3 }
-    if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) { Write-Host "[$scriptName] `$LASTEXITCODE = $LASTEXITCODE "; exit $LASTEXITCODE }
-    return $output
+		Invoke-Expression $expression
+	    if(!$?) { Write-Host "[$scriptName] `$? = $?"; $error ; exit 1111 }
+	} catch { Write-Output $_.Exception|format-list -force; $error ; exit 1112 }
+    if ( $LASTEXITCODE ) {
+    	if ( $LASTEXITCODE -ne 0 ) {
+			Write-Host "[$scriptName] `$LASTEXITCODE = $LASTEXITCODE " -ForegroundColor Red ; $error ; exit $LASTEXITCODE
+		} else {
+			if ( $error ) {
+				Write-Host "[$scriptName][WARN] $Error array populated by `$LASTEXITCODE = $LASTEXITCODE, $error[] =`n" -ForegroundColor Yellow
+				$error
+			}
+		} 
+	} else {
+	    if ( $error ) {
+			Write-Host "[$scriptName][WARN] $Error array populated but LASTEXITCODE not set, $error[] =`n" -ForegroundColor Yellow
+			$error
+		}
+	}
 }
 
 cmd /c "exit 0"
+$error.clear()
 
-Write-Host "`n[$scriptName] Refer to https://docs.gitlab.com/runner/install/windows.html"
 Write-Host "`n[$scriptName] ---------- start ----------"
 $uri = $uri
 if ( $uri ) {
@@ -51,7 +62,7 @@ if ( $name ) {
 if ( $tags ) {
 	Write-Host "[$scriptName] tags           : $tags"
 } else {
-	$tags = "$env:COMPUTERNAME"
+	$tags = "default"
 	Write-Host "[$scriptName] tags           : $tags (not supplied, set to default)"
 }
 
@@ -83,7 +94,7 @@ if ( $tlsCAFile ) {
 if ( $mediaDirectory ) {
 	Write-Host "[$scriptName] mediaDirectory : $mediaDirectory"
 } else {
-	$mediaDirectory = 'C:\.provision'
+	$mediaDirectory = "$env:TEMP"
 	Write-Host "[$scriptName] mediaDirectory : $mediaDirectory (not supplied, set to default)"
 }
 
@@ -92,6 +103,8 @@ if ( $version ) {
 } else {
 	Write-Host "[$scriptName] version        : (not supplied, will use latest)"
 }
+
+executeExpression "[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12"
 
 $versionTest = cmd /c gitlab-runner --version 2`>`&1
 if (!($versionTest -like '*not recognized*')) {
@@ -160,7 +173,7 @@ if ( $uri ) {
 			} else {
 				$retryCount += 1
 				Write-Host "[$scriptName] Wait $wait seconds, then retry $retryCount of $retryMax"
-				sleep $wait
+				Start-Sleep $wait
 				$wait = $wait + $wait
 			}
 		}
@@ -168,20 +181,10 @@ if ( $uri ) {
 	
 	$arguments = 'install'
 	if ( $serviceAccount ) {
-		$arguments = $arguments + " --user $serviceAccount --password"
-		Write-Host "[$scriptName] Start-Process gitlab-runner -PassThru -Wait -NoNewWindow -ArgumentList `"$arguments `$saPassword`""
+		$arguments += " --user '$serviceAccount' --password"
+		executeExpression "gitlab-runner $arguments `"`$saPassword`""
 	} else {
-		Write-Host "[$scriptName] Start-Process gitlab-runner -PassThru -Wait -NoNewWindow -ArgumentList `"$arguments`""
-	}
-	
-	if ( $saPassword ) {
-		$arguments = $arguments + " $saPassword"
-	}
-	
-	$proc = Start-Process gitlab-runner -PassThru -Wait -NoNewWindow -ArgumentList $arguments
-	if ( $proc.ExitCode -ne 0 ) {
-		Write-Host "`n[$scriptName] Install Failed! Exit with `$LASTEXITCODE $($proc.ExitCode)`n"
-	    exit $proc.ExitCode
+		executeExpression "gitlab-runner $arguments"
 	}
 	
 	Write-Host "[$scriptName] Start Service using commandlet as gitlab-runner start can fail silently"

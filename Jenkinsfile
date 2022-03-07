@@ -1,41 +1,53 @@
-node {
+timeout(time: 80, unit: 'MINUTES') {
+  node {
 
-  properties(
-    [
+    properties(
       [
-        $class: 'BuildDiscarderProperty',
-        strategy: [$class: 'LogRotator', numToKeepStr: '10']
-      ],
-        pipelineTriggers([cron('20 01 * * *')]),
-    ]
-  )
+        [
+          $class: 'BuildDiscarderProperty',
+          strategy: [$class: 'LogRotator', numToKeepStr: '10']
+        ],
+          pipelineTriggers([cron('15 07 * * *')]),
+      ]
+    )
 
-  try {
+    try {
 
-    stage ('Test the CDAF sample Vagrantfile') {
+      stage ('Test the CDAF sample on Windows Server 2019') {
 
-      checkout scm
-  
-      bat 'type Jenkinsfile'
-      bat 'type Vagrantfile'
-      bat 'type automation\\CDAF.windows | findstr "productVersion"'
-
-      bat 'IF EXIST .vagrant vagrant destroy -f'
-      bat 'IF EXIST .vagrant vagrant box list'
-      bat 'vagrant up'
-    }
-
-  } catch (e) {
+        checkout scm
     
-    currentBuild.result = "FAILED"
-    println currentBuild.result
-    notifyFailed()
-    throw e
+        bat '''
+          type Jenkinsfile
+          type Vagrantfile
+          type automation\\CDAF.windows | findstr "productVersion"
 
-  } finally {
+          IF EXIST .vagrant vagrant destroy -f & verify >nul
+          IF EXIST .vagrant vagrant box list & verify >nul
+          vagrant up
+        '''
+      }
 
-    stage ('Destroy VMs and Discard sample vagrantfile') {
-      bat "IF EXIST .vagrant vagrant destroy -f"
+      stage ('Test the CDAF sample on Windows Server 2016') {
+        bat '''
+          vagrant destroy -f
+          SET OVERRIDE_IMAGE=cdaf/WindowsServer
+          vagrant up
+        '''
+      }
+
+    } catch (e) {
+      
+      currentBuild.result = "FAILED"
+      println currentBuild.result
+      notifyFailed()
+      throw e
+
+    } finally {
+
+      stage ('Destroy VMs and Discard sample vagrantfile') {
+        bat "IF EXIST .vagrant vagrant destroy -f"
+      }
     }
   }
 }
@@ -55,5 +67,4 @@ def notifyFailed() {
       body: "Check console output at ${env.BUILD_URL}"
     )
   }
-
 }

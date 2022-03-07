@@ -52,11 +52,11 @@ $retryCount = 0
 $lastLineNumber = 0
 $exitCode = 4365
 while (( $retryCount -le $retryMax ) -and ($exitCode -ne 0)) {
-	sleep $wait
+	Start-Sleep $wait
 	if ( $container -eq 'DOCKER-COMPOSE' ) {
-		$output = $(docker-compose logs)
+		$output = $(docker-compose logs --no-color 2>&1)
 	} else {
-		$output = $(docker logs $container)
+		$output = $(docker logs $container 2>&1)
 	}
 	if ( $output ) {
 		$lineCount = 1

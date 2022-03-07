@@ -17,8 +17,7 @@ Write-Host "[$scriptName]   WORK_DIR_DEFAULT       : $WORK_DIR_DEFAULT"
 $OPT_ARG = $args[4]
 Write-Host "[$scriptName]   OPT_ARG                : $OPT_ARG" 
 
-$localPropertiesPath = 'propertiesForLocalTasks\'
-$localPropertiesFilter = $localPropertiesPath + "$ENVIRONMENT*"
+$propertiesFilter = 'propertiesForLocalTasks\' + "$ENVIRONMENT*"
 $localEnvironmentPath = 'propertiesForLocalEnvironment\'
 
 # change to working directory
@@ -55,9 +54,9 @@ try {
 Write-Host "[$scriptName]   CDAF Version           : $cdafVersion"
 
 # list system info
-Write-Host "[$scriptName]   pwd                    : $(pwd)"
 Write-Host "[$scriptName]   Hostname               : $(hostname)" 
 Write-Host "[$scriptName]   Whoami                 : $(whoami)" 
+Write-Host "[$scriptName]   pwd                    : $(pwd)"
 
 $exitStatus = 0
 
@@ -71,22 +70,22 @@ if ( $localEnvPreDeployTask) {
 }
 
 # Perform Local Tasks for each target definition file for this environment
-if (-not(Test-Path $localPropertiesFilter)) {
+if (-not(Test-Path $propertiesFilter)) {
 
-	Write-Host "[$scriptName] local properties not found ($localPropertiesFilter) assuming this is new implementation, no action attempted" -ForegroundColor Yellow
+	Write-Host "`n[$scriptName][WARN] Properties not found ($propertiesFilter) alter processSequence property to skip" -ForegroundColor Yellow
 
 } else {
 
 	# Load the environment target properties files to the root
-	Copy-Item $localPropertiesFilter .
+	Copy-Item $propertiesFilter .
 
 	Write-Host "`n[$scriptName] Preparing to process targets :`n"
-	foreach ($propFile in (Get-ChildItem -Path $localPropertiesFilter)) {
+	foreach ($propFile in (Get-ChildItem -Path $propertiesFilter)) {
 		$propFilename = getFilename($propFile.ToString())
 		Write-Host "[$scriptName]   $propFilename"
 	}
 
-	foreach ($propFile in (Get-ChildItem -Path $localPropertiesFilter)) {
+	foreach ($propFile in (Get-ChildItem -Path $propertiesFilter)) {
 
 		$propFilename = getFilename($propFile.ToString())
 

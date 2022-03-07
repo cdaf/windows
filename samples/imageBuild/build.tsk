@@ -1,0 +1,14 @@
+echo "What's available at build time?"
+
+# & $AUTOMATIONROOT/remote/capabilities.ps1
+
+echo "Do not create the artifact in the root directory or the package process will clean it"
+
+Set-Content index.html "<!DOCTYPE html><html><head><title>Hello World!</title>" 
+Add-Content index.html "</head><body><h1>$BUILDNUMBER</h1></body></html>"
+REFRSH index.html ./app/content
+
+echo "Create a tarball so we can use ADD in the runtime image"
+cd ./app/content
+tar -zcf ../content.tar.gz .
+cd $workspace

@@ -1,34 +1,46 @@
 $scriptName = 'Capabilities.ps1'
 
 Write-Host "`n[$scriptName] ---------- start ----------"
+
+$scriptPath = split-path -parent $MyInvocation.MyCommand.Definition
+$AUTOMATIONROOT = split-path -parent $scriptPath
+if ( Test-Path "$AUTOMATIONROOT\CDAF.windows" ) {
+	Write-Host "[$scriptName]   CDAF      : $((Select-String -Path "$AUTOMATIONROOT\CDAF.windows" -Pattern 'productVersion=').ToString().Split('=')[-1])"
+}
+
 Write-Host "[$scriptName]   hostname  : $(hostname)"
-Write-Host "[$scriptName]   pwd       : $(pwd)"
+Write-Host "[$scriptName]   pwd       : $(Get-Location)"
 Write-Host "[$scriptName]   whoami    : $(whoami)" 
 
 Write-Host "`n[$scriptName] List networking"
-if ((gwmi win32_computersystem).partofdomain -eq $true) {
-	Write-Host "[$scriptName]   Domain    : $((gwmi win32_computersystem).domain)"
+if ((Get-WmiObject win32_computersystem).partofdomain -eq $true) {
+	Write-Host "[$scriptName]   Domain    : $((Get-WmiObject win32_computersystem).domain)"
 } else {
-	Write-Host "[$scriptName]   Workgroup : $((gwmi win32_computersystem).domain)"
+	Write-Host "[$scriptName]   Workgroup : $((Get-WmiObject win32_computersystem).domain)"
 }
 
 foreach ($item in Get-WmiObject -Class Win32_NetworkAdapterConfiguration -Filter IPEnabled=TRUE -ComputerName .) {
 	Write-Host "[$scriptName]          IP : $($item.IPAddress)"
 }
 
-Write-Host "`n[$scriptName] List the Computer architecture`n"
+Write-Host "`n[$scriptName] Computer OS & Architecture`n"
+write-host "  Version                 : $([Environment]::OSVersion.VersionString)"
+$ReleaseId = (Get-ItemProperty -Path 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion' -Name 'ReleaseId').ReleaseId
+write-host "  ReleaseId               : $ReleaseId"
+$EditionId = (Get-ItemProperty -Path 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion' -Name 'EditionID').EditionId
+write-host "  EditionId               : $EditionId"
+$CurrentBuild = (Get-ItemProperty -Path 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion' -Name 'CurrentBuild').CurrentBuild
+write-host "  CurrentBuild            : $CurrentBuild"
+
 $computer = "."
 $sOS =Get-WmiObject -class Win32_OperatingSystem -computername $computer
 foreach($sProperty in $sOS) {
 	write-host "  Caption                 : $($sProperty.Caption)"
-	write-host "  Description             : $($sProperty.Description)"
 	write-host "  OSArchitecture          : $($sProperty.OSArchitecture)"
 	write-host "  ServicePackMajorVersion : $($sProperty.ServicePackMajorVersion)"
 }
 
-$EditionId = (Get-ItemProperty -Path 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion' -Name 'EditionID').EditionId
-write-host "  EditionId               : $EditionId"
-write-host "  PSVersion.Major         : $($PSVersionTable.PSVersion.Major)"
+write-host "  PowerShell              : $($PSVersionTable.PSVersion.Major).$($PSVersionTable.PSVersion.Minor) $($PSVersionTable.PSEdition)"
 
 #Write-Host "`n[$scriptName] List the enabled roles`n"
 #$tempFile = "$env:temp\tempName.log"
@@ -38,14 +50,22 @@ write-host "  PSVersion.Major         : $($PSVersionTable.PSVersion.Major)"
 #Remove-Item -Path $tempFile 
 
 if ( Test-Path "C:\windows-master\automation\CDAF.windows" ) {
-	$nameValue = $(cat "C:\windows-master\automation\CDAF.windows" | findstr "productVersion")
+	$nameValue = $(Get-Content "C:\windows-master\automation\CDAF.windows" | findstr "productVersion")
 	$name, $value = $nameValue -split '=', 2
-	write-host "  CDAF Box Version        : $value"
+	write-host "  CDAF in-box Version     : $value"
 }
 
 Write-Host "`n[$scriptName] List 3rd party components`n"
+$versionTest = cmd /c git --version 2`>`&1
+if ( $LASTEXITCODE -ne 0 ) {
+	Write-Host "  Git                     : not installed"
+} else {
+	$array = $versionTest.split(" ")
+	Write-Host "  Git                     : $($array[2])"
+}
+
 $versionTest = cmd /c dotnet --version 2`>`&1
-if ($versionTest -like '*not recognized*') {
+if ( $LASTEXITCODE -ne 0 ) {
 	Write-Host "  dotnet core             : not installed"
 } else {
 	$versionLine = $(foreach ($line in dotnet) { Select-String  -InputObject $line -CaseSensitive "Version  " })
@@ -58,14 +78,14 @@ if ($versionTest -like '*not recognized*') {
 }
 
 $versionTest = cmd /c choco --version 2`>`&1
-if ($versionTest -like '*not recognized*') {
+if ( $LASTEXITCODE -ne 0 ) {
 	Write-Host "  Chocolatey              : not installed"
 } else {
 	Write-Host "  Chocolatey              : $versionTest"
 }
 
 $versionTest = cmd /c java -version 2`>`&1
-if ($versionTest -like '*not recognized*') {
+if ( $LASTEXITCODE -ne 0 ) {
 	Write-Host "  Java                    : not installed"
 } else {
 	$array = $versionTest.split(" ")
@@ -74,7 +94,7 @@ if ($versionTest -like '*not recognized*') {
 }
 
 $versionTest = cmd /c javac -version 2`>`&1
-if ($versionTest -like '*not recognized*') {
+if ( $LASTEXITCODE -ne 0 ) {
 	Write-Host "  Java Compiler           : not installed"
 } else {
 	$array = $versionTest.split(" ")
@@ -86,7 +106,7 @@ if ($versionTest -like '*not recognized*') {
 }
 
 $versionTest = cmd /c ant -version 2`>`&1
-if ($versionTest -like '*not recognized*') {
+if ( $LASTEXITCODE -ne 0 ) {
 	Write-Host "  Apache Ant              : not installed"
 } else {
 	$array = $versionTest.split(" ")
@@ -94,7 +114,7 @@ if ($versionTest -like '*not recognized*') {
 }
 
 $versionTest = cmd /c mvn --version 2`>`&1
-if ($versionTest -like '*not recognized*') {
+if ( $LASTEXITCODE -ne 0 ) {
 	Write-Host "  Apache Maven            : not installed"
 } else {
 	$array = $versionTest.split(" ")
@@ -102,7 +122,7 @@ if ($versionTest -like '*not recognized*') {
 }
 
 $versionTest = cmd /c NuGet 2`>`&1
-if ($versionTest -like '*not recognized*') {
+if ( $LASTEXITCODE -ne 0 ) {
 	Write-Host "  NuGet                   : not installed"
 } else {
 	$array = $versionTest.split(" ")
@@ -110,7 +130,7 @@ if ($versionTest -like '*not recognized*') {
 }
 
 $versionTest = cmd /c 7za.exe i 2`>`&1
-if ($versionTest -like '*not recognized*') {
+if ( $LASTEXITCODE -ne 0 ) {
 	Write-Host "  7za.exe                 : not installed"
 } else {
 	$array = $versionTest.split(" ")
@@ -118,23 +138,47 @@ if ($versionTest -like '*not recognized*') {
 }
 
 $versionTest = cmd /c curl.exe --version 2`>`&1
-if ($versionTest -like '*not recognized*') {
+if ( $LASTEXITCODE -ne 0 ) {
 	Write-Host "  curl.exe                : not installed"
 } else {
 	$array = $versionTest.split(" ")
 	Write-Host "  curl.exe                : $($array[1])"
 }
 
+$versionTest = cmd /c tar --version 2`>`&1
+if ( $LASTEXITCODE -ne 0 ) {
+	Write-Host "  tar                     : not installed"
+} else {
+	$array = $versionTest.split(" ")
+	Write-Host "  tar                     : $($array[1]) $($array[2]) $($array[3])"
+}
+
 $versionTest = cmd /c docker --version 2`>`&1
-if ($versionTest -like '*not recognized*') {
+if ( $LASTEXITCODE -ne 0 ) {
 	Write-Host "  Docker                  : not installed"
 } else {
 	$array = $versionTest.split(" ")
-	Write-Host "  Docker                  : $($array[2])"
+	Write-Host "  Docker                  : $($array[2].TrimEnd(','))"
+}
+
+$versionTest = cmd /c docker-compose --version 2`>`&1
+if ( $LASTEXITCODE -ne 0 ) {
+	Write-Host "  docker-compose          : not installed"
+} else {
+	$array = $versionTest.split(" ")
+	Write-Host "  docker-compose          : $($array[2].TrimEnd(','))"
+}
+
+$versionTest = cmd /c terraform --version 2`>`&1
+if ( $LASTEXITCODE -ne 0 ) {
+	Write-Host "  terraform               : not installed"
+} else {
+	$array = $versionTest.split(" ")
+	Write-Host "  terraform               : $($array[1].TrimStart('v'))"
 }
 
 $versionTest = cmd /c python --version 2`>`&1
-if ($versionTest -like '*not recognized*') {
+if ( $LASTEXITCODE -ne 0 ) {
 	Write-Host "  Python                  : not installed"
 } else {
 	$array = $versionTest.split(" ")
@@ -142,7 +186,7 @@ if ($versionTest -like '*not recognized*') {
 }
 
 $versionTest = cmd /c pip.exe --version 2`>`&1
-if ($versionTest -like '*not recognized*') {
+if ( $LASTEXITCODE -ne 0 ) {
 	Write-Host "  PiP                     : not installed"
 } else {
 	$array = $versionTest.split(" ")
@@ -150,37 +194,44 @@ if ($versionTest -like '*not recognized*') {
 }
 
 $versionTest = cmd /c node --version 2`>`&1
-if ($versionTest -like '*not recognized*') {
+if ( $LASTEXITCODE -ne 0 ) {
 	Write-Host "  NodeJS                  : not installed"
 } else {
 	Write-Host "  NodeJS                  : $versionTest"
 }
 
 $versionTest = cmd /c npm --version 2`>`&1
-if ($versionTest -like '*not recognized*') {
+if ( $LASTEXITCODE -ne 0 ) {
 	Write-Host "  NPM                     : not installed"
 } else {
 	Write-Host "  NPM                     : $versionTest"
 }
 
-$versionTest = cmd /c vswhere 2`>`&1
-if ($versionTest -like '*not recognized*') {
+$versionTest = cmd /c vswhere -products * 2`>`&1
+if ( $LASTEXITCODE -ne 0 ) {
 	Write-Host "  VSWhere                 : not installed"
 } else {
-	Write-Host "  VSWhere                 : $($versionTest[0].Replace('Visual Studio Locator version ', ''))"
-}
-
-Write-Host "`n[$scriptName] List the build tools`n"
-$regkey = 'HKLM:\Software\Microsoft\MSBuild\ToolsVersions'
-if (!($versionTest -like '*not recognized*') ) {
-	Write-Host "  $((vswhere -products * | findstr productId:).replace('productId: ', ''))"
-}
-if ( Test-Path $regkey ) { 
-	foreach($buildTool in Get-ChildItem $regkey) {
-		Write-Host "  $buildTool"
+	if ( $versionTest ) { 
+		Write-Host "  VSWhere                 : $($versionTest[0].Replace('Visual Studio Locator version ', '')) "
+		Write-Host "`n[$scriptName] List the build tools`n"
+		$regkey = 'HKLM:\Software\Microsoft\MSBuild\ToolsVersions'
+		if (!($versionTest -like '*not recognized*') ) {
+			foreach ($line in $versionTest) {
+				if ( $line -like '*productId*' ) {
+					Write-Host "  $($line.replace('productId: ', ''))"
+				}
+			}
+		}
+		if ( Test-Path $regkey ) { 
+			foreach($buildTool in Get-ChildItem $regkey) {
+				Write-Host "  $buildTool"
+			}
+		} else {
+			Write-Host "  Build tools not found ($regkey)"
+		}
+	} else {
+		Write-Host "VSWhere is not returning results, known bug in 4.7.2 Microsoft image https://github.com/microsoft/vswhere/issues/182"
 	}
-} else {
-	Write-Host "  Build tools not found ($regkey)"
 }
 
 Write-Host "`n[$scriptName] List the WIF Installed Versions`n"
@@ -217,8 +268,8 @@ $job = Start-Job {
 	$dotnet = $(
 		Get-ChildItem 'HKLM:\SOFTWARE\Microsoft\NET Framework Setup\NDP' -recurse |
 		Get-ItemProperty -name Version,Release -EA 0 |
-		Where { $_.PSChildName -match '^(?!S)\p{L}'} |
-		Select PSChildName, Version, Release, @{
+		Where-Object { $_.PSChildName -match '^(?!S)\p{L}'} |
+		Select-Object PSChildName, Version, Release, @{
 		  name="Product"
 		  expression={
 		    switch -regex ($_.Release) {

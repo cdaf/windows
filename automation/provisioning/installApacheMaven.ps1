@@ -41,9 +41,7 @@ function executeRetry ($expression) {
 			} else {
 				$retryCount += 1
 				Write-Host "[$scriptName] Set TLS to version 1.1 or higher, Wait $wait seconds, then retry $retryCount of $retryMax"
-				Write-Host "`$AllProtocols = [System.Net.SecurityProtocolType]'Tls11,Tls12'"
-				$AllProtocols = [System.Net.SecurityProtocolType]'Tls11,Tls12'
-				executeExpression '[System.Net.ServicePointManager]::SecurityProtocol = $AllProtocols'
+				executeExpression "[System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]'Tls11,Tls12'"
 				sleep $wait
 				$wait = $wait + $wait
 			}
@@ -75,7 +73,7 @@ if ( $maven_version ) {
 if ( $mediaDirectory ) {
 	Write-Host "[$scriptName] mediaDirectory        : $mediaDirectory"
 } else {
-	$mediaDirectory = 'C:\.provision'
+	$mediaDirectory = "$env:TEMP"
 	Write-Host "[$scriptName] mediaDirectory        : $mediaDirectory (default)"
 }
 

@@ -45,7 +45,7 @@ if ($environment) {
     Write-Host "[$scriptName] environment : $environment"
 }
 
-echo "[$scriptName] List all (running and stopped) containers (before)"
+Write-Output "[$scriptName] List all (running and stopped) containers (before)"
 executeExpression "docker ps --all"
 
 Write-Host "`n[$scriptName] As of 1.13.0 new prune commands, if using older version, suppress error"

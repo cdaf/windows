@@ -1,0 +1,8 @@
+artifactPrefix=0.1
+productName=ASP.NET Classic Web Deploy Sample
+solutionName=webdeploy
+
+# Feature Branch controls
+defaultEnvironment=DEV
+defaultBranch=main
+processSequence=localTasks.ps1

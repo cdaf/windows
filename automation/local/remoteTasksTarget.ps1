@@ -12,11 +12,23 @@ $propertiesFile = "$WORK_DIR_DEFAULT\propertiesForRemoteTasks\$DEPLOY_TARGET"
 write-host "[$scriptName] propertiesFile : $propertiesFile"
 
 $deployHost = getProp "deployHost"
+if ( $deployHost ) {
+	$deployHost = Invoke-Expression "Write-Output $deployHost"
+} else {
+	write-host "[$scriptName][ERROR] deployHost not supplied, required property for remote deployment"
+	exit 5524
+}
 $deployLand = getProp "deployLand"
+if (!( $deployLand )) {
+	$deployLand = "c:\deploy\$SOLUTION"
+}
 $remoteUser = getProp "remoteUser"
+if ( $remoteUser ) {
+	$remoteUser = Invoke-Expression "Write-Output $remoteUser"
+}
 $remoteCred = getProp "remoteCred"
 $decryptThb = getProp "decryptThb"
-$decryptAES = getProp "decryptAES"
+$remotePass = getProp "remotePass"
 $warnondeployerror = getProp "warnondeployerror"
 
 $userName = [Environment]::UserName
@@ -26,18 +38,21 @@ write-host "[$scriptName]   deployLand = $deployLand"
 write-host "[$scriptName]   remoteUser = $remoteUser"
 write-host "[$scriptName]   remoteCred = $remoteCred"
 write-host "[$scriptName]   decryptThb = $decryptThb"
-write-host "[$scriptName]   decryptAES = $decryptAES"
+write-host "[$scriptName]   remotePass = $remotePass"
+if ( $remotePass ) {
+	$remotePass = Invoke-Expression "Write-Output $remotePass"
+}
 
 # Create a reusable Remote PowerShell session handler
 # If remote user specifified, build the credentials object from name and encrypted password file
 if ($remoteUser) {
 	try {
 		if ($decryptThb) {
-			$userpass = & .\${WORK_DIR_DEFAULT}\decryptKey.ps1 .\${WORK_DIR_DEFAULT}\cryptLocal\$remoteCred $decryptThb
-		    $password = ConvertTo-SecureString $userpass -asplaintext -force
+			$remotePass = & .\${WORK_DIR_DEFAULT}\decryptKey.ps1 .\${WORK_DIR_DEFAULT}\cryptLocal\$remoteCred $decryptThb
+		    $password = ConvertTo-SecureString $remotePass -asplaintext -force
 		} else {
-			if ($decryptThb) {
-			
+			if ($remotePass) {
+			    $password = ConvertTo-SecureString $remotePass -asplaintext -force
 			} else {
 				$password = get-content $remoteCred | convertto-securestring
 			}
@@ -122,7 +137,7 @@ write-host "`n[$scriptName] Transfer control to the remote host`n" -ForegroundCo
 try {
 	Invoke-Command -session $session -File $WORK_DIR_DEFAULT\deploy.ps1 -Args $DEPLOY_TARGET,$deployLand\$SOLUTION-$BUILD,$warnondeployerror,$OPT_ARG
 } catch { 
-	$exceptionCode = echo $_.tostring()
+	$exceptionCode = Write-Output $_.tostring()
 	[int]$exceptionCode = [convert]::ToInt32($exceptionCode)
 	if ( $exceptionCode -ne 0 ){
 	    write-host "[$scriptName] EXCEPTION_PASS_BACK Invoke-Command -session $session -File $WORK_DIR_DEFAULT\deploy.ps1 -Args $DEPLOY_TARGET,$deployLand\$SOLUTION-$BUILD,$warnondeployerror" -ForegroundColor Magenta

@@ -79,13 +79,13 @@ function copySet ($item, $from, $to) {
 
 	Write-Host "[$scriptName]   $from\$item --> $to" 
 	Copy-Item $from\$item $to -Force
-	if(!$?){ taskFailure ("Copy remote script $from\$item --> $to") }
+	if(!$?){ $error ; taskFailure "[$scriptName (copySet)] copy $from\$item to $to failed" }
 	if ( Test-Path $to -pathType container ) {
 		Set-ItemProperty $to\$item -name IsReadOnly -value $false
-		if(!$?){ taskFailure ("remove read only from $to\$item") }
+		if(!$?){ $error ; taskFailure "[$scriptName (copySet)] remove read only from $to\$item" }
 	} else {
 		Set-ItemProperty $to -name IsReadOnly -value $false
-		if(!$?){ taskFailure ("remove read only from $to") }
+		if(!$?){ $error ; taskFailure "[$scriptName (copySet)] remove read only from $to" }
 	}
 }
 
@@ -112,37 +112,37 @@ Write-Host "[$scriptName] +-----------------+"
 
 $SOLUTION = $args[0]
 if (-not($SOLUTION)) {exceptionExit SOLUTION_NOT_PASSED }
-Write-Host "[$scriptName]   SOLUTION                : $SOLUTION"
+Write-Host "[$scriptName]   SOLUTION                   : $SOLUTION"
 
 $BUILDNUMBER = $args[1]
 if (-not($BUILDNUMBER)) {exceptionExit BUILDNUMBER_NOT_PASSED }
-Write-Host "[$scriptName]   BUILDNUMBER             : $BUILDNUMBER"
+Write-Host "[$scriptName]   BUILDNUMBER                : $BUILDNUMBER"
 
 $REVISION = $args[2]
 if (-not($REVISION)) {exceptionExit REVISION_NOT_PASSED }
-Write-Host "[$scriptName]   REVISION                : $REVISION"
+Write-Host "[$scriptName]   REVISION                   : $REVISION"
 
 $AUTOMATIONROOT=$args[3]
 if (-not($LOCAL_WORK_DIR)) {exceptionExit AUTOMATIONROOT_NOT_PASSED }
-Write-Host "[$scriptName]   AUTOMATIONROOT          : $AUTOMATIONROOT"
+Write-Host "[$scriptName]   AUTOMATIONROOT             : $AUTOMATIONROOT"
 
 $SOLUTIONROOT=$args[4]
 if (-not($LOCAL_WORK_DIR)) {exceptionExit SOLUTIONROOT_NOT_PASSED }
-Write-Host "[$scriptName]   SOLUTIONROOT            : $SOLUTIONROOT"
+Write-Host "[$scriptName]   SOLUTIONROOT               : $SOLUTIONROOT"
 
 $LOCAL_WORK_DIR = $args[5]
 if (-not($LOCAL_WORK_DIR)) {exceptionExit LOCAL_NOT_PASSED }
-Write-Host "[$scriptName]   LOCAL_WORK_DIR          : $LOCAL_WORK_DIR"
+Write-Host "[$scriptName]   LOCAL_WORK_DIR             : $LOCAL_WORK_DIR"
 
 $REMOTE_WORK_DIR = $args[6]
 if (-not($REMOTE_WORK_DIR)) {exceptionExit REMOTE_NOT_PASSED }
-Write-Host "[$scriptName]   REMOTE_WORK_DIR         : $REMOTE_WORK_DIR"
+Write-Host "[$scriptName]   REMOTE_WORK_DIR            : $REMOTE_WORK_DIR"
 
 $ACTION = $args[7]
-Write-Host "[$scriptName]   ACTION                  : $ACTION"
+Write-Host "[$scriptName]   ACTION                     : $ACTION"
 
 $prepackageTask = "$SOLUTIONROOT\package.tsk"
-Write-Host -NoNewLine "[$scriptName]   Prepackage Tasks        : " 
+Write-Host -NoNewLine "[$scriptName]   Prepackage Tasks           : " 
 if (Test-Path "$prepackageTask") {
 	Write-Host "found ($prepackageTask)"
 } else {
@@ -150,7 +150,7 @@ if (Test-Path "$prepackageTask") {
 }
 
 $prepackageScript = ".\package.ps1"
-Write-Host -NoNewLine "[$scriptName]   Prepackage Script       : " 
+Write-Host -NoNewLine "[$scriptName]   Prepackage Script          : " 
 if (Test-Path "$prepackageScript") {
 	Write-Host "found ($prepackageScript)"
 } else {
@@ -158,7 +158,7 @@ if (Test-Path "$prepackageScript") {
 }
 
 $postpackageTasks = "$SOLUTIONROOT\wrap.tsk"
-Write-Host -NoNewLine "[$scriptName]   Postpackage Tasks       : " 
+Write-Host -NoNewLine "[$scriptName]   Postpackage Tasks          : " 
 if (Test-Path "$postpackageTasks") {
 	Write-Host "found ($postpackageTasks)"
 } else {
@@ -167,18 +167,26 @@ if (Test-Path "$postpackageTasks") {
 
 # Test for optional properties
 $remotePropertiesDir = "$SOLUTIONROOT\propertiesForRemoteTasks"
-Write-Host -NoNewLine "[$scriptName]   Remote Target Directory : " 
+Write-Host -NoNewLine "[$scriptName]   Remote Target Directory    : " 
 
 if ( Test-Path $remotePropertiesDir ) {
 	Write-Host "found ($remotePropertiesDir)"
 } else {
 	Write-Host "none ($remotePropertiesDir)"
 }
+$containerPropertiesDir = "$SOLUTIONROOT\propertiesForContainerTasks"
+Write-Host -NoNewLine "[$scriptName]   Container Target Directory : " 
+
+if ( Test-Path $containerPropertiesDir ) {
+	Write-Host "found ($containerPropertiesDir)"
+} else {
+	Write-Host "none ($containerPropertiesDir)"
+}
 
 # Runtime information, build process can have large logging, so this is repeated
-Write-Host "[$scriptName]   pwd                     : $(pwd)"
-Write-Host "[$scriptName]   hostname                : $(hostname)" 
-Write-Host "[$scriptName]   whoami                  : $(whoami)" 
+Write-Host "[$scriptName]   pwd                        : $(Get-Location)"
+Write-Host "[$scriptName]   hostname                   : $(hostname)" 
+Write-Host "[$scriptName]   whoami                     : $(whoami)" 
 
 $propertiesFile = "$AUTOMATIONROOT\CDAF.windows"
 $propName = "productVersion"
@@ -186,7 +194,7 @@ try {
 	$cdafVersion=$(& $AUTOMATIONROOT\remote\getProperty.ps1 $propertiesFile $propName)
 	if(!$?){ taskWarning }
 } catch { exceptionExit "PACK_GET_CDAF_VERSION" }
-Write-Host "[$scriptName]   CDAF Version            : $cdafVersion"
+Write-Host "[$scriptName]   CDAF Version               : $cdafVersion"
 
 # Cannot brute force clear the workspace as the Visual Studio solution file is here
 write-host "`n[$scriptName]   --- Start Package Process ---`n" -ForegroundColor Green
@@ -198,73 +206,70 @@ itemRemove ".\*.nupkg"
 itemRemove "$LOCAL_WORK_DIR"
 itemRemove "$REMOTE_WORK_DIR"
 itemRemove "artifacts"
+itemRemove "${SOLUTION}.ps1"
 
-if ( $ACTION -eq "clean" ) {
+# Process solution properties if defined
+if (Test-Path "$SOLUTIONROOT\CDAF.solution") {
+	write-host "`n[$scriptName] Load solution properties from $SOLUTIONROOT\CDAF.solution"
+	& $AUTOMATIONROOT\remote\Transform.ps1 "$SOLUTIONROOT\CDAF.solution" | ForEach-Object { invoke-expression $_ }
+}
 
-	write-host "`n[$scriptName] Clean only." -ForegroundColor Blue
+# Process optional pre-packaging tasks (Task driver support added in release 0.7.2)
+if (Test-Path "$prepackageTask") {
+	Write-Host "`n[$scriptName] Process Pre-Package Task ...`n"
+	& $AUTOMATIONROOT\remote\execute.ps1 $SOLUTION $BUILDNUMBER "package" "$prepackageTask" $ACTION
+	if(!$?){ exceptionExit ".$AUTOMATIONROOT\remote\execute.ps1 $SOLUTION $BUILDNUMBER `"package`" `"$prepackageTask`" $ACTION" }
+}
+
+# Process optional pre-packaging script (Script driver support added in release 1.8.14)
+if (Test-Path $prepackageScript) {
+	Write-Host "`n[$scriptName] Process Pre-Package Script ...`n"
+    try {
+	    & $prepackageScript $SOLUTION $BUILDNUMBER $ACTION
+		if($LASTEXITCODE -ne 0){ passExitCode "PACKAGE_SCRIPT_NON_ZERO .\$automationHelper\execute.ps1 $SOLUTION $BUILDNUMBER $ENVIRONMENT build.tsk $ACTION" $LASTEXITCODE }
+	    if(!$?){ taskFailure "SOLUTION_BUILD_${SOLUTION}_${BUILDNUMBER}_${ACTION}" }
+    } catch {
+	    write-host "[$scriptName] CUSTOM_BUILD_EXCEPTION & $prepackageScript $SOLUTION $BUILDNUMBER $ACTION" -ForegroundColor Magenta
+    	exceptionExit $_
+    }
+}
+
+# Load Manifest, these properties are used by remote deployment
+Add-Content manifest.txt "# Manifest for revision $SOLUTION"
+Add-Content manifest.txt "SOLUTION=$SOLUTION"
+Add-Content manifest.txt "BUILDNUMBER=$BUILDNUMBER"
+Add-Content manifest.txt "REVISION=$REVISION"
+# CDM-115 Add solution properties to manifest if it exists
+if ((Test-Path "$SOLUTIONROOT\CDAF.solution") -and ($item -ne $LOCAL_WORK_DIR) -and ($item -ne $REMOTE_WORK_DIR)) {
+	Get-Content $SOLUTIONROOT\CDAF.solution | Add-Content manifest.txt
+}
+Write-Host "`nCreated manifest.txt file ...`n"
+Get-Content manifest.txt
+write-host "`n[$scriptName] Always create local working artefacts, even if all tasks are remote" -ForegroundColor Blue
+try {
+	& $AUTOMATIONROOT\buildandpackage\packageLocal.ps1 $SOLUTION $BUILDNUMBER $REVISION $LOCAL_WORK_DIR $SOLUTIONROOT $AUTOMATIONROOT
+	if(!$?){ taskWarning }
+} catch { exceptionExit("packageLocal.ps1") }
+
+# 1.7.8 Only create the remote package if there is a remote target folder or a artefact definition list, if folder exists
+# create the remote package (even if there are no target files within it)
+# 2.4.0 create remote package for use in container deployment
+if (( Test-Path "$containerPropertiesDir" -pathtype container) -or ( Test-Path "$remotePropertiesDir" -pathtype container) -or ( Test-Path "$SOLUTIONROOT\storeForRemote" -pathtype leaf) -or ( Test-Path "$SOLUTIONROOT\storeFor" -pathtype leaf)) {
+
+	try {
+		& $AUTOMATIONROOT\buildandpackage\packageRemote.ps1 $SOLUTION $BUILDNUMBER $REVISION $LOCAL_WORK_DIR $REMOTE_WORK_DIR $SOLUTIONROOT $AUTOMATIONROOT
+		if(!$?){ taskWarning }
+	} catch { exceptionExit("packageRemote.ps1") }
 
 } else {
-
-	# Process solution properties if defined
-	if (Test-Path "$SOLUTIONROOT\CDAF.solution") {
-		write-host "`n[$scriptName] Load solution properties from $SOLUTIONROOT\CDAF.solution"
-		& $AUTOMATIONROOT\remote\Transform.ps1 "$SOLUTIONROOT\CDAF.solution" | ForEach-Object { invoke-expression $_ }
-	}
-
-	# Process optional pre-packaging tasks (Task driver support added in release 0.7.2)
-    if (Test-Path "$prepackageTask") {
-		Write-Host "`n[$scriptName] Process Pre-Package Task ...`n"
-		& $AUTOMATIONROOT\remote\execute.ps1 $SOLUTION $BUILDNUMBER "package" "$prepackageTask" $ACTION
-		if(!$?){ exceptionExit ".$AUTOMATIONROOT\remote\execute.ps1 $SOLUTION $BUILDNUMBER `"package`" `"$prepackageTask`" $ACTION" }
-	}
-
-	# Process optional pre-packaging script (Script driver support added in release 1.8.14)
-	if (Test-Path $prepackageScript) {
-		Write-Host "`n[$scriptName] Process Pre-Package Script ...`n"
-	    try {
-		    & $prepackageScript $SOLUTION $BUILDNUMBER $ACTION
-			if($LASTEXITCODE -ne 0){ passExitCode "PACKAGE_SCRIPT_NON_ZERO .\$automationHelper\execute.ps1 $SOLUTION $BUILDNUMBER $ENVIRONMENT build.tsk $ACTION" $LASTEXITCODE }
-		    if(!$?){ taskFailure "SOLUTION_BUILD_${SOLUTION}_${BUILDNUMBER}_${ACTION}" }
-	    } catch {
-		    write-host "[$scriptName] CUSTOM_BUILD_EXCEPTION & $prepackageScript $SOLUTION $BUILDNUMBER $ACTION" -ForegroundColor Magenta
-	    	exceptionExit $_
-	    }
-	}
-
-	# Load Manifest, these properties are used by remote deployment
-	Add-Content manifest.txt "# Manifest for revision $SOLUTION"
-	Add-Content manifest.txt "SOLUTION=$SOLUTION"
-	Add-Content manifest.txt "BUILDNUMBER=$BUILDNUMBER"
-	Add-Content manifest.txt "REVISION=$REVISION"
-	# CDM-115 Add solution properties to manifest if it exists
-	if ((Test-Path "$SOLUTIONROOT\CDAF.solution") -and ($item -ne $LOCAL_WORK_DIR) -and ($item -ne $REMOTE_WORK_DIR)) {
-		Get-Content $SOLUTIONROOT\CDAF.solution | Add-Content manifest.txt
-	}
-	Write-Host "`nCreated manifest.txt file ...`n"
-	Get-Content manifest.txt
-	write-host "`n[$scriptName] Always create local working artefacts, even if all tasks are remote" -ForegroundColor Blue
-	try {
-		& $AUTOMATIONROOT\buildandpackage\packageLocal.ps1 $SOLUTION $BUILDNUMBER $REVISION $LOCAL_WORK_DIR $SOLUTIONROOT $AUTOMATIONROOT
-		if(!$?){ taskWarning }
-	} catch { exceptionExit("packageLocal.ps1") }
-
-	if (( Test-Path "$remotePropertiesDir" -pathtype container) -or ( Test-Path "$SOLUTIONROOT\storeForRemote" -pathtype leaf) -or ( Test-Path "$SOLUTIONROOT\storeFor" -pathtype leaf)) {
-
-		try {
-			& $AUTOMATIONROOT\buildandpackage\packageRemote.ps1 $SOLUTION $BUILDNUMBER $REVISION $LOCAL_WORK_DIR $REMOTE_WORK_DIR $SOLUTIONROOT $AUTOMATIONROOT
-			if(!$?){ taskWarning }
-		} catch { exceptionExit("packageRemote.ps1") }
-
-	} else {
-		write-host "`n[$scriptName] Remote Properties directory ($remotePropertiesDir) or storeForRemote file do not exist, no action performed for remote task packaging" -ForegroundColor Yellow
-	}
-
-	# Process optional post-packaging tasks (wrap.tsk added in release 0.8.2)
-    if (Test-Path "$postpackageTasks") {
-		Write-Host "`n[$scriptName] Process Post-Package Tasks ...`n"
-		& $AUTOMATIONROOT\remote\execute.ps1 $SOLUTION $BUILDNUMBER "package" "$postpackageTasks" $ACTION
-		if(!$?){ exceptionExit ".$AUTOMATIONROOT\remote\execute.ps1 $SOLUTION $BUILDNUMBER `"package`" `"$postpackageTasks`" $ACTION" }
-	}
-
+	write-host "`n[$scriptName] Remote Properties directory ($remotePropertiesDir) or storeForRemote file do not exist, no action performed for remote task packaging" -ForegroundColor Yellow
 }
+
+# Process optional post-packaging tasks (wrap.tsk added in release 0.8.2)
+if (Test-Path "$postpackageTasks") {
+	Write-Host "`n[$scriptName] Process Post-Package Tasks ...`n"
+	& $AUTOMATIONROOT\remote\execute.ps1 $SOLUTION $BUILDNUMBER "package" "$postpackageTasks" $ACTION
+	if(!$?){ exceptionExit ".$AUTOMATIONROOT\remote\execute.ps1 $SOLUTION $BUILDNUMBER `"package`" `"$postpackageTasks`" $ACTION" }
+}
+
 write-host "`n[$scriptName]   --- Package Complete ---" -ForegroundColor Green

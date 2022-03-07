@@ -35,6 +35,7 @@ To alleviate the burden of argument passing, exception handling and logging, the
 | Keyword | Description                       | Example                         |
 | --------|-----------------------------------|---------------------------------|
 | ASSIGN  | set a variable                    | ASSIGN $test="Hello World"      |
+| CMDTST  | Returns true if command exists    | CMDTST vagrant                  |
 | CMPRSS  | Compress directory to file        | CMPRSS packageName dirName      |
 | CMPRSS  | Compress directory to file        | CMPRSS packageName              |
 | DCMPRS  | Decompress package file           | DCMPRS packageName              |
@@ -43,16 +44,18 @@ To alleviate the burden of argument passing, exception handling and logging, the
 | DETOKN  | Detokenise file with target prop  | DETOKN token.yml                |
 |         | Detokenise with specific file     | DETOKN token.yml PROPERTY_FILE  |
 |         | Detokenise with encrypted file    | DETOKN token.yml crypt/FIL $key |
+| ELEVAT  | Execute as elevated NT SYSTEM     | ELEVAT "$(pwd)/custom.ps1"      |
 | EXCREM  | Execute Remote Command            | EXCREM hostname                 |
 |         | Execute Remote script             | EXCREM ./capabilities.ps1       |
 | EXITIF  | Exit normally is argument set     | EXITIF $ACTION -eq clean        |
+| IMGTXT  | Display image file as text        | IMGTXT sample.jpg               |
 | INVOKE  | call a custom script              | INVOKE ./script "Hello"         |
 | MAKDIR  | Create a directory and path (opt) | MAKDIR directory/and/path       |
 | PROPLD  | Load properties as variables      | PROPLD prop.file                |
 | REMOVE  | Delete files, including wildcard  | REMOVE *.war                    |
 | REPLAC  | Replace token in file   		  | REPLAC fileName %token% $value  |
+| VARCHK  | Variable validation check         | VARCHK varlistFileName          |
 | VECOPY  | Verbose copy					  | VECOPY *.war                    |
-| ELEVAT  | Execute as elevated NT SYSTEM     | ELEVAT "Write-Verbose whoami"   |
 
 Notes on EXCREM use, the properties are similar to those used for remote tasks, where the minimum requried is the host, if other properties are not used, must be set to NOT_SUPPLIED, i.e.
 
@@ -70,6 +73,9 @@ Runtime variables, automatically set
 ## Build and Package (once)
 
 buildProjects: (optional, all directories containing build.ps1 or build.tsk will be processed). The build sequence can be controlled using the optional file, buildProjects. Note: build projects entries needs to be the directory name and not the project name.
+
+	prebuild.tsk : optional pre-build tasks definition (2.4.4)
+	postbuild.tsk : optional pre-build tasks definition (2.4.4)
 
 Linear Deploy requires properties file for workstation (default is DEV) to be a match (not partial match as per repeatable deploy). Transform.ps1 utility can be used to load all defined properties.
 
@@ -109,11 +115,26 @@ Custom elements, i.e. deployScriptOverride and deployTaskOverride scripts
 	/customRemote
 	/customLocal
 
+## Common Functions
+
+VARCHK varlistFileName example file
+
+    # Plain text values
+    OPT_ARG                                        # Optional plain text
+    terraform_version=required                     # Required plain text
+
+    # Secret values
+    env:TERRAFORM_TOKEN=optional                   # Optional secret
+    env:TERRAFORM_TOKEN=secret                     # Required secret
+    env:TERRAFORM_TOKEN=$env:TERRAFORM_TOKEN_MD5   # Required secret verified against supplied MD5 value
+
 # Continuous Delivery Emulation
 
 To support Continuous Delivery, the automation of Deployment is required, to automate deployment, the automation of packaging is required, and to automate packaging, the automation of build is required.
 
 ## Build and Package  
+
+To produce a self-extracting shell script for deployment, set artifactPrefix in CDAF.solution
 
 ### Automated Build
 
@@ -146,3 +167,14 @@ The automation of deployment uses remote PowerShell to establish a connection to
 
 Executed from the current host, i.e. the build server or agent, and may connect to remove hosts through direct protocols, i.e. WebDAV, ODBC/JDBC, HTTP(S), etc.
 
+## Feature Branch Environments
+
+Only available when using Git aware entry.ps1. If file feature-branch.properties is found in solution root, each matching branch name prefix will be deployed to the defined environment in the CI process. Example contents
+
+    # Separate environments for features and bugs
+    feature=DEV1
+    bugfix=DEV2
+
+    # Hotfixes deploy to all environments
+    hotfix=DEV1
+    hotfix=DEV2

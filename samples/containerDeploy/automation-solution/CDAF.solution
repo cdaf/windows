@@ -1,0 +1,10 @@
+# Container image used for both containerBuild and containerDeploy if runtimeImage not specified
+containerImage=mcr.microsoft.com/windows/servercore:ltsc2019@sha256:c09d8edfe68365f519b02827171aacc61ed3451f7863325cee4059b96f41c0ce
+
+# runtimeImage=mcr.microsoft.com/windows/servercore:ltsc2019@sha256:acae9dedd8ce6fbc624e8c4b52555a9d3201eb47aacd45b4a00e0d81083b4cab
+
+# Use non-default image build location
+# containerDeploy=& ${CDAF_WORKSPACE}/containerDeploy.ps1 "${ENVIRONMENT}" "${RELEASE}" "${SOLUTION}" "${BUILDNUMBER}" "${REVISION}" -imageDir compose/target
+
+# Use a specific build folder, e.g. using docker-compose definition
+# containerImage=mcr.microsoft.com/windows/servercore:ltsc2019@sha256:c09d8edfe68365f519b02827171aacc61ed3451f7863325cee4059b96f41c0ce

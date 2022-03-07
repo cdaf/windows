@@ -16,11 +16,11 @@ function writeLog ($message) {
 # Common expression logging and error handling function, copied, not referenced to ensure atomic process
 function executeExpression ($expression) {
 	$error.clear()
-	writeLog "[$(date)] $expression"
+	writeLog "[$(Get-date)] $expression"
 	try {
 		Invoke-Expression $expression
 	    if(!$?) { writeLog "`$? = $?"; exit 1 }
-	} catch { echo $_.Exception|format-list -force; exit 2 }
+	} catch { Write-Output $_.Exception|format-list -force; exit 2 }
     if ( $error[0] ) { writeLog "`$error[0] = $error"; exit 3 }
     if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) { writeLog "`$LASTEXITCODE = $LASTEXITCODE "; exit $LASTEXITCODE }
 }
@@ -63,7 +63,13 @@ if ($skipUpdates) {
     writeLog "skipUpdates : $skipUpdates (default)"
 }
 
+Write-Host "`n[$scriptName] Set TLS to version 1.2 or higher"
+executeExpression "[System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]'Tls11,Tls12'"
+
 executeExpression "cd C:\"
+if ( Test-Path windows-master ) {
+	executeExpression "Remove-Item -Force -Recurse windows-master"
+}
 executeExpression "mkdir windows-master"
 executeExpression "cd windows-master"
 $zipFile = "WU-CDAF.zip"
@@ -149,6 +155,9 @@ if ( $skipUpdates -eq 'yes' ) {
 	emailProgress "Windows Updates applied, reboot ..."
 	executeExpression "shutdown /r /t 60"
 }
+
+executeExpression "cd c:\windows-master"
+executeExpression "(New-Object System.Net.WebClient).DownloadFile('https://raw.githubusercontent.com/cdaf/windows/master/AtlasImage.ps1', '$PWD\AtlasImage.ps1')"
 
 writeLog "---------- stop ----------"
 exit 0

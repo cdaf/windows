@@ -1,3 +1,0 @@
-context  target  deployTaskOverride   deployTarget  passwordEnvVar    appIDEnvVar  tenantEnvVar   
-local    TEST    maven-container.tsk  DEPLOY_TEST   TEST_SP_PASSWORD  TEST_APP_ID  TEST_SP_TENANT
-local    PROD    maven-container.tsk  DEPLOY_PROD   PROD_SP_PASSWORD  PROD_APP_ID  PROD_SP_TENANT

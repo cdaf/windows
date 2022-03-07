@@ -1,3 +1,5 @@
+# Emulate Linux SCP transferring file via WinRM
+
 function taskException ($taskName, $exit, $exception) {
     write-host "[$scriptName] Caught an exception excuting $taskName :" -ForegroundColor Red
     write-host "     Exception Type: $($exception.Exception.GetType().FullName)" -ForegroundColor Red
@@ -9,16 +11,11 @@ $srcPath   = $args[0]
 
 $scriptName = $myInvocation.MyCommand.Name 
 if (-not(Test-Path $srcPath)) {
-
-	write-host
-	write-host "[$scriptName] Source file not found! Throwing exception : $srcPath" -ForegroundColor Red
-	write-host
+	write-host "`n[$scriptName] Source file not found! Throwing exception : $srcPath`n" -ForegroundColor Red
     throw "$srcPath"
 }
 
-Write-Host
-Write-Host "[$scriptName] Copy $srcPath to 'deployLand'"
-Write-Host
+Write-Host "`n[$scriptName] Copy $srcPath to 'deployLand'`n"
 try {
     [System.IO.FileStream]$srcStream = New-Object IO.FileStream $srcPath, Open
     [Byte[]]$readBuffer  = New-Object Byte[]  1048576 #  1MB
@@ -47,9 +44,6 @@ try {
 			} finally {
 				$dstStream.Dispose()
 				$dstStream = $null
-
-# I don't think this is needed, so commented out unless I see a remote session fail
-#				[System.GC]::Collect()
 			}
 		} `
 		-ArgumentList @( ,$buffer )

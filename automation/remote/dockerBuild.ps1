@@ -6,60 +6,92 @@ Param (
 	[string]$optionalArgs
 )
 
-$scriptName = 'dockerBuild.ps1'
-
 # Common expression logging and error handling function, copied, not referenced to ensure atomic process
 function executeExpression ($expression) {
-	$error.clear()
-	Write-Host "$expression"
+	Write-Host "[$(Get-Date)] $expression"
 	try {
-		Invoke-Expression $expression
-	    if(!$?) { Write-Host "[$scriptName] `$? = $?"; exit 1 }
-	} catch { Write-Host $_.Exception|format-list -force; exit 2 }
-    if ( $error ) { Write-Host "[$scriptName] `$error[0] = $error"; exit 3 }
-    if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) { Write-Host "[$scriptName] `$LASTEXITCODE = $LASTEXITCODE "; exit $LASTEXITCODE }
+		Invoke-Expression "$expression 2> `$null"
+	    if(!$?) { Write-Host "[$scriptName] `$? = $?"; $error ; exit 1111 }
+	} catch {
+		Write-Host "[$scriptName][EXCEPTION] List exception and error array (if populated) and exit with LASTEXITCODE 1112" -ForegroundColor Red
+		Write-Host $_.Exception|format-list -force
+		if ( $error ) { Write-Host "[$scriptName][ERROR] `$Error = $Error" ; $Error.clear() }
+		exit 1112
+	}
+    if ( $LASTEXITCODE ) {
+    	if ( $LASTEXITCODE -ne 0 ) {
+			Write-Host "[$scriptName] `$LASTEXITCODE = $LASTEXITCODE " -ForegroundColor Red
+			if ( $error ) { Write-Host "[$scriptName][ERROR] `$Error = $Error" ; $Error.clear() }
+			exit $LASTEXITCODE
+		} else {
+			if ( $error ) {
+				Write-Host "[$scriptName][WARN] $Error array populated by `$LASTEXITCODE = $LASTEXITCODE error follows...`n" -ForegroundColor Yellow
+				Write-Host "[$scriptName][WARN] `$Error = $Error" ; $Error.clear()
+			}
+		} 
+	} else {
+	    if ( $error ) {
+	    	if ( $env:CDAF_IGNORE_WARNING -eq 'no' ) {
+				Write-Host "[$scriptName][ERROR] `$Error = $error"; $Error.clear()
+				Write-Host "[$scriptName][ERROR] `$env:CDAF_IGNORE_WARNING is 'no' so exiting with LASTEXITCODE 1113 ..."; exit 1113
+	    	} else {
+		    	Write-Host "[$scriptName][WARN] `$Error = $error" ; $Error.clear()
+	    	}
+		}
+	}
 }
 
 # Common expression logging and error handling function, copied, not referenced to ensure atomic process
 function executeSuppress ($expression) {
 	Write-Host "$expression"
 	try {
-		Invoke-Expression $expression
+		Invoke-Expression "$expression 2> `$null"
 	    if(!$?) { Write-Host "[$scriptName] `$? = $?"; exit 1 }
 	} catch { Write-Host $_.Exception|format-list -force; exit 2 }
 	$error.clear()
     if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) { Write-Host "[$scriptName] Suppress `$LASTEXITCODE ($LASTEXITCODE)"; cmd /c "exit 0" } # reset LASTEXITCODE
 }
 
+$scriptName = 'dockerBuild.ps1'
+$Error.clear()
 cmd /c "exit 0"
 
-Write-Host "`n[$scriptName] ---------- start ----------"
 Write-Host "`n[$scriptName] Build docker image, resulting image tag will be ${imageName}:${tag}"
+Write-Host "`n[$scriptName] ---------- start ----------"
 if ($imageName) {
 	$imageName = $imageName.ToLower()
-    Write-Host "[$scriptName] imageName : $imageName"
+    Write-Host "[$scriptName] imageName    : $imageName"
 } else {
     Write-Host "[$scriptName] imageName not supplied, exit with `$LASTEXITCODE = 1"; exit 1
 }
+
 if ($tag) {
-    Write-Host "[$scriptName] tag       : $tag"
+    Write-Host "[$scriptName] tag          : $tag"
 } else {
-    Write-Host "[$scriptName] tag       : not supplied"
+    Write-Host "[$scriptName] tag          : not supplied"
 }
+
 if ($version) {
-    Write-Host "[$scriptName] version   : $version"
+    Write-Host "[$scriptName] version      : $version"
 } else {
 	if ( $tag ) {
 		$version = $tag
 	} else {
 		$version = '0.0.0'
 	}
-    Write-Host "[$scriptName] version   : $version (not supplied, defaulted to tag if passed, else set to 0.0.0)"
+    Write-Host "[$scriptName] version      : $version (not supplied, defaulted to tag if passed, else set to 0.0.0)"
 }
+
 if ($rebuild) {
-    Write-Host "[$scriptName] rebuild   : $rebuild"
+    Write-Host "[$scriptName] rebuild      : $rebuild"
 } else {
-    Write-Host "[$scriptName] rebuild   : (not supplied, docker will use cache where possible)"
+    Write-Host "[$scriptName] rebuild      : (not supplied, docker will use cache where possible)"
+}
+
+if ($optionalArgs) {
+    Write-Host "[$scriptName] optionalArgs : $optionalArgs"
+} else {
+    Write-Host "[$scriptName] optionalArgs : (not supplied)"
 }
 
 Write-Host "`n[$scriptName] List existing images ...`n"
@@ -79,9 +111,10 @@ executeSuppress "docker system prune -f"
 
 $buildCommand = 'docker build'
 
-if ($env:http_proxy) {
-	Write-Host "`n[$scriptName] `$env:http_proxy is set ($env:http_proxy), pass as `$proxy to build`n"
-	$buildCommand += " --build-arg proxy=$env:http_proxy"
+foreach ( $envVar in Get-ChildItem env:) {
+	if ($envVar.Name.Contains('CDAF_IB_')) {
+		${buildCommand} += " --build-arg $(${envVar}.Name.Replace('CDAF_IB_', ''))=$(${envVar}.Value)"
+	}
 }
 
 if ($rebuild -eq 'yes') {
@@ -112,5 +145,3 @@ Write-Host "`n[$scriptName] List Resulting images...`n"
 executeExpression "docker images -f label=cdaf.${imageName}.image.version"
 
 Write-Host "`n[$scriptName] --- end ---"
-$error.clear()
-exit 0

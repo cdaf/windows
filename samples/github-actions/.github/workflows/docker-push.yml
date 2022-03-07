@@ -1,0 +1,45 @@
+name: CDAF Targetless CD using hosted agent
+# This workflow is triggered on pushes to the repository.
+on: [push]
+
+jobs:
+  build:
+    name: Execute all steps on Single Agent
+    runs-on: windows-latest
+    env:
+      DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Fetch all history for all tags and branches
+        run: |
+          git config remote.origin.url https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}
+          git fetch --prune --unshallow
+
+      - name: Execute Compose for all branches
+        shell: powershell # pwsh for PowerShell Core
+        run: |
+          cd ${env:GITHUB_WORKSPACE}
+          curl.exe -s https://codeload.github.com/cdaf/windows/zip/refs/heads/master -o windows.zip
+          Expand-Archive .\windows.zip .
+          .\windows-master\automation\entry.ps1 ${env:GITHUB_RUN_NUMBER} ${env:GITHUB_REF}
+
+      - name: Artifact Retention
+        uses: actions/upload-artifact@v1
+        if: github.ref == 'refs/heads/master'
+        with:
+          name: deploy
+          path: release.ps1
+      - name: Login to Docker Hub
+        uses: docker/login-action@v1
+        if: ${{ env.DOCKERHUB_TOKEN }} && ( github.ref == 'refs/heads/master' )
+        with:
+          username: cdaf
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: PUSH
+        if: ${{ env.DOCKERHUB_TOKEN }} && ( github.ref == 'refs/heads/master' )
+        run: |
+          cd ${env:GITHUB_WORKSPACE}
+          .\release.ps1 PUSH

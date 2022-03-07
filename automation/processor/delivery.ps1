@@ -14,25 +14,82 @@ Import-Module Microsoft.PowerShell.Security
 
 # Initialise
 cmd /c "exit 0"
-$exitStatus = 0
+$Error.clear()
+$env:CDAF_AUTOMATION_ROOT = ''
+$env:CONTAINER_IMAGE = ''
 $scriptName = 'delivery.ps1'
+
+# Consolidated Error processing function
+function ERRMSG ($message, $exitcode) {
+	if ( $exitcode ) {
+		Write-Host "`n[$scriptName]$message" -ForegroundColor Red
+	} else {
+		Write-Host "`n[$scriptName]$message" -ForegroundColor Yellow
+	}
+
+	if ( $env:CDAF_DEBUG_LOGGING ) {
+		Write-Host "`n[$scriptName] Print Debug Logging `$env:CDAF_DEBUG_LOGGING`n"
+		Write-HOst $env:CDAF_DEBUG_LOGGING
+	}
+
+	if ( $error ) {
+		$i = 0
+		foreach ( $item in $Error )
+		{
+			Write-Host "`$Error[$i] $item"
+			$i++
+		}
+		$Error.clear()
+	}
+	if ( $env:CDAF_ERROR_DIAG ) {
+		Write-Host "`n[$scriptName] Invoke custom diag `$env:CDAF_ERROR_DIAG = $env:CDAF_ERROR_DIAG`n"
+		Invoke-Expression $env:CDAF_ERROR_DIAG
+	}
+	if ( $exitcode ) {
+		Write-Host "`n[$scriptName] Exit with LASTEXITCODE = $exitcode`n" -ForegroundColor Red
+		exit $exitcode
+	}
+}
 
 # Common expression logging and error handling function, copied, not referenced to ensure atomic process
 function executeExpression ($expression) {
-	$error.clear()
-	Write-Host "[$scriptName] $expression"
+	Write-Host "[$(Get-Date)] $expression"
 	try {
-		Invoke-Expression $expression
-	    if(!$?) { passExitCode "[$scriptName] `$? = $?" 1101 }
-	} catch { passExitCode "$($_.Exception|format-list -force)" 1102 }
-    if ( $error ) { passExitCode "[$scriptName] `$error[0] = $error" 1103 }
-    if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) { passExitCode "[$scriptName] `$LASTEXITCODE = $LASTEXITCODE " $LASTEXITCODE }
+		Invoke-Expression "$expression 2> `$null"
+	    if(!$?) { Write-Host "`n[$scriptName][CDAF_DELIVERY_FAILURE][TRAP] `$? = $?"; $error ; exit 1311 }
+	} catch {
+		Write-Host "`n[$scriptName][CDAF_DELIVERY_FAILURE][EXCEPTION] List exception and error array (if populated) and exit with LASTEXITCODE 1312" -ForegroundColor Red
+		Write-Host $_.Exception|format-list -force
+		if ( $error ) { Write-Host "[$scriptName][CDAF_DELIVERY_FAILURE][ERROR]   `$Error = $Error" ; $Error.clear() }
+		exit 1312
+	}
+    if ( $LASTEXITCODE ) {
+    	if ( $LASTEXITCODE -ne 0 ) {
+			Write-Host "`n[$scriptName][CDAF_DELIVERY_FAILURE][EXIT] `$LASTEXITCODE = $LASTEXITCODE " -ForegroundColor Red
+			if ( $error ) { Write-Host "[$scriptName][CDAF_DELIVERY_FAILURE][EXIT]   `$Error = $Error" ; $Error.clear() }
+			exit $LASTEXITCODE
+		} else {
+			if ( $error ) {
+				Write-Host "[$scriptName][WARN] $Error array populated by `$LASTEXITCODE = $LASTEXITCODE error follows...`n" -ForegroundColor Yellow
+				Write-Host "[$scriptName][WARN]   `$Error = $Error" ; $Error.clear()
+			}
+		} 
+	} else {
+	    if ( $error ) {
+	    	if ( $env:CDAF_IGNORE_WARNING -eq 'no' ) {
+				Write-Host "`n[$scriptName][CDAF_DELIVERY_FAILURE][ERROR] `$Error = $error"; $Error.clear()
+				Write-Host "[$scriptName][CDAF_DELIVERY_FAILURE][ERROR]   `$env:CDAF_IGNORE_WARNING is 'no' so exiting with LASTEXITCODE 1313 ..."; exit 1313
+	    	} else {
+		    	Write-Host "[$scriptName][WARN] `$Error = $error" ; $Error.clear()
+	    	}
+		}
+	}
 }
 
 # Primary powershell, returns exitcode to DOS
 function exceptionExit ( $identifier, $exception, $exitCode ) {
     write-host "`n[delivery.ps1] CDAF_DELIVERY_FAILURE.EXCEPTION : Exception in ${identifier}, details follow ..." -ForegroundColor Magenta
-    echo $exception.Exception | format-list -force
+    Write-Output $exception.Exception | format-list -force
     if ( $exitCode ) {
 		$host.SetShouldExit($exitCode)
 		exit $exitCode
@@ -160,7 +217,8 @@ if ($BUILDNUMBER) {
 }
 
 # Runtime information
-Write-Host "[$scriptName]   pwd              : $(pwd)"
+$env:WORK_SPACE = "$(Get-Location)"
+Write-Host "[$scriptName]   `$env:WORK_SPACE  : $env:WORK_SPACE"
 Write-Host "[$scriptName]   hostname         : $(hostname)" 
 Write-Host "[$scriptName]   whoami           : $(whoami)"
 
@@ -168,17 +226,22 @@ $propertiesFile = "$WORK_DIR_DEFAULT\CDAF.properties"
 $cdafVersion = getProp 'productVersion'
 Write-Host "[$scriptName]   CDAF Version     : $cdafVersion"
 
-
 $propertiesFile = "$WORK_DIR_DEFAULT\manifest.txt"
 $processSequence = getProp 'processSequence'
 
 if ( $processSequence ) {
 	Write-Host "[$scriptName]   processSequence  : $processSequence (override)"
 } else {
-	$processSequence = 'remoteTasks.ps1 localTasks.ps1'
+	$processSequence = 'remoteTasks.ps1 localTasks.ps1 containerTasks.ps1'
 }
 
 foreach ($step in $processSequence.Split()) {
-	Write-Host
-	executeExpression "& .\$WORK_DIR_DEFAULT\$step '$ENVIRONMENT' '$BUILDNUMBER' '$SOLUTION' '$WORK_DIR_DEFAULT' '$OPT_ARG'"
+	if ( $step ) {
+		Write-Host
+		executeExpression "& .\$WORK_DIR_DEFAULT\$step '$ENVIRONMENT' '$BUILDNUMBER' '$SOLUTION' '$WORK_DIR_DEFAULT' '$OPT_ARG'"
+		Set-Location $env:WORK_SPACE
+	}
 }
+
+Write-Host "`n[$scriptName] ========================================="
+Write-Host "[$scriptName]        Delivery Process Complete"

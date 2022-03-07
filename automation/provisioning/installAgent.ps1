@@ -12,36 +12,51 @@ Param (
 
 cmd /c "exit 0"
 $scriptName = 'installAgent.ps1'
+$error.clear()
 
 # Common expression logging and error handling function, copied, not referenced to ensure atomic process
 function executeExpression ($expression) {
-	$error.clear()
-	Write-Host "$expression"
+	Write-Host "[$(Get-Date)] $expression"
 	try {
-		$output = Invoke-Expression $expression
-	    if(!$?) { Write-Host "[$scriptName] `$? = $?"; exit 1 }
-	} catch { echo $_.Exception|format-list -force; exit 2 }
-    if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) { Write-Host "[$scriptName] `$LASTEXITCODE = $LASTEXITCODE "; exit $LASTEXITCODE }
-    if ( $error ) { Write-Host "[$scriptName] `$error[0] = $error"; exit 3 }
-    return $output
+		Invoke-Expression $expression
+	    if(!$?) { Write-Host "[$scriptName] `$? = $?"; $error ; exit 1111 }
+	} catch { Write-Output $_.Exception|format-list -force; $error ; exit 1112 }
+    if ( $LASTEXITCODE ) {
+    	if ( $LASTEXITCODE -ne 0 ) {
+			Write-Host "[$scriptName] `$LASTEXITCODE = $LASTEXITCODE " -ForegroundColor Red ; $error ; exit $LASTEXITCODE
+		} else {
+			if ( $error ) {
+				Write-Host "[$scriptName][WARN] $Error array populated by `$LASTEXITCODE = $LASTEXITCODE, $error[] = $error`n" -ForegroundColor Yellow
+				$error.clear()
+			}
+		} 
+	} else {
+	    if ( $error ) {
+			Write-Host "[$scriptName][WARN] $Error array populated but LASTEXITCODE not set, $error[] = $error`n" -ForegroundColor Yellow
+			$error.clear()
+		}
+	}
+}
+function mask ($value) {
+	return (Get-FileHash -InputStream $([IO.MemoryStream]::new([byte[]][char[]]$value)) -Algorithm MD5).Hash
 }
 
-Write-Host "[$scriptName] ---------- start ----------"
+Write-Host "`n[$scriptName] ---------- start ----------"
 if ( $url ) {
 	Write-Host "[$scriptName] url             : $url"
 } else {
 	Write-Host "[$scriptName] url             : (not supplied, will just extract the agent software)"
 }
 if ( $pat ) {
-	Write-Host "[$scriptName] pat             : `$pat"
+	Write-Host "[$scriptName] pat             : $(mask $pat) (MD5 mask)"
 } else {
 	Write-Host "[$scriptName] pat             : (not supplied)"
 }
 if ( $pool ) {
-	Write-Host "[$scriptName] pool            : $pool"
+	Write-Host "[$scriptName] pool            : $pool (use pool name with '@' for Project@Deployment Group)"
 } else {
 	$pool = 'default'
-	Write-Host "[$scriptName] pool            : $pool (not supplied, set to default, if Deployment Group is used, this will be ignored)"
+	Write-Host "[$scriptName] pool            : $pool (default, use pool name with '@' for Project@Deployment Group)"
 }
 if ( $agentName ) {
 	Write-Host "[$scriptName] agentName       : $agentName"
@@ -56,28 +71,21 @@ if ( $serviceAccount ) {
 	Write-Host "[$scriptName] serviceAccount  : (not supplied)"
 }
 if ( $servicePassword ) {
-	Write-Host "[$scriptName] servicePassword : `$servicePassword"
+	Write-Host "[$scriptName] servicePassword : $(mask $servicePassword) (MD5 mask)"
 } else {
 	Write-Host "[$scriptName] servicePassword : (not supplied)"
 }
-if ( $deploymentgroup ) {
+
+if ( $pool -match '@') {
+	$projectname, $deploymentgroup = $pool.Split('@')
 	Write-Host "[$scriptName] deploymentgroup : $deploymentgroup"
-} else {
-	Write-Host "[$scriptName] deploymentgroup : (not supplied)"
-}
-if ( $projectname ) {
 	Write-Host "[$scriptName] projectname     : $projectname"
-} else {
-	if ( $deploymentgroup ) {
-		Write-Host "[$scriptName] deploymentgroup ($deploymentgroup) supplied, therefore projectname required but not supplied, exit with `$LASTEXITCODE = 3"; exit 3
-	} else {
-		Write-Host "[$scriptName] projectname     : (not supplied)"
-	}
 }
+
 if ( $mediaDirectory ) {
 	Write-Host "[$scriptName] mediaDirectory  : $mediaDirectory"
 } else {
-	$mediaDirectory = 'C:\.provision'
+	$mediaDirectory = "$env:TEMP"
 	Write-Host "[$scriptName] mediaDirectory  : $mediaDirectory (not supplied, set to default)"
 }
 
@@ -97,51 +105,52 @@ if (Test-Path "${mediaDirectory}\${mediaFileName}") {
 	if (Test-Path $mediaDirectory) {
 		Write-Host "[$scriptName] Media Directory $mediaDirectory exists"
 	} else {
-		$result = executeExpression "mkdir $mediaDirectory"
+		executeExpression "Write-Host `$(mkdir $mediaDirectory)"
 	}
 	
 	# As per guidance here https://stackoverflow.com/questions/36265534/invoke-webrequest-ssl-fails
-	$AllProtocols = [System.Net.SecurityProtocolType]'Tls11,Tls12'
-	[System.Net.ServicePointManager]::SecurityProtocol = $AllProtocols
+	executeExpression "[System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]'Tls11,Tls12'"
 	$mediaURL = "https://vstsagentpackage.azureedge.net/agent/${version}/${mediaFileName}"
 	executeExpression "(New-Object System.Net.WebClient).DownloadFile('$mediaURL', '${mediaDirectory}\${mediaFileName}')"
 }
 
 Write-Host "`nExtract using default instructions from Microsoft"
 if (Test-Path "C:\agent") {
-	executeExpression "Remove-Item `"C:\agent`" -Recurse -Force"
+	executeExpression 'Remove-Item "C:\agent\**" -Recurse -Force'
+} else {
+	executeExpression 'Write-Host $(mkdir C:\agent)'
 }
-$result = executeExpression "mkdir C:\agent"
-Write-Host "`nCreated directory $result"
+
 executeExpression "[System.IO.Compression.ZipFile]::ExtractToDirectory(`"$mediaDirectory\$mediaFileName`", `"C:\agent`")"
 
 if ( $url ) {
-	$argList = "--unattended --url $url --auth PAT"
+	$argList = "--unattended --url $url"
 	if ( $deploymentgroup ) {
 		$argList += " --deploymentgroup --deploymentgroupname `"$deploymentgroup`" --projectname `"$projectname`""
+	} else {
+		$argList += " --pool `"$pool`""
 	}
-	
+	if ( $env:http_proxy ) {
+		$argList += " --proxyurl `"$env:http_proxy`""
+	}
+
+	$argList += " --auth PAT"
+
 	Write-Host "`nUnattend configuration for VSTS with PAT authentication"
 	if ( $serviceAccount.StartsWith('.\')) { 
 		$serviceAccount = $serviceAccount.Substring(2) # Remove the .\ prefix
 	}
-	
+
 	if ( $serviceAccount ) {
-		if ( $servicePassword ) {
-			$printList = "$argList --token `$pat --pool `"$pool`" --agent $agentName --replace --runasservice --windowslogonaccount $serviceAccount --windowslogonpassword `$servicePassword"
-			$argList += " --token $pat --pool `"$pool`" --agent $agentName --replace --runasservice --windowslogonaccount $serviceAccount --windowslogonpassword $servicePassword"
-		} else {
-			Write-Host "[$scriptName] Start-Process $fullpath -ArgumentList $printList -PassThru -Wait"
-			$printList = "$argList --token `$pat --pool `"$pool`" --agent $agentName --replace --runasservice --windowslogonaccount $serviceAccount"
-			$argList += " --token $pat --pool `"$pool`" --agent $agentName --replace --runasservice --windowslogonaccount $serviceAccount"
-		}
+		$printList = "$argList --token `$pat --agent `"$agentName`" --replace --runasservice --windowslogonaccount `"$serviceAccount`" --windowslogonpassword `"`$servicePassword`""
+		$argList += " --token $pat --agent `"$agentName`" --replace --runasservice --windowslogonaccount `"$serviceAccount`" --windowslogonpassword `"$servicePassword`""
 	} else {
-		$printList = "$argList --token `$pat --pool `"$pool`" --agent $agentName --replace"
-		$argList += " --token $pat --pool `"$pool`" --agent $agentName --replace"
+		$printList = "$argList --token `$pat --agent `"$agentName`" --replace"
+		$argList += " --token $pat --agent `"$agentName`" --replace"
 	}
-	
+
 	executeExpression "cd C:\agent"
-	Write-Host "[$scriptName] Start-Process $fullpath -ArgumentList $printList -PassThru -Wait"
+	Write-Host "[$scriptName] Start-Process $fullpath -ArgumentList $printList -PassThru -Wait -NoNewWindow"
 	$proc = Start-Process $fullpath -ArgumentList $argList -PassThru -Wait -NoNewWindow
 	if ( $proc.ExitCode -ne 0 ) {
 		Write-Host "`n[$scriptName] Error occured, listing last 40 lines of log $((Get-ChildItem C:\agent\_diag)[0].FullName)`n"
@@ -169,5 +178,6 @@ if ( $url ) {
 }
 
 executeExpression "cd $workspace"
+
 Write-Host "`n[$scriptName] ---------- stop -----------`n"
 exit 0

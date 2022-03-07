@@ -1,29 +1,26 @@
-[![Licence](https://img.shields.io/github/license/semprini/cbe.svg)](https://github.com/Semprini/cbe/blob/master/LICENSE)
+[![License: LGPL v3](https://img.shields.io/badge/License-LGPL%20v3-blue.svg)](https://www.gnu.org/licenses/lgpl-3.0)
 [![cdaf version](automation/badge.svg)](http://cdaf.io)
 
 # Continuous Delivery Automation Framework for Windows
 
-The automation framework provides a "lowest common denominator" approach, where underlying action are implemented in bash.
-
-This automation framework functionality is based on user defined solution files. By default the /solution folder stores these files, however, a stand alone folder, in the solution root is supported, identified by the CDAF.solution file in the root.
+The automation framework provides a "lowest common denominator" approach, where CI & CD can be executed on the desktop as they would be in an orchestration tool (Azure DevOps, GitLab, Bamboo, TeamCity, Jenkins, etc). For stable release packages see : http://cdaf.io
 
 ## Why use CDAF
 
 To provide a consistent approach to Continuous Delivery and leverage the efforts of others to provide greater reusability and easier problem determination. CDAF will provide the building blocks for common tasks, with rich logging and exeception handling. The CDAf provides toolset configuration guidance, keeping the actions loosely coupled with the toolset, to allow visibilty and traceability through source control rather than direct changes.
 
-## Why not have a shared folder for CDAF on the system
+## Environment Variables
 
-CDAF principles are to have a minimum level of system dependency. By having solution specific copies each solution can use differing versions of CDAF, and once a solution is upgraded, that upgrade will be propogated to all uses (at next update/pull/get) where a system provisioned solution will requrie all users to update to the same version, even if their current solution has not been tested for this system wide change.
+Emulation and execution behaviour can be controlled by the following environment variables
 
-For usage details, see https://github.com/cdaf/windows/blob/master/automation/Readme.md
+### Emulation
 
-For framework details, see the readme in the automation folder. For stable release packages see : http://cdaf.io
+ - CDAF_DELIVERY The default target environment for cdEmulate.sh, uses LINUX if not set
+ - CDAF_BRANCH_NAME Allows the specification of a branch name if CI behaviour differs by branch, i.e. master vs. feature branches 
+ 
+### Execution
 
-To download and extract this repository
-
-    curl -Outfile windows-master.zip https://codeload.github.com/cdaf/windows/zip/master
-    Add-Type -AssemblyName System.IO.Compression.FileSystem
-    [System.IO.Compression.ZipFile]::ExtractToDirectory("$PWD\windows-master.zip", "$PWD") 
+ - CDAF_DOCKER_REQUIRED containerBuild will attempt to start Docker if not running and will fail if it cannot, rather than falling back to native execution
 
 # Desktop Testing
 
@@ -45,7 +42,7 @@ This approach uses the local host for both target (CD) and build (CI) execution.
 
 # Virtualisation with Vagrant
 
-This approach creates a desktop "build server" which allows the user to perform end-to-end continuous delivery testing.
+Vagrant and Oracle VirtualBox or Microsoft Hyper-V
 
 ## VirtualBox
 
@@ -72,7 +69,6 @@ Once the environment is running access the build server an execute the CD emulat
     vagrant powershell buildserver
     cd C:\vagrant
     .\automation\cdEmulate.bat
-   
 
 ## Direct PowerShell Access
 

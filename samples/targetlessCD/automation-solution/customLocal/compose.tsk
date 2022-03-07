@@ -2,15 +2,20 @@ Write-Host "`nLoad the branch (REVISION) and container image from the manifest, 
 PROPLD manifest.txt
 
 ASSIGN $id = $("${SOLUTION}_${REVISION}").ToLower()
-$workspace = $(pwd)
 $env:WORK_SPACE = Split-Path -parent $workspace
 Write-host $env:WORK_SPACE
 
-# Copy any artefacts needed into specific images here
+# Copy any artefacts needed into specific images here, example brings in remoteTasks package
+# VECOPY ..\${SOLUTION}-${BUILDNUMBER}.zip compose/target/deploy.zip
 
 cd compose
-..\imageBuild.ps1 ${id} ${BUILDNUMBER} ${containerImage} '--build-arg COMPOSE_KEEP=$env:COMPOSE_KEEP'
+..\imageBuild.ps1 ${id} ${BUILDNUMBER} ${containerImage}
 cd ..
+
+ASSIGN $env:TARGET_TAG = "${id}_target"
+ASSIGN $env:TEST_TAG = "${id}_test"
+.\dockerClean.ps1 $env:TARGET_TAG ${BUILDNUMBER}
+.\dockerClean.ps1 $env:TEST_TAG ${BUILDNUMBER}
 
 ASSIGN $composePersist = "${env:TEMP}\${id}"
 MAKDIR $composePersist
@@ -21,31 +26,29 @@ Write-Host "List containers current state`n"
 docker ps
 
 Write-Host "`nCleanup from previously test`n"
-ASSIGN $env:TARGET_TAG = "${id}_target"
-ASSIGN $env:TEST_TAG = "${id}_test"
 docker-compose down --remove-orphans
 docker-compose rm -f
 
 Write-Host "Set the build number to use`n"
-ASSIGN $env:TARGET_TAG = "${id}_target:${BUILDNUMBER}"
-ASSIGN $env:TEST_TAG = "${id}_test:${BUILDNUMBER}"
+ASSIGN $env:TARGET_TAG = "${env:TARGET_TAG}:${BUILDNUMBER}"
+ASSIGN $env:TEST_TAG = "${env:TEST_TAG}:${BUILDNUMBER}"
 
 docker-compose up -d target
 
 Write-Host "Deploy to target (allow up to 2 minutes)`n"
 ASSIGN $containerID = $(docker ps -aq --filter "ancestor=$env:TARGET_TAG")
-& $env:WORK_SPACE\TasksLocal\dockerLog.ps1 $containerID 'Watch log to keep container alive' 120
+& $WORKSPACE\dockerLog.ps1 $containerID 'Watch log to keep container alive' 120
 
 docker-compose up -d test
 
 Write-Host "Execute tests (allow 5 minutes to complete)`n"
 ASSIGN $containerID = $(docker ps -aq --filter "ancestor=$env:TEST_TAG")
-& $env:WORK_SPACE\TasksLocal\dockerLog.ps1 $containerID 'Automated Test Execution completed successfully.' 300
+& $WORKSPACE\dockerLog.ps1 $containerID 'Automated Test Execution completed successfully.' 300
 
-Write-Host "`nTear down if not explicit varaible to retain`n"
-if ( $env:COMPOSE_KEEP ) { docker ps } else { docker-compose down; docker-compose rm -f }
+Write-Host "`nTear down if `$env:COMPOSE_KEEP ($env:COMPOSE_KEEP) not set`n"
+if ( $env:COMPOSE_KEEP ) { docker inspect -f '{{.Name}} - {{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' $(docker ps -aq) } else { docker-compose down; docker-compose rm -f }
 
-& $env:WORK_SPACE\TasksLocal\dockerClean.ps1 ${id}_target ${BUILDNUMBER}
-& $env:WORK_SPACE\TasksLocal\dockerClean.ps1 ${id}_test ${BUILDNUMBER}
+cd $WORKSPACE
 
-cd $workspace
+echo "Clean-up Transient Directory Created by imageBuild.sh"
+REMOVE $env:TEMP/${SOLUTION}

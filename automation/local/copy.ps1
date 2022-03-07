@@ -7,7 +7,7 @@ function taskException ($taskName, $exit, $exception) {
 
 function getFilename ($FullPathName) {
 
-	$PIECES=$FullPathName.split(“\”) 
+	$PIECES=$FullPathName.split('\') 
 	$NUMBEROFPIECES=$PIECES.Count 
 	$FILENAME=$PIECES[$NumberOfPieces-1] 
 	$DIRECTORYPATH=$FullPathName.Trim($FILENAME) 
@@ -32,11 +32,15 @@ if ( Test-Path $WORK_DIR_DEFAULT\copyLand.ps1 ) {
 # The copy method loads the file contents into an argument and streams to a remote writer, to get this to work,
 # the target location needs to be a literal and cannot be substituted at runtime, to overcome this the script
 # file itself is hardcoded with the desired target location.
-Foreach ($line in get-content $WORK_DIR_DEFAULT\copyTemplate.ps1) {
-	$line = $line -replace "deployLand", $deployPath 
+$templateFile = @(Get-Content "$WORK_DIR_DEFAULT\copyTemplate.ps1")
+$outputFile = "$WORK_DIR_DEFAULT\copyLand.ps1"
+$stream = [System.IO.StreamWriter] $outputFile
+foreach ($line in $templateFile) {
+	$line = $line -replace "deployLand", $deployPath
 	$line = $line -replace "copy.ps1", "copyLand.ps1"
-	Add-Content $WORK_DIR_DEFAULT\copyLand.ps1 $line
+	$stream.WriteLine($line)
 }
+$stream.close()
 
 try {
 	& $WORK_DIR_DEFAULT\copyLand.ps1 $copyFile

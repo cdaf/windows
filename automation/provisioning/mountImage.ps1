@@ -35,7 +35,7 @@ if ($sourcePath) {
 	if ($fallBack) {
 	    Write-Host "[$scriptName] fallBack   : $fallBack"
 	} else {
-		$fallBack = 'c:\.provision'
+		$fallBack = "$env:TEMP"
 	    Write-Host "[$scriptName] fallBack   : not supplied defaulting to $fallBack"
 	}
 } else {

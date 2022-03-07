@@ -1,4 +1,7 @@
-# Clean Build workspace (not solution)
+echo "List Agent/Runner capabilities"
+& $AUTOMATIONROOT\remote\capabilities.ps1
+
+echo "Clean Build workspace (not solution)"
 remove *.binary
 
 echo "If ACTION (emulation only) is clean, do not perform any further action"

@@ -33,10 +33,10 @@ if ($stringMatch) {
 }
 
 if ($waitTime) {
-    Write-Host "[$scriptName] waitTime    : $waitTime"
+    Write-Host "[$scriptName] waitTime    : $waitTime`n"
 } else {
 	$waitTime = '60'
-    Write-Host "[$scriptName] waitTime    : $waitTime (default)"
+    Write-Host "[$scriptName] waitTime    : $waitTime (default)`n"
 }
 
 $wait = 5
@@ -59,7 +59,7 @@ while (( $retryCount -le $retryMax ) -and ($exitCode -ne 0)) {
 		    }
 		
 		    if ( Select-String -Pattern $stringMatch  -InputObject $output ) {
-				Write-Host "[$scriptName] stringMatch ($stringMatch) found."
+				Write-Host "`n[$scriptName] stringMatch ($stringMatch) found."
 			    $exitCode = 0
 		    }
 		    if ( Select-String -Pattern 'CDAF_DELIVERY_FAILURE.' -InputObject $output ) {

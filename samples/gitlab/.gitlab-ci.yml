@@ -8,33 +8,38 @@ cdaf-ci:
   stage: build
   tags:
     - batch
-  script: "automation/processor/buildPackage.bat %CI_BUILD_ID% %CI_BUILD_REF_NAME%"
+
+#  script: |
+#    $env:CDAF_PATH = '.\automation'
+#    . { iwr -useb https://raw.githubusercontent.com/cdaf/windows/master/installCDAF.ps1 } | iex
+#    .\automation\entry.ps1 $(Build.BuildNumber) $(Build.SourceBranch) staging@$(Build.ArtifactStagingDirectory)
+
+  script: |
+    . { iwr -useb https://cdaf.io/static/app/downloads/cdaf.ps1 } | iex
+    ./automation/entry.bat %CI_BUILD_ID% %CI_BUILD_REF_NAME%
   artifacts:
     paths:
-    - TasksLocal/
-    - "%CI_PROJECT_NAME%-%CI_BUILD_ID%.zip"
+    - release.ps1
 
 cd:
   stage: automated test
   tags:
     - batch
-  variables:
-    ENV: "CD"
-  script: "TasksLocal/delivery.bat %ENV% %CI_PIPELINE_ID%"
-  environment: cd
+  script: "./release.ps1 $env:CI_JOB_NAME $env:CI_PIPELINE_ID"
+  environment: "${CI_STAGE_NAME}"
   dependencies:
-  - cdaf-ci
+    - cdaf-ci
+  only:
+    - master
 
 test:
   stage: manual test
   tags:
     - batch
-  variables:
-    ENV: "TEST"
-  script: "TasksLocal/delivery.bat %ENV% %CI_PIPELINE_ID%"
-  environment: test
+  script: "./release.ps1 $env:CI_JOB_NAME $env:CI_PIPELINE_ID"
+  environment: "${CI_STAGE_NAME}"
   dependencies:
-  - cdaf-ci
+    - cdaf-ci
   only:
     - master
 
@@ -42,12 +47,10 @@ production:
   stage: live
   tags:
     - batch
-  variables:
-    ENV: "PROD"
-  script: "TasksLocal/delivery.bat %ENV% %CI_PIPELINE_ID%"
-  when: manual
-  environment: production
+  script: "./release.ps1 $env:CI_JOB_NAME $env:CI_PIPELINE_ID"
+  environment: "${CI_STAGE_NAME}"
   dependencies:
-  - cdaf-ci
+    - cdaf-ci
   only:
     - master
+  when: manual

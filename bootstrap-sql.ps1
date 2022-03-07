@@ -48,24 +48,26 @@ if ($mediaLocation) {
     Write-Host "[$scriptName] mediaLocation  : $mediaLocation (default)"
 }
 
-if ( Test-Path "./automation/provisioning" ) {
-	$atomicPath = '.'
+if ( Test-Path ".\automation\CDAF.windows" ) {
+  Write-Host "[$scriptName] CDAF directories found in workspace"
+  $atomicPath = (Get-Location).Path
 } else {
-	if ( Test-Path "/vagrant" ) {
-		$atomicPath = '/vagrant'
-	} else {
-	    Write-Host "[$scriptName] Cannot find CDAF directories in workspace or /vagrant, so downloading from internet"
-		Write-Host "[$scriptName] Download Continuous Delivery Automation Framework"
-		Write-Host "[$scriptName] `$zipFile = 'WU-CDAF.zip'"
-		$zipFile = 'WU-CDAF.zip'
-		Write-Host "[$scriptName] `$url = `"http://cdaf.io/static/app/downloads/$zipFile`""
-		$url = "http://cdaf.io/static/app/downloads/$zipFile"
-		executeExpression "(New-Object System.Net.WebClient).DownloadFile('$url', '$PWD\$zipFile')"
-		executeExpression 'Add-Type -AssemblyName System.IO.Compression.FileSystem'
-		executeExpression '[System.IO.Compression.ZipFile]::ExtractToDirectory("$PWD\$zipfile", "$PWD")'
-		executeExpression 'cat .\automation\CDAF.windows'
-		$atomicPath = '.'
-	}
+  if ( Test-Path "/vagrant" ) {
+    $atomicPath = 'C:\vagrant'
+    Write-Host "[$scriptName] CDAF directories found in vagrant mount"
+  } else {
+    Write-Host "[$scriptName] Cannot find CDAF directories in workspace or /vagrant, so downloading from internet"
+    Write-Host "[$scriptName] Download Continuous Delivery Automation Framework"
+    Write-Host "[$scriptName] `$zipFile = 'WU-CDAF.zip'"
+    $zipFile = 'WU-CDAF.zip'
+    Write-Host "[$scriptName] `$url = `"http://cdaf.io/static/app/downloads/$zipFile`""
+    $url = "http://cdaf.io/static/app/downloads/$zipFile"
+    executeExpression "(New-Object System.Net.WebClient).DownloadFile('$url', '$PWD\$zipFile')"
+    executeExpression 'Add-Type -AssemblyName System.IO.Compression.FileSystem'
+    executeExpression '[System.IO.Compression.ZipFile]::ExtractToDirectory("$PWD\$zipfile", "$PWD")'
+    executeExpression 'cat .\automation\CDAF.windows'
+    $atomicPath = (Get-Location).Path
+  }
 }
 Write-Host "[$scriptName] `$atomicPath = $atomicPath"
 

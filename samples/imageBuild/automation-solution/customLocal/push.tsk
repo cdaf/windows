@@ -1,0 +1,12 @@
+Write-Host "`nLoad the branch (REVISION) and container image from the manifest, placed here by package.tsk`n"
+PROPLD manifest.txt
+
+ASSIGN $id = $("${SOLUTION}_${REVISION}_${constructor}").ToLower()
+ASSIGN $env:TARGET_TAG = "${id}:${BUILDNUMBER}"
+
+echo "Load the CDAF productVersion"
+PROPLD CDAF.properties
+
+Write-Host "Push $env:TARGET_TAG to DockerHub`n"
+$remoteTagList = "$BUILDNUMBER $productVersion latest"
+& .\dockerPush.ps1 $env:TARGET_TAG cdaf/windows $remoteTagList -registryUser $env:bamboo_DOCKER_HUB_USER -registryToken $env:bamboo_DOCKER_HUB_PASSWORD

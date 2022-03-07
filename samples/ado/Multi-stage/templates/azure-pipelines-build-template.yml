@@ -1,0 +1,44 @@
+jobs:
+  - job: 'Build'
+    displayName: "MSBuild and NuGet"
+    pool:
+      vmImage: 'windows-2019'
+#    pool:
+#      name: 'Self-hosted Pool Name'
+    steps:
+      # - task: PowerShell@2
+      #   displayName: Diag
+      #   inputs:
+      #     workingDirectory: $(System.ArtifactsDirectory)/drop
+      #     targetType: inline
+      #     script: dir ; systeminfo
+
+      - task: PowerShell@2
+        displayName: Execute Loosely Coupled Deployment
+        env: 
+          GIT_USER: $(GIT_USER)
+          GIT_PASS: $(GIT_PASS)
+        inputs:
+
+#          targetType: 'inline' # Use edge CDAF version from GitHub
+#          script: |
+#            $env:CDAF_PATH = '.\automation'
+#            . { iwr -useb https://raw.githubusercontent.com/cdaf/windows/master/installCDAF.ps1 } | iex
+#            .\automation\entry.ps1 $(Build.BuildNumber) $(Build.SourceBranch) staging@$(Build.ArtifactStagingDirectory)
+
+          targetType: 'inline' # Use latest published version
+          script: |
+            . { iwr -useb https://cdaf.io/static/app/downloads/cdaf.ps1 } | iex
+            ./automation/entry.bat %CI_BUILD_ID% %CI_BUILD_REF_NAME%
+
+#          targetType: 'inline' # Use a specific CDAF version
+#          script: |
+#            . { iwr -useb https://cdaf.io/static/app/downloads/cdaf.ps1 } | iex
+#            ./automation/entry.bat %CI_BUILD_ID% %CI_BUILD_REF_NAME%
+
+#          "In-source" implemenation
+#          targetType: filePath
+#          filePath: ./automation/entry.ps1
+#          arguments: $(Build.BuildNumber) $(Build.SourceBranch) staging@$(Build.ArtifactStagingDirectory)
+
+      - task: PublishBuildArtifacts@1

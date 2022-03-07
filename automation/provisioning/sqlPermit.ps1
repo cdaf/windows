@@ -7,30 +7,42 @@ Param (
 
 # Reset $LASTEXITCODE
 cmd /c exit 0
+$error.clear()
 
-# Common expression logging and error handling function, copied, not referenced to ensure atomic process
+# Common expression logging and error handling function, copied, not referenced to ensure atomic processfunction executeExpression ($expression) {
 function executeExpression ($expression) {
-	$error.clear()
-	Write-Host "$expression"
+	Write-Host "[$(Get-Date)] $expression"
 	try {
-		$output = Invoke-Expression $expression
-	    if(!$?) { Write-Host "[$scriptName] `$? = $?"; exit 1 }
-	} catch { echo $_.Exception|format-list -force; exit 2 }
-    if ( $error ) { Write-Host "[$scriptName] `$error[0] = $error"; exit 3 }
-    if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) { Write-Host "[$scriptName] `$LASTEXITCODE = $LASTEXITCODE "; exit $LASTEXITCODE }
-    return $output
+		Invoke-Expression $expression
+		if(!$?) { Write-Host "[$scriptName] `$? = $?"; $error ; exit 1111 }
+	} catch { Write-Output $_.Exception|format-list -force; $error ; exit 1112 }
+	if ( $LASTEXITCODE ) {
+		if ( $LASTEXITCODE -ne 0 ) {
+			Write-Host "[$scriptName] `$LASTEXITCODE = $LASTEXITCODE " -ForegroundColor Red ; $error ; exit $LASTEXITCODE
+		} else {
+			if ( $error ) {
+				Write-Host "[$scriptName][WARN] $Error array populated by `$LASTEXITCODE = $LASTEXITCODE, $error[] = $error`n" -ForegroundColor Yellow
+				$error.clear()
+			}
+		} 
+	} else {
+		if ( $error ) {
+			Write-Host "[$scriptName][WARN] $Error array populated but LASTEXITCODE not set, $error[] = $error`n" -ForegroundColor Yellow
+			$error.clear()
+		}
+	}
 }
-
+	
 $scriptName = 'sqlPermit.ps1'
-Write-Host "`n [$scriptName] ---------- start ----------"
+Write-Host "`n[$scriptName] ---------- start ----------"
 if ($dbName) {
-    Write-Host "[$scriptName] dbName       : $dbName"
+    Write-Host "[$scriptName] dbName        : $dbName"
 } else {
     Write-Host "[$scriptName] dbName not supplied, exiting with code 100"; exit 100
 }
 
 if ($dbUser) {
-    Write-Host "[$scriptName] dbUser       : $dbUser"
+    Write-Host "[$scriptName] dbUser        : $dbUser"
 } else {
     Write-Host "[$scriptName] dbUser not supplied, exiting with code 101"; exit 101
 }
@@ -42,10 +54,10 @@ if ($dbPermissions) {
 }
 
 if ($dbhost) {
-    Write-Host "[$scriptName] dbhost       : $dbhost"
+    Write-Host "[$scriptName] dbhost        : $dbhost"
 } else {
 	$dbhost = '.'
-    Write-Host "[$scriptName] dbhost       : $dbhost (default)"
+    Write-Host "[$scriptName] dbhost        : $dbhost (default)"
 }
 
 Write-Host "`n[$scriptName] Load the assemblies ...`n"
@@ -99,4 +111,5 @@ if ($dbPermissions) {
 	foreach ($permission in $db.Roles) { $permission.Name }
 }
 
-Write-Host "`n[$scriptName] ---------- stop ----------"
+Write-Host "`n[$scriptName] ---------- stop ----------`n"
+exit 0

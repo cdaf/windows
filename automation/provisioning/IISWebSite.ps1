@@ -5,19 +5,70 @@ Param (
   [string]$applicationPool,
   [string]$physicalPath
 )
+
 $scriptName = 'IISWebSite.ps1'
+$error.clear()
+cmd /c "exit 0"
+
+# Consolidated Error processing function
+function ERRMSG ($message, $exitcode) {
+	if ( $exitcode ) {
+		Write-Host "`n[$scriptName]$message" -ForegroundColor Red
+	} else {
+		Write-Host "`n[$scriptName]$message" -ForegroundColor Yellow
+	}
+	if ( $error ) {
+		$i = 0
+		foreach ( $item in $Error )
+		{
+			Write-Host "`$Error[$i] $item"
+			$i++
+		}
+		$Error.clear()
+	}
+	if ( $env:CDAF_ERROR_DIAG ) {
+		Write-Host "`n[$scriptName] Invoke custom diag `$env:CDAF_ERROR_DIAG = $env:CDAF_ERROR_DIAG`n"
+		Invoke-Expression $env:CDAF_ERROR_DIAG
+	}
+	if ( $exitcode ) {
+		Write-Host "`n[$scriptName] Exit with LASTEXITCODE = $exitcode`n" -ForegroundColor Red
+		exit $exitcode
+	}
+}
 
 # Common expression logging and error handling function, copied, not referenced to ensure atomic process
 function executeExpression ($expression) {
-	$error.clear()
-	Write-Host "$expression"
+	Write-Host "[$(Get-Date)] $expression"
 	try {
-		$output = Invoke-Expression $expression
-	    if(!$?) { Write-Host "[$scriptName] `$? = $?"; exit 1 }
-	} catch { echo $_.Exception|format-list -force; exit 2 }
-    if ( $error ) { Write-Host "[$scriptName] `$error[0] = $error"; exit 3 }
-    if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) { Write-Host "[$scriptName] `$LASTEXITCODE = $LASTEXITCODE "; exit $LASTEXITCODE }
-    return $output
+		Invoke-Expression $expression
+	    if(!$?) { ERRMSG "[TRAP] `$? = $?" 1211 }
+	} catch {
+		$message = $_.Exception.Message
+		$_.Exception | format-list -force
+		$_.Exception.StackTrace
+		if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) {
+			ERRMSG "[EXCEPTION] $message" $LASTEXITCODE
+		} else {
+			ERRMSG "[EXCEPTION] $message" 1212
+		}
+	}
+    if ( $LASTEXITCODE ) {
+    	if ( $LASTEXITCODE -ne 0 ) {
+			ERRMSG "[EXIT] `$LASTEXITCODE is $LASTEXITCODE" $LASTEXITCODE
+		} else {
+			if ( $error ) {
+				ERRMSG "[WARN] `$LASTEXITCODE is $LASTEXITCODE, but standard error populated"
+			}
+		} 
+	} else {
+	    if ( $error ) {
+	    	if ( $env:CDAF_IGNORE_WARNING -eq 'no' ) {
+				ERRMSG "[ERROR] `$env:CDAF_IGNORE_WARNING is 'no' so exiting" 1213
+	    	} else {
+				ERRMSG "[WARN] `$LASTEXITCODE not set, but standard error populated"
+	    	}
+		}
+	}
 }
 
 Write-Host "`n[$scriptName] ---------- start ----------"
@@ -34,7 +85,8 @@ if ($bindingProtocol) {
     $options += "-bindingProtocol $bindingProtocol"
 } else {
 	if (Test-Path "iis:\Sites\$webSite") { 
-	    Write-Host "[$scriptName] bindingProtocol    : (not passed) [example] http"
+    	$bindingProtocol = "http"
+	    Write-Host "[$scriptName] bindingProtocol    : (not passed, set default, this will affect the existing site)"
     } else {
     	$bindingProtocol = "http"
 	    Write-Host "[$scriptName] bindingProtocol    : $bindingProtocol (not passed, set default as new website)"
@@ -109,13 +161,13 @@ if (Test-Path "iis:\Sites\$webSite") {
 	Write-Host "`n[$scriptName] List properties of existing site $webSite ..."
 	executeExpression "Get-Item `"IIS:\Sites\$webSite`" | Format-Table "
 	Write-Host "`n[$scriptName] Site ($webSite) exists, change properties (if passed)"
-	if ($bindingInformation -or $bindingProtocol) {
+	if ( $bindingInformation ) {
 		executeExpression "Set-ItemProperty IIS:\Sites\$webSite -name bindings -value @{protocol=`"$bindingProtocol`";bindingInformation=`"$bindingInformation`"} "
 	}
-	if ($applicationPool) {
+	if ( $applicationPool ) {
 		executeExpression "Set-ItemProperty IIS:\Sites\$webSite -name applicationPool -value `"$applicationPool`""
 	}
-	if ($physicalPath) {
+	if ( $physicalPath ) {
 		executeExpression "Set-ItemProperty IIS:\Sites\$webSite -name physicalPath -value `"$physicalPath`""
 	}
 	executeExpression "Get-Item `"IIS:\Sites\$webSite`" | Format-Table "

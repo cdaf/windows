@@ -6,6 +6,9 @@ Param (
 	[string]$controlReboot
 )
 
+cmd /c "exit 0"
+$Error.Clear()
+
 # Custom expression execution for DISM exit codes and not failing on LASTEXITCODE (to allow subsequent fall-back/retry processing
 function executeSuppress ($expression) {
 	$error.clear()
@@ -61,7 +64,7 @@ Write-Host "`n[$scriptName] New Active Directory Forest, requires Windows Server
 if ($forest) {
     Write-Host "[$scriptName] forest        : $forest"
 } else {
-	$forest = 'sky.net'
+	$forest = 'mshome.net'
     Write-Host "[$scriptName] forest        : $forest (default)"
 }
 
@@ -75,7 +78,7 @@ if ($password) {
 if ($media) {
     Write-Host "[$scriptName] media         : $media"
 } else {
-	$media = 'C:\.provision\install.wim'
+	$media = "$env:TEMP\install.wim"
     Write-Host "[$scriptName] media         : $media (default)"
 }
 
@@ -86,11 +89,12 @@ if ($wimIndex) {
 }
 
 if ($controlReboot) {
-    Write-Host "[$scriptName] controlReboot : $controlReboot"
+    Write-Host "[$scriptName] controlReboot : $controlReboot (yes, manual, no or none)"
 } else {
 	$controlReboot = 'yes'
-    Write-Host "[$scriptName] controlReboot : $controlReboot (default)"
+    Write-Host "[$scriptName] controlReboot : $controlReboot (default, choices yes, manual, no or none)"
 }
+
 if ($controlReboot -eq 'no') {
     Write-Host "`n[$scriptName] controlReboot is $controlReboot, allow Active Directory feature to reboot"
 } else {

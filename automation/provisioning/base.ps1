@@ -21,7 +21,16 @@ function executeExpression ($expression) {
 	    if(!$?) { Write-Host "[$scriptName][FAILURE] `$? = $?"; $exitCode = 1 }
 	} catch { Write-Host "[$scriptName][EXCEPTION] Exception details ..."; Write-Host $_.Exception|format-list -force; $exitCode = 2 }
     if ( $error ) { Write-Host "[$scriptName][ERROR] `$error[0] = $error"; $exitCode = 3 }
-    if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) { Write-Host "[$scriptName][EXIT] `$LASTEXITCODE = $LASTEXITCODE "; $exitCode = $LASTEXITCODE }
+    if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) {
+		if ( $LASTEXITCODE -eq 3010 ) {
+			Write-Host "[$scriptName] `$LASTEXITCODE = ${LASTEXITCODE}, reboot required." -ForegroundColor Yellow
+			$exitCode = 0
+			$env:rebootRequired = 'yes'
+		} else {
+			Write-Host "[$scriptName][EXIT] `$LASTEXITCODE = $LASTEXITCODE "
+			$exitCode = $LASTEXITCODE
+		}
+	}
 	if ( $exitCode -ne 0 ) {
 		if ( $logFile ) {
 			Write-Host "`n[$scriptName] Listing contents of $logFile then exit...`n"
@@ -50,14 +59,8 @@ function executeRetry ($expression) {
 		} catch { Write-Host "[$scriptName] $_" -ForegroundColor Red; $exitCode = 2 }
 	    if ( $error[0] ) { Write-Host "[$scriptName] Warning, message in `$error[0] = $error" -ForegroundColor Yellow; $error.clear() } # do not treat messages in error array as failure
 		if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) {
-			if ( $LASTEXITCODE -eq 3010 ) {
-				Write-Host "[$scriptName] `$LASTEXITCODE = ${LASTEXITCODE}, reboot required." -ForegroundColor Yellow
-				$exitCode = 0
-				$env:rebootRequired = 'yes'
-			} else {
-				Write-Host "[$scriptName] `$LASTEXITCODE = $LASTEXITCODE " -ForegroundColor Red
-				$exitCode = $LASTEXITCODE
-			}
+			Write-Host "[$scriptName] `$LASTEXITCODE = $LASTEXITCODE " -ForegroundColor Red
+			$exitCode = $LASTEXITCODE
 			cmd /c "exit 0"
 		}
 	    if ($exitCode -ne 0) {
@@ -68,10 +71,8 @@ function executeRetry ($expression) {
 				exit $exitCode
 			} else {
 				$retryCount += 1
-				Write-Host "[$scriptName] Set TLS to version 1.1 or higher, Wait $wait seconds, then retry $retryCount of $retryMax"
-				Write-Host "`$AllProtocols = [System.Net.SecurityProtocolType]'Tls11,Tls12'"
-				$AllProtocols = [System.Net.SecurityProtocolType]'Tls11,Tls12'
-				executeExpression '[System.Net.ServicePointManager]::SecurityProtocol = $AllProtocols'
+				Write-Host "[$scriptName] Load System Proxy details and retry, then retry $retryCount of $retryMax"
+				(New-Object System.Net.WebClient).Proxy.Credentials =[System.Net.CredentialCache]::DefaultNetworkCredentials
 				sleep $wait
 				$wait = $wait + $wait
 			}
@@ -90,7 +91,7 @@ if ($install) {
 if ($mediaDir) {
     Write-Host "[$scriptName] mediaDir   : $mediaDir"
 } else {
-	$mediaDir = '/.provision'
+	$mediaDir = "$env:TEMP"
     Write-Host "[$scriptName] mediaDir   : $mediaDir (default)"
 }
 
@@ -113,7 +114,7 @@ if ($version) {
 }
 
 if ($checksum) {
-    Write-Host "[$scriptName] checksum   : $checksum`n"
+    Write-Host "[$scriptName] checksum   : $checksum (optional, pass ignore to ignore checksum)`n"
 	if ( $checksum -eq 'ignore' ) {
 		$checksum = "--ignorechecksum -y"
 	} else {
@@ -137,9 +138,7 @@ if ($autoReboot) {
 }
 
 Write-Host "`n[$scriptName] Set TLS to version 1.2 or higher"
-Write-Host '[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12'
-$AllProtocols = [System.Net.SecurityProtocolType]'Tls11,Tls12'
-executeExpression '[System.Net.ServicePointManager]::SecurityProtocol = $AllProtocols'
+executeExpression "[System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]'Tls11,Tls12'"
 
 if ($proxy) {
     Write-Host "`n[$scriptName] Load common proxy settings`n"
@@ -203,10 +202,8 @@ if ($versionTest -like '*not recognized*') {
 				exit $exitCode
 			} else {
 				$retryCount += 1
-				Write-Host "[$scriptName] Set TLS to version 1.1 or higher, Wait $wait seconds, then retry $retryCount of $retryMax"
-				Write-Host "`$AllProtocols = [System.Net.SecurityProtocolType]'Tls11,Tls12'"
-				$AllProtocols = [System.Net.SecurityProtocolType]'Tls11,Tls12'
-				executeExpression '[System.Net.ServicePointManager]::SecurityProtocol = $AllProtocols'
+				Write-Host "[$scriptName] Set `$env:chocolateyUseWindowsCompression = 'true', then retry $retryCount of $retryMax"
+				$env:chocolateyUseWindowsCompression = 'true'
 				sleep $wait
 			}
 		}

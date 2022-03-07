@@ -23,8 +23,11 @@ function executeExpression ($expression) {
     if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) { Write-Host "[$scriptName] `$LASTEXITCODE = $LASTEXITCODE "; exit $LASTEXITCODE }
 }
 
-Write-Host "`n[$scriptName] Start a container instance, if an instance (based on `"instance`") exists it is"
-Write-Host "[$scriptName] stopped and removed before starting the new instance."
+if ($dockerExpose) {
+    Write-Host "`n[$scriptName] Start a container instance, if an instance (based on `"instance`") exists it is"
+    Write-Host "[$scriptName] stopped and removed before starting the new instance."
+}
+
 Write-Host "`n[$scriptName] --- start ---"
 if ($imageName) {
 	$imageName = $imageName.ToLower()
@@ -33,84 +36,97 @@ if ($imageName) {
     Write-Host "[$scriptName] imageName not supplied, exit with `$LASTEXITCODE = 1"; exit 1
 }
 
-if ($dockerExpose) {
+# 2.4.0 Centralise docker operations by supporting implicit clean function
+if (!($dockerExpose)) {
+    Write-Host "[$scriptName] dockerExpose  : (not supplied, will only clean running containers)"
+} else {
     Write-Host "[$scriptName] dockerExpose  : $dockerExpose"
-} else {
-    Write-Host "[$scriptName] dockerExpose not supplied, exit with `$LASTEXITCODE = 2"; exit 2
-}
-
-if ($publishedPort) {
-    Write-Host "[$scriptName] publishedPort : $publishedPort"
-} else {
-	$publishedPort = '80'
-    Write-Host "[$scriptName] publishedPort : $publishedPort (default)"
-}
-
-if ($tag) {
-    Write-Host "[$scriptName] tag           : $tag"
-} else {
-	$tag = 'latest'
-    Write-Host "[$scriptName] tag           : $tag (default)"
-}
-
-if ($environment) {
-    Write-Host "[$scriptName] environment   : $environment (not passed, set to same value as tag)"
-} else {
-	$environment = $tag
-    Write-Host "[$scriptName] environment   : $environment"
-}
-
-if ($registry) {
-    Write-Host "[$scriptName] registry      : not passed, use local repo"
-} else {
-    Write-Host "[$scriptName] registry      : $registry"
-}
-
-if ($dockerOpt) {
-    Write-Host "[$scriptName] dockerOpt     : not passed"
-} else {
-    Write-Host "[$scriptName] dockerOpt     : $dockerOpt"
+    if ($publishedPort) {
+        Write-Host "[$scriptName] publishedPort : $publishedPort"
+    } else {
+        $publishedPort = '80'
+        Write-Host "[$scriptName] publishedPort : $publishedPort (default)"
+    }
+    
+    if ($tag) {
+        Write-Host "[$scriptName] tag           : $tag"
+    } else {
+        $tag = 'latest'
+        Write-Host "[$scriptName] tag           : $tag (default)"
+    }
+    
+    if ($environment) {
+        Write-Host "[$scriptName] environment   : $environment (not passed, set to same value as tag)"
+    } else {
+        $environment = $tag
+        Write-Host "[$scriptName] environment   : $environment"
+    }
+    
+    if ($registry) {
+        Write-Host "[$scriptName] registry      : not passed, use local repo"
+    } else {
+        Write-Host "[$scriptName] registry      : $registry"
+    }
+    
+    if ($dockerOpt) {
+        Write-Host "[$scriptName] dockerOpt     : not passed"
+    } else {
+        Write-Host "[$scriptName] dockerOpt     : $dockerOpt"
+    }
 }
 
 Write-Host "`n[$scriptName] List version for logging purposes`n"
 executeExpression "docker --version"
 
-Write-Host "`n[$scriptName] Globally unique label, based on port, if in use, stop and remove`n"
-$instance = "${imageName}:${publishedPort}"
-Write-Host "[$scriptName] `$instance = $instance (container ID)"
+if ($dockerExpose) {
+    Write-Host "`n[$scriptName] Globally unique label, based on port, if in use, stop and remove`n"
+    $instance = "${imageName}:${publishedPort}"
+    Write-Host "[$scriptName] `$instance = $instance (container ID)"
+}
 
 Write-Host "`n[$scriptName] List the running containers (before)`n"
 docker ps
 
-Write-Host "`n[$scriptName] Remove any existing containers based on label=cdaf.${imageName}.container.instance=${instance}`n"
-foreach ($containerInstance in docker ps --filter label=cdaf.${imageName}.container.instance=${instance} -aq) {
-	Write-Host "[$scriptName] Stop and remove existing container instance ($instance)"
-	executeExpression "docker stop $containerInstance"
-	executeExpression "docker rm $containerInstance"
-}
-
-# Use the image name and published port as the unique identifier on the host 
-$dockerCommand = "docker run --detach --publish ${publishedPort}:${dockerExpose} --name ${imageName}_${publishedPort}" 
-
-# Include any optional arguments, e.g. --restart=always
-$dockerCommand += " $dockerOpt"
-
-# Apply container labels (additive to the build labels) for filter purposes, only unique ID above is important in run context
-$dockerCommand += " --label cdaf.${imageName}.container.instance=$instance --label cdaf.${imageName}.container.environment=$environment"
-
-# Finall determine if a registry is in use 
-if ( $registry ) {
-	$dockerCommand += " ${registry}/${imageName}:${tag}"
+if ($dockerExpose) {
+	Write-Host "`n[$scriptName] Remove any existing containers based on docker ps --filter label=cdaf.${imageName}.container.instance=${instance}`n"
+	foreach ($containerInstance in docker ps --filter label=cdaf.${imageName}.container.instance=${instance} -aq) {
+		Write-Host "[$scriptName] Stop and remove existing container instance ($instance)"
+		executeExpression "docker stop $containerInstance"
+		executeExpression "docker rm $containerInstance"
+	}
 } else {
-	$dockerCommand += " ${imageName}:${tag}"
+	Write-Host "`n[$scriptName] Remove any existing containers based on docker ps --filter label=cdaf.${imageName}.container.instance`n"
+	foreach ($containerInstance in docker ps --filter label=cdaf.${imageName}.container.instance -aq) {
+		Write-Host "[$scriptName] Stop and remove existing container instance ($instance)"
+		executeExpression "docker stop $containerInstance"
+		executeExpression "docker rm $containerInstance"
+	}
 }
 
-Write-Host "`n[$scriptName] Start container`n"
-executeExpression "$dockerCommand"
+if ($dockerExpose) {
+    # Use the image name and published port as the unique identifier on the host 
+    $dockerCommand = "docker run --detach --publish ${publishedPort}:${dockerExpose} --name ${imageName}_${publishedPort}" 
+
+    # Include any optional arguments, e.g. --restart=always
+    $dockerCommand += " $dockerOpt"
+
+    # Apply container labels (additive to the build labels) for filter purposes, only unique ID above is important in run context
+    $dockerCommand += " --label cdaf.${imageName}.container.instance=$instance --label cdaf.${imageName}.container.environment=$environment"
+
+    # Finall determine if a registry is in use 
+    if ( $registry ) {
+        $dockerCommand += " ${registry}/${imageName}:${tag}"
+    } else {
+        $dockerCommand += " ${imageName}:${tag}"
+    }
+
+    Write-Host "`n[$scriptName] Start container`n"
+    executeExpression "$dockerCommand"
+}
 
 Write-Host "`n[$scriptName] List the running containers (after)"
 docker ps
 
-Write-Host "`n[$scriptName] --- end ---"
+Write-Host "`n[$scriptName] --- end ---`n"
 $error.clear()
 exit 0

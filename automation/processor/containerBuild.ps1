@@ -3,7 +3,8 @@ Param (
 	[string]$buildNumber,
 	[string]$revision,
 	[string]$action,
-	[string]$rebuildImage
+	[string]$rebuildImage,
+	[string]$buildArgs
 )
 
 Import-Module Microsoft.PowerShell.Utility
@@ -15,14 +16,25 @@ cmd /c "exit 0"
 
 # Common expression logging and error handling function, copied, not referenced to ensure atomic process
 function executeExpression ($expression) {
-	$error.clear()
-	Write-Host "$expression"
+	Write-Host "[$(Get-Date)] $expression"
 	try {
 		Invoke-Expression $expression
-	    if(!$?) { Write-Host "[$scriptName] `$? = $?"; exit 1 }
-	} catch { Write-Output $_.Exception|format-list -force; exit 2 }
-    if ( $error ) { Write-Host "[$scriptName] `$error[0] = $error"; exit 3 }
-    if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) { Write-Host "[$scriptName] `$LASTEXITCODE = $LASTEXITCODE "; exit $LASTEXITCODE }
+	    if(!$?) { Write-Host "[$scriptName] `$? = $?"; $error ; exit 1111 }
+	} catch { Write-Output $_.Exception|format-list -force; $error ; exit 1112 }
+    if ( $LASTEXITCODE ) {
+    	if ( $LASTEXITCODE -ne 0 ) {
+			Write-Host "[$scriptName] `$LASTEXITCODE = $LASTEXITCODE " -ForegroundColor Red ; $error ; exit $LASTEXITCODE
+		} else {
+			if ( $error ) {
+				Write-Host "[$scriptName][WARN] $Error array populated by `$LASTEXITCODE = $LASTEXITCODE error follows...`n" -ForegroundColor Yellow
+				$error
+			}
+		} 
+	} else {
+	    if ( $error ) {
+			Write-Host "[$scriptName] `$error[0] = $error"; exit 1113
+		}
+	}
 }
 
 Write-Host "`n[$scriptName] ---------- start ----------`n"
@@ -45,7 +57,7 @@ if ( $imageName ) {
 	if ( $action ) { 
 		Write-Host "[$scriptName]   action         : $action"
 	} else {
-		$action = 'containerbuild'
+		$action = 'container_build'
 		Write-Host "[$scriptName]   action         : $action (not supplied, set to default)"
 	}
 	
@@ -56,8 +68,14 @@ if ( $imageName ) {
 		Write-Host "[$scriptName]   rebuildImage   : $rebuildImage (not supplied, so set to default)"
 	}
 	
-	$imageName = "${imageName}_$($revision.ToLower())"
-	Write-Host "[$scriptName]   imageName      : $imageName"
+	if ( $buildArgs ) {
+		Write-Host "[$scriptName]   buildArgs      : $buildArgs"
+	} else {
+		Write-Host "[$scriptName]   buildArgs      : (not supplied)"
+	}
+	
+	$buildImage = "${imageName}_$($revision.ToLower())_containerbuild"
+	Write-Host "[$scriptName]   buildImage     : $buildImage"
 	Write-Host "[$scriptName]   DOCKER_HOST    : $env:DOCKER_HOST"
 	Write-Host "[$scriptName]   pwd            : $(Get-Location)"
 	Write-Host "[$scriptName]   hostname       : $(hostname)"
@@ -85,11 +103,11 @@ if ( Test-Path ".\automation" ) {
 	}
 }
 
-if ( $imageName ) {
+if ( $buildImage ) {
 	Write-Host '$dockerStatus = ' -NoNewline 
 	
 	$imageTag = 0
-	foreach ( $imageDetails in docker images --filter label=cdaf.${imageName}.image.version --format "{{.Tag}}" ) {
+	foreach ( $imageDetails in docker images --filter label=cdaf.${buildImage}.image.version --format "{{.Tag}}" ) {
 		if ($imageTag -lt [INT]$imageDetails ) { $imageTag = [INT]$imageDetails }
 	}
 	if ( $imageTag ) {
@@ -98,23 +116,29 @@ if ( $imageName ) {
 		$imageTag = 0
 		Write-Host "[$scriptName] No existing images, new image will be $($imageTag + 1)"
 	}
+
+	Write-Host "Directory listing of $(pwd)"
+	foreach ( $item in $(Get-ChildItem .) ) { Write-Host "  $item" }
 	
 	executeExpression "cat Dockerfile"
 		
 	if ( $rebuildImage -eq 'yes') {
-		# Force rebuild, i.e. no-cache
-		executeExpression "$env:CDAF_AUTOMATION_ROOT/remote/dockerBuild.ps1 ${imageName} $($imageTag + 1) -rebuild yes"
-	} else {
-		executeExpression "$env:CDAF_AUTOMATION_ROOT/remote/dockerBuild.ps1 ${imageName} $($imageTag + 1)"
+		$otherOptions = " -rebuild $rebuildImage"
 	}
+
+	if ( $buildArgs ) {
+		$otherOptions += " -optionalArgs '$buildArgs'"
+	}
+
+	executeExpression "$env:CDAF_AUTOMATION_ROOT/remote/dockerBuild.ps1 ${buildImage} $($imageTag + 1) $otherOptions"
 	
 	# Remove any older images	
-	executeExpression "$env:CDAF_AUTOMATION_ROOT/remote/dockerClean.ps1 ${imageName} $($imageTag + 1)"
+	executeExpression "$env:CDAF_AUTOMATION_ROOT/remote/dockerClean.ps1 ${buildImage} $($imageTag + 1)"
 	
 	if ( $rebuildImage -ne 'imageonly') {
 		# Retrieve the latest image number
 		$imageTag = 0
-		foreach ( $imageDetails in docker images --filter label=cdaf.${imageName}.image.version --format "{{.Tag}}" ) {
+		foreach ( $imageDetails in docker images --filter label=cdaf.${buildImage}.image.version --format "{{.Tag}}" ) {
 			if ($imageTag -lt [INT]$imageDetails ) { $imageTag = [INT]$imageDetails }
 		}
 	
@@ -122,8 +146,25 @@ if ( $imageName ) {
 		Write-Host "[$scriptName] `$imageTag  : $imageTag"
 		Write-Host "[$scriptName] `$workspace : $workspace"
 		
-		executeExpression "docker run --tty --volume ${workspace}\:C:/solution/workspace ${imageName}:${imageTag} automation\processor\buildPackage.bat $buildNumber $revision $action"
-		
+		foreach ( $envVar in Get-ChildItem env:) {
+			if ($envVar.Name.Contains('CDAF_CB_')) {
+				${buildCommand} += " --env $(${envVar}.Name)=$(${envVar}.Value)"
+			}
+		}
+
+		${prefix} = (${SOLUTION}.ToUpper()).replace('-','_')
+		foreach ( $envVar in Get-ChildItem env:) {
+			if ($envVar.Name.Contains("CDAF_${prefix}_CB_")) {
+				${buildCommand} += " --env $(${envVar}.Name.Replace("CDAF_${prefix}_CB_", ''))=$(${envVar}.Value)"
+			}
+		}
+
+		if ( $env:USERPROFILE ) {
+			executeExpression "docker run --volume ${env:USERPROFILE}\:C:/solution/home --volume ${workspace}\:C:/solution/workspace ${buildCommand} ${buildImage}:${imageTag} automation\ci.bat $buildNumber $revision container_build"
+		} else {
+			executeExpression "docker run --volume ${workspace}\:C:/solution/workspace ${buildCommand} ${buildImage}:${imageTag} automation\ci.bat $buildNumber $revision container_build"
+		}
+
 		Write-Host "`n[$scriptName] List and remove all stopped containers"
 		executeExpression "docker ps --filter `"status=exited`" -a"
 		$stopped = docker ps --filter "status=exited" -aq

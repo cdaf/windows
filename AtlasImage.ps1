@@ -19,17 +19,17 @@ function writeLog ($message) {
 # Use executeIgnoreExit to only trap exceptions, use executeExpression to trap all errors ($LASTEXITCODE is global)
 function execute ($expression) {
 	$error.clear()
-	writeLog "[$(date)] $expression"
+	writeLog "[$(Get-date)] $expression"
 	try {
 		Invoke-Expression $expression
-	    if(!$?) { writeLog "`$? = $?"; exit 1 }
-	} catch { echo $_.Exception|format-list -force; exit 2 }
-    if ( $error[0] ) { writeLog "`$error[0] = $error"; exit 3 }
+	    if(!$?) { writeLog "`$? = $?"; emailAndExit 1 }
+	} catch { Write-Output $_.Exception|format-list -force; emailAndExit 2 }
+    if ( $error[0] ) { writeLog "`$error[0] = $error"; emailAndExit 3 }
 }
 
 function executeExpression ($expression) {
 	execute $expression
-    if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) { writeLog "ERROR! Exiting with `$LASTEXITCODE = $LASTEXITCODE"; exit $LASTEXITCODE }
+    if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) { writeLog "ERROR! Exiting with `$LASTEXITCODE = $LASTEXITCODE"; emailAndExit $LASTEXITCODE }
 }
 
 function executeIgnoreExit ($expression) {
@@ -93,7 +93,11 @@ if ($stripDISM) {
 	$stripDISM = 'no'
     writeLog "stripDISM  : $stripDISM (default)"
 }
-	
+
+executeExpression "cd $(split-path -parent $MyInvocation.MyCommand.Definition)"
+executeExpression "[System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]'Tls11,Tls12'"
+executeExpression "pwd"
+
 if ( $hypervisor -eq 'virtualbox' ) {
 	$vbadd = '5.2.22'
 	executeExpression ".\automation\provisioning\mountImage.ps1 $env:userprofile\VBoxGuestAdditions_${vbadd}.iso http://download.virtualbox.org/virtualbox/${vbadd}/VBoxGuestAdditions_${vbadd}.iso"
@@ -128,7 +132,7 @@ if ( Test-Path $env:systemroot\SoftwareDistribution ) {
 
 writeLog "Enable permissions to discard page file"
 writeLog "`$System = GWMI Win32_ComputerSystem -EnableAllPrivileges"
-$System = GWMI Win32_ComputerSystem -EnableAllPrivileges
+$System = Get-WmiObject Win32_ComputerSystem -EnableAllPrivileges
 executeExpression "`$System.AutomaticManagedPagefile = `$False"
 writeLog "`$System.Put()"
 $output = $System.Put()
@@ -136,7 +140,7 @@ writeLog "$output"
 
 writeLog "Discard page file (is rebuilt at start-up)"
 writeLog "`$CurrentPageFile = gwmi -query `"select * from Win32_PageFileSetting where name=`'c:\\pagefile.sys`'`""
-$CurrentPageFile = gwmi -query "select * from Win32_PageFileSetting where name='c:\\pagefile.sys'"
+$CurrentPageFile = Get-WmiObject -query "select * from Win32_PageFileSetting where name='c:\\pagefile.sys'"
 executeExpression "`$CurrentPageFile.InitialSize = 512"
 executeExpression "`$CurrentPageFile.MaximumSize = 512"
 writeLog "`$CurrentPageFile.Put()"
@@ -170,30 +174,29 @@ executeExpression "./$secureDeleteExe -z c:"
 
 if ($sysprep -eq 'yes') {
 
-	$scriptDir = "$env:windir/setup/scripts"
+	$scriptDir = "$env:windir\setup\scripts"
 	if (Test-Path "$scriptDir") {
 	    writeLog "$scriptDir exists, skip create."
 	} else {
 	    executeExpression "mkdir -Path $scriptDir"
 	}
 	
-	# This script will be run once for sysprep'd machine 
-	$setupCommand = "$scriptDir/SetupComplete.cmd"
-	if (Test-Path "$setupCommand") {
-	    writeLog "$setupCommand exists, skip create."
-	} else {
-	    executeExpression "Add-Content $scriptDir/SetupComplete.cmd `'netsh advfirewall firewall set rule name=`"Windows Remote Management (HTTP-in)`" new action=allow`'"
-	    executeExpression "Add-Content $scriptDir/SetupComplete.cmd `'reg add HKEY_LOCAL_MACHINE\Software\Microsoft\Windows\CurrentVersion\Policies\System /v EnableLUA /d 0 /t REG_DWORD /f /reg:64`'"
-	}
-	executeExpression "cat $scriptDir/SetupComplete.cmd"
-	
-	# Close the WinRM port now, so Vagrant does not manage to connect during the system prep phase
+	writeLog "This script will be run once for sysprep'd machine https://docs.microsoft.com/en-us/previous-versions/windows/it-pro/windows-7/dd744268(v=ws.10)?redirectedfrom=MSDN"
+	$setupCommand = "$scriptDir\SetupComplete.cmd"
+    executeExpression "Set-Content $scriptDir\SetupComplete.cmd `'netsh advfirewall firewall set rule name=`"Windows Remote Management (HTTP-in)`" new action=allow`'"
+    executeExpression "Add-Content $scriptDir\SetupComplete.cmd `'reg add HKEY_LOCAL_MACHINE\Software\Microsoft\Windows\CurrentVersion\Policies\System /v EnableLUA /d 0 /t REG_DWORD /f /reg:64`'"
+	executeExpression "Add-Content $scriptDir\SetupComplete.cmd `'cscript /Nologo slmgr.vbs /rearm`'"
+	executeExpression "cat $scriptDir\SetupComplete.cmd"
+	writeLog "$(cat $scriptDir\SetupComplete.cmd)"
+		
+	writeLog "Close the WinRM port now, so Vagrant does not manage to connect during the system prep phase"
+	writeLog "$scriptDir\SetupComplete.cmd will reverse this once sysprep is complete"
 	executeExpression "netsh advfirewall firewall set rule name=`'Windows Remote Management (HTTP-in)`' new action=block"
 	
-	writeLog "As per this URL there are implicit places windows looks for unattended files, I'm using C:\Windows\Panther\Unattend"
+	$scriptDir = "C:\Windows\Panther\Unattend"
+	writeLog "Windows looks for unattended answer files in $scriptDir"
 	executeExpression "(New-Object System.Net.WebClient).DownloadFile(`'http://cdaf.io/static/app/downloads/unattend.xml`', `"$PWD\unattend.xml`")"
 	
-	$scriptDir = "C:\Windows\Panther\Unattend"
 	if (Test-Path "$scriptDir") {
 	    writeLog "$scriptDir exists, skip create."
 	} else {
@@ -207,6 +210,7 @@ if ($sysprep -eq 'yes') {
 	    executeExpression "Copy-Item $PWD\unattend.xml $scriptDir"
 	}
 	executeExpression "cat $scriptDir\unattend.xml"
+
 	emailProgress "last comms, starting sysprep"
 	executeExpression "& C:\windows\system32\sysprep\sysprep.exe /generalize /oobe /shutdown /unattend:$scriptDir\unattend.xml"
 	

@@ -4,7 +4,8 @@ Param (
 	[string]$httpProxy,
 	[string]$version,
 	[string]$provider,
-	[string]$dockerUser
+	[string]$dockerUser,
+	[string]$compose
 )
 
 $scriptName = 'installDocker.ps1'
@@ -17,7 +18,7 @@ function execute ($expression) {
 	try {
 		Invoke-Expression $expression
 	    if(!$?) { Write-Host "[$scriptName] `$? = $?"; exit 1 }
-	} catch { echo $_.Exception|format-list -force; exit 2 }
+	} catch { Write-Output $_.Exception|format-list -force; exit 2 }
     if ( $error ) { Write-Host "[$scriptName] `$error[0] = $error"; exit 3 }
 }
 
@@ -62,7 +63,7 @@ function executeRetry ($expression) {
 			} else {
 				$retryCount += 1
 				Write-Host "[$scriptName] Wait $wait seconds, then retry $retryCount of $retryMax"
-				sleep $wait
+				Start-Sleep $wait
 				$wait = $wait + $wait
 			}
 		}
@@ -117,6 +118,15 @@ if ($dockerUser) {
     Write-Host "[$scriptName]  dockerUser  : (not set)"
 }
 
+if (${compose}) {
+    Write-Host "[$scriptName]  compose     : ${compose}"
+} else {
+	$compose = '1.27.4'
+    Write-Host "[$scriptName]  compose     : ${compose} (default)"
+}
+
+$AllProtocols = [System.Net.SecurityProtocolType]'Tls11,Tls12'
+executeExpression '[System.Net.ServicePointManager]::SecurityProtocol = $AllProtocols'
 executeExpression "Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.201 -Verbose -Force $proxyParameter"
 
 # Found these repositories unreliable so included retry logic
@@ -150,13 +160,13 @@ if ($enableTCP) {
 		Add-Content C:\ProgramData\docker\config\daemon.json '{ "hosts": ["tcp://0.0.0.0:2375","npipe://"] }'
 		Write-Host "`n[$scriptName] Enable TCP in config, will be applied after restart`n"
 		executeExpression "Get-Content C:\ProgramData\docker\config\daemon.json" 
-	} catch { echo $_.Exception|format-list -force; exit 478 }
+	} catch { Write-Output $_.Exception|format-list -force; exit 478 }
 }
 
 Write-Host "`n[$scriptName] Install docker-compose as per https://docs.docker.com/compose/install/"
 
 executeExpression '[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12'
-executeExpression "Invoke-WebRequest 'https://github.com/docker/compose/releases/download/1.25.0/docker-compose-Windows-x86_64.exe' -UseBasicParsing -OutFile `$Env:ProgramFiles\docker\docker-compose.exe"
+executeExpression "Invoke-WebRequest 'https://github.com/docker/compose/releases/download/${compose}/docker-compose-Windows-x86_64.exe' -UseBasicParsing -OutFile `$Env:ProgramFiles\docker\docker-compose.exe"
 
 if ($dockerUser) {
 	Write-Host "`n[$scriptName] Add user to docker execution (without elevated admin session)"

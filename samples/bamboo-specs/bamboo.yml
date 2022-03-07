@@ -13,14 +13,22 @@ stages:
 Build Job:
   tasks:
     - script:
-        - "automation\\processor\\entry.bat ${bamboo.buildNumber} ${bamboo.repository.branch.name}"
+        interpreter: powershell
+        scripts: | # Use latest Published CDAF
+          . { iwr -useb https://cdaf.io/static/app/downloads/cdaf.ps1 } | iex
+          .\\automation\\entry.bat ${bamboo.buildNumber} ${bamboo.repository.branch.name}
+
+#        scripts: | # Edge version from GitHub
+#          $env:CDAF_PATH = '.\automation'
+#          . { iwr -useb https://raw.githubusercontent.com/cdaf/windows/master/installCDAF.ps1 } | iex
+#          .\\automation\\entry.bat ${bamboo.buildNumber} ${bamboo.repository.branch.name}
+
+#        scripts: | # "In-source" implemenation
+#          .\\automation\\entry.bat ${bamboo.buildNumber} ${bamboo.repository.branch.name}
 
   artifacts:
     - name: Package
-      pattern: '*.zip'
-      shared: true
-    - name: TasksLocal
-      pattern: 'TasksLocal/**'
+      pattern: 'release.ps1'
       shared: true
 
 ---
@@ -46,7 +54,10 @@ TEST:
     - artifact-download:
         destination: ${bamboo.working.directory}
     - script:
-        - "${bamboo.build.working.directory}\\TasksLocal\\delivery.bat ${bamboo.deploy.environment} ${bamboo.deploy.release}"
+        interpreter: powershell
+        scripts:
+          - ${bamboo.build.working.directory}\\release.ps1 ${bamboo.deploy.environment} ${bamboo.deploy.release}
+          - if ( $LASTEXITCODE -ne 0 ) { throw "Script failed with LASTEXITCODE = $LASTEXITCODE" }
 
 UAT:
   triggers:
@@ -56,8 +67,10 @@ UAT:
     - artifact-download:
         destination: ${bamboo.working.directory}
     - script:
-        - "${bamboo.build.working.directory}\\TasksLocal\\delivery.bat ${bamboo.deploy.environment} ${bamboo.deploy.release}"
-
+        interpreter: powershell
+        scripts:
+          - ${bamboo.build.working.directory}\\release.ps1 ${bamboo.deploy.environment} ${bamboo.deploy.release}
+          - if ( $LASTEXITCODE -ne 0 ) { throw "Script failed with LASTEXITCODE = $LASTEXITCODE" }
 
 PROD:
   tasks:
@@ -65,4 +78,7 @@ PROD:
     - artifact-download:
         destination: ${bamboo.working.directory}
     - script:
-        - "${bamboo.build.working.directory}\\TasksLocal\\delivery.bat ${bamboo.deploy.environment} ${bamboo.deploy.release}"
+        interpreter: powershell
+        scripts:
+          - ${bamboo.build.working.directory}\\release.ps1 ${bamboo.deploy.environment} ${bamboo.deploy.release}
+          - if ( $LASTEXITCODE -ne 0 ) { throw "Script failed with LASTEXITCODE = $LASTEXITCODE" }
