@@ -19,6 +19,7 @@ jobs:
         shell: powershell # pwsh for PowerShell Core
         run: |
           cd ${env:GITHUB_WORKSPACE}
+          cp .\automation\solution .
           .\automation\entry.ps1 ${env:GITHUB_RUN_NUMBER} ${env:GITHUB_REF}
 
       - name: Artifact Retention
