@@ -115,8 +115,8 @@ function installFourAndAbove {
 }
 
 $scriptName = 'dotNET.ps1'
-$latest = '4.7'
-$versionChoices = "$latest, 4.6.2, 4.6.1, 4.5.2, 4.5.1, 4.0, 3.5 or latest"
+$latest = '4.8'
+$versionChoices = "$latest, 4.7.2, 4.7, 4.6.2, 4.6.1, 4.5.2, 4.5.1, 4.0, 3.5 or latest"
 $finalCode = 0
 cmd /c "exit 0"
 
@@ -150,7 +150,7 @@ if ($wimIndex) {
 if ($mediaDir) {
     Write-Host "[$scriptName] mediaDir : $mediaDir"
 } else {
-	$mediaDir = 'C:\.provision'
+	$mediaDir = "$env:TEMP"
     Write-Host "[$scriptName] mediaDir : $mediaDir (default)"
 }
 
@@ -187,6 +187,25 @@ if ($env:interactive) {
 
 Write-Host
 switch ($version) {
+	'4.8' {
+		if ($sdk -ne 'no') {
+			$file = 'ndp48-x86-x64-allos-enu.exe'
+			$uri = 'https://download.visualstudio.microsoft.com/download/pr/014120d7-d689-4305-befd-3cb711108212/0fd66638cde16859462a6243a4629a50/' + $file
+		} else {
+			$file = 'ndp48-devpack-enu.exe'
+			$uri = 'https://download.visualstudio.microsoft.com/download/pr/014120d7-d689-4305-befd-3cb711108212/0307177e14752e359fde5423ab583e43/' + $file
+		}
+		$release = '528049' # Lowest of 528040 (Win 10) and 528049 (all other OS)
+	}'4.7.2' {
+		if ($sdk -ne 'no') {
+			$file = 'NDP472-DevPack-ENU.exe'
+			$uri = 'https://download.microsoft.com/download/3/B/F/3BFB9C35-405D-45DF-BDAF-0EB57D047888/' + $file
+		} else {
+			$file = 'NDP472-KB4054530-x86-x64-AllOS-ENU.exe'
+			$uri = 'https://download.microsoft.com/download/6/E/4/6E48E8AB-DC00-419E-9704-06DD46E5F81D/' + $file
+		}
+		$release = '461814' # Lowest of 460798 (Win 10) and 460805 (all other OS)
+	}
 	'4.7' {
 		if ($sdk -ne 'no') {
 			$file = 'NDP47-DevPack-KB3186612-ENU.exe'
