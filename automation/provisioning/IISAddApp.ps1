@@ -131,7 +131,8 @@ if ($appPool) {
 if (Test-Path "IIS:\Sites\$site\$app") {
     Write-Host "[$scriptName] Site IIS:\Sites\$site\$app exists"
 	if ($appPool) {
-		executeExpression "Set-ItemProperty `'IIS:\Sites\$site\$app`' -name `'$app`' -value `'$appPool`'"
+		executeExpression "New-WebApplication -Site `'$site`' -name `'$app`' -PhysicalPath `'$physicalPath`' -ApplicationPool `'$appPool`' -Force"
+		executeExpression "Set-ItemProperty `'IIS:\Sites\$site\$app`' -name applicationPool -Value `'$appPool`'"
 	}
 } else {
 	if ($appPool) {
