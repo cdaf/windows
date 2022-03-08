@@ -26,33 +26,41 @@ Write-Host "[$scriptName] +-------------------------+"
 Write-Host "[$scriptName]   ENVIRONMENT      : $ENVIRONMENT" 
 Write-Host "[$scriptName]   BUILD            : $BUILD" 
 Write-Host "[$scriptName]   SOLUTION         : $SOLUTION" 
+
 Write-Host "[$scriptName]   WORK_DIR_DEFAULT : $WORK_DIR_DEFAULT" 
+
+# Capture landing directory, then change to Default Working Directory and resolve to absolute path
+$CDAF_WORKSPACE = (Get-Location).Path
+Set-Location $WORK_DIR_DEFAULT
+$WORK_DIR_DEFAULT = (Get-Location).Path
+
 Write-Host "[$scriptName]   OPT_ARG          : $OPT_ARG" 
  
-$propName = getProp ".\$WORK_DIR_DEFAULT\CDAF.properties" "productVersion"
+$propName = getProp "$WORK_DIR_DEFAULT\CDAF.properties" "productVersion"
 Write-Host "[$scriptName]   CDAF Version     : $cdafVersion"
 
 # list system info
 Write-Host "[$scriptName]   hostname         : $(hostname)" 
 Write-Host "[$scriptName]   whoami           : $(whoami)"
-$landingDir = pwd
-Write-Host "[$scriptName]   pwd              : $landingDir"
+Write-Host "[$scriptName]   pwd              : $WORK_DIR_DEFAULT"
 
-$propertiesFilter = $WORK_DIR_DEFAULT + '\propertiesForContainerTasks\' + "$ENVIRONMENT*"
+$propertiesFilter = 'propertiesForContainerTasks\' + "$ENVIRONMENT*"
 if (-not(Test-Path $propertiesFilter)) {
 
 	Write-Host "`n[$scriptName][INFO] Properties directory ($propertiesFilter) not found, alter processSequence property to skip." -ForegroundColor Yellow
 
 } else {
-	# 2.4.0 The containerDeploy is an extension to remote tasks, which means recursive call to this script should not happen (unlike containerBuild)
-	# containerDeploy example & ${CDAF_WORKSPACE}/containerDeploy.ps1 "${ENVIRONMENT}" "${RELEASE}" "${SOLUTION}" "${BUILDNUMBER}" "${REVISION}"
-	$propertiesFile = ".\$WORK_DIR_DEFAULT\manifest.txt"
-	$containerDeploy = getProp $propertiesFile 'containerDeploy'
-	$REVISION = getProp $propertiesFile 'REVISION'
+	# 2.4.0 Introduce containerDeploy as a prescriptive "remote" process, changed in 2.5.0 to allow re-use of compose assets
+	$containerDeploy = getProp 'manifest.txt' 'containerDeploy'
+	$REVISION = getProp 'manifest.txt' 'REVISION'
+
+	# 2.5.0 Provide default containerDeploy execution, replacing "remote" process with "local" process, but retaining containerRemote.ps1 to support 2.4.0 functionality
 	if ( ! $containerDeploy ) {
 		Write-Host "`n[$scriptName][INFO] containerDeploy not set in CDAF.solution, using default." -ForegroundColor Yellow
-		$containerDeploy = '& ${CDAF_WORKSPACE}/containerDeploy.ps1 "${ENVIRONMENT}" "${RELEASE}" "${SOLUTION}" "${BUILDNUMBER}" "${REVISION}"'
+		$containerDeploy = '& ${WORK_DIR_DEFAULT}/containerDeploy.ps1 "$propFilename" "${RELEASE}" "${SOLUTION}" "${BUILDNUMBER}" "${REVISION}"'
 	}
+
+	# Verify docker available, if not, fall-back to native execution
 	try { $instances = docker ps 2>$null } catch {
 		Write-Host "[$scriptName]   containerDeploy  : containerDeploy defined in $WORK_DIR_DEFAULT\manifest.txt, but Docker not installed, will attempt to execute natively`n"
 		Clear-Variable -Name 'containerDeploy'
@@ -63,26 +71,43 @@ if (-not(Test-Path $propertiesFilter)) {
 		Clear-Variable -Name 'containerDeploy'
 		$Error.clear()
 		cmd /c "exit 0"
-	} else {
-		${env:CONTAINER_IMAGE} = getProp $propertiesFile 'containerImage'
-		${CDAF_WORKSPACE} = "$(Get-Location)/${WORK_DIR_DEFAULT}"
-		executeExpression "Set-Location '${CDAF_WORKSPACE}'"
-		Write-Host
-		executeExpression "$containerDeploy"
-		executeExpression "Set-Location '$landingDir'"
 	}
-	if (!( $containerDeploy )) {
-		if ( Test-Path $WORK_DIR_DEFAULT\propertiesForLocalTasks\$ENVIRONMENT* ) {
-			Write-Host "[$scriptName]   Cannot use container properties for local execution as existing local definition exits"
+
+	$deployImage = getProp 'manifest.txt' 'deployImage'
+	if ( $deployImage ) {
+		${env:CONTAINER_IMAGE} = $deployImage
+		Write-Host "[$scriptName]   `${env:CONTAINER_IMAGE} = ${env:CONTAINER_IMAGE} (deployImage)"
+	} else {
+		$runtimeImage = getProp 'manifest.txt' 'runtimeImage'
+		if ( $runtimeImage ) {
+			${env:CONTAINER_IMAGE} = $runtimeImage
+			Write-Host "[$scriptName]   `${env:CONTAINER_IMAGE} = ${env:CONTAINER_IMAGE} (runtimeImage)"
+		} else {
+			$containerImage = getProp 'manifest.txt' 'containerImage'
+			if ( $containerImage ) {
+				${env:CONTAINER_IMAGE} = $containerImage
+				Write-Host "[$scriptName]   `${env:CONTAINER_IMAGE} = ${env:CONTAINER_IMAGE} (containerImage)"
+			} else {
+				ERRMSG "[DEPLOY_BASE_IMAGE_NOT_DEFINED] Base image not defined in either deployImage, runtimeImage nor containerImage in CDAF.solution" 3911
+			}
+		}
+	}
+
+	# 2.5.0 Process all containerDeploy environments based on prefix pattern (align with localTasks and remoteTasks)
+	Write-Host "`n[$scriptName] Preparing to process deploy targets :`n"
+	foreach ($propFile in (Get-ChildItem -Path $WORK_DIR_DEFAULT\$propertiesFilter)) {
+		$propFilename = getFilename($propFile.ToString())
+		Write-Host "[$scriptName]   $propFilename"
+	}
+
+	foreach ($propFile in (Get-ChildItem -Path $WORK_DIR_DEFAULT\$propertiesFilter)) {
+		if ( $containerDeploy ) {
+			Write-Host
+			executeExpression "$containerDeploy"
+			executeExpression "Set-Location '$WORK_DIR_DEFAULT'" # Return to Landing Directory in case a custom containerTask has been used, e.g. containerRemote
 		} else {
 			Write-Host "[$scriptName]   Use container properties for local execution"
-			if (!( Test-Path $WORK_DIR_DEFAULT\propertiesForLocalTasks\ )) {
-				Write-Host "  Created $(mkdir $WORK_DIR_DEFAULT\propertiesForLocalTasks\)"
-			}
-			foreach ( $propFile in Get-Childitem $WORK_DIR_DEFAULT\propertiesForContainerTasks\$ENVIRONMENT* ) {
-				executeExpression "cp $propFile $WORK_DIR_DEFAULT\propertiesForLocalTasks\"
-			}
-			executeExpression "& .\$WORK_DIR_DEFAULT\localTasks.ps1 '$ENVIRONMENT' '$BUILDNUMBER' '$SOLUTION' '$WORK_DIR_DEFAULT' '$OPT_ARG'"
+			executeExpression "& $WORK_DIR_DEFAULT\localTasks.ps1 '$propFilename' '$BUILDNUMBER' '$SOLUTION' '$WORK_DIR_DEFAULT' '$OPT_ARG'"
 		}
 	}
 }

@@ -53,7 +53,7 @@ function executeSuppress ($expression) {
     if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) { Write-Host "[$scriptName] Suppress `$LASTEXITCODE ($LASTEXITCODE)"; cmd /c "exit 0" } # reset LASTEXITCODE
 }
 
-$scriptName = 'containerDeploy.ps1'
+$scriptName = 'containerRemote.ps1'
 $Error.clear()
 cmd /c "exit 0"
 
@@ -97,7 +97,9 @@ if ($imageDir) {
 	$imageDir = 'containerDeploy'
     Write-Host "[$scriptName] imageDir    : $imageDir (not supplied, default set)"
 }
-Write-Host
+
+$WORKING_DIRECTORY = (Get-Location).Path
+Write-Host "[$scriptName] pwd         : $WORKING_DIRECTORY`n"
 
 # Prepare the image build directory
 if (!( Test-Path $imageDir )) {
@@ -109,15 +111,21 @@ if ( Test-Path automation ) {
 }
 
 executeExpression "cp -Recurse propertiesForContainerTasks $imageDir/properties"
-executeExpression "cp ..\${SOLUTION}-${BUILDNUMBER}.zip $imageDir/deploy.zip"
+
+if ( Test-Path "..\${SOLUTION}-${BUILDNUMBER}.zip" ) {
+	executeExpression "cp ..\${SOLUTION}-${BUILDNUMBER}.zip $imageDir/deploy.zip"
+} else {
+	Write-Host "`n[$scriptName][INFO] ..\${SOLUTION}-${BUILDNUMBER}.zip not found.`n"
+}
+
 executeExpression "cd $imageDir"
 
 Write-Host "`n[$scriptName] Remove any remaining deploy containers from previous (failed) deployments"
 $id = "${SOLUTION}_${REVISION}_containerdeploy".ToLower()
-executeExpression "${CDAF_WORKSPACE}/dockerRun.ps1 ${id}"
+executeExpression "$WORKING_DIRECTORY/dockerRun.ps1 ${id}"
 $env:CDAF_CD_ENVIRONMENT = $ENVIRONMENT
-executeExpression "${CDAF_WORKSPACE}/dockerBuild.ps1 ${id} ${BUILDNUMBER}"
-executeExpression "${CDAF_WORKSPACE}/dockerClean.ps1 ${id} ${BUILDNUMBER}"
+executeExpression "$WORKING_DIRECTORY/dockerBuild.ps1 ${id} ${BUILDNUMBER}"
+executeExpression "$WORKING_DIRECTORY/dockerClean.ps1 ${id} ${BUILDNUMBER}"
 
 Write-Host "[$scriptName] Perform Remote Deployment activity using image ${id}:${BUILDNUMBER}"
 foreach ( $envVar in Get-ChildItem env:) {
@@ -136,6 +144,6 @@ foreach ( $envVar in Get-ChildItem env:) {
 executeExpression "docker run --volume ${env:USERPROFILE}:C:/solution/home ${buildCommand} --label cdaf.${id}.container.instance=${REVISION} --name ${id} ${id}:${BUILDNUMBER} deploy.bat ${ENVIRONMENT}"
 
 Write-Host
-executeExpression "${CDAF_WORKSPACE}/dockerRun.ps1 ${id}"
+executeExpression "$WORKING_DIRECTORY/dockerRun.ps1 ${id}"
 
 Write-Host "`n[$scriptName] --- end ---"
