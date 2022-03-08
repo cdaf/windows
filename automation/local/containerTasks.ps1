@@ -62,15 +62,10 @@ if (-not(Test-Path $propertiesFilter)) {
 
 	# Verify docker available, if not, fall-back to native execution
 	try { $instances = docker ps 2>$null } catch {
-		Write-Host "[$scriptName]   containerDeploy  : containerDeploy defined in $WORK_DIR_DEFAULT\manifest.txt, but Docker not installed, will attempt to execute natively`n"
-		Clear-Variable -Name 'containerDeploy'
-		$Error.clear()
+		ERRMSG "[DEPLOY_BASE_IMAGE_NOT_DEFINED] containerDeploy defined in $WORK_DIR_DEFAULT\manifest.txt, but Docker not installed" 3912
 	}
 	if ( $LASTEXITCODE -ne 0 ) {
-		Write-Host "[$scriptName]   containerDeploy  : containerDeploy defined in $WORK_DIR_DEFAULT\manifest.txt, but Docker not running, will attempt to execute natively`n"
-		Clear-Variable -Name 'containerDeploy'
-		$Error.clear()
-		cmd /c "exit 0"
+		ERRMSG "[DEPLOY_BASE_IMAGE_NOT_DEFINED] containerDeploy defined in $WORK_DIR_DEFAULT\manifest.txt, but Docker not running" 3913
 	}
 
 	$deployImage = getProp 'manifest.txt' 'deployImage'
@@ -101,13 +96,8 @@ if (-not(Test-Path $propertiesFilter)) {
 	}
 
 	foreach ($propFile in (Get-ChildItem -Path $WORK_DIR_DEFAULT\$propertiesFilter)) {
-		if ( $containerDeploy ) {
-			Write-Host
-			executeExpression "$containerDeploy"
-			executeExpression "Set-Location '$WORK_DIR_DEFAULT'" # Return to Landing Directory in case a custom containerTask has been used, e.g. containerRemote
-		} else {
-			Write-Host "[$scriptName]   Use container properties for local execution"
-			executeExpression "& $WORK_DIR_DEFAULT\localTasks.ps1 '$propFilename' '$BUILDNUMBER' '$SOLUTION' '$WORK_DIR_DEFAULT' '$OPT_ARG'"
-		}
+		Write-Host
+		executeExpression "$containerDeploy"
+		executeExpression "Set-Location '$WORK_DIR_DEFAULT'" # Return to Landing Directory in case a custom containerTask has been used, e.g. containerRemote
 	}
 }
