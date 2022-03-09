@@ -1,5 +1,5 @@
 Param (
-	[string]$ENVIRONMENT,
+	[string]$TARGET,
 	[string]$RELEASE,
 	[string]$SOLUTION,
 	[string]$BUILDNUMBER,
@@ -53,16 +53,16 @@ function executeSuppress ($expression) {
     if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) { Write-Host "[$scriptName] Suppress `$LASTEXITCODE ($LASTEXITCODE)"; cmd /c "exit 0" } # reset LASTEXITCODE
 }
 
-$scriptName = 'containerRemote.ps1'
+$scriptName = 'containerDeploy.ps1'
 $Error.clear()
 cmd /c "exit 0"
 
 Write-Host "`n[$scriptName] Build docker image, resulting image BUILDNUMBER will be ${SOLUTION}:${BUILDNUMBER}"
 Write-Host "`n[$scriptName] ---------- start ----------"
-if ($ENVIRONMENT) {
-    Write-Host "[$scriptName] ENVIRONMENT : $ENVIRONMENT"
+if ($TARGET) {
+    Write-Host "[$scriptName] TARGET      : $TARGET"
 } else {
-    Write-Host "[$scriptName] ENVIRONMENT not supplied, exit with `$LASTEXITCODE = 8021"; exit 8021
+    Write-Host "[$scriptName] TARGET not supplied, exit with `$LASTEXITCODE = 8021"; exit 8021
 }
 
 if ($RELEASE) {
@@ -123,7 +123,7 @@ executeExpression "cd $imageDir"
 Write-Host "`n[$scriptName] Remove any remaining deploy containers from previous (failed) deployments"
 $id = "${SOLUTION}_${REVISION}_containerdeploy".ToLower()
 executeExpression "$WORKING_DIRECTORY/dockerRun.ps1 ${id}"
-$env:CDAF_CD_ENVIRONMENT = $ENVIRONMENT
+$env:CDAF_CD_ENVIRONMENT = $TARGET
 executeExpression "$WORKING_DIRECTORY/dockerBuild.ps1 ${id} ${BUILDNUMBER}"
 executeExpression "$WORKING_DIRECTORY/dockerClean.ps1 ${id} ${BUILDNUMBER}"
 
@@ -141,7 +141,7 @@ foreach ( $envVar in Get-ChildItem env:) {
 	}
 }
 
-executeExpression "docker run --volume ${env:USERPROFILE}:C:/solution/home ${buildCommand} --label cdaf.${id}.container.instance=${REVISION} --name ${id} ${id}:${BUILDNUMBER} deploy.bat ${ENVIRONMENT}"
+executeExpression "docker run --volume ${env:USERPROFILE}:C:/solution/home ${buildCommand} --label cdaf.${id}.container.instance=${REVISION} --name ${id} ${id}:${BUILDNUMBER} deploy.bat ${TARGET}"
 
 Write-Host
 executeExpression "$WORKING_DIRECTORY/dockerRun.ps1 ${id}"
