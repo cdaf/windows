@@ -57,7 +57,7 @@ if (-not(Test-Path $propertiesFilter)) {
 	# 2.5.0 Provide default containerDeploy execution, replacing "remote" process with "local" process, but retaining containerRemote.ps1 to support 2.4.0 functionality
 	if ( ! $containerDeploy ) {
 		Write-Host "`n[$scriptName][INFO] containerDeploy not set in CDAF.solution, using default." -ForegroundColor Yellow
-		$containerDeploy = '& ${WORK_DIR_DEFAULT}/containerDeploy.ps1 "${$TARGET}" "${RELEASE}" "${SOLUTION}" "${BUILDNUMBER}" "${REVISION}"'
+		$containerDeploy = '& ${WORK_DIR_DEFAULT}/containerDeploy.ps1 "${TARGET}" "${RELEASE}" "${SOLUTION}" "${BUILDNUMBER}" "${REVISION}"'
 	}
 
 	# Verify docker available, if not, fall-back to native execution
