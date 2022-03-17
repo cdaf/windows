@@ -18,10 +18,16 @@ timeout(time: 80, unit: 'MINUTES') {
         checkout scm
 
         powershell '''
+          Write-Host "`nList Jenkinsfile`n"
           Get-Content Jenkinsfile
+
+          Write-Host "`nList Vagrantfile`n"
           Get-Content Vagrantfile
+
+          Write-Host "`nList CDAF Product Version`n"
           Get-Content automation\\CDAF.windows | findstr "productVersion"
 
+          Write-Host "`nCopy solution to workspace`n"
           if ( Test-Path solution ) { Remove-Item -Recurse solution }
           Copy-Item -Recurse automation\\solution solution
           Get-ChildItem -Recurse solution
