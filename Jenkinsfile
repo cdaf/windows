@@ -13,14 +13,29 @@ timeout(time: 80, unit: 'MINUTES') {
 
     try {
 
-      stage ('Test the CDAF sample on Windows Server 2019') {
+      stage ('Prepare Workspace') {
 
         checkout scm
+
+        powershell '''
+          Get-Content Jenkinsfile
+          Get-Content Vagrantfile
+          Get-Content automation\\CDAF.windows | findstr "productVersion"
+
+          if ( Test-Path solution ) { Remove-Item -Recurse solution }
+          Copy-Item -Recurse automation\\solution solution
+        '''
+      }
+
+      stage ('Test the CDAF sample on Windows Server 2019') {
     
         bat '''
           type Jenkinsfile
           type Vagrantfile
           type automation\\CDAF.windows | findstr "productVersion"
+
+          RMDIR /S /Q solution
+          cp automation\\solution solution 
 
           IF EXIST .vagrant vagrant destroy -f & verify >nul
           IF EXIST .vagrant vagrant box list & verify >nul
