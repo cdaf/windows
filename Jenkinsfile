@@ -31,7 +31,12 @@ timeout(time: 80, unit: 'MINUTES') {
           if ( Test-Path solution ) { Remove-Item -Recurse solution }
           Copy-Item -Recurse automation\\solution solution
           Get-ChildItem -Recurse solution
-          Get-Content solution\\CDAF.solution
+          if ( Test-Path solution\\CDAF.solution ) {
+            Get-Content solution\\CDAF.solution
+          } else {
+            exit 8833
+          }
+
         '''
       }
 
