@@ -35,28 +35,25 @@ timeout(time: 80, unit: 'MINUTES') {
           } else {
             exit 8833
           }
+
+          if ( Test-Path .vagrant ) {
+            Write-Host "`nClean-up Vagrant`n"
+            vagrant destroy -f & verify >nul
+            vagrant box list & verify >nul
+          }
         '''
       }
 
       stage ('Test the CDAF sample on Windows Server 2019') {
     
         bat '''
-          type Jenkinsfile
-          type Vagrantfile
-          type automation\\CDAF.windows | findstr "productVersion"
-
-          RMDIR /S /Q solution
-          cp automation\\solution solution 
-
-          IF EXIST .vagrant vagrant destroy -f & verify >nul
-          IF EXIST .vagrant vagrant box list & verify >nul
           vagrant up
+          vagrant destroy -f
         '''
       }
 
       stage ('Test the CDAF sample on Windows Server 2016') {
         bat '''
-          vagrant destroy -f
           SET OVERRIDE_IMAGE=cdaf/WindowsServer
           vagrant up
         '''

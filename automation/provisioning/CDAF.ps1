@@ -97,7 +97,6 @@ if ($userName) {
 
 	Write-Host "[$scriptName] Execute as $(whoami) using workspace ($workspace)"
 	executeExpression "cd $workspace"
-	executeExpression "dir"
 	executeExpression "& $env:CDAF_AUTOMATION_ROOT\cdEmulate.bat $action"
 }
 
