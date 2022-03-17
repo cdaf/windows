@@ -49,7 +49,6 @@ Vagrant.configure(2) do |allhosts|
   allhosts.vm.define 'build' do |build|
     build.vm.box = "#{OVERRIDE_IMAGE}"
     build.vm.provision 'shell', inline: 'Get-ScheduledTask -TaskName ServerManager | Disable-ScheduledTask -Verbose'
-    build.vm.provision 'shell', path: 'Get-Content c:\vagrant'
     build.vm.provision 'shell', path: '.\automation\remote\capabilities.ps1'
 
     # Vagrant specific for WinRM
