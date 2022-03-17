@@ -35,18 +35,14 @@ timeout(time: 80, unit: 'MINUTES') {
           } else {
             exit 8833
           }
-
-          if ( Test-Path .vagrant ) {
-            Write-Host "`nClean-up Vagrant`n"
-            vagrant destroy -f & verify >nul
-            vagrant box list & verify >nul
-          }
         '''
       }
 
       stage ('Test the CDAF sample on Windows Server 2019') {
     
         bat '''
+          IF EXIST .vagrant vagrant destroy -f & verify >nul
+          IF EXIST .vagrant vagrant box list & verify >nul
           vagrant up
           vagrant destroy -f
         '''
