@@ -34,7 +34,7 @@ function executeReturn ($expression) {
 cmd /c "exit 0" # Clear from any previously failed run
 
 Write-Host "`n[$scriptName] Execute the Continuous Delivery Automation Framework for the solution."
-Write-Host "[$scriptName] This process is dependant on the solution being synchonised onto the"
+Write-Host "[$scriptName] This process is dependent on the solution being synchonised onto the"
 Write-Host "[$scriptName] `"build server`" using Vagrant and VirtualBox, which maps the local workspace"
 Write-Host "[$scriptName] at C:\vagrant. If this is not used, then the workspace must be passed."
 Write-Host "`n[$scriptName] By default the emulation is performed using the local Vagrant user, however"
@@ -97,6 +97,7 @@ if ($userName) {
 
 	Write-Host "[$scriptName] Execute as $(whoami) using workspace ($workspace)"
 	executeExpression "cd $workspace"
+	executeExpression "dir"
 	executeExpression "& $env:CDAF_AUTOMATION_ROOT\cdEmulate.bat $action"
 }
 
