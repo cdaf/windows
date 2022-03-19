@@ -40,7 +40,7 @@ Vagrant.configure(2) do |allhosts|
         override.vm.hostname = "windows-#{i}"
     		override.vm.synced_folder ".", "/vagrant", disabled: true
         if ENV['SYNCED_FOLDER']
-          override.vm.synced_folder "#{ENV['SYNCED_FOLDER']}", "/.provision", type: "smb", smb_username: "#{ENV['VAGRANT_SMB_USER']}", smb_password: "#{ENV['VAGRANT_SMB_PASS']}, mount_options: ["vers=2.1"]"
+          override.vm.synced_folder "#{ENV['SYNCED_FOLDER']}", "/.provision", type: "smb", smb_username: "#{ENV['VAGRANT_SMB_USER']}", smb_password: "#{ENV['VAGRANT_SMB_PASS']}", mount_options: ["vers=2.1"]
         end
       end
     end
@@ -75,7 +75,7 @@ Vagrant.configure(2) do |allhosts|
     # Set environment variable VAGRANT_DEFAULT_PROVIDER to 'hyperv'
     build.vm.provider 'hyperv' do |hyperv, override|
       override.vm.hostname = 'build'
-      override.vm.synced_folder ".", "/vagrant", type: "smb", smb_username: "#{ENV['VAGRANT_SMB_USER']}", smb_password: "#{ENV['VAGRANT_SMB_PASS']}, mount_options: ["vers=2.1"]"
+      override.vm.synced_folder ".", "/vagrant", type: "smb", smb_username: "#{ENV['VAGRANT_SMB_USER']}", smb_password: "#{ENV['VAGRANT_SMB_PASS']}", mount_options: ["vers=2.1"]
       override.vm.provision 'shell', path: '.\automation\provisioning\CDAF.ps1'
       override.vm.provision 'shell', path: '.\automation\provisioning\CDAF.ps1', args: '-action buildonly'
       override.vm.provision 'shell', path: '.\automation\provisioning\CDAF.ps1', args: '-action packageonly'
