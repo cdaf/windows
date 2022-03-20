@@ -100,6 +100,7 @@ executeExpression "pwd"
 
 if ( $hypervisor -eq 'virtualbox' ) {
 	$vbadd = '5.2.22'
+	writeLog "Install Guest Additions for $hypervisor, version $vbadd...`n"
 	executeExpression ".\automation\provisioning\mountImage.ps1 $env:userprofile\VBoxGuestAdditions_${vbadd}.iso http://download.virtualbox.org/virtualbox/${vbadd}/VBoxGuestAdditions_${vbadd}.iso"
 	$result = executeExpression "[Environment]::GetEnvironmentVariable(`'MOUNT_DRIVE_LETTER`', `'User`')"
 	emailProgress "Guest Additiions requires manual intervention ..."
@@ -108,7 +109,8 @@ if ( $hypervisor -eq 'virtualbox' ) {
 	executeExpression ".\automation\provisioning\mountImage.ps1 $env:userprofile\VBoxGuestAdditions_${vbadd}.iso"
 	executeExpression "Remove-Item $env:userprofile\VBoxGuestAdditions_${vbadd}.iso"
 } else {
-	writeLog "Hypervisor ($hypervisor) not virtualbox, skip Guest Additions install"
+	writeLog "Enable file server for SMB share required for $hypervisor...`n"
+	executeExpression "DISM /Online /Enable-Feature /FeatureName:File-Services /All"
 }
 
 if ( $stripDISM -eq 'yes' ) {
