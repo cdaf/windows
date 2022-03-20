@@ -13,6 +13,7 @@ function executeExpression ($expression) {
 $scriptName = 'EnableFileAndPrintSharing.ps1'
 Write-Host "`n[$scriptName] ---------- start ----------"
 
+executeExpression "DISM /Online /Enable-Feature /FeatureName:File-Services /All"
 executeExpression "netsh advfirewall firewall set rule group='File and Printer Sharing' new enable=Yes"
 
 Write-Host "`n[$scriptName] ---------- stop ----------"
