@@ -111,6 +111,7 @@ if ( $hypervisor -eq 'virtualbox' ) {
 } else {
 	writeLog "Enable file server for SMB share required for $hypervisor...`n"
 	executeExpression "DISM /Online /Enable-Feature /FeatureName:File-Services /All"
+	executeExpression "netsh advfirewall firewall set rule group='File and Printer Sharing' new enable=Yes"
 }
 
 if ( $stripDISM -eq 'yes' ) {
