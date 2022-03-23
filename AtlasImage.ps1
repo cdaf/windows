@@ -109,9 +109,7 @@ if ( $hypervisor -eq 'virtualbox' ) {
 	executeExpression ".\automation\provisioning\mountImage.ps1 $env:userprofile\VBoxGuestAdditions_${vbadd}.iso"
 	executeExpression "Remove-Item $env:userprofile\VBoxGuestAdditions_${vbadd}.iso"
 } else {
-	writeLog "Enable file server for SMB share required for $hypervisor...`n"
-	executeExpression "DISM /Online /Enable-Feature /FeatureName:File-Services /All"
-	executeExpression "netsh advfirewall firewall set rule group='File and Printer Sharing' new enable=Yes"
+	writeLog "No client tools required for $hypervisor...`n"
 }
 
 if ( $stripDISM -eq 'yes' ) {
