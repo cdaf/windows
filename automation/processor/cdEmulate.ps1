@@ -103,7 +103,7 @@ foreach ($item in (Get-ChildItem -Path ".")) {
 if ($solutionRoot) {
 	write-host "$solutionRoot (override $solutionRoot\CDAF.solution found)"
 } else {
-	ERRMSG "No directory found containing CDAF.solution, please create a single occurance of this file." 7611
+	ERRMSG "[NO_SOLUTION_ROOT] No directory found containing CDAF.solution, please create a single occurrence of this file." 7611
 }
 
 # Check for customised CI process
