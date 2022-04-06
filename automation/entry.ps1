@@ -216,17 +216,19 @@ if ($BRANCH) {
 		$skipBranchCleanup = 'yes'
 	    Write-Host "[$scriptName]   BRANCH         : $BRANCH (not supplied, derived from `$env:CDAF_BRANCH_NAME)"
 	} else {
-		$versionTest = cmd /c git --version 2`>`&1
+		$versionTest = $(cmd /c git --version 2>&1)
 		if ( $LASTEXITCODE -ne 0 ) {
-			$BRANCH = 'targetlesscd'
+			cmd /c "exit 0"
+			$BRANCH = 'nogit'
 			Write-Host "[$scriptName]   BRANCH         : $BRANCH (Git not installed, this entry point is intended for Git workspaces, set to default)"
 		} else {
-			$BRANCH=$(git rev-parse --abbrev-ref HEAD)
-			if ($BRANCH) {
+			$BRANCH = $(git rev-parse --abbrev-ref HEAD 2>&1)
+			if ( $LASTEXITCODE -eq 0 ) {
 				Write-Host "[$scriptName]   BRANCH         : $BRANCH (determined from workspace)"
 			} else {
-				$BRANCH = 'targetlesscd'
-				Write-Host "[$scriptName]   BRANCH         : $BRANCH (not supplied, set to default)"
+				cmd /c "exit 0"
+				$BRANCH = 'notworkspace'
+				Write-Host "[$scriptName]   BRANCH         : $BRANCH (not a Git workspace, set to default)"
 			}
 		}
 	}
@@ -519,6 +521,6 @@ if ( $purgeFeatureBranch ) {
 Write-Host "`n[$scriptName] ----------------------------------"
 Write-Host "[$scriptName]   PowerShell Execution Complete"
 if (!( $env:CDAF_COMMAND_SHELL )) {
-	Write-Host "`n[$scriptName] ----------------------------------"
+	Write-Host "[$scriptName] ----------------------------------"
 }
 exit 0
