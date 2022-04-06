@@ -47,7 +47,7 @@ Write-Host "[$scriptName]   pwd              : $WORK_DIR_DEFAULT"
 $propertiesFilter = 'propertiesForContainerTasks\' + "$ENVIRONMENT*"
 if (-not(Test-Path $propertiesFilter)) {
 
-	Write-Host "`n[$scriptName][INFO] Properties directory ($propertiesFilter) not found, alter processSequence property to skip." -ForegroundColor Yellow
+	Write-Host "`n[$scriptName][WARN] Properties not found ($propertiesFilter) alter processSequence property to skip." -ForegroundColor Yellow
 
 } else {
 	# 2.4.0 Introduce containerDeploy as a prescriptive "remote" process, changed in 2.5.0 to allow re-use of compose assets

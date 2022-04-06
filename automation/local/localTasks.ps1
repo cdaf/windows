@@ -1,8 +1,7 @@
 
 $scriptName = $myInvocation.MyCommand.Name
 
-Write-Host
-Write-Host "[$scriptName] +--------------------------------+"
+Write-Host "`n[$scriptName] +--------------------------------+"
 Write-Host "[$scriptName] | Process Locally Executed Tasks |"
 Write-Host "[$scriptName] +--------------------------------+"
 
@@ -60,7 +59,7 @@ Write-Host "[$scriptName]   pwd                    : $(pwd)"
 
 $exitStatus = 0
 
-# Perform Local Prepartion Tasks for this Environment 
+# Perform Local Preparation Tasks for this Environment 
 if ( $localEnvPreDeployTask) {
     Write-Host
     # Execute the Tasks Driver File
