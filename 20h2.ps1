@@ -113,7 +113,7 @@ if ( $virtualisation -eq 'hyperv' ) {
     executeExpression ".\automation\provisioning\base.ps1 'vagrant' -autoReboot no"
     executeExpression  "Remove-Item -Recurse -Force automation"
 
-    executeExpression "reboot /r /t 0"
+    executeExpression "shutdown /r /t 0"
 
 } elseif ( $virtualisation -eq 'virtualbox' ) {
 
@@ -132,7 +132,7 @@ if ( $virtualisation -eq 'hyperv' ) {
     executeExpression ".\automation\provisioning\base.ps1 'vagrant' -autoReboot no"
     executeExpression  "Remove-Item -Recurse -Force automation"
 
-    executeExpression "reboot /r /t 0"
+    executeExpression "shutdown /r /t 0"
 	
 } else {
 
