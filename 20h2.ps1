@@ -149,7 +149,11 @@ if ( $virtualisation -eq 'hyperv' ) {
 	executeExpression  ".\automation\provisioning\base.ps1 'googlechrome' -checksum ignore" # Google does not provide a static download, so checksum can briefly fail on new releases
 
 	executeExpression  "Remove-Item -Recurse -Force automation"
-	executeExpression  "mkdir git"
+	if ( Test-Path git ) {
+		Write-Host "Git directory exists"
+	} else {
+		executeExpression  "mkdir git"
+	}
 	executeExpression  "cd .\git\"
 	executeExpression  "git clone https://github.com/cdaf/windows.git"
 	executeExpression  "& ${env:USERPROFILE}\git\windows\automation\provisioning\addPath.ps1 ${env:USERPROFILE}\git\windows\automation\provisioning User"
