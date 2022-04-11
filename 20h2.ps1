@@ -144,7 +144,7 @@ if ( $virtualisation -eq 'hyperv' ) {
 	executeExpression  ".\automation\provisioning\base.ps1 'nuget.commandline' -verion 5.8.1" # 5.9 is broken
 	executeExpression  ".\automation\provisioning\base.ps1 'azure-cli visualstudio2019enterprise vscode'"
 
-	executeExpression  ".\automation\provisioning\base.ps1 'nodejs.install python git svn vnc-viewer putty winscp postman'"
+	executeExpression  ".\automation\provisioning\base.ps1 'nano nodejs.install python git svn vnc-viewer putty winscp postman'"
 	executeExpression  ".\automation\provisioning\base.ps1 'googlechrome' -checksum ignore" # Google does not provide a static download, so checksum can briefly fail on new releases
 
 	executeExpression  "Remove-Item -Recurse -Force automation"
