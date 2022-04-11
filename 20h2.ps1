@@ -95,7 +95,8 @@ if ( $env:http_proxy ) {
     executeExpression '(New-Object System.Net.WebClient).Proxy.Credentials =[System.Net.CredentialCache]::DefaultNetworkCredentials' 
 }
 
-executeExpression  "cd ~"
+executeExpression "cd ~"
+executeExpression "set-executionpolicy unrestricted -Force"
 executeExpression ". { iwr -useb http://cdaf.io/static/app/downloads/cdaf.ps1 } | iex"
 
 if ( $virtualisation -eq 'hyperv' ) {
