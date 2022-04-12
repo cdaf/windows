@@ -179,6 +179,7 @@ if ($action -eq 'Clone') {
 	
 	if ($hypervisor -eq 'virtualbox') {
 	
+		Write-Host "Hypervisor $hypervisor using diskPath $diskPath"
 		if ( Test-Path $diskPath ) {
 			Write-Host "`n[$scriptName] Export VirtualBox VM"
 			executeExpression "& `"C:\Program Files\Oracle\VirtualBox\VBoxManage.exe`" modifyhd `"$diskPath`" --compact"
