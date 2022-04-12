@@ -37,6 +37,9 @@ function executeIgnoreExit ($expression) {
 
 # Exception Handling email sending
 function emailAndExit ($exitCode, $message) {
+	if ( $message ) {
+		Write-Host "$message"
+	}
 	if ($smtpServer) {
 		Send-MailMessage -To "$emailTo" -From "$emailFrom" -Subject "[$scriptName][$hypervisor] $message Exit Code $exitCode" -SmtpServer "$smtpServer"
 	}
