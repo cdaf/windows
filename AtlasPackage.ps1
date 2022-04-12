@@ -17,16 +17,16 @@ function execute ($expression) {
 	Write-Host "[$(Get-date)] $expression"
 	try {
 		Invoke-Expression $expression
-	    if(!$?) { Write-Host "`$? = $?"; emailAndExit 1050 }
-	} catch { Write-Output $_.Exception|format-list -force; emailAndExit 1051 }
-    if ( $error[0] ) { Write-Host "`$error[0] = $error"; emailAndExit 1052 }
+	    if(!$?) { Write-Host "`$? = $?"; emailAndExit 1050 $expression }
+	} catch { Write-Output $_.Exception|format-list -force; emailAndExit 1051 $expression }
+    if ( $error[0] ) { Write-Host "`$error[0] = $error"; emailAndExit 1052 $expression }
 }
 
 function executeExpression ($expression) {
 	execute $expression
     if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) {
     	Write-Host "[$scriptName] ERROR! Exiting with `$LASTEXITCODE = $LASTEXITCODE" -foregroundcolor "red";
-    	emailAndExit $LASTEXITCODE
+    	emailAndExit $LASTEXITCODE $expression
 	}
 }
 
@@ -36,9 +36,9 @@ function executeIgnoreExit ($expression) {
 }
 
 # Exception Handling email sending
-function emailAndExit ($exitCode) {
+function emailAndExit ($exitCode, $message) {
 	if ($smtpServer) {
-		Send-MailMessage -To "$emailTo" -From "$emailFrom" -Subject "[$scriptName][$hypervisor] Exit Code $exitCode" -SmtpServer "$smtpServer"
+		Send-MailMessage -To "$emailTo" -From "$emailFrom" -Subject "[$scriptName][$hypervisor] $message Exit Code $exitCode" -SmtpServer "$smtpServer"
 	}
 	exit $exitCode
 }
@@ -150,8 +150,7 @@ if ($action -eq 'Clone') {
 		executeExpression "& 'C:\Program Files\Oracle\Virtualbox\VBoxmanage.exe' clonehd '$clonedhd' '$diskDir\$boxName.vdi' --format vdi"
 		emailProgress "VirtualBox Dick Clone Complete"
 	} else {
-		Write-Host "`n[$scriptName] Perform all actions on VirtualBox Host!"
-		emailAndExit 200
+		emailAndExit 200 "Perform all actions on VirtualBox Host!"
 	}
 		
 } else {
@@ -180,12 +179,15 @@ if ($action -eq 'Clone') {
 	if ($hypervisor -eq 'virtualbox') {
 	
 		Write-Host "Hypervisor $hypervisor using diskPath $diskPath"
-		if ( Test-Path $diskPath ) {
-			Write-Host "`n[$scriptName] Export VirtualBox VM"
-			executeExpression "& `"C:\Program Files\Oracle\VirtualBox\VBoxManage.exe`" modifyhd `"$diskPath`" --compact"
+		if ( $diskPath ) {
+			if ( Test-Path $diskPath ) {
+				Write-Host "`n[$scriptName] Export VirtualBox VM"
+				executeExpression "& `"C:\Program Files\Oracle\VirtualBox\VBoxManage.exe`" modifyhd `"$diskPath`" --compact"
+			} else {
+				emailAndExit 200 "Disk ($diskPath) not found!"
+			}
 		} else {
-			Write-Host "`n[$scriptName] Disk ($diskPath) not found!"
-			emailAndExit 200
+			emailAndExit 200 "`$diskPath not defined!"
 		}
 	
 		if ( $boxname -Match "Windows" ) { # This tells Vagrant to use WinRM instead of SSH
@@ -299,8 +301,7 @@ if ($action -eq 'Clone') {
 		Write-Host "$logFile" "[$scriptName] vagrant up"
 		$proc = Start-Process -FilePath 'vagrant' -ArgumentList 'up' -PassThru -Wait -NoNewWindow
 		if ( $proc.ExitCode -ne 0 ) {
-			Write-Host "`n[$scriptName] Exit with `$LASTEXITCODE = $($proc.ExitCode)`n"
-			emailAndExit ($proc.ExitCode)
+			emailAndExit ($proc.ExitCode) "Vagrant up failed!"
 		}
 	
 		Write-Host "`n[$scriptName] vagrant destroy -f"
@@ -318,8 +319,7 @@ if ($action -eq 'Clone') {
 	Write-Host "$logFile" "[$scriptName] vagrant box list"
 	$proc = Start-Process -FilePath 'vagrant' -ArgumentList 'box list' -PassThru -Wait -NoNewWindow
 	if ( $proc.ExitCode -ne 0 ) {
-		Write-Host "`n[$scriptName] Exit with `$LASTEXITCODE = $($proc.ExitCode)`n"
-		emailAndExit ($proc.ExitCode)
+		emailAndExit ($proc.ExitCode) "vagrant box list failed!"
 	}
 	
 	emailProgress "Final notification, package of ${packageFile} complete"
