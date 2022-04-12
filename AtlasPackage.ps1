@@ -169,17 +169,17 @@ if ($action -eq 'Clone') {
 	if (Test-Path "$buildDir") {
 		executeExpression "Remove-Item $buildDir -Recurse -Force"
 	}
+	Write-Host "Create working directory $buildDir"
+	executeExpression "mkdir $buildDir"
+	executeExpression "cd $buildDir"
 	
 	$packageFile = "${buildDir}.box"
 	emailProgress "packaging ${packageFile}, logging to ${imageLog}."
 	Write-Host "packaging ${packageFile}, logging to ${imageLog}."
 	
-	executeExpression "Write-Host 'Create working directory $(mkdir $buildDir)'"
-	executeExpression "cd $buildDir"
-	
 	if ($hypervisor -eq 'virtualbox') {
 	
-		if (Test-Path "$diskPath") {
+		if ( Test-Path $diskPath ) {
 			Write-Host "`n[$scriptName] Export VirtualBox VM"
 			executeExpression "& `"C:\Program Files\Oracle\VirtualBox\VBoxManage.exe`" modifyhd `"$diskPath`" --compact"
 		} else {
