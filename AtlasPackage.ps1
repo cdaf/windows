@@ -94,7 +94,6 @@ if ($diskDir) {
 } else {
 	if ( $hypervisor -eq 'virtualbox' ) {
 		$diskDir = "D:\VMs\$boxName"
-		$diskPath = "${diskDir}\${boxName}.vdi"
 		Write-Host "[$scriptName] diskDir     : $diskDir (default)"
 	} else {
 	    Write-Host "[$scriptName] diskDir     : (not specified, only required if VirtualBox)"
@@ -149,6 +148,7 @@ if ($action -eq 'Clone') {
 		Write-Host "`n[$scriptName] Copy Hyper-V disk to VirtualBox..."
 		executeExpression "Copy-Item Z:\vHDD\$boxName.vhdx $clonedhd"
 
+		$diskPath = "${diskDir}\${boxName}.vdi"
 		Write-Host "`n[$scriptName] Disk ($diskPath) Import VirtualBox Disk image from Hyper-V, ..."
 		executeExpression "& 'C:\Program Files\Oracle\Virtualbox\VBoxmanage.exe' clonehd '$clonedhd' '$diskDir\$boxName.vdi' --format vdi"
 		emailProgress "VirtualBox Dick Clone Complete"
@@ -181,7 +181,8 @@ if ($action -eq 'Clone') {
 	
 	if ($hypervisor -eq 'virtualbox') {
 	
-		Write-Host "Hypervisor $hypervisor using diskPath $diskPath"
+		$diskPath = "${diskDir}\${boxName}.vdi"
+		Write-Host "Hypervisor $hypervisor using diskPath: $diskPath"
 		if ( $diskPath ) {
 			if ( Test-Path $diskPath ) {
 				Write-Host "`n[$scriptName] Export VirtualBox VM"
