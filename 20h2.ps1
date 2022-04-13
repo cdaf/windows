@@ -95,7 +95,8 @@ if ( $env:http_proxy ) {
     executeExpression '(New-Object System.Net.WebClient).Proxy.Credentials =[System.Net.CredentialCache]::DefaultNetworkCredentials' 
 }
 
-executeExpression  "cd ~"
+executeExpression "cd ~"
+executeExpression "set-executionpolicy unrestricted -Force"
 executeExpression ". { iwr -useb http://cdaf.io/static/app/downloads/cdaf.ps1 } | iex"
 
 if ( $virtualisation -eq 'hyperv' ) {
@@ -112,7 +113,7 @@ if ( $virtualisation -eq 'hyperv' ) {
     executeExpression ".\automation\provisioning\base.ps1 'vagrant' -autoReboot no"
     executeExpression  "Remove-Item -Recurse -Force automation"
 
-    executeExpression "reboot /r /t 0"
+    executeExpression "shutdown /r /t 0"
 
 } elseif ( $virtualisation -eq 'virtualbox' ) {
 
@@ -131,10 +132,11 @@ if ( $virtualisation -eq 'hyperv' ) {
     executeExpression ".\automation\provisioning\base.ps1 'vagrant' -autoReboot no"
     executeExpression  "Remove-Item -Recurse -Force automation"
 
-    executeExpression "reboot /r /t 0"
+    executeExpression "shutdown /r /t 0"
 	
 } else {
 
+	executeExpression  "Get-AppxPackage Microsoft.YourPhone -AllUsers | Remove-AppxPackage"
 	executeExpression  "(Get-WmiObject Win32_TerminalServiceSetting -Namespace root\cimv2\TerminalServices).SetAllowTsConnections(1,1) | Out-Null"
 	executeExpression  "(Get-WmiObject -Class 'Win32_TSGeneralSetting' -Namespace root\cimv2\TerminalServices -Filter `"TerminalName='RDP-tcp'`").SetUserAuthenticationRequired(0) | Out-Null"
 	executeExpression  "Get-NetFirewallRule -DisplayName `"Remote Desktop*`" | Set-NetFirewallRule -enabled true"
@@ -143,11 +145,15 @@ if ( $virtualisation -eq 'hyperv' ) {
 	executeExpression  ".\automation\provisioning\base.ps1 'nuget.commandline' -verion 5.8.1" # 5.9 is broken
 	executeExpression  ".\automation\provisioning\base.ps1 'azure-cli visualstudio2019enterprise vscode'"
 
-	executeExpression  ".\automation\provisioning\base.ps1 'nodejs.install python git svn vnc-viewer putty winscp postman'"
+	executeExpression  ".\automation\provisioning\base.ps1 'nano nodejs.install python git svn vnc-viewer putty winscp postman'"
 	executeExpression  ".\automation\provisioning\base.ps1 'googlechrome' -checksum ignore" # Google does not provide a static download, so checksum can briefly fail on new releases
 
 	executeExpression  "Remove-Item -Recurse -Force automation"
-	executeExpression  "mkdir git"
+	if ( Test-Path git ) {
+		Write-Host "Git directory exists"
+	} else {
+		executeExpression  "mkdir git"
+	}
 	executeExpression  "cd .\git\"
 	executeExpression  "git clone https://github.com/cdaf/windows.git"
 	executeExpression  "& ${env:USERPROFILE}\git\windows\automation\provisioning\addPath.ps1 ${env:USERPROFILE}\git\windows\automation\provisioning User"
