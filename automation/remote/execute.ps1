@@ -465,6 +465,11 @@ function VARCHK ($propertiesFile) {
 	}
 }
 
+# Validate Variables (2.4.6)
+function resolveContent ($content) {
+	return invoke-expression "Write-Output $content"
+}
+
 $SOLUTION    = $args[0]
 $BUILDNUMBER = $args[1]
 $TARGET      = $args[2]
@@ -536,21 +541,22 @@ Foreach ($line in get-content $TASK_LIST) {
         # Do not attempt any processing when a line is just a comment
         if ($expression) {
 
-	        # Check for cross platform key words, only if the string is longer enough
+	        # Check for cross platform key words, only if the string is long enough
 	        if ($expression.length -gt 6) {
 
 				# Check for cross platform key words, first 6 characters, by convention uppercase but either supported
-				$feature=$expression.substring(0,7).ToUpper()
+				$list = $expression -split '\s+'
+				$feature=$list[0]
 
 				# Exit (normally) if argument set
-	            if ( $feature -eq 'EXITIF ' ) {
+	            if ( $feature -eq 'EXITIF' ) {
 		            $exitVar = $expression.Substring(7)
 		            Write-Host "$expression ==> if ( $exitVar ) then exit" -NoNewline
 		            $expression = "if ( $exitVar ) { Write-Host `"`n`n~~~~~ controlled exit due to criteria met ~~~~~~`"; exit 0}" }
 					
-				# Load Properties from file as variables
-	            if ( $feature -eq 'PROPLD ' ) {
-		            $propFile = $ExecutionContext.InvokeCommand.ExpandString($expression.Substring(7))
+				# Load Properties from file as variables, cannot execute as a function or variables would go out of scope
+	            if ( $feature -eq 'PROPLD' ) {
+					$propFile = $ExecutionContext.InvokeCommand.ExpandString($list[1])
 					$transform = ".\Transform.ps1"
 	
 					# Load all properties as runtime variables (transform provides logging)
@@ -565,22 +571,34 @@ Foreach ($line in get-content $TASK_LIST) {
 							$transform = "$automationHelper\Transform.ps1"
 						}
 					}
-		            Write-Host "$expression ==> $transform $propFile" -NoNewline
-					Write-Host
-			        try {
-						& $transform "$propFile" | ForEach-Object { invoke-expression $_ }
-				        if(!$?) { taskException "PROPLD_TRAP" }
-			        } catch { taskException "PROPLD_EXCEPTION" $_ }
+
+					if ( $list[2] -eq 'resolve' ) {
+						Write-Host "Resolve variables defined within $propFile`n" -NoNewline
+						try {
+							& $transform "$propFile" | ForEach-Object {
+								$name,$content = $_ -split '=',2
+								$resolved = invoke-expression "resolveContent $content"
+								invoke-expression "$name = '$resolved'"
+								if(!$?) { taskException "PROPLD_RESOLVE_TRAP" }
+							}
+						} catch { taskException "PROPLD_RESOLVE_EXCEPTION" $_ }
+					} else {
+						Write-Host "variables defined within $propFile`n" -NoNewline
+						try {
+							& $transform "$propFile" | ForEach-Object { invoke-expression $_ }
+							if(!$?) { taskException "PROPLD_TRAP" }
+						} catch { taskException "PROPLD_EXCEPTION" $_ }
+					}
 	            }
 
 				# Set a variable, PowerShell format
-	            if ( $feature -eq 'ASSIGN ' ) {
+	            if ( $feature -eq 'ASSIGN' ) {
 		            Write-Host "$expression ==> " -NoNewline
 		            $expression = $expression.Substring(7)
 	            }
 
 				# Invoke a custom script
-	            if ( $feature -eq 'INVOKE ' ) {
+	            if ( $feature -eq 'INVOKE' ) {
 		            Write-Host "$expression ==> " -NoNewline
 	            	$expression = $expression.Substring(7)
 	            	$expBuilder = ".\"
@@ -594,7 +612,7 @@ Foreach ($line in get-content $TASK_LIST) {
 	            }
 	            
 				# Push file to remote system
-	            if ( $feature -eq 'EXPUSH ' ) {
+	            if ( $feature -eq 'EXPUSH' ) {
 	            	if ($remoteUser ) {
 	            		$remUser = $remoteUser 
 	            	} else {
@@ -615,7 +633,7 @@ Foreach ($line in get-content $TASK_LIST) {
 	            }
 
 				# Execute Remote Command or Local PowerShell Script remotely (via Invoke-Command)
-	            if ( $feature -eq 'EXCREM ' ) {
+	            if ( $feature -eq 'EXCREM' ) {
 	            	if ($remoteUser ) {
 	            		$remUser = $remoteUser 
 	            	} else {
@@ -637,7 +655,7 @@ Foreach ($line in get-content $TASK_LIST) {
 	        }
 
 			# Perform no further processing if Feature is Property Loader
-            if ( $feature -ne 'PROPLD ' ) {
+            if ( $feature -ne 'PROPLD' ) {
             	
 			    # Do not echo line if it is an echo itself
 			    if (-not (($expression -match 'Write-Host') -or ($expression -match 'echo'))) {
