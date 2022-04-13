@@ -545,8 +545,8 @@ Foreach ($line in get-content $TASK_LIST) {
 	        if ($expression.length -gt 6) {
 
 				# Check for cross platform key words, first 6 characters, by convention uppercase but either supported
-				$list = $expression -split '\s+'
-				$feature=$list[0]
+				$exprArray = $expression -split '\s+'
+				$feature=$exprArray[0]
 
 				# Exit (normally) if argument set
 	            if ( $feature -eq 'EXITIF' ) {
@@ -556,7 +556,7 @@ Foreach ($line in get-content $TASK_LIST) {
 					
 				# Load Properties from file as variables, cannot execute as a function or variables would go out of scope
 	            if ( $feature -eq 'PROPLD' ) {
-					$propFile = $ExecutionContext.InvokeCommand.ExpandString($list[1])
+					$propFile = $ExecutionContext.InvokeCommand.ExpandString($exprArray[1])
 					$transform = ".\Transform.ps1"
 	
 					# Load all properties as runtime variables (transform provides logging)
@@ -572,7 +572,7 @@ Foreach ($line in get-content $TASK_LIST) {
 						}
 					}
 
-					if ( $list[2] -eq 'resolve' ) {
+					if ( $exprArray[2] -eq 'resolve' ) {
 						Write-Host "Resolve variables defined within $propFile`n" -NoNewline
 						try {
 							& $transform "$propFile" | ForEach-Object {
