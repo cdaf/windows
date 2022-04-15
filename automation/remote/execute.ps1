@@ -557,6 +557,7 @@ Foreach ($line in get-content $TASK_LIST) {
 				# Load Properties from file as variables, cannot execute as a function or variables would go out of scope
 	            if ( $feature -eq 'PROPLD' ) {
 					$propFile = $ExecutionContext.InvokeCommand.ExpandString($exprArray[1])
+					$propldAction = $exprArray[2]
 					$transform = ".\Transform.ps1"
 	
 					# Load all properties as runtime variables (transform provides logging)
@@ -572,18 +573,23 @@ Foreach ($line in get-content $TASK_LIST) {
 						}
 					}
 
-					if ( $exprArray[2] -eq 'resolve' ) {
-						Write-Host "Resolve variables defined within $propFile`n" -NoNewline
+					if (( $propldAction -eq 'resolve' ) -or ( $propldAction -eq 'reveal' )) {
+						Write-Host "PROPLD $propldAction variables defined within $propFile`n" -NoNewline
+						$revealed = @()
 						try {
 							& $transform "$propFile" | ForEach-Object {
 								$name,$content = $_ -split '=',2
 								$resolved = invoke-expression "resolveContent $content"
+								$revealed += "  $name = '$resolved'"
 								invoke-expression "$name = '$resolved'"
 								if(!$?) { taskException "PROPLD_RESOLVE_TRAP" }
 							}
+							if ( $propldAction -eq 'reveal' ) {
+								Write-Host;Write-Host $revealed -Separator "`n"
+							}
 						} catch { taskException "PROPLD_RESOLVE_EXCEPTION" $_ }
 					} else {
-						Write-Host "variables defined within $propFile`n" -NoNewline
+						Write-Host "PROPLD variables defined within $propFile`n" -NoNewline
 						try {
 							& $transform "$propFile" | ForEach-Object { invoke-expression $_ }
 							if(!$?) { taskException "PROPLD_TRAP" }
