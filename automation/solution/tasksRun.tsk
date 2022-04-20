@@ -1,12 +1,14 @@
-echo "List available software"
-./capabilities.ps1
-
 echo "Some basic functions"
 REFRSH . $TMPDIR/workspacecopy
 REMOVE TMPDIR/workspacecopy
 
-Write-Host "The following is an example of secrets management" -ForegroundColor Green
+Write-Host "Resolve and reveal property, then assign to a named variable`n" -ForegroundColor Green
+ASSIGN $HOSTNAME = $deployHost
 
+Write-Host "Load Propertes as variables and reveal their values`n" -ForegroundColor Green
+PROPLD $TARGET reveal
+
+Write-Host "The following is an example of secrets management" -ForegroundColor Green
 Write-Host "DO NOT log the AES key, this is supplied by CD tool as environment variable`n" -ForegroundColor Yellow
 $env:AES_KEY = '29-240-88-121-33-64-150-226-136-160-144-115-127-74-74-30'
 
@@ -19,17 +21,25 @@ $secrets = DECRYP .\crypt\AES_CRYPT $env:AES_KEY
 Write-Host "Or stream Decrypt function to reconstruct an encrypted file`n" -ForegroundColor Cyan
 DECRYP .\crypt\AES_CRYPT $env:AES_KEY > unencypted.txt
 
-Write-Host "DO NOT list the contents of the unencrypted file because CD tool does not know to mask these values`n" -ForegroundColor Yellow
-cat unencypted.txt
-
-Write-Host "By supplying an AES key, a tokenised file can be detokenised without the secrets being written to disk`n" -ForegroundColor Green
+Write-Host "List content of tokenised properties file`n" -ForegroundColor Green
 cat crypt-test.yml
 
-Write-Host "Detokenise plain text`n" -ForegroundColor Cyan
-DETOKN crypt-test.yml
+Write-Host "Detokenise plain text with embedded variable`n" -ForegroundColor Cyan
+DETOKN crypt-test.yml $TARGET reveal
+
+Write-Host "Safe to list as no sensitive values have been transformed`n" -ForegroundColor Green
+cat crypt-test.yml
+
+Write-Host "Detokenise secrets with embedded variable, using non-default token, i.e. @remoteUser@`n" -ForegroundColor Cyan
+$env:CDAF_OVERRIDE_TOKEN = '@'
+DETOKN crypt-test.yml $TARGET resolve
+
+Write-Host "If resolved secrets are known CD tool, listing should result in masked values`n" -ForegroundColor Yellow
+cat crypt-test.yml
 
 Write-Host "Detokenise with masked secrets, only supports encrypted name/value files, in-memory, i.e. unencrypted file is never on disk`n" -ForegroundColor Cyan
+$env:CDAF_OVERRIDE_TOKEN = '%'
 DETOKN crypt-test.yml .\crypt\AES_CRYPT $env:AES_KEY
 
-Write-Host "DO NOT list the contents of the detokenised file because CD tool does not know to mask these values`n" -ForegroundColor Yellow
+Write-Host "DO NOT list the contents of the AES detokenised file because CD tool does not know to mask these values`n" -ForegroundColor Red
 cat crypt-test.yml

@@ -28,6 +28,15 @@ function ERRMSG ($message, $exitcode) {
 		exit $exitcode
 	}
 }
+function MD5MSK ($value) {
+	(Get-FileHash -InputStream $([IO.MemoryStream]::new([byte[]][char[]]$value)) -Algorithm MD5).Hash
+}
+
+# Expand variables within variables, literals are unaffected but will be stripped of whitespace
+function resolveContent ($content) {
+	$content = $content.trim()
+	return invoke-expression "Write-Output $content"
+}
 
 $scriptName = $myInvocation.MyCommand.Name 
 write-host "`n[$scriptName] PROPFILE  : $PROPFILE"
@@ -71,7 +80,7 @@ Foreach ($line in $propertiesArray) {
             $nameValue=$nameValue[0]
         } else {
             $nameValue = $line
-      }
+	    }
 
         # Do not attempt any processing when a line is just a comment
         if ($nameValue) {
@@ -79,26 +88,44 @@ Foreach ($line in $propertiesArray) {
     
             # If token file is supplied, detokenise file (in situ)
             if ($TOKENFILE) {
-                if ( $value -like "`$*" ) {
-                    $value = Invoke-Expression "Write-Output $value"
-                }
-                $i = 0
-                $token = "%" + $name + "%"
+				$i = 0
+				if ( $env:CDAF_OVERRIDE_TOKEN ) {
+					$token = $env:CDAF_OVERRIDE_TOKEN + $name + $env:CDAF_OVERRIDE_TOKEN
+				} else {
+					$token = "%" + $name + "%"
+				}
                 foreach ($record in $transformed) {
                     if ($record -match "$token") {
                         if ($aeskey) {
-                            write-host "Found $token, replacing with *****************"
+                            write-host "Found $token, replacing with $(MD5MSK $token) (MD5 Mask)"
                         } else {
-                            write-host "Found $token, replacing with $value"
+							if ( $env:propldAction -eq 'resolve' ) {
+								write-host "Found $token, replacing with $value"
+								$value = invoke-expression "resolveContent $value"
+							} elseif ($env:propldAction -eq 'reveal') {
+								$value = invoke-expression "resolveContent $value"
+								write-host "Found $token, replacing with $value"
+							} else {
+								write-host "Found $token, replacing with $value"
+							}
                         }
                         $transformed[$i] = ($transformed[$i]).Replace("$token","$value")
                     }
                     $i++
                 }
             } else { # If token file is not supplied, echo strings for instantiating as variables (cannot instantiate here as they will be out of scope)
+				if ( $env:propldAction -eq 'resolve' ) {
+					write-host "[$scriptName]   $name = $value"
+					$value = invoke-expression "resolveContent $value"
+				} elseif ($env:propldAction -eq 'reveal') {
+					$value = invoke-expression "resolveContent $value"
+					write-host "[$scriptName]   $name = $value"
+				} else {
+					write-host "[$scriptName]   $name = $value"
+				}
+
 				$loadVariable = "`$$name='$value'"
 				Write-Output "$loadVariable"
-                write-host "[$scriptName]   $name = $value"
             }
         }
     }

@@ -1,7 +1,9 @@
 ---
-application:
-  admin-password: "%secret1%"
-  database:
-    target: "%deployHost%"
-    user: "dbreaderwriter"
-    password: "%secret2%"
+  application:
+    admin-password: "%secret1%"
+    user-password: "@dbuserpassword@"
+    database:
+      target: "%deployHost%"
+      user: "%dbreaderwriter%"
+      password: "%secret2%"
+  

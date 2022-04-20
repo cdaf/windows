@@ -168,8 +168,7 @@ function VECOPY ($from, $to, $notFirstRun) {
 }
 
 # Refresh Directory, function arguments differ depending on number passed
-function REFRSH ( $arg1, $arg2 )
-{
+function REFRSH ( $arg1, $arg2 ) {
 	if ( $arg2 ) {
 		$destination = $arg2
 		$source = $arg1
@@ -192,8 +191,7 @@ function REFRSH ( $arg1, $arg2 )
 # Compress to file (Requires PowerShell v3 or above)
 #  required : file, relative to current workspace
 #  required : source directory, relative to current workspace
-function CMPRSS ( $zipfilename, $sourcedir )
-{
+function CMPRSS ( $zipfilename, $sourcedir ) {
 	$currentDir = $(Get-Location)
 	if (!( $sourcedir )) {
 		$sourcedir = $zipfilename
@@ -221,8 +219,7 @@ function CMPRSS ( $zipfilename, $sourcedir )
 
 # Decompress from file (Requires PowerShell v3 or above, pass zip file without .zip suffix)
 #  required : file, relative to current workspace
-function DCMPRS ( $packageFile, $packagePath )
-{
+function DCMPRS ( $packageFile, $packagePath ) {
     if (!( $packagePath )) {
 		$packagePath = $pwd
 	}
@@ -239,8 +236,7 @@ function DCMPRS ( $packageFile, $packagePath )
 #  required : file name relative to current workspace
 #  required : the token to be replaced or an array of name/value pairs
 #  optional : the replacement value (not passed if name is array)
-function REPLAC ( $fileName, $tokenOrArray, $value )
-{
+function REPLAC ( $fileName, $tokenOrArray, $value ) {
 	if (!( Test-Path $fileName )) {
 		ERRMSG "REPLAC_FILE_NOT_FOUND $fileName" 1214
 	}
@@ -254,28 +250,28 @@ function REPLAC ( $fileName, $tokenOrArray, $value )
 }
 
 # Use the Decryption helper script
-function DECRYP ( $encryptedFile, $thumbprint, $location )
-{
+function DECRYP ( $encryptedFile, $thumbprint, $location ) {
 	./decryptKey.ps1 $encryptedFile $thumbprint $location
 }
 
 # Use the the transofrm helper script to perform detokenisation
 #  required : tokenised file, relative to current workspace
-#  option : properties file, if not passed, target will be used
-function DETOKN ( $tokenFile, $properties, $aeskey )
-{
+#  optional : properties file, if not passed, TARGET will be used
+#  optional : AES Key or expansion operators for non-encrypted properties file
+function DETOKN ( $tokenFile, $properties, $aeskey ) {
     if ($properties) {
     	if ( $aeskey ) {
-	        $expression = ".\Transform.ps1 '$properties' '$tokenFile' `$aeskey"
+			if (( $aeskey -eq 'resolve' ) -or ( $aeskey -eq 'reveal' )) {
+				$env:propldAction = $aeskey
+				$expression = ".\Transform.ps1 '$properties' '$tokenFile'"
+			} else {
+				$expression = ".\Transform.ps1 '$properties' '$tokenFile' `$aeskey"
+			}
         } else {
 	        $expression = ".\Transform.ps1 '$properties' '$tokenFile'"
         }
     } else {
-    	if ( $aeskey ) {
-	        $expression = ".\Transform.ps1 '$TARGET' '$tokenFile' `$aeskey"
-	    } else {
-	        $expression = ".\Transform.ps1 '$TARGET' '$tokenFile'"
-	    }
+		$expression = ".\Transform.ps1 '$TARGET' '$tokenFile'"
 	}
 	executeExpression $expression
 }
@@ -465,7 +461,7 @@ function VARCHK ($propertiesFile) {
 	}
 }
 
-# Validate Variables (2.4.6)
+# Expand variables within variables, literals are unaffected but will be stripped of whitespace
 function resolveContent ($content) {
 	$content = $content.trim()
 	return invoke-expression "Write-Output $content"
@@ -559,7 +555,7 @@ Foreach ($line in get-content $TASK_LIST) {
 					Write-Host "[$(Get-Date)] $expression"
 					$argArray = -split $arguments
 					$propFile = $ExecutionContext.InvokeCommand.ExpandString($argArray[0])
-					$propldAction = $argArray[1]
+					$env:propldAction = $argArray[1]
 					$transform = ".\Transform.ps1"
 	
 					# Load all properties as runtime variables (transform provides logging)
@@ -574,28 +570,11 @@ Foreach ($line in get-content $TASK_LIST) {
 							$transform = "$automationHelper\Transform.ps1"
 						}
 					}
-					Write-Host "[$(Get-Date)] $transform $propFile $propldAction"
-
-					if (( $propldAction -eq 'resolve' ) -or ( $propldAction -eq 'reveal' )) {
-						$revealed = @()
-						try {
-							& $transform "$propFile" | ForEach-Object {
-								$name,$content = $_ -split '=',2
-								$resolved = invoke-expression "resolveContent $content"
-								$revealed += "  $name = '$resolved'"
-								invoke-expression "$name = '$resolved'"
-								if(!$?) { taskException "PROPLD_RESOLVE_TRAP" }
-							}
-							if ( $propldAction -eq 'reveal' ) {
-								Write-Host;Write-Host $revealed -Separator "`n"
-							}
-						} catch { taskException "PROPLD_RESOLVE_EXCEPTION" $_ }
-					} else {
-						try {
-							& $transform "$propFile" | ForEach-Object { invoke-expression $_ }
-							if(!$?) { taskException "PROPLD_TRAP" }
-						} catch { taskException "PROPLD_EXCEPTION" $_ }
-					}
+					Write-Host "[$(Get-Date)] $transform $propFile $env:propldAction"
+					try {
+						& $transform "$propFile" | ForEach-Object { invoke-expression $_ }
+						if(!$?) { taskException "PROPLD_TRAP" }
+					} catch { taskException "PROPLD_EXCEPTION" $_ }
 	            }
 
 				# Set a variable, PowerShell format

@@ -1,7 +1,7 @@
-context  target     deployHost            remoteUser             remotePass
-remote   VAGRANT    windows-1.mshome.net  $env:CDAF_PS_USERNAME  $env:CDAF_PS_USERPASS
-local    VAGRANT    localhost
-local    WINDOWS    localhost
-local    WORKGROUP  localhost
-local    TEST       localhost
-local    PROD       localhost
+context  target     deployHost            dbreaderwriter  dbuserpassword  remoteUser             remotePass
+remote   VAGRANT    windows-1.mshome.net  databaseuser    $env:USERNAME   $env:CDAF_PS_USERNAME  $env:CDAF_PS_USERPASS
+local    VAGRANT    $env:COMPUTERNAME     databaseuser    $env:USERNAME
+local    WINDOWS    $env:COMPUTERNAME     databaseuser    $env:USERNAME
+local    WORKGROUP  $env:COMPUTERNAME     databaseuser    $env:USERNAME
+local    TEST       test.mshome.net       databaseuser    $env:USERNAME
+local    PROD       prod.mshome.net       databaseuser    $env:USERNAME
