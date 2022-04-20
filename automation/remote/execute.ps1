@@ -467,6 +467,7 @@ function VARCHK ($propertiesFile) {
 
 # Validate Variables (2.4.6)
 function resolveContent ($content) {
+	$content = $content.trim()
 	return invoke-expression "Write-Output $content"
 }
 
@@ -541,23 +542,24 @@ Foreach ($line in get-content $TASK_LIST) {
         # Do not attempt any processing when a line is just a comment
         if ($expression) {
 
-	        # Check for cross platform key words, only if the string is long enough
+	        # Check for CDAF key words, only if the string is long enough
 	        if ($expression.length -gt 6) {
 
-				# Check for cross platform key words, first 6 characters, by convention uppercase but either supported
-				$exprArray = $expression -split '\s+'
-				$feature=$exprArray[0]
+				# Check for CDAF key words, by convention uppercase but either supported
+				$feature,[String]$arguments = -split $expression
 
 				# Exit (normally) if argument set
 	            if ( $feature -eq 'EXITIF' ) {
-		            $exitVar = $expression.Substring(7)
+		            $exitVar = $arguments
 		            Write-Host "$expression ==> if ( $exitVar ) then exit" -NoNewline
 		            $expression = "if ( $exitVar ) { Write-Host `"`n`n~~~~~ controlled exit due to criteria met ~~~~~~`"; exit 0}" }
 					
 				# Load Properties from file as variables, cannot execute as a function or variables would go out of scope
 	            if ( $feature -eq 'PROPLD' ) {
-					$propFile = $ExecutionContext.InvokeCommand.ExpandString($exprArray[1])
-					$propldAction = $exprArray[2]
+					Write-Host "[$(Get-Date)] $expression"
+					$argArray = -split $arguments
+					$propFile = $ExecutionContext.InvokeCommand.ExpandString($argArray[0])
+					$propldAction = $argArray[1]
 					$transform = ".\Transform.ps1"
 	
 					# Load all properties as runtime variables (transform provides logging)
@@ -572,9 +574,9 @@ Foreach ($line in get-content $TASK_LIST) {
 							$transform = "$automationHelper\Transform.ps1"
 						}
 					}
+					Write-Host "[$(Get-Date)] $transform $propFile $propldAction"
 
 					if (( $propldAction -eq 'resolve' ) -or ( $propldAction -eq 'reveal' )) {
-						Write-Host "PROPLD $propldAction variables defined within $propFile`n" -NoNewline
 						$revealed = @()
 						try {
 							& $transform "$propFile" | ForEach-Object {
@@ -589,7 +591,6 @@ Foreach ($line in get-content $TASK_LIST) {
 							}
 						} catch { taskException "PROPLD_RESOLVE_EXCEPTION" $_ }
 					} else {
-						Write-Host "PROPLD variables defined within $propFile`n" -NoNewline
 						try {
 							& $transform "$propFile" | ForEach-Object { invoke-expression $_ }
 							if(!$?) { taskException "PROPLD_TRAP" }
@@ -600,13 +601,14 @@ Foreach ($line in get-content $TASK_LIST) {
 				# Set a variable, PowerShell format
 	            if ( $feature -eq 'ASSIGN' ) {
 		            Write-Host "$expression ==> " -NoNewline
-		            $expression = $expression.Substring(7)
+					$name,$value = $arguments.Split('=')
+		            $expression = $name.trim() + " = '" + (invoke-expression "resolveContent $value") + "'"
 	            }
 
 				# Invoke a custom script
 	            if ( $feature -eq 'INVOKE' ) {
 		            Write-Host "$expression ==> " -NoNewline
-	            	$expression = $expression.Substring(7)
+	            	$expression = $arguments
 	            	$expBuilder = ".\"
 		            $pos = $expression.IndexOf(" ")
 		            if ( $pos -lt 0 ) {
@@ -635,7 +637,7 @@ Foreach ($line in get-content $TASK_LIST) {
 		            	$remThumb = 'NOT_SUPPLIED'
 	            	}
 		            Write-Host "$expression ==> " -NoNewline
-	            	$expression = '.\remoteExec.ps1 ' + $deployHost + ' ' + $remUser  + ' ' + $remCred + ' ' + $remThumb  + ' ' + $expression.Substring(7)
+	            	$expression = '.\remoteExec.ps1 ' + $deployHost + ' ' + $remUser  + ' ' + $remCred + ' ' + $remThumb  + ' ' + $arguments
 	            }
 
 				# Execute Remote Command or Local PowerShell Script remotely (via Invoke-Command)
@@ -656,7 +658,7 @@ Foreach ($line in get-content $TASK_LIST) {
 		            	$remThumb = 'NOT_SUPPLIED'
 	            	}
 		            Write-Host "$expression ==> " -NoNewline
-	            	$expression = '.\remoteExec.ps1 ' + $deployHost + ' ' + $remUser  + ' ' + $remCred + ' ' + $remThumb  + ' ' + $expression.Substring(7)
+	            	$expression = '.\remoteExec.ps1 ' + $deployHost + ' ' + $remUser  + ' ' + $remCred + ' ' + $remThumb  + ' ' + $arguments
 	            }
 	        }
 
