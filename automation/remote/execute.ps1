@@ -582,7 +582,11 @@ Foreach ($line in get-content $TASK_LIST) {
 	            if ( $feature -eq 'ASSIGN' ) {
 		            Write-Host "$expression ==> " -NoNewline
 					$name,$value = $arguments.Split('=')
-		            $expression = $name.trim() + " = '" + (invoke-expression "resolveContent $value") + "'"
+					if ( $value ) {
+						$expression = $name.trim() + " = '" + (invoke-expression "resolveContent $value") + "'"
+					} else {
+						$expression = $name.trim() + " = ''"
+					}
 	            }
 
 				# Invoke a custom script
