@@ -274,6 +274,7 @@ function DETOKN ( $tokenFile, $properties, $aeskey ) {
 		$expression = ".\Transform.ps1 '$TARGET' '$tokenFile'"
 	}
 	executeExpression $expression
+	$env:propldAction = ''
 }
 
 # Execute expression, log errors but ignore and proceed
