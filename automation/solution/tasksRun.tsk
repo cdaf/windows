@@ -41,7 +41,7 @@ Write-Host "If resolved secrets are known CD tool, listing should result in mask
 cat crypt-test.yml
 
 Write-Host "Detokenise with masked secrets, only supports encrypted name/value files, in-memory, i.e. unencrypted file is never on disk`n" -ForegroundColor Cyan
-$env:CDAF_OVERRIDE_TOKEN = '%'
+ASSIGN $env:CDAF_OVERRIDE_TOKEN
 DETOKN crypt-test.yml .\crypt\AES_CRYPT $env:AES_KEY
 
 Write-Host "DO NOT list the contents of the AES detokenised file because CD tool does not know to mask these values`n" -ForegroundColor Red

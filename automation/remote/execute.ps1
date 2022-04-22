@@ -464,8 +464,12 @@ function VARCHK ($propertiesFile) {
 
 # Expand variables within variables, literals are unaffected but will be stripped of whitespace
 function resolveContent ($content) {
-	$content = $content.trim()
-	return invoke-expression "Write-Output $content"
+	if ( $content ) {
+		$content = $content.trim()
+		return invoke-expression "Write-Output $content"
+	} else {
+		return
+	}
 }
 
 $SOLUTION    = $args[0]
