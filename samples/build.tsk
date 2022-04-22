@@ -2,17 +2,16 @@ echo "List Agent/Runner capabilities"
 & $AUTOMATIONROOT\remote\capabilities.ps1
 
 echo "Clean Build workspace (not solution)"
-remove *.binary
+REMOVE *.binary
 
 echo "If ACTION (emulation only) is clean, do not perform any further action"
-assign $terminate=$ACTION
+ASSIGN $terminate = $ACTION
 
 echo "Load product (solution) attributes"
-assign $loadProperties="../$SOLUTIONROOT/CDAF.solution"
+PROPLD "../$SOLUTIONROOT/CDAF.solution"
 
 # Combine to create symantic (http://semver.org/) version
-assign $productVersion+='.'
-assign $productVersion+=$BUILDNUMBER
+ASSIGN $productVersion = "${productVersion}.${BUILDNUMBER}"
 
 echo "Perform build"
 echo "I'm a build artefact" > build.binary
