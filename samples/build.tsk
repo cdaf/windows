@@ -7,8 +7,9 @@ REMOVE *.binary
 echo "If ACTION (emulation only) is clean, do not perform any further action"
 ASSIGN $terminate = $ACTION
 
-echo "Load product (solution) attributes"
-PROPLD "$SOLUTIONROOT/CDAF.solution"
+echo "Load productVersion"
+dir ${SOLUTIONROOT}
+PROPLD "${SOLUTIONROOT}\CDAF.solution"
 
 # Combine to create symantic (http://semver.org/) version
 ASSIGN $productVersion = "${productVersion}.${BUILDNUMBER}"
