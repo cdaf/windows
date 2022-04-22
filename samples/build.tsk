@@ -7,12 +7,8 @@ REMOVE *.binary
 echo "If ACTION (emulation only) is clean, do not perform any further action"
 ASSIGN $terminate = $ACTION
 
-echo "Load productVersion"
-dir ${SOLUTIONROOT}
-PROPLD "${SOLUTIONROOT}\CDAF.solution"
-
-# Combine to create symantic (http://semver.org/) version
-ASSIGN $productVersion = "${productVersion}.${BUILDNUMBER}"
+echo "artifactPrefix is automatically loaded from CDAF.solution, combine with build number to create symantic (http://semver.org/) version"
+ASSIGN $productVersion = "${artifactPrefix}.${BUILDNUMBER}"
 
 echo "Perform build"
 echo "I'm a build artefact" > build.binary
