@@ -34,8 +34,12 @@ function MD5MSK ($value) {
 
 # Expand variables within variables, literals are unaffected but will be stripped of whitespace
 function resolveContent ($content) {
-	$content = $content.trim()
-	return invoke-expression "Write-Output $content"
+	if ( $content ) {
+		$content = $content.trim()
+		return invoke-expression "Write-Output $content"
+	} else {
+		return
+	}
 }
 
 $scriptName = $myInvocation.MyCommand.Name 
