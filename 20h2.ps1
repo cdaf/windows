@@ -1,3 +1,4 @@
+#  . { iwr -useb https://raw.githubusercontent.com/cdaf/windows/master/20h2.ps1 } | iex
 Param (
 	[string]$virtualisation,
 	[string]$vagrantPass
