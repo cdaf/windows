@@ -1,7 +1,7 @@
 #  . { iwr -useb https://raw.githubusercontent.com/cdaf/windows/master/20h2.ps1 } | iex
 # iwr -useb https://raw.githubusercontent.com/cdaf/windows/master/20h2.ps1 -o 20h2.ps1
-# 20h2.ps1 hyperv
-# 20h2.ps1 virtualbox
+# .\20h2.ps1 hyperv
+# .\20h2.ps1 virtualbox
 
 Param (
 	[string]$virtualisation,
