@@ -30,45 +30,7 @@ Properties and definition files support comments, prefixed with # character.
 
 ## Execution Engine
 
-To alleviate the burden of argument passing, exception handling and logging, the execution engine has been provided. The execution engine will essentially execute the native interpretive language (PowerShell or bash), line by line, but each execution will be tested for exceptions (trivial in bash, significantly more complex in PowerShell) and, with careful usage, the driver files (.tsk) can be used on Windows workstations, while target Linux servers for Continuous Delivery. To provide translated runtime, the following keywords are supported
-
-| Keyword | Description                       | Example                         |
-| --------|-----------------------------------|---------------------------------|
-| ASSIGN  | set a variable                    | ASSIGN $test="Hello World"      |
-| CMDTST  | Returns true if command exists    | CMDTST vagrant                  |
-| CMPRSS  | Compress directory to file        | CMPRSS packageName dirName      |
-| CMPRSS  | Compress directory to file        | CMPRSS packageName              |
-| DCMPRS  | Decompress package file           | DCMPRS packageName              |
-| DECRYP  | decrypt file using DSAPI          | DECRYP encrypt.dat              |
-|         | decrypt using PKI or AES key      | DECRYP encrypt.dat $thumbPrint  |
-| DETOKN  | Detokenise file with target prop  | DETOKN token.yml                |
-|         | Detokenise with specific file     | DETOKN token.yml PROPERTY_FILE  |
-|         | Detokenise with encrypted file    | DETOKN token.yml crypt/FIL $key |
-| ELEVAT  | Execute as elevated NT SYSTEM     | ELEVAT "$(pwd)/custom.ps1"      |
-| EXCREM  | Execute Remote Command            | EXCREM hostname                 |
-|         | Execute Remote script             | EXCREM ./capabilities.ps1       |
-| EXITIF  | Exit normally is argument set     | EXITIF $ACTION -eq clean        |
-| IMGTXT  | Display image file as text        | IMGTXT sample.jpg               |
-| INVOKE  | call a custom script              | INVOKE ./script "Hello"         |
-| MAKDIR  | Create a directory and path (opt) | MAKDIR directory/and/path       |
-| PROPLD  | Load properties as variables      | PROPLD prop.file                |
-| REMOVE  | Delete files, including wildcard  | REMOVE *.war                    |
-| REPLAC  | Replace token in file   		  | REPLAC fileName %token% $value  |
-| VARCHK  | Variable validation check         | VARCHK varlistFileName          |
-| VECOPY  | Verbose copy					  | VECOPY *.war                    |
-
-Notes on EXCREM use, the properties are similar to those used for remote tasks, where the minimum requried is the host, if other properties are not used, must be set to NOT_SUPPLIED, i.e.
-
-  deployHost=localhost
-  remUser=NOT_SUPPLIED
-  remCred=NOT_SUPPLIED
-  remThb=NOT_SUPPLIED
-
-Runtime variables, automatically set
-
-| Variable         | Description                       |
-| -----------------|-----------------------------------|
-|  $TMPDIR         | Automatically set to the temp dir |
+See [Execution Engine is docs](https://docs.cdaf.io/mydoc_basics_execution_engine.html)
 
 ## Build and Package (once)
 
