@@ -40,7 +40,7 @@ Linear Deploy requires properties file for workstation (default is DEV) to be a 
 
 Package: (files maybe empty or non-existent)
 
-	package.tsk : optional pre-package tasks definition
+	package.tsk : optional pre-package tasks definition (0.7.2)
 	wrap.tsk : optional post-package tasks definition (0.8.2)
 	storeForLocal
 	storeForRemote
