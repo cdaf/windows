@@ -15,10 +15,7 @@ When using for the first time, the users workstation needs to be prepared by pro
 
 # Solution Driver
 
-The following files control solution level functionality.
-
-    CDAF.linux : used by the CD emulator to determine the automation root directory  
-    CDAF.solution : optional file to identify a directory as the automation solution directory
+See [Solution Properties](https://docs.cdaf.io/mydoc_solution_properties.html)
 
 Basic driver files (introduced 1.7.8):
 
