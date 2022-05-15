@@ -16,7 +16,6 @@ Import-Module Microsoft.PowerShell.Security
 cmd /c "exit 0"
 $Error.clear()
 $env:CDAF_AUTOMATION_ROOT = ''
-$env:CONTAINER_IMAGE = ''
 $scriptName = 'delivery.ps1'
 
 # Consolidated Error processing function
