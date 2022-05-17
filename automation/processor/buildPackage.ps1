@@ -249,7 +249,8 @@ if ($REVISION) {
 		if ( $LASTEXITCODE -ne 0 ) {
 			cmd /c "exit 0"
 			$error.clear()
-			Write-Host "[$scriptName]   REVISION         : (not set, Git not installed, so cannot determine from branch name)"
+			$REVISION = 'revision'
+			Write-Host "[$scriptName]   REVISION        : $REVISION (default, unable to determine from Git)"
 		} else {
 			$REVISION = $(git rev-parse --abbrev-ref HEAD 2>&1)
 			if ( $LASTEXITCODE -eq 0 ) {
