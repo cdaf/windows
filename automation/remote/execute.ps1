@@ -402,6 +402,11 @@ function MD5MSK ($value) {
 	(Get-FileHash -InputStream $([IO.MemoryStream]::new([byte[]][char[]]$value)) -Algorithm MD5).Hash
 }
 
+# 2.5.2 Return SHA256 as uppercase Hexadecimal, default algorith is SHA256, but setting explicitely should this change in the future
+function SHA256 ($value) {
+	(Get-FileHash -InputStream $([IO.MemoryStream]::new([byte[]][char[]]$value)) -Algorithm SHA256).Hash
+}
+
 # Validate Variables (2.4.6)
 function VARCHK ($propertiesFile) {
 	if ( -not ( Test-Path $propertiesFile )) {

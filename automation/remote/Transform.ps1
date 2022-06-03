@@ -28,11 +28,13 @@ function ERRMSG ($message, $exitcode) {
 		exit $exitcode
 	}
 }
-function MD5MSK ($value) {
-	(Get-FileHash -InputStream $([IO.MemoryStream]::new([byte[]][char[]]$value)) -Algorithm MD5).Hash
+
+# 2.5.2 Return SHA256 as uppercase Hexadecimal, default algorith is SHA256, but setting explicitely should this change in the future
+function SHA256 ($value) {
+	(Get-FileHash -InputStream $([IO.MemoryStream]::new([byte[]][char[]]$value)) -Algorithm SHA256).Hash
 }
 
-# Expand variables within variables, literals are unaffected but will be stripped of whitespace
+# 2.5.1 Expand variables within variables, literals are unaffected but will be stripped of whitespace
 function resolveContent ($content) {
 	if ( $content ) {
 		$content = $content.trim()
@@ -101,7 +103,7 @@ Foreach ($line in $propertiesArray) {
                 foreach ($record in $transformed) {
                     if ($record -match "$token") {
                         if ($aeskey) {
-                            write-host "Found $token, replacing with $(MD5MSK $token) (MD5 Mask)"
+                            write-host "Found $token, replacing with $(SHA256 $token) (SHA256 Mask)"
                         } else {
 							if ( $env:propldAction -eq 'resolve' ) {
 								write-host "Found $token, replacing with $value"
