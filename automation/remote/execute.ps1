@@ -403,7 +403,7 @@ function MD5MSK ($value) {
 }
 
 # 2.5.2 Return SHA256 as uppercase Hexadecimal, default algorith is SHA256, but setting explicitely should this change in the future
-function SHA256 ($value) {
+function MASKED ($value) {
 	(Get-FileHash -InputStream $([IO.MemoryStream]::new([byte[]][char[]]$value)) -Algorithm SHA256).Hash
 }
 
@@ -425,7 +425,7 @@ function VARCHK ($propertiesFile) {
 				Write-Host "  $variableName = '$variableValue'"
 			} elseif ( $variableValidation -eq 'optional' ) {
 				if ( $variableValue ) {
-					Write-Host "  $variableName = $(MD5MSK $variableValue) (MD5MSK optional secret)"
+					Write-Host "  $variableName = $(MASKED $variableValue) (MASKED optional secret)"
 				} else {
 					Write-Host "  $variableName = (optional secret not set)"
 				}
@@ -438,23 +438,23 @@ function VARCHK ($propertiesFile) {
 				}
 			} elseif ( $variableValidation -eq 'secret' ) {
 				if ( $variableValue ) {
-					Write-Host "  $variableName = $(MD5MSK $variableValue) (MD5MSK required secret)"
+					Write-Host "  $variableName = $(MASKED $variableValue) (MASKED required secret)"
 				} else {
 					Write-Host "  $variableName = [REQUIRED SECRET NOT SET]"
 					$failureCount++
 				}
 			} else {
 				if ( $variableValue ) {
-					$variableValidation = Invoke-Expression "Write-Output $variableValidation"  # Resolve value containing a variable name, e.g. $variableValidation = '$env:SECRET_VALUE_MD5'
-					$variableValueMD5 = MD5MSK $variableValue
-					if ( $variableValueMD5 -eq $variableValidation ) {
-						Write-Host "  $variableName = $variableValueMD5 (MD5MSK check success with '$variableValidation')"
+					$variableValidation = Invoke-Expression "Write-Output $variableValidation"  # Resolve value containing a variable name, e.g. $variableValidation = '$env:SECRET_VALUE_MASKED'
+					$variableValueMASKED = MASKED $variableValue
+					if ( $variableValueMASKED -eq $variableValidation ) {
+						Write-Host "  $variableName = $variableValueMASKED (MASKED check success)"
 					} else {
-						Write-Host "  $variableName = $variableValueMD5 [MD5 CHECK FAILED FOR '$variableValidation']"
+						Write-Host "  $variableName = $variableValueMASKED [MASKED CHECK FAILED FOR '$variableValidation']"
 						$failureCount++
 					}
 				} else {
-					Write-Host "  $variableName = [REQUIRED SECRET NOT SET FOR MD5 CHECK NOT SET]"
+					Write-Host "  $variableName = [REQUIRED SECRET NOT SET FOR MASKED CHECK NOT SET]"
 					$failureCount++
 				}
 			}

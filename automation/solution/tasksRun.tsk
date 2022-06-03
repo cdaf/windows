@@ -16,7 +16,9 @@ Write-Host "DO NOT log the AES key, this is supplied by CD tool as environment v
 $env:AES_KEY = '29-240-88-121-33-64-150-226-136-160-144-115-127-74-74-30'
 
 Write-Host "A sensitive value can be logged using non-reversable mask" -ForegroundColor Green
-SHA256 $env:AES_KEY
+$env:AES_KEY_MASK = (MASKED $env:AES_KEY)
+
+VARCHK varchk.properties
 
 Write-Host "DO NOT Decrypt without capturing return value or secrets will be disclosed`n" -ForegroundColor Yellow
 DECRYP .\crypt\AES_CRYPT $env:AES_KEY

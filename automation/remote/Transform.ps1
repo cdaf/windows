@@ -30,12 +30,12 @@ function ERRMSG ($message, $exitcode) {
 }
 
 # 2.5.2 Return SHA256 as uppercase Hexadecimal, default algorith is SHA256, but setting explicitely should this change in the future
-function SHA256 ($value) {
+function MASKED ($value) {
 	(Get-FileHash -InputStream $([IO.MemoryStream]::new([byte[]][char[]]$value)) -Algorithm SHA256).Hash
 }
 
 # 2.5.1 Expand variables within variables, literals are unaffected but will be stripped of whitespace
-function resolveContent ($content) {
+function resolveContent ([String]$content) {
 	if ( $content ) {
 		$content = $content.trim()
 		return invoke-expression "Write-Output $content"
@@ -103,7 +103,7 @@ Foreach ($line in $propertiesArray) {
                 foreach ($record in $transformed) {
                     if ($record -match "$token") {
                         if ($aeskey) {
-                            write-host "Found $token, replacing with $(SHA256 $token) (SHA256 Mask)"
+                            write-host "Found $token, replacing with $(MASKED $token) (MASKED)"
                         } else {
 							if ( $env:propldAction -eq 'resolve' ) {
 								write-host "Found $token, replacing with $value"
