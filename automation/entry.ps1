@@ -176,8 +176,9 @@ function executeSuppress ($expression) {
 	}
 }
 
-function mask ($value) {
-	return (Get-FileHash -InputStream $([IO.MemoryStream]::new([byte[]][char[]]$value)) -Algorithm MD5).Hash
+# 2.5.2 Return SHA256 as uppercase Hexadecimal, default algorith is SHA256, but setting explicitely should this change in the future
+function MASKED ($value) {
+	(Get-FileHash -InputStream $([IO.MemoryStream]::new([byte[]][char[]]$value)) -Algorithm SHA256).Hash
 }
 
 if (!( $env:CDAF_COMMAND_SHELL )) {
@@ -390,7 +391,7 @@ if ( $skipBranchCleanup ) {
 					if (!( $userPass )) {
 						Write-Host "[$scriptName]   $gitUserPassEnvVar contains no value, relying on current workspace being up to date"
 					} else {
-						$env:CDAF_DEBUG_LOGGING += "[PASS_MASK] userPass = $(mask $userPass) (MD5MSK)`n"
+						$env:CDAF_DEBUG_LOGGING += "[PASS_MASK] userPass = $(MASKED $userPass) (MASKED)`n"
 						$urlWithCreds = "https://${userName}:${userPass}@$($gitRemoteURL.Replace('https://', ''))"
 						$env:CDAF_DEBUG_LOGGING += "[SET_URL] urlWithCreds = $urlWithCreds`n"
 					}

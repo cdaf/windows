@@ -42,8 +42,9 @@ function executeExpression ($expression) {
 	}
 }
 
-function MD5MSK ($value) {
-	(Get-FileHash -InputStream $([IO.MemoryStream]::new([byte[]][char[]]$value)) -Algorithm MD5).Hash
+# 2.5.2 Return SHA256 as uppercase Hexadecimal, default algorith is SHA256, but setting explicitely should this change in the future
+function MASKED ($value) {
+	(Get-FileHash -InputStream $([IO.MemoryStream]::new([byte[]][char[]]$value)) -Algorithm SHA256).Hash
 }
 
 $scriptName = 'dockerPush.ps1'
@@ -90,7 +91,7 @@ if ( $registryUser ) {
 }
 
 if ( $registryToken ) {
-	Write-Host "[$scriptName]   registryToken   : $(MD5MSK $registryToken) (MD5 mask)"
+	Write-Host "[$scriptName]   registryToken   : $(MASKED $registryToken) (MASKED)"
 } else {
 	Write-Host "[$scriptName]   registryToken   : (not supplied, login will not be attempted)"
 }

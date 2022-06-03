@@ -79,13 +79,13 @@ Custom elements, i.e. deployScriptOverride and deployTaskOverride scripts
 VARCHK varlistFileName example file
 
     # Plain text values
-    OPT_ARG                                        # Optional plain text
-    terraform_version=required                     # Required plain text
+    OPT_ARG                                         # Optional plain text
+    terraform_version=required                      # Required plain text
 
     # Secret values
-    env:TERRAFORM_TOKEN=optional                   # Optional secret
-    env:TERRAFORM_TOKEN=secret                     # Required secret
-    env:TERRAFORM_TOKEN=$env:TERRAFORM_TOKEN_MD5   # Required secret verified against supplied MD5 value
+    env:TERRAFORM_TOKEN=optional                    # Optional secret
+    env:TERRAFORM_TOKEN=secret                      # Required secret
+    env:TERRAFORM_TOKEN=$env:TERRAFORM_TOKEN_MASKED # Required secret verified against supplied MASKED value
 
 # Continuous Delivery Emulation
 
