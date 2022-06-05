@@ -1,3 +1,8 @@
+env:NON_EXIST=optional
+
+# Verify variable is populated and log the checksum value
+env:AES_KEY=secret
+
 # Verify variable is populated, and the SHA256 matches, support literal or variable
 env:AES_KEY=90BF7460FFDFE121C41AAFDF6B7D33EB08ACD0736D8B0A0B461E595E32DE26F5
 env:AES_KEY=$env:AES_KEY_MASK
