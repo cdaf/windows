@@ -3,10 +3,9 @@ pipelines:
     - step:
         name: Build and test
         script:
-          - $env:CDAF_PATH = '~\.cdaf'
           - . { iwr -useb https://cdaf.io/static/app/downloads/cdaf.ps1 } | iex
           - $env:DOCKER_HOST = ''
-          - ~\.cdaf\entry.ps1 $BITBUCKET_BUILD_NUMBER $BITBUCKET_BRANCH
+          - .\automation\entry.ps1 $BITBUCKET_BUILD_NUMBER $BITBUCKET_BRANCH
         runs-on:
           - windows          
 
@@ -15,10 +14,9 @@ pipelines:
       - step:
           name: Build and test
           script:
-            - $env:CDAF_PATH = '~\.cdaf'
             - . { iwr -useb https://cdaf.io/static/app/downloads/cdaf.ps1 } | iex
             - $env:DOCKER_HOST = ''
-            - ~\.cdaf\ci.ps1 $BITBUCKET_BUILD_NUMBER
+            - .\automation\ci.bat $BITBUCKET_BUILD_NUMBER
           artifacts:
             - "release.ps1"
           runs-on:
