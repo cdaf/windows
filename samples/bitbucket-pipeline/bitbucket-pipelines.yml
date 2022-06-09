@@ -1,0 +1,53 @@
+pipelines:
+  default:
+    - step:
+        name: Build and test
+        script:
+          - $env:CDAF_PATH = '~\.cdaf'
+          - . { iwr -useb https://cdaf.io/static/app/downloads/cdaf.ps1 } | iex
+          - $env:DOCKER_HOST = ''
+          - ~\.cdaf\entry.ps1 $BITBUCKET_BUILD_NUMBER $BITBUCKET_BRANCH
+        runs-on:
+          - windows          
+
+  branches:
+    'master':
+      - step:
+          name: Build and test
+          script:
+            - $env:CDAF_PATH = '~\.cdaf'
+            - . { iwr -useb https://cdaf.io/static/app/downloads/cdaf.ps1 } | iex
+            - $env:DOCKER_HOST = ''
+            - ~\.cdaf\ci.ps1 $BITBUCKET_BUILD_NUMBER
+          artifacts:
+            - "release.ps1"
+          runs-on:
+            - windows          
+
+      - step:
+          name: Deploy to test
+          deployment: Test
+          script:
+            - $env:DOCKER_HOST = ''
+            - echo "./release.ps1 $BITBUCKET_DEPLOYMENT_ENVIRONMENT"
+          runs-on:
+            - windows          
+
+      - step:
+          name: Deploy to staging
+          deployment: Staging
+          script:
+            - $env:DOCKER_HOST = ''
+            - echo "./release.ps1 $BITBUCKET_DEPLOYMENT_ENVIRONMENT"
+          runs-on:
+            - windows          
+
+      - step:
+          name: Deploy to production
+          deployment: Production
+          trigger: manual
+          script:
+            - $env:DOCKER_HOST = ''
+            - echo "./release.ps1 $BITBUCKET_DEPLOYMENT_ENVIRONMENT"
+          runs-on:
+            - windows          
