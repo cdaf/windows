@@ -5,7 +5,7 @@ pipelines:
         script:
           - . { iwr -useb https://cdaf.io/static/app/downloads/cdaf.ps1 } | iex
           - $env:DOCKER_HOST = ''
-          - .\automation\entry.ps1 $BITBUCKET_BUILD_NUMBER $BITBUCKET_BRANCH
+          - .\automation\entry.ps1 $env:BITBUCKET_BUILD_NUMBER $env:BITBUCKET_BRANCH
         runs-on:
           - windows          
 
@@ -16,7 +16,7 @@ pipelines:
           script:
             - . { iwr -useb https://cdaf.io/static/app/downloads/cdaf.ps1 } | iex
             - $env:DOCKER_HOST = ''
-            - .\automation\ci.bat $BITBUCKET_BUILD_NUMBER
+            - .\automation\ci.bat $env:BITBUCKET_BUILD_NUMBER $env:BITBUCKET_BRANCH
           artifacts:
             - "release.ps1"
           runs-on:
@@ -27,7 +27,7 @@ pipelines:
           deployment: Test
           script:
             - $env:DOCKER_HOST = ''
-            - echo "./release.ps1 $BITBUCKET_DEPLOYMENT_ENVIRONMENT"
+            - ./release.ps1 $env:BITBUCKET_DEPLOYMENT_ENVIRONMENT
           runs-on:
             - windows          
 
@@ -36,7 +36,7 @@ pipelines:
           deployment: Staging
           script:
             - $env:DOCKER_HOST = ''
-            - echo "./release.ps1 $BITBUCKET_DEPLOYMENT_ENVIRONMENT"
+            - ./release.ps1 $env:BITBUCKET_DEPLOYMENT_ENVIRONMENT
           runs-on:
             - windows          
 
@@ -46,6 +46,6 @@ pipelines:
           trigger: manual
           script:
             - $env:DOCKER_HOST = ''
-            - echo "./release.ps1 $BITBUCKET_DEPLOYMENT_ENVIRONMENT"
+            - ./release.ps1 $env:BITBUCKET_DEPLOYMENT_ENVIRONMENT
           runs-on:
             - windows          
