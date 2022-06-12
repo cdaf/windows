@@ -179,7 +179,7 @@ if ( $virtualisation -eq 'hyperv' ) {
     $extensions += "vscoss.vscode-ansible"
     $extensions += "ms-python.python"
     foreach ($extension in $extensions) {
-        executeExpression "code --install-extension $extension"
+        executeExpression "code --install-extension $extension --force"
     }
 
 }
