@@ -141,28 +141,29 @@ if ( $virtualisation -eq 'hyperv' ) {
 	
 } else {
 
-    executeExpression  "Get-AppxPackage Microsoft.YourPhone -AllUsers | Remove-AppxPackage"
-    executeExpression  "(Get-WmiObject Win32_TerminalServiceSetting -Namespace root\cimv2\TerminalServices).SetAllowTsConnections(1,1) | Out-Null"
-    executeExpression  "(Get-WmiObject -Class 'Win32_TSGeneralSetting' -Namespace root\cimv2\TerminalServices -Filter `"TerminalName='RDP-tcp'`").SetUserAuthenticationRequired(0) | Out-Null"
-    executeExpression  "Get-NetFirewallRule -DisplayName `"Remote Desktop*`" | Set-NetFirewallRule -enabled true"
+    executeExpression "Set-Service beep -StartupType disabled"
+    executeExpression "Get-AppxPackage Microsoft.YourPhone -AllUsers | Remove-AppxPackage"
+    executeExpression "(Get-WmiObject Win32_TerminalServiceSetting -Namespace root\cimv2\TerminalServices).SetAllowTsConnections(1,1) | Out-Null"
+    executeExpression "(Get-WmiObject -Class 'Win32_TSGeneralSetting' -Namespace root\cimv2\TerminalServices -Filter `"TerminalName='RDP-tcp'`").SetUserAuthenticationRequired(0) | Out-Null"
+    executeExpression "Get-NetFirewallRule -DisplayName `"Remote Desktop*`" | Set-NetFirewallRule -enabled true"
 
-    executeExpression  ".\automation\provisioning\base.ps1 'adoptopenjdk11 maven eclipse'"
-    executeExpression  ".\automation\provisioning\base.ps1 'nuget.commandline' -verion 5.8.1" # 5.9 is broken
-    executeExpression  ".\automation\provisioning\base.ps1 'azure-cli visualstudio2019enterprise vscode dotnetcore-sdk'"
+    executeExpression ".\automation\provisioning\base.ps1 'adoptopenjdk11 maven eclipse'"
+    executeExpression ".\automation\provisioning\base.ps1 'nuget.commandline' -verion 5.8.1" # 5.9 is broken
+    executeExpression ".\automation\provisioning\base.ps1 'azure-cli visualstudio2019enterprise vscode dotnetcore-sdk'"
 
-    executeExpression  ".\automation\provisioning\base.ps1 'nano nodejs-lts python git svn vnc-viewer putty winscp postman'"
-    executeExpression  ".\automation\provisioning\base.ps1 'googlechrome' -checksum ignore" # Google does not provide a static download, so checksum can briefly fail on new releases
+    executeExpression ".\automation\provisioning\base.ps1 'nano nodejs-lts python git svn vnc-viewer putty winscp postman'"
+    executeExpression ".\automation\provisioning\base.ps1 'googlechrome' -checksum ignore" # Google does not provide a static download, so checksum can briefly fail on new releases
 
-    executeExpression  "Remove-Item -Recurse -Force automation"
+    executeExpression "Remove-Item -Recurse -Force automation"
     if ( Test-Path git ) {
         Write-Host "Git directory exists"
     } else {
         executeExpression  "mkdir git"
     }
-    executeExpression  "cd .\git\"
-    executeExpression  "git clone https://github.com/cdaf/windows.git"
-    executeExpression  "& ${env:USERPROFILE}\git\windows\automation\provisioning\addPath.ps1 ${env:USERPROFILE}\git\windows\automation\provisioning User"
-    executeExpression  "& ${env:USERPROFILE}\git\windows\automation\provisioning\addPath.ps1 ${env:USERPROFILE}\git\windows\automation User"
+    executeExpression "cd .\git\"
+    executeExpression "git clone https://github.com/cdaf/windows.git"
+    executeExpression "& ${env:USERPROFILE}\git\windows\automation\provisioning\addPath.ps1 ${env:USERPROFILE}\git\windows\automation\provisioning User"
+    executeExpression "& ${env:USERPROFILE}\git\windows\automation\provisioning\addPath.ps1 ${env:USERPROFILE}\git\windows\automation User"
 
     $extensions = @("jmrog.vscode-nuget-package-manager")
     $extensions += "ms-vscode.PowerShell"
