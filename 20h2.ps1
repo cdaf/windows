@@ -108,9 +108,9 @@ if ( $virtualisation -eq 'hyperv' ) {
 
     executeExpression ".\automation\provisioning\setenv.ps1 VAGRANT_DEFAULT_PROVIDER hyperv"
     executeExpression ".\automation\provisioning\setenv.ps1 VAGRANT_SMB_USER $env:USERNAME"
-	if ($vagrantPass) {
-		executeExpression ".\automation\provisioning\setenv.ps1 VAGRANT_SMB_PASS $vagrantPass"
-	}
+    if ($vagrantPass) {
+        executeExpression ".\automation\provisioning\setenv.ps1 VAGRANT_SMB_PASS $vagrantPass"
+    }
  
     executeExpression "Dism /online /enable-feature /all /featurename:Microsoft-Hyper-V /NoRestart"
     executeExpression "Enable-WindowsOptionalFeature -Online -FeatureName Containers -All -NoRestart"
@@ -141,28 +141,46 @@ if ( $virtualisation -eq 'hyperv' ) {
 	
 } else {
 
-	executeExpression  "Get-AppxPackage Microsoft.YourPhone -AllUsers | Remove-AppxPackage"
-	executeExpression  "(Get-WmiObject Win32_TerminalServiceSetting -Namespace root\cimv2\TerminalServices).SetAllowTsConnections(1,1) | Out-Null"
-	executeExpression  "(Get-WmiObject -Class 'Win32_TSGeneralSetting' -Namespace root\cimv2\TerminalServices -Filter `"TerminalName='RDP-tcp'`").SetUserAuthenticationRequired(0) | Out-Null"
-	executeExpression  "Get-NetFirewallRule -DisplayName `"Remote Desktop*`" | Set-NetFirewallRule -enabled true"
+    executeExpression  "Get-AppxPackage Microsoft.YourPhone -AllUsers | Remove-AppxPackage"
+    executeExpression  "(Get-WmiObject Win32_TerminalServiceSetting -Namespace root\cimv2\TerminalServices).SetAllowTsConnections(1,1) | Out-Null"
+    executeExpression  "(Get-WmiObject -Class 'Win32_TSGeneralSetting' -Namespace root\cimv2\TerminalServices -Filter `"TerminalName='RDP-tcp'`").SetUserAuthenticationRequired(0) | Out-Null"
+    executeExpression  "Get-NetFirewallRule -DisplayName `"Remote Desktop*`" | Set-NetFirewallRule -enabled true"
 
-	executeExpression  ".\automation\provisioning\base.ps1 'adoptopenjdk11 maven eclipse'"
-	executeExpression  ".\automation\provisioning\base.ps1 'nuget.commandline' -verion 5.8.1" # 5.9 is broken
-	executeExpression  ".\automation\provisioning\base.ps1 'azure-cli visualstudio2019enterprise vscode dotnetcore-sdk'"
+    executeExpression  ".\automation\provisioning\base.ps1 'adoptopenjdk11 maven eclipse'"
+    executeExpression  ".\automation\provisioning\base.ps1 'nuget.commandline' -verion 5.8.1" # 5.9 is broken
+    executeExpression  ".\automation\provisioning\base.ps1 'azure-cli visualstudio2019enterprise vscode dotnetcore-sdk'"
 
-	executeExpression  ".\automation\provisioning\base.ps1 'nano nodejs-lts python git svn vnc-viewer putty winscp postman'"
-	executeExpression  ".\automation\provisioning\base.ps1 'googlechrome' -checksum ignore" # Google does not provide a static download, so checksum can briefly fail on new releases
+    executeExpression  ".\automation\provisioning\base.ps1 'nano nodejs-lts python git svn vnc-viewer putty winscp postman'"
+    executeExpression  ".\automation\provisioning\base.ps1 'googlechrome' -checksum ignore" # Google does not provide a static download, so checksum can briefly fail on new releases
 
-	executeExpression  "Remove-Item -Recurse -Force automation"
-	if ( Test-Path git ) {
-		Write-Host "Git directory exists"
-	} else {
-		executeExpression  "mkdir git"
-	}
-	executeExpression  "cd .\git\"
-	executeExpression  "git clone https://github.com/cdaf/windows.git"
-	executeExpression  "& ${env:USERPROFILE}\git\windows\automation\provisioning\addPath.ps1 ${env:USERPROFILE}\git\windows\automation\provisioning User"
-	executeExpression  "& ${env:USERPROFILE}\git\windows\automation\provisioning\addPath.ps1 ${env:USERPROFILE}\git\windows\automation User"
+    executeExpression  "Remove-Item -Recurse -Force automation"
+    if ( Test-Path git ) {
+        Write-Host "Git directory exists"
+    } else {
+        executeExpression  "mkdir git"
+    }
+    executeExpression  "cd .\git\"
+    executeExpression  "git clone https://github.com/cdaf/windows.git"
+    executeExpression  "& ${env:USERPROFILE}\git\windows\automation\provisioning\addPath.ps1 ${env:USERPROFILE}\git\windows\automation\provisioning User"
+    executeExpression  "& ${env:USERPROFILE}\git\windows\automation\provisioning\addPath.ps1 ${env:USERPROFILE}\git\windows\automation User"
+
+    $extensions = @("jmrog.vscode-nuget-package-manager")
+    $extensions += "ms-vscode.PowerShell"
+    $extensions += "pronto-4gl-vscode-lang.pronto-4gl-language-definition"
+    $extensions += "ms-vscode-remote.remote-ssh"
+    $extensions += "ms-vscode-remote.remote-wsl"
+    $extensions += "marcostazi.VS-code-vagrantfile"
+    $extensions += "msazurermtools.azurerm-vscode-tools"
+    $extensions += "DotJoshJohnson.xml"
+    $extensions += "ms-azuretools.vscode-docker"
+    $extensions += "bmewburn.vscode-intelephense-client"
+    $extensions += "puppet.puppet-vscode"
+    $extensions += "vscoss.vscode-ansible"
+    $extensions += "ms-python.python"
+    foreach ($extension in $extensions) {
+        executeExpression "code --install-extension $extension"
+    }
+
 }
 
 Write-Host "`n[$scriptName] ---------- stop ----------"
