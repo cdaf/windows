@@ -1,6 +1,0 @@
-context  target     deployTaskOverride
-local    WINDOWS    compose.tsk
-local    WORKGROUP  compose.tsk
-local    DOCKER     compose.tsk
-local    AUTO_TEST  containerTest.tsk
-local    PUSH       push.tsk
