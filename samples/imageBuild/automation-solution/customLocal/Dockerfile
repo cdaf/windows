@@ -12,5 +12,5 @@ WORKDIR /solution
 COPY provision.ps1 .
 RUN powershell -NoProfile -Command ./provision.ps1
 
-# Normal containers run a console application, this example works in a more similar way to a traditional daemon server
-# CMD ["TIMEOUT", "-1"]
+# Normal containers run a console application, this is just keeps the container from stopping 
+CMD powershell -NoProfile -NonInteractive -command %cd%\provision.ps1 keepalive
