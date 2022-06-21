@@ -1,6 +1,5 @@
-# Only store provisioning scripts needed, not all
-automation\provisioning\runner.bat
-automation\remote\capabilities.ps1
+# CDAF scripts are filtered selection using package.tsk
+cdaf
 
 # TargetlessCD
 compose

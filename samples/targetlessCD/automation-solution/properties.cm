@@ -1,6 +1,7 @@
-context  target      deployTaskOverride  deployHost            deployLand            remoteUser  remoteCred        decryptThb
+context  target      deployTaskOverride
 local    DOCKER      compose.tsk
-local    TARGETLESS  containerTest.tsk   localhost
+local    WINDOWS     compose.tsk
+local    WORKGROUP   compose.tsk
 
-local    WINDOWS     containerTest.tsk   localhost
-local    WORKGROUP   containerTest.tsk   localhost
+local    SERVER      containerRun.tsk
+local    AUTO_TEST   containerTest.tsk

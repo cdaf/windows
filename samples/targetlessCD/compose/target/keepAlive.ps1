@@ -28,9 +28,10 @@ if ($ENVIRONMENT) {
 Write-Host "`n[$scriptName] Execute CDAF Delivery`n"
 executeExpression ".\TasksLocal\delivery.bat $ENVIRONMENT"
 
-$logFile = "$env:TEMP\psd.log"
-Add-Content $logFile '[START] ---------- Watch log to keep container alive ----------'
-Add-Content $logFile "[START] $(date)"
-Write-Host "[$scriptName] Get-Content $logFile -Wait -Tail 1000"
-
-Get-Content $logFile -Wait -Tail 1000
+Write-Host '---------- Watch Windows Events to keep container alive ----------'
+while ($true) {
+  start-sleep -Seconds 1
+  $idx2  = (Get-EventLog -LogName System -newest 1).index
+  get-eventlog -logname system -newest ($idx2 - $idx) |  sort index
+  $idx = $idx2
+}

@@ -8,6 +8,9 @@ Write-host $env:WORK_SPACE
 # Copy any artefacts needed into specific images here, example brings in remoteTasks package
 # VECOPY ..\${SOLUTION}-${BUILDNUMBER}.zip compose/target/deploy.zip
 
+Write-Host "Reinstate CDAF scripts to default directory name"
+mv cdaf automation
+
 cd compose
 ..\imageBuild.ps1 ${id} ${BUILDNUMBER} ${containerImage}
 cd ..
@@ -36,13 +39,13 @@ ASSIGN $env:TEST_TAG = "${env:TEST_TAG}:${BUILDNUMBER}"
 docker-compose up -d target
 
 Write-Host "Deploy to target (allow up to 2 minutes)`n"
-ASSIGN $containerID = $(docker ps -aq --filter "ancestor=$env:TARGET_TAG")
-& $WORKSPACE\dockerLog.ps1 $containerID 'Watch log to keep container alive' 120
+$containerID = $(docker ps -aq --filter "ancestor=$env:TARGET_TAG")
+& $WORKSPACE\dockerLog.ps1 $containerID 'Delivery Process Complete' 120
 
 docker-compose up -d test
 
 Write-Host "Execute tests (allow 5 minutes to complete)`n"
-ASSIGN $containerID = $(docker ps -aq --filter "ancestor=$env:TEST_TAG")
+$containerID = $(docker ps -aq --filter "ancestor=$env:TEST_TAG")
 & $WORKSPACE\dockerLog.ps1 $containerID 'Automated Test Execution completed successfully.' 300
 
 Write-Host "`nTear down if `$env:COMPOSE_KEEP ($env:COMPOSE_KEEP) not set`n"

@@ -1,12 +1,10 @@
 solutionName=imagebuild
-
 artifactPrefix=0.1
 
-defaultBranch=none
+# defaultBranch=main
 
 constructor=TasksLocal
 runtimeImage=mcr.microsoft.com/windows/servercore:ltsc2019
-
 imageBuild=& $AUTOMATIONROOT/remote/imageBuild.ps1 ${SOLUTION}_${REVISION} ${BUILDNUMBER} $runtimeImage $constructor
 
 # Build Image and push to DockerHub

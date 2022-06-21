@@ -57,17 +57,10 @@ executeExpression ".\TasksLocal\delivery.bat $ENVIRONMENT"
 
 Write-Host "`n[$scriptName] Automated Test Execution completed successfully."
 
-
-if ( $env:COMPOSE_KEEP -eq 'yes' ) {
-	$logFile = "$env:TEMP\psd.log"
-	Add-Content $logFile '[START] ---------- Watch log to keep container alive ----------'
-	Add-Content $logFile "[START] $(date)"
-	Write-Host "[$scriptName] Get-Content $logFile -Wait -Tail 1000"
-	
-	Get-Content $logFile -Wait -Tail 1000
-
-} else {
-	Write-Host "`n[$scriptName] ---------- stop ----------"
-	$error.clear()
-	cmd /c "exit 0"
+Write-Host '---------- Watch Windows Events to keep container alive ----------'
+while ($true) {
+  start-sleep -Seconds 1
+  $idx2  = (Get-EventLog -LogName System -newest 1).index
+  get-eventlog -logname system -newest ($idx2 - $idx) |  sort index
+  $idx = $idx2
 }
