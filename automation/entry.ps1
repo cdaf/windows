@@ -321,14 +321,13 @@ if ( $BRANCH -eq $defaultBranch ) {
 			foreach ( $featureProp in $propList ) {
 				$featurePrefix, $featureEnv = $featureProp -split '=', 2
 				$featurePrefix = $featurePrefix.substring(1) # trim off the $ prefix applied by Transform.ps1
-				$processEnv = Invoke-Expression "if ( '$BRANCH' -match '$featurePrefix*' ) { write-output $featureEnv }"
-				if ( $processEnv ) {
+				if ( $BRANCH -match "${featurePrefix}*" ) {
 					Write-Host "  Deploy feature branch prefix '$featurePrefix'"
 					$featureBranchProcess = 'yes'
 					if ( $artifactPrefix ) {
-						executeExpression ".\release.ps1 $processEnv"
+						executeExpression ".\release.ps1 $featureEnv"
 					} else {
-						executeExpression ".\TasksLocal\delivery.ps1 $processEnv"
+						executeExpression ".\TasksLocal\delivery.ps1 $featureEnv"
 					}
 				} else {
 					Write-Host "  Skip feature branch prefix '$featurePrefix'"
