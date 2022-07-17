@@ -88,6 +88,15 @@ if (-not(Test-Path $propertiesFilter)) {
 		}
 	}
 
+	# 2.5.3 Option to disable volume mount for containerDeploy
+	$homeMount = getProp 'manifest.txt' CDAF_HOME_MOUNT
+	if ( $homeMount ) {
+		$env:CDAF_HOME_MOUNT = $homeMount
+		Write-Host "[$scriptName]   `${env:CDAF_HOME_MOUNT} = ${env:CDAF_HOME_MOUNT} (solution override)"
+	} else {
+		Write-Host "[$scriptName]   `${env:CDAF_HOME_MOUNT} = ${env:CDAF_HOME_MOUNT}"
+	}
+
 	# 2.5.0 Process all containerDeploy environments based on prefix pattern (align with localTasks and remoteTasks)
 	Write-Host "`n[$scriptName] Preparing to process deploy targets :`n"
 	foreach ($propFile in (Get-ChildItem -Path $WORK_DIR_DEFAULT\$propertiesFilter)) {

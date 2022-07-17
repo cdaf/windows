@@ -141,7 +141,13 @@ foreach ( $envVar in Get-ChildItem env:) {
 	}
 }
 
-executeExpression "docker run --volume ${env:USERPROFILE}:C:/solution/home ${buildCommand} --label cdaf.${id}.container.instance=${REVISION} --name ${id} ${id}:${BUILDNUMBER} deploy.bat ${TARGET}"
+if (( ! ${env:USERPROFILE} ) -or ( ${env:CDAF_HOME_MOUNT} -eq 'no' )) {
+	Write-Host "[$scriptName] `${env:CDAF_HOME_MOUNT} = ${env:CDAF_HOME_MOUNT}"
+	Write-Host "[$scriptName] `${env:USERPROFILE}     = ${env:USERPROFILE}"
+	executeExpression "docker run ${buildCommand} --label cdaf.${id}.container.instance=${REVISION} --name ${id} ${id}:${BUILDNUMBER} deploy.bat ${TARGET}"
+} else {
+	executeExpression "docker run --volume ${env:USERPROFILE}:C:/solution/home ${buildCommand} --label cdaf.${id}.container.instance=${REVISION} --name ${id} ${id}:${BUILDNUMBER} deploy.bat ${TARGET}"
+}
 
 Write-Host
 executeExpression "$WORKING_DIRECTORY/dockerRun.ps1 ${id}"
