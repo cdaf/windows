@@ -1,7 +1,7 @@
 stages:
   - build
-  - automated test
-  - manual test
+  - automated
+  - manual
   - live
 
 cdaf-ci:
@@ -22,22 +22,22 @@ cdaf-ci:
     - release.ps1
 
 cd:
-  stage: automated test
+  stage: automated
   tags:
     - batch
   script: "./release.ps1 $env:CI_JOB_NAME $env:CI_PIPELINE_ID"
-  environment: "${CI_STAGE_NAME}"
+  environment: automated
   dependencies:
     - cdaf-ci
   only:
     - master
 
 test:
-  stage: manual test
+  stage: manual
   tags:
     - batch
   script: "./release.ps1 $env:CI_JOB_NAME $env:CI_PIPELINE_ID"
-  environment: "${CI_STAGE_NAME}"
+  environment: manual
   dependencies:
     - cdaf-ci
   only:
@@ -48,7 +48,7 @@ production:
   tags:
     - batch
   script: "./release.ps1 $env:CI_JOB_NAME $env:CI_PIPELINE_ID"
-  environment: "${CI_STAGE_NAME}"
+  environment: live
   dependencies:
     - cdaf-ci
   only:
