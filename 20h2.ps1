@@ -165,19 +165,28 @@ if ( $virtualisation -eq 'hyperv' ) {
     executeExpression "& ${env:USERPROFILE}\git\windows\automation\provisioning\addPath.ps1 ${env:USERPROFILE}\git\windows\automation\provisioning User"
     executeExpression "& ${env:USERPROFILE}\git\windows\automation\provisioning\addPath.ps1 ${env:USERPROFILE}\git\windows\automation User"
 
-    $extensions = @("jmrog.vscode-nuget-package-manager")
-    $extensions += "ms-vscode.PowerShell"
-    $extensions += "pronto-4gl-vscode-lang.pronto-4gl-language-definition"
+    $extensions = @()
+    $extensions += "bmewburn.vscode-intelephense-client"
+    $extensions += "DotJoshJohnson.xml"
+    $extensions += "jmrog.vscode-nuget-package-manager"
+    $extensions += "marcostazi.VS-code-vagrantfile"
+    $extensions += "ms-dotnettools.csharp"
+    $extensions += "ms-azuretools.vscode-azurefunctions"
+    $extensions += "ms-azuretools.vscode-azureresourcegroups"
+    $extensions += "ms-azuretools.vscode-cosmosdb"
+    $extensions += "ms-azuretools.vscode-docker"
+    $extensions += "ms-python.python"
+    $extensions += "ms-toolsai.vscode-ai"
+    $extensions += "ms-toolsai.vscode-ai-remote"
+    $extensions += "ms-vscode.azure-account"
     $extensions += "ms-vscode-remote.remote-ssh"
     $extensions += "ms-vscode-remote.remote-wsl"
-    $extensions += "marcostazi.VS-code-vagrantfile"
+    $extensions += "ms-vscode.PowerShell"
     $extensions += "msazurermtools.azurerm-vscode-tools"
-    $extensions += "DotJoshJohnson.xml"
-    $extensions += "ms-azuretools.vscode-docker"
-    $extensions += "bmewburn.vscode-intelephense-client"
+    $extensions += "pronto-4gl-vscode-lang.pronto-4gl-language-definition"
     $extensions += "puppet.puppet-vscode"
     $extensions += "vscoss.vscode-ansible"
-    $extensions += "ms-python.python"
+    
     foreach ($extension in $extensions) {
         executeExpression "code --install-extension $extension --force"
     }
