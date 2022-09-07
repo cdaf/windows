@@ -203,4 +203,7 @@ if ( $virtualisation -eq 'hyperv' ) {
 
 }
 
+Write-Host "`n[$scriptName] List installed Chocolatey packages..."
+executeExpression "choco list --localonly"
+
 Write-Host "`n[$scriptName] ---------- stop ----------"
