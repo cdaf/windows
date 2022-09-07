@@ -150,10 +150,15 @@ if ( $virtualisation -eq 'hyperv' ) {
     executeExpression ".\automation\provisioning\base.ps1 'adoptopenjdk11 maven eclipse'"
     executeExpression ".\automation\provisioning\base.ps1 'nuget.commandline' -verion 5.8.1" # 5.9 is broken
     executeExpression ".\automation\provisioning\base.ps1 'azure-cli visualstudio2022enterprise vscode dotnetcore-sdk'"
-    executeExpression ".\automation\provisioning\base.ps1 'azure-cli visualstudio2022enterprise vscode dotnetcore-sdk'"
+
+    # Ensure NuGet is a source, by default it is not (ignore if already added)
+    Write-Host "nuget sources add -Name NuGet.org -Source https://api.nuget.org/v3/index.json"
+    nuget sources add -Name NuGet.org -Source https://api.nuget.org/v3/index.json
+    
     executeExpression ".\automation\provisioning\base.ps1 'vswhere'" # Install this now that VS is installed
 
     executeExpression ".\automation\provisioning\base.ps1 'nano nodejs-lts python git svn vnc-viewer putty winscp postman'"
+    executeExpression "git config --global core.autocrlf false"
     executeExpression ".\automation\provisioning\base.ps1 'googlechrome' -checksum ignore" # Google does not provide a static download, so checksum can briefly fail on new releases
 
     executeExpression "Remove-Item -Recurse -Force automation"
