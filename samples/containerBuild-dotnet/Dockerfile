@@ -3,6 +3,8 @@
 # Use the latest Windows Server Core 2019 image.
 FROM mcr.microsoft.com/windows/servercore:ltsc2019
 
+WORKDIR C:\\solution
+
 # Restore the default Windows shell for correct batch processing.
 SHELL ["cmd", "/S", "/C"]
 
@@ -24,10 +26,8 @@ RUN `
     # Cleanup
     && del /q vs_buildtools.exe
 
-COPY bootstrap.ps1 .
-COPY runner.bat .
-
-RUN runner.bat bootstrap.ps1
+# Run container in empty directory, i.e. suitable for volume mounting
+WORKDIR C:\\solution\\workspace
 
 # Define the entry point for the docker container.
 # This entry point starts the developer command prompt and launches the PowerShell shell.

@@ -1,5 +1,6 @@
-productVersion=0.1.0
-productName=My Product Name
-solutionName=myProduct
+productName=ASP.NET Classic
+solutionName=dotnet
+artifactPrefix=0.0
+
 containerBuild=& ${AUTOMATIONROOT}/processor/containerBuild.ps1 $SOLUTION $BUILDNUMBER $REVISION $ACTION
 containerImage=mcr.microsoft.com/windows/servercore:ltsc2022
