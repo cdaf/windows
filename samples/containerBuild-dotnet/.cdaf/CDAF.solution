@@ -1,0 +1,5 @@
+productVersion=0.1.0
+productName=My Product Name
+solutionName=myProduct
+containerBuild=& ${AUTOMATIONROOT}/processor/containerBuild.ps1 $SOLUTION $BUILDNUMBER $REVISION $ACTION
+containerImage=mcr.microsoft.com/windows/servercore:ltsc2022
