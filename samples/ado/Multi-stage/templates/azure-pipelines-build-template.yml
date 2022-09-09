@@ -28,9 +28,9 @@ jobs:
 
           targetType: 'inline' # Use a specific CDAF version
           script: |
-            $env:CDAF_PATH = '~\.cdaf'
-            . { iwr -useb http://cdaf.io/static/app/downloads/WU-CDAF-2.5.0.zip } | iex
-            ~\.cdaf\entry.ps1 $(Build.BuildNumber) $(Build.SourceBranch) staging@$(Build.ArtifactStagingDirectory)
+            iwr -useb http://cdaf.io/static/app/downloads/WU-CDAF-2.5.3.zip -OutFile WU_CDAF.zip
+            Expand-Archive WU_CDAF.zip
+            .\WU_CDAF\automation\entry.ps1 $(Build.BuildNumber) $(Build.SourceBranch) staging@$(Build.ArtifactStagingDirectory)
 
 #          targetType: 'inline' # Use latest published version
 #          script: |
