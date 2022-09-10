@@ -237,7 +237,7 @@ if ( $BUILDNUMBER ) {
 
 if ($REVISION) {
 	if ( $REVISION.contains('$')) {
-		$REVISION = Invoke-Expression "Write-Output $REVISION"
+		$REVISION = Invoke-Expression "Write-Output `"$REVISION`""
 	}
     Write-Host "[$scriptName]   REVISION        : $REVISION"
 } else {
@@ -349,7 +349,128 @@ if ( $containerImage ) {
 	}
 }
 
-# Properties generator (added in release 1.7.8, extended to list in 1.8.11, moved from build to pre-process 1.8.14), added container tasks 2.4.0
+# CDAF 1.6.7 Container Build process
+if ( $ACTION -eq 'container_build' ) {
+	Write-Host "`n[$scriptName] `$ACTION = $ACTION, container build detection skipped ...`n"
+} else {
+
+	# Process optional post-packaging tasks (Task driver support added in release 2.4.4)
+	if (Test-Path "$postbuild") {
+		Write-Host "`n[$scriptName] Process Post-Build Task ...`n"
+		& $AUTOMATIONROOT\remote\execute.ps1 $SOLUTION $BUILDNUMBER "package" "$postbuild" $ACTION
+		if(!$?){ exceptionExit ".$AUTOMATIONROOT\remote\execute.ps1 $SOLUTION $BUILDNUMBER `"package`" `"$postbuild`" $ACTION" }
+	}
+
+	# 2.5.5 support conditional containerBuild based on environment variable
+	$containerBuildProp = getProp 'containerBuild' "$SOLUTIONROOT\CDAF.solution"
+	if ( $containerBuildProp ) {
+		$containerBuild = Invoke-Expression "Write-Output `"$containerBuildProp`""
+		if ( $containerBuild ) {
+			if (( $env:CDAF_SKIP_CONTAINER_BUILD ) -or ( $ACTION -eq 'skip_container_build' )) {
+				Write-Host "`n[$scriptName] `$ACTION = $ACTION, container build defined (${containerBuild}) but skipped ...`n"
+				Clear-Variable -Name 'containerBuild'
+			} else {
+					$versionTest = cmd /c docker --version 2`>`&1
+				if ( $LASTEXITCODE -ne 0 ) {
+					cmd /c "exit 0"
+					Write-Host "[$scriptName]   containerBuild  : containerBuild defined in $SOLUTIONROOT\CDAF.solution, but Docker not installed, will attempt to execute natively"
+					Clear-Variable -Name 'containerBuild'
+					$executeNative = $true
+				} else {
+					Write-Host "[$scriptName]   containerBuild  : $containerBuild"
+					$array = $versionTest.split(" ")
+					$dockerRun = $($array[2])
+					Write-Host "[$scriptName]   Docker          : $dockerRun"
+					# Test Docker is running
+					If (Get-Service Docker -ErrorAction SilentlyContinue) {
+						$dockerStatus = executeReturn '(Get-Service Docker).Status'
+						$dockerStatus
+						if ( $dockerStatus -ne 'Running' ) {
+							if ( $dockerdProcess = Get-Process dockerd -ea SilentlyContinue ) {
+								Write-Host "[$scriptName] Process dockerd is running..."
+							} else {
+								Write-Host "[$scriptName] Process dockerd is not running..."
+							}
+						}
+						if (( $dockerStatus -ne 'Running' ) -and ( $null -eq $dockerdProcess )){
+							if ( $env:CDAF_DOCKER_REQUIRED ) {
+								dockerStart
+							} else {			    
+								Write-Host "[$scriptName] Docker installed but not running, will attempt to execute natively (set `$env:CDAF_DOCKER_REQUIRED if docker is mandatory)"
+								cmd /c "exit 0"
+								Clear-Variable -Name 'containerBuild'
+								$executeNative = $true
+							}
+						}
+					}
+					
+					Write-Host "[$scriptName] List all current images"
+					Write-Host "docker images 2> `$null"
+					docker images 2> $null
+					if ( $LASTEXITCODE -ne 0 ) {
+						Write-Host "[$scriptName] Docker not responding, will attempt to execute natively (set `$env:CDAF_DOCKER_REQUIRED if docker is mandatory)"
+						if ( $env:CDAF_DOCKER_REQUIRED ) {
+							dockerStart
+						} else {			    
+							Write-Host "[$scriptName]   Docker installed but not running, will attempt to execute natively (set `$env:CDAF_DOCKER_REQUIRED if docker is mandatory)"
+							cmd /c "exit 0"
+							Clear-Variable -Name 'containerBuild'
+							$executeNative = $true
+						}
+					}
+				}
+			}
+		} else {
+			Write-Host "[$scriptName]   containerBuild  : set to '$containerBuildProp' but does not resolve, will perform native build"
+		}
+	} else {
+		Write-Host "[$scriptName]   containerBuild  : (not defined in $SOLUTIONROOT\CDAF.solution)"
+	}
+}
+
+# 2.2.0 Image Build as incorperated function
+$imageBuild = getProp 'imageBuild' "$SOLUTIONROOT\CDAF.solution"
+if ( $imageBuild ) {
+	$versionTest = cmd /c docker --version 2`>`&1
+	if ( $LASTEXITCODE -ne 0 ) {
+		cmd /c "exit 0"
+		$skipImageBuild = "imageBuild defined in $SOLUTIONROOT\CDAF.solution, but Docker not in use, imageBuild will not be attempted"
+		Write-Host "[$scriptName]   imageBuild      : $skipImageBuild"
+	} else {
+		If (Get-Service Docker -ErrorAction SilentlyContinue) {
+			$dockerStatus = executeReturn '(Get-Service Docker).Status'
+			$dockerStatus
+			if ( $dockerStatus -ne 'Running' ) {
+				if ( $dockerdProcess = Get-Process dockerd -ea SilentlyContinue ) {
+					Write-Host "[$scriptName] Process dockerd is running..."
+				} else {
+					Write-Host "[$scriptName] Process dockerd is not running..."
+				}
+			}
+			if (( $dockerStatus -ne 'Running' ) -and ( $null -eq $dockerdProcess )){
+				if ( $env:CDAF_DOCKER_REQUIRED ) {
+					dockerStart
+				} else {			    
+					Write-Host "[$scriptName] Docker installed but not running, will attempt to execute natively (set `$env:CDAF_DOCKER_REQUIRED if docker is mandatory)"
+					cmd /c "exit 0"
+					Clear-Variable -Name 'containerBuild'
+					$executeNative = $true
+				}
+			}
+		}
+	}
+
+	if ( $executeNative ) { # docker test already performed
+		Write-Host "[$scriptName]   imageBuild      : imageBuild defined in $SOLUTIONROOT\CDAF.solution, but Docker not in use, imageBuild will not be attempted"
+	} else {
+		Write-Host "[$scriptName]   imageBuild      : $imageBuild"
+	}
+} else {
+	Write-Host "[$scriptName]   imageBuild      : (not defined in $SOLUTIONROOT\CDAF.solution)"
+}
+
+# added in release 1.7.8, extended to list in 1.8.11, moved from build to pre-process 1.8.14), added container tasks 2.4.0
+Write-Host "`n[$scriptName] Properties generator"
 $itemList = @("propertiesForLocalTasks", "propertiesForRemoteTasks", "propertiesForContainerTasks")
 foreach ($itemName in $itemList) {  
 	itemRemove ".\${itemName}"
@@ -398,120 +519,6 @@ foreach ($propertiesDriver in $pivotList) {
 	}
 }
 
-# CDAF 1.6.7 Container Build process
-if ( $ACTION -eq 'container_build' ) {
-	Write-Host "`n[$scriptName] `$ACTION = $ACTION, container build detection skipped ...`n"
-} else {
-
-	# Process optional post-packaging tasks (Task driver support added in release 2.4.4)
-	if (Test-Path "$postbuild") {
-		Write-Host "`n[$scriptName] Process Post-Build Task ...`n"
-		& $AUTOMATIONROOT\remote\execute.ps1 $SOLUTION $BUILDNUMBER "package" "$postbuild" $ACTION
-		if(!$?){ exceptionExit ".$AUTOMATIONROOT\remote\execute.ps1 $SOLUTION $BUILDNUMBER `"package`" `"$postbuild`" $ACTION" }
-	}
-
-	$containerBuild = getProp 'containerBuild' "$SOLUTIONROOT\CDAF.solution"
-	if ( $containerBuild ) {
-		if (( $env:CDAF_SKIP_CONTAINER_BUILD ) -or ( $ACTION -eq 'skip_container_build' )) {
-			Write-Host "`n[$scriptName] `$ACTION = $ACTION, container build defined (${containerBuild}) but skipped ...`n"
-			Clear-Variable -Name 'containerBuild'
-		} else {
-				$versionTest = cmd /c docker --version 2`>`&1
-			if ( $LASTEXITCODE -ne 0 ) {
-				cmd /c "exit 0"
-				Write-Host "[$scriptName]   containerBuild  : containerBuild defined in $SOLUTIONROOT\CDAF.solution, but Docker not installed, will attempt to execute natively"
-				Clear-Variable -Name 'containerBuild'
-				$executeNative = $true
-			} else {
-				Write-Host "[$scriptName]   containerBuild  : $containerBuild"
-				$array = $versionTest.split(" ")
-				$dockerRun = $($array[2])
-				Write-Host "[$scriptName]   Docker          : $dockerRun"
-				# Test Docker is running
-				If (Get-Service Docker -ErrorAction SilentlyContinue) {
-					$dockerStatus = executeReturn '(Get-Service Docker).Status'
-					$dockerStatus
-					if ( $dockerStatus -ne 'Running' ) {
-						if ( $dockerdProcess = Get-Process dockerd -ea SilentlyContinue ) {
-							Write-Host "[$scriptName] Process dockerd is running..."
-						} else {
-							Write-Host "[$scriptName] Process dockerd is not running..."
-						}
-					}
-					if (( $dockerStatus -ne 'Running' ) -and ( $null -eq $dockerdProcess )){
-						if ( $env:CDAF_DOCKER_REQUIRED ) {
-							dockerStart
-						} else {			    
-							Write-Host "[$scriptName] Docker installed but not running, will attempt to execute natively (set `$env:CDAF_DOCKER_REQUIRED if docker is mandatory)"
-							cmd /c "exit 0"
-							Clear-Variable -Name 'containerBuild'
-							$executeNative = $true
-						}
-					}
-				}
-				
-				Write-Host "[$scriptName] List all current images"
-				Write-Host "docker images 2> `$null"
-				docker images 2> $null
-				if ( $LASTEXITCODE -ne 0 ) {
-					Write-Host "[$scriptName] Docker not responding, will attempt to execute natively (set `$env:CDAF_DOCKER_REQUIRED if docker is mandatory)"
-					if ( $env:CDAF_DOCKER_REQUIRED ) {
-						dockerStart
-					} else {			    
-						Write-Host "[$scriptName]   Docker installed but not running, will attempt to execute natively (set `$env:CDAF_DOCKER_REQUIRED if docker is mandatory)"
-						cmd /c "exit 0"
-						Clear-Variable -Name 'containerBuild'
-						$executeNative = $true
-					}
-				}
-			}
-		}
-	} else {
-		Write-Host "[$scriptName]   containerBuild  : (not defined in $SOLUTIONROOT\CDAF.solution)"
-	}
-}
-
-# 2.2.0 Image Build as incorperated function
-$imageBuild = getProp 'imageBuild' "$SOLUTIONROOT\CDAF.solution"
-if ( $imageBuild ) {
-	$versionTest = cmd /c docker --version 2`>`&1
-	if ( $LASTEXITCODE -ne 0 ) {
-		cmd /c "exit 0"
-		$skipImageBuild = "imageBuild defined in $SOLUTIONROOT\CDAF.solution, but Docker not in use, imageBuild will not be attempted"
-		Write-Host "[$scriptName]   imageBuild      : $skipImageBuild"
-	} else {
-		If (Get-Service Docker -ErrorAction SilentlyContinue) {
-			$dockerStatus = executeReturn '(Get-Service Docker).Status'
-			$dockerStatus
-			if ( $dockerStatus -ne 'Running' ) {
-				if ( $dockerdProcess = Get-Process dockerd -ea SilentlyContinue ) {
-					Write-Host "[$scriptName] Process dockerd is running..."
-				} else {
-					Write-Host "[$scriptName] Process dockerd is not running..."
-				}
-			}
-			if (( $dockerStatus -ne 'Running' ) -and ( $null -eq $dockerdProcess )){
-				if ( $env:CDAF_DOCKER_REQUIRED ) {
-					dockerStart
-				} else {			    
-					Write-Host "[$scriptName] Docker installed but not running, will attempt to execute natively (set `$env:CDAF_DOCKER_REQUIRED if docker is mandatory)"
-					cmd /c "exit 0"
-					Clear-Variable -Name 'containerBuild'
-					$executeNative = $true
-				}
-			}
-		}
-	}
-
-	if ( $executeNative ) { # docker test already performed
-		Write-Host "[$scriptName]   imageBuild      : imageBuild defined in $SOLUTIONROOT\CDAF.solution, but Docker not in use, imageBuild will not be attempted"
-	} else {
-		Write-Host "[$scriptName]   imageBuild      : $imageBuild"
-	}
-} else {
-	Write-Host "[$scriptName]   imageBuild      : (not defined in $SOLUTIONROOT\CDAF.solution)"
-}
-
 if (( $containerBuild ) -and ( $ACTION -ne 'packageonly' )) {
 
 	Write-Host "`n[$scriptName] Execute Container build, this performs cionly, buildonly is ignored.`n" -ForegroundColor Green
@@ -526,12 +533,14 @@ if (( $containerBuild ) -and ( $ACTION -ne 'packageonly' )) {
 			Write-Host "`n[$scriptName] ACTION is $ACTION so skipping build process" -ForegroundColor Yellow
 		}
 	} else {
+		Write-Host
 		executeExpression "& $AUTOMATIONROOT\buildandpackage\buildProjects.ps1 $SOLUTION $BUILDNUMBER $REVISION $AUTOMATIONROOT $SOLUTIONROOT $ACTION"
 	}
 	
 	if (( $ACTION -eq 'buildonly' ) -or ( $ACTION -eq 'clean' )) {
 		Write-Host "`n[$scriptName] ACTION is $ACTION so skipping package process" -ForegroundColor Yellow
 	} else {
+		Write-Host
 		executeExpression "& $AUTOMATIONROOT\buildandpackage\package.ps1 $SOLUTION $BUILDNUMBER $REVISION $AUTOMATIONROOT $SOLUTIONROOT $LOCAL_WORK_DIR $REMOTE_WORK_DIR $ACTION"
 	}
 }

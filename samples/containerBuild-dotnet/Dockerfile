@@ -1,7 +1,7 @@
 # escape=`
 
-# Use the latest Windows Server Core 2019 image.
-FROM mcr.microsoft.com/windows/servercore:ltsc2019
+ARG CONTAINER_IMAGE
+FROM ${CONTAINER_IMAGE}
 
 WORKDIR C:\\solution
 
