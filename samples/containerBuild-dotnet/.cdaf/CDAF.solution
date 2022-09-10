@@ -3,4 +3,4 @@ solutionName=dotnet
 artifactPrefix=0.0
 
 containerBuild=& ${AUTOMATIONROOT}\processor\containerBuild.ps1 $SOLUTION $BUILDNUMBER $REVISION $ACTION
-containerImage=mcr.microsoft.com/windows/servercore:ltsc2022
+containerImage=mcr.microsoft.com/windows/servercore:ltsc2019
