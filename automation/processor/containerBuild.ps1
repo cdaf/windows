@@ -117,10 +117,12 @@ if ( $buildImage ) {
 		Write-Host "[$scriptName] No existing images, new image will be $($imageTag + 1)"
 	}
 
-	Write-Host "Directory listing of $(pwd)"
-	foreach ( $item in $(Get-ChildItem .) ) { Write-Host "  $item" }
-	
-	executeExpression "cat Dockerfile"
+	if ( Test-Path Dockerfile ) {
+		executeExpression "cat Dockerfile"
+	} else {
+		Write-Host "Dockerfile not found! Directory listing of $(pwd)"
+		foreach ( $item in $(Get-ChildItem .) ) { Write-Host "  $item" }
+	}
 		
 	if ( $rebuildImage -eq 'yes') {
 		$otherOptions = " -rebuild $rebuildImage"

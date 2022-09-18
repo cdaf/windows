@@ -7,7 +7,8 @@ Param (
 [string]$servicePassword,
 [string]$deploymentgroup,
 [string]$projectname,
-[string]$mediaDirectory
+[string]$mediaDirectory,
+[string]$version
 )
 
 cmd /c "exit 0"
@@ -89,8 +90,12 @@ if ( $mediaDirectory ) {
 	Write-Host "[$scriptName] mediaDirectory  : $mediaDirectory (not supplied, set to default)"
 }
 
-$version = '2.150.3'
-Write-Host "[$scriptName] version         : $version"
+if ( $version ) {
+	Write-Host "[$scriptName] version         : $version"
+} else {
+	$version = '2.210.0'
+	Write-Host "[$scriptName] version         : $version"
+}
 
 $fullpath = 'C:\agent\config.cmd'
 $workspace = $(pwd)

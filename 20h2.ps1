@@ -149,9 +149,16 @@ if ( $virtualisation -eq 'hyperv' ) {
 
     executeExpression ".\automation\provisioning\base.ps1 'adoptopenjdk11 maven eclipse'"
     executeExpression ".\automation\provisioning\base.ps1 'nuget.commandline' -verion 5.8.1" # 5.9 is broken
-    executeExpression ".\automation\provisioning\base.ps1 'azure-cli visualstudio2019enterprise vscode dotnetcore-sdk'"
+    executeExpression ".\automation\provisioning\base.ps1 'azure-cli visualstudio2022enterprise vscode dotnetcore-sdk'"
+
+    # Ensure NuGet is a source, by default it is not (ignore if already added)
+    Write-Host "nuget sources add -Name NuGet.org -Source https://api.nuget.org/v3/index.json"
+    nuget sources add -Name NuGet.org -Source https://api.nuget.org/v3/index.json
+    
+    executeExpression ".\automation\provisioning\base.ps1 'vswhere'" # Install this now that VS is installed
 
     executeExpression ".\automation\provisioning\base.ps1 'nano nodejs-lts python git svn vnc-viewer putty winscp postman'"
+    executeExpression "git config --global core.autocrlf false"
     executeExpression ".\automation\provisioning\base.ps1 'googlechrome' -checksum ignore" # Google does not provide a static download, so checksum can briefly fail on new releases
 
     executeExpression "Remove-Item -Recurse -Force automation"
@@ -165,23 +172,45 @@ if ( $virtualisation -eq 'hyperv' ) {
     executeExpression "& ${env:USERPROFILE}\git\windows\automation\provisioning\addPath.ps1 ${env:USERPROFILE}\git\windows\automation\provisioning User"
     executeExpression "& ${env:USERPROFILE}\git\windows\automation\provisioning\addPath.ps1 ${env:USERPROFILE}\git\windows\automation User"
 
-    $extensions = @("jmrog.vscode-nuget-package-manager")
-    $extensions += "ms-vscode.PowerShell"
-    $extensions += "pronto-4gl-vscode-lang.pronto-4gl-language-definition"
+    $extensions = @()
+    $extensions += "42crunch.vscode-openapi"
+    $extensions += "bierner.markdown-mermaid"
+    $extensions += "bmewburn.vscode-intelephense-client"
+    $extensions += "cweijan.vscode-mysql-client2"
+    $extensions += "DotJoshJohnson.xml"
+    $extensions += "hashicorp.terraform"
+    $extensions += "hediet.vscode-drawio"
+    $extensions += "jmrog.vscode-nuget-package-manager"
+    $extensions += "marcostazi.VS-code-vagrantfile"
+    $extensions += "ms-dotnettools.csharp"
+    $extensions += "ms-azuretools.vscode-azurefunctions"
+    $extensions += "ms-azuretools.vscode-azureresourcegroups"
+    $extensions += "ms-azuretools.vscode-cosmosdb"
+    $extensions += "ms-azuretools.vscode-docker"
+    $extensions += "ms-python.python"
+    $extensions += "ms-python.vscode-pylance"
+    $extensions += "ms-toolsai.jupyter"
+    $extensions += "ms-toolsai.vscode-ai"
+    $extensions += "ms-toolsai.vscode-ai-remote"
+    $extensions += "ms-vscode.azure-account"
+    $extensions += "ms-vscode.powershell"
+    $extensions += "ms-vscode-remote.remote-containers"
     $extensions += "ms-vscode-remote.remote-ssh"
     $extensions += "ms-vscode-remote.remote-wsl"
-    $extensions += "marcostazi.VS-code-vagrantfile"
     $extensions += "msazurermtools.azurerm-vscode-tools"
-    $extensions += "DotJoshJohnson.xml"
-    $extensions += "ms-azuretools.vscode-docker"
-    $extensions += "bmewburn.vscode-intelephense-client"
+    $extensions += "pronto-4gl-vscode-lang.pronto-4gl-language-definition"
     $extensions += "puppet.puppet-vscode"
+    $extensions += "redhat.vscode-yaml"
+    $extensions += "streetsidesoftware.code-spell-checker"
     $extensions += "vscoss.vscode-ansible"
-    $extensions += "ms-python.python"
+    
     foreach ($extension in $extensions) {
         executeExpression "code --install-extension $extension --force"
     }
 
 }
+
+Write-Host "`n[$scriptName] List installed Chocolatey packages..."
+executeExpression "choco list --localonly"
 
 Write-Host "`n[$scriptName] ---------- stop ----------"
