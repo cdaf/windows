@@ -409,6 +409,13 @@ function MASKED ($value) {
 
 # Validate Variables (2.4.6)
 function VARCHK ($propertiesFile) {
+	if ( $propertiesFile ) {
+		Write-Host "  VARCHK using $propertiesFile"
+	} else {
+		$propertiesFile = 'properties.varchk'
+		Write-Host "  VARCHK using $propertiesFile (default)"
+	}
+
 	if ( -not ( Test-Path $propertiesFile )) {
 		ERRMSG "[VARCHK_PROP_FILE_NOT_FOUND] $propertiesFile not found" 7781
 	}
