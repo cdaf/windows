@@ -54,7 +54,7 @@ Write-Host "`n[$scriptName] If default vagrant mapping (C:\vagrant) is found, se
 if ( Test-Path '/vagrant/automation' ) {
 	$atomicPath = '/vagrant/automation'
  } else {
-	. { iwr -useb https://raw.githubusercontent.com/cdaf/windows/master/installCDAF.ps1 } | iex
+	. { iwr -useb https://raw.githubusercontent.com/cdaf/windows/master/install.ps1 } | iex
 	$atomicPath = "${env:USERPROFILE}/.cdaf"
 }
 

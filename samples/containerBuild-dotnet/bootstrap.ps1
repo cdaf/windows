@@ -32,7 +32,7 @@ $error.clear()
 Write-Host "`n[$scriptName] ---------- start ----------"
 
 $env:CDAF_PATH = 'automation'
-executeExpression '. { iwr -useb https://raw.githubusercontent.com/cdaf/windows/master/installCDAF.ps1 } | iex'
+executeExpression '. { iwr -useb https://raw.githubusercontent.com/cdaf/windows/master/install.ps1 } | iex'
 # executeExpression '. { iwr -useb https://cdaf.io/static/app/downloads/cdaf.ps1 } | iex'
 executeExpression '.\automation\provisioning\base.ps1 nuget.commandline'
 

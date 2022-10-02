@@ -23,7 +23,7 @@ jobs:
 #          targetType: 'inline' # Use edge CDAF version from GitHub
 #          script: |
 #            $env:CDAF_PATH = '~\.cdaf'
-#            . { iwr -useb https://raw.githubusercontent.com/cdaf/windows/master/installCDAF.ps1 } | iex
+#            . { iwr -useb https://raw.githubusercontent.com/cdaf/windows/master/install.ps1 } | iex
 #            ~\.cdaf\entry.ps1 $(Build.BuildNumber) $(Build.SourceBranch) staging@$(Build.ArtifactStagingDirectory)
 
           targetType: 'inline' # Use a specific CDAF version

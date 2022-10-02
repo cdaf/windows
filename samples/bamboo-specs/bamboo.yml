@@ -20,7 +20,7 @@ Build Job:
 
 #        scripts: | # Edge version from GitHub
 #          $env:CDAF_PATH = '.\automation'
-#          . { iwr -useb https://raw.githubusercontent.com/cdaf/windows/master/installCDAF.ps1 } | iex
+#          . { iwr -useb https://raw.githubusercontent.com/cdaf/windows/master/install.ps1 } | iex
 #          .\\automation\\entry.bat ${bamboo.buildNumber} ${bamboo.repository.branch.name}
 
 #        scripts: | # "In-source" implemenation
