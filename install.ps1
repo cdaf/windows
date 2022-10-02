@@ -71,13 +71,13 @@ if ( $version ) {
 	executeExpression "Move-Item '.\windows-master\automation\' '${installPath}'"
 	executeExpression "Remove-Item -Recurse '$(pwd)\windows-master'"
 	executeExpression "Remove-Item '$(pwd)\cdaf.zip'"
-	
+
 }
 
 if ( $env:CDAF_INSTALL_PATH ) {
-	executeExpression "${installPath}\provisioning\addPath.ps1 '${installPath}\automation\provisioning'"
-	executeExpression "${installPath}\provisioning\addPath.ps1 '${installPath}\remote\provisioning'"
-	executeExpression "${installPath}\provisioning\addPath.ps1 '${installPath}\automation'"
+	executeExpression "${installPath}\provisioning\addPath.ps1 '${installPath}\provisioning'"
+	executeExpression "${installPath}\provisioning\addPath.ps1 '${installPath}\remote'"
+	executeExpression "${installPath}\provisioning\addPath.ps1 '${installPath}'"
 }
 
 executeExpression "${installPath}\remote\capabilities.ps1"
