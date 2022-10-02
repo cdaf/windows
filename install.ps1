@@ -75,9 +75,9 @@ if ( $version ) {
 }
 
 if ( $env:CDAF_INSTALL_PATH ) {
-	executeExpression "${installPath}\addPath.ps1 '${installPath}\automation\provisioning'"
-	executeExpression "${installPath}\addPath.ps1 '${installPath}\remote\provisioning'"
-	executeExpression "${installPath}\addPath.ps1 '${installPath}\automation'"
+	executeExpression "${installPath}\provisioning\addPath.ps1 '${installPath}\automation\provisioning'"
+	executeExpression "${installPath}\provisioning\addPath.ps1 '${installPath}\remote\provisioning'"
+	executeExpression "${installPath}\provisioning\addPath.ps1 '${installPath}\automation'"
 }
 
 executeExpression "${installPath}\remote\capabilities.ps1"
