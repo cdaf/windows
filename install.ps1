@@ -41,25 +41,30 @@ if ( $env:CDAF_INSTALL_PATH ) {
 	$installPath = $env:CDAF_INSTALL_PATH
     Write-Host "[$scriptName]   installPath : $installPath (from `$env:CDAF_INSTALL_PATH)"
 } else {
-	$installPath = "$(pwd)/automation"
+	$installPath = "$(pwd)\automation"
     Write-Host "[$scriptName]   installPath : $installPath (default)"
+}
+
+if ( Test-Path $installPath ) {
+	executeExpression "Remove-Item -Recurse '$installPath'"
 }
 
 if ( $version ) {
 
+	if ( Test-Path "$(pwd)\automation" ) {
+		executeExpression "Remove-Item -Recurse '$(pwd)\automation'"
+	}
 	executeExpression "iwr -useb http://cdaf.io/static/app/downloads/WU-CDAF-${version}.zip -outfile WU-CDAF-${version}.zip"
 	executeExpression "Add-Type -AssemblyName System.IO.Compression.FileSystem"
 	executeExpression "[System.IO.Compression.ZipFile]::ExtractToDirectory('$(pwd)\WU-CDAF-${version}.zip', '$(pwd)')"
-	if ( ${installPath} ) {
-		executeExpression "Move-Item '.\automation' '${installPath}'"
-	} else {
-		executeExpression "Move-Item '.\automation' '${installPath}'"
-	}
-	executeExpression "Remove-Item -Recurse '$(pwd)\'"
+	executeExpression "Move-Item '$(pwd)\automation' '${installPath}'"
 	executeExpression "Remove-Item '$(pwd)\WU-CDAF-${version}.zip'"
 
 } else {
 
+	if ( Test-Path "$(pwd)\windows-master" ) {
+		executeExpression "Remove-Item -Recurse '$(pwd)\windows-master'"
+	}
 	executeExpression "iwr -useb https://codeload.github.com/cdaf/windows/zip/refs/heads/master -outfile cdaf.zip"
 	executeExpression "Add-Type -AssemblyName System.IO.Compression.FileSystem"
 	executeExpression "[System.IO.Compression.ZipFile]::ExtractToDirectory('$(pwd)\cdaf.zip', '$(pwd)')"
