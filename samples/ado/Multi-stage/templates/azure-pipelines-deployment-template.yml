@@ -3,9 +3,9 @@ jobs:
     displayName: ${{ parameters.displayName }}
     environment: ${{ parameters.environment }}
     pool:
-      vmImage: 'windows-2019'
+      vmImage: windows-2019
 #    pool:
-#      name: 'Self-hosted Pool Name'
+#      name: Self-hosted Pool Name
     strategy:
       runOnce:
         deploy:
@@ -26,9 +26,9 @@ jobs:
 
           - task: PowerShell@2
             displayName: Execute Loosely Coupled Deployment
-            env: 
-              CONNECTION_STRING: $(CONNECTION_STRING)
-              DATABASE_PASSWORD: $(DATABASE_PASSWORD)
+#            env: 
+#              CONNECTION_STRING: $(CONNECTION_STRING)
+#              DATABASE_PASSWORD: $(DATABASE_PASSWORD)
             inputs:
               workingDirectory: $(System.ArtifactsDirectory)/drop
               targetType: filePath

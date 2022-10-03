@@ -8,8 +8,8 @@ trigger:
 stages:
 - stage: DEV
   displayName: ASP.NET Build
-  variables:
-  - group: Git Reader
+#  variables:
+#  - group: Git Reader
   jobs:
   - template: templates/azure-pipelines-build-template.yml
 
@@ -17,22 +17,22 @@ stages:
   displayName: User Acceptence Test
   condition: and(succeeded(), eq(variables['build.sourceBranch'], 'refs/heads/master'))
   dependsOn: DEV
-  variables:
-  - group: Web Deploy Test
+#  variables:
+#  - group: Test Library Group
   jobs:
   - template: templates/azure-pipelines-deployment-template.yml
     parameters:
-      displayName: IIS Deployment Group
+      displayName: Deployment Group
       environment: TEST
 
 - stage: PROD
   displayName: Production Gated Deployment
   condition: and(succeeded(), eq(variables['build.sourceBranch'], 'refs/heads/master'))
   dependsOn: TEST
-  variables:
-  - group: Web Deploy Production
+#  variables:
+#  - group: Production Library Group
   jobs:
   - template: templates/azure-pipelines-deployment-template.yml
     parameters:
-      displayName: IIS Deployment Group
+      displayName: Deployment Group
       environment: PROD

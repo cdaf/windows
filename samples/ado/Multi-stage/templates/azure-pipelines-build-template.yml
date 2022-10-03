@@ -1,10 +1,10 @@
 jobs:
-  - job: 'Build'
-    displayName: "MSBuild and NuGet"
+  - job: Build
+    displayName: Build and Package
     pool:
-      vmImage: 'windows-2019'
+      vmImage: windows-2019
 #    pool:
-#      name: 'Self-hosted Pool Name'
+#      name: Self-hosted Pool Name
     steps:
       # - task: PowerShell@2
       #   displayName: Diag
@@ -14,10 +14,10 @@ jobs:
       #     script: dir ; systeminfo
 
       - task: PowerShell@2
-        displayName: Execute Loosely Coupled Deployment
-        env: 
-          GIT_USER: $(GIT_USER)
-          GIT_PASS: $(GIT_PASS)
+        displayName: CI Process
+#        env: 
+#          GIT_USER: $(GIT_USER)
+#          GIT_PASS: $(GIT_PASS)
         inputs:
 
 #          targetType: 'inline' # Use edge CDAF version from GitHub
