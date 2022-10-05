@@ -7,7 +7,7 @@ trigger:
 
 stages:
 - stage: DEV
-  displayName: ASP.NET Build
+  displayName: Build and Package
 #  variables:
 #  - group: Git Reader
   jobs:

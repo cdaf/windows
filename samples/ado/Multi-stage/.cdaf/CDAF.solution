@@ -1,0 +1,3 @@
+solutionName=azuredevops.multistage
+artifactPrefix=0.0
+# defaultBranch=main
