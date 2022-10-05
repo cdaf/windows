@@ -25,7 +25,7 @@ jobs:
           #     script: dir ; systeminfo
 
           - task: PowerShell@2
-            displayName: Execute Loosely Coupled Deployment
+            displayName: CD Process
 #            env: 
 #              CONNECTION_STRING: $(CONNECTION_STRING)
 #              DATABASE_PASSWORD: $(DATABASE_PASSWORD)
