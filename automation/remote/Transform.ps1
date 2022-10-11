@@ -38,7 +38,7 @@ function MASKED ($value) {
 function resolveContent ([String]$content) {
 	if ( $content ) {
 		$content = $content.trim()
-		return invoke-expression "Write-Output $content"
+		return invoke-expression "Write-Output '$content'"
 	} else {
 		return
 	}
