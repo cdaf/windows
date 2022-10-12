@@ -1,14 +1,14 @@
 Param (
-[string]$url,
-[string]$pat,
-[string]$pool,
-[string]$agentName,
-[string]$serviceAccount,
-[string]$servicePassword,
-[string]$deploymentgroup,
-[string]$projectname,
-[string]$mediaDirectory,
-[string]$version
+	[string]$url,
+	[string]$pat,
+	[string]$pool,
+	[string]$agentName,
+	[string]$serviceAccount,
+	[string]$servicePassword,
+	[string]$deploymentgroup,
+	[string]$projectname,
+	[string]$mediaDirectory,
+	[string]$version
 )
 
 cmd /c "exit 0"
@@ -54,10 +54,18 @@ if ( $pat ) {
 	Write-Host "[$scriptName] pat             : (not supplied)"
 }
 if ( $pool ) {
-	Write-Host "[$scriptName] pool            : $pool (use pool name with '@' for Project@Deployment Group)"
+	if ( $pool -match '@' ) {
+		Write-Host "[$scriptName] pool            : $pool (contains '@' so will treat as Project@Deployment Group)"
+	} else {
+		Write-Host "[$scriptName] pool            : $pool (use pool name with '@' for Project@Deployment Group)"
+	}
 } else {
 	$pool = 'default'
-	Write-Host "[$scriptName] pool            : $pool (default, use pool name with '@' for Project@Deployment Group)"
+	if ( $pool -match '@' ) {
+		Write-Host "[$scriptName] pool            : $pool (default, contains '@' so will treat as Project@Deployment Group)"
+	} else {
+		Write-Host "[$scriptName] pool            : $pool (default, use pool name with '@' for Project@Deployment Group)"
+	}
 }
 if ( $agentName ) {
 	Write-Host "[$scriptName] agentName       : $agentName"
@@ -77,10 +85,15 @@ if ( $servicePassword ) {
 	Write-Host "[$scriptName] servicePassword : (not supplied)"
 }
 
-if ( $pool -match '@') {
-	$projectname, $deploymentgroup = $pool.Split('@')
+if ( $deploymentgroup ) {
 	Write-Host "[$scriptName] deploymentgroup : $deploymentgroup"
 	Write-Host "[$scriptName] projectname     : $projectname"
+} else {
+	if ( $pool -match '@' ) {
+		$projectname, $deploymentgroup = $pool.Split('@')
+		Write-Host "[$scriptName] deploymentgroup : $deploymentgroup"
+		Write-Host "[$scriptName] projectname     : $projectname"
+	}
 }
 
 if ( $mediaDirectory ) {
@@ -93,12 +106,12 @@ if ( $mediaDirectory ) {
 if ( $version ) {
 	Write-Host "[$scriptName] version         : $version"
 } else {
-	$version = '2.210.0'
+	$version = '2.211.0'
 	Write-Host "[$scriptName] version         : $version"
 }
 
 $fullpath = 'C:\agent\config.cmd'
-$workspace = $(pwd)
+$workspace = $(Get-Location)
 
 executeExpression 'Add-Type -AssemblyName System.IO.Compression.FileSystem'
 $mediaFileName = "vsts-agent-win-x64-${version}.zip"
