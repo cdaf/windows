@@ -151,7 +151,7 @@ if ($action -eq 'Clone') {
 		$diskPath = "${diskDir}\${boxName}.vdi"
 		Write-Host "`n[$scriptName] Disk ($diskPath) Import VirtualBox Disk image from Hyper-V, ..."
 		executeExpression "& 'C:\Program Files\Oracle\Virtualbox\VBoxmanage.exe' clonehd '$clonedhd' '$diskDir\$boxName.vdi' --format vdi"
-		emailProgress "VirtualBox Dick Clone Complete"
+		emailProgress "VirtualBox Disk Clone Complete"
 	} else {
 		emailAndExit 200 "Perform all actions on VirtualBox Host!"
 	}
