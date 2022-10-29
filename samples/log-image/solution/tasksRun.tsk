@@ -1,0 +1,5 @@
+echo "Download an image"
+curl.exe -s -O $uri
+
+echo "Write image to Log"
+IMGTXT $filename
