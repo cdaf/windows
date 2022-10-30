@@ -6,22 +6,26 @@ stages:
 
 cdaf-ci:
   stage: build
-  tags:
-    - linux
+
+  # To use native container runner with CDAF pre-installed
   image: cdaf/windows
+  script: entry.ps1 ${CI_BUILD_ID} ${CI_BUILD_REF_NAME}
 
   # Self-hosted Runner
   # tags:
   #   - batch
 
-#  script: |
-#    $env:CDAF_PATH = '.\automation'
-#    . { iwr -useb https://raw.githubusercontent.com/cdaf/windows/master/install.ps1 } | iex
-#    .\automation\entry.ps1 $(Build.BuildNumber) $(Build.SourceBranch) staging@$(Build.ArtifactStagingDirectory)
+  # Install Edge Version
+  #  script: |
+  #    $env:CDAF_PATH = '.\automation'
+  #    . { iwr -useb https://raw.githubusercontent.com/cdaf/windows/master/install.ps1 } | iex
+  #    .\automation\entry.ps1 ${CI_BUILD_ID} ${CI_BUILD_REF_NAME}
 
-  script: |
-    . { iwr -useb https://cdaf.io/static/app/downloads/cdaf.ps1 } | iex
-    ./automation/entry.bat %CI_BUILD_ID% %CI_BUILD_REF_NAME%
+  # Install Latest Version
+  #  script: |
+  #    . { iwr -useb https://cdaf.io/static/app/downloads/cdaf.ps1 } | iex
+  #    ./automation/entry.bat %CI_BUILD_ID% %CI_BUILD_REF_NAME%
+
   artifacts:
     paths:
     - release.ps1
