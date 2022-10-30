@@ -7,7 +7,12 @@ stages:
 cdaf-ci:
   stage: build
   tags:
-    - batch
+    - linux
+  image: cdaf/windows
+
+  # Self-hosted Runner
+  # tags:
+  #   - batch
 
 #  script: |
 #    $env:CDAF_PATH = '.\automation'
