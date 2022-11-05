@@ -197,7 +197,7 @@ $versionTest = cmd /c node --version 2`>`&1
 if ( $LASTEXITCODE -ne 0 ) {
 	Write-Host "  NodeJS                  : not installed"
 } else {
-	Write-Host "  NodeJS                  : $versionTest"
+	Write-Host "  NodeJS                  : $($versionTest.Split('v')[1])"
 }
 
 $versionTest = cmd /c npm --version 2`>`&1
@@ -205,6 +205,30 @@ if ( $LASTEXITCODE -ne 0 ) {
 	Write-Host "  NPM                     : not installed"
 } else {
 	Write-Host "  NPM                     : $versionTest"
+}
+
+# Kubectl is required for Helm
+$versionTest = cmd /c kubectl version --short=true --client=true 2`>`&1
+if ( $LASTEXITCODE -ne 0 ) {
+	Write-Host "  kubectl                 : not installed"
+} else {
+	Write-Host "  kubectl                 : $($versionTest[1].Split('v')[1])"
+}
+
+$versionTest = cmd /c helm version --short 2`>`&1
+if ( $LASTEXITCODE -ne 0 ) {
+	Write-Host "  helm                    : not installed"
+} else {
+	$array = $versionTest.split("v")
+	Write-Host "  helm                    : $($versionTest.Split('v')[1].Split('+')[0])"
+}
+
+$versionTest = cmd /c helmsman -v 2`>`&1
+if ( $LASTEXITCODE -ne 0 ) {
+	Write-Host "  helmsman                : not installed"
+} else {
+	$array = $versionTest.split("v")
+	Write-Host "  helmsman                : $($versionTest.Split('v')[2])"
 }
 
 $versionTest = cmd /c vswhere -products * 2`>`&1
