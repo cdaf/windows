@@ -130,8 +130,7 @@ function dockerStart {
 	Write-Host "[$scriptName] Docker installed but not running, `$env:CDAF_DOCKER_REQUIRED is set so will try and start"
 	executeExpression 'Start-Service Docker'
 	Write-Host '$dockerStatus = ' -NoNewline 
-	$dockerStatus = executeReturn '(Get-Service Docker).Status'
-	$dockerStatus
+	$dockerStatus = (Get-Service Docker).Status
 	if ( $dockerStatus -ne 'Running' ) {
 		Write-Host "[$scriptName] Unable to start Docker, `$dockerStatus = $dockerStatus"
 		exit 8910
@@ -258,8 +257,7 @@ if ($REVISION) {
 			} else {
 				cmd /c "exit 0"
 				$error.clear()
-				$REVISION = 'revision'
-				Write-Host "[$scriptName]   REVISION        : (default, Git installed but not a Git workspace)"
+				Write-Host "[$scriptName]   REVISION        : (not set, Git installed but not a Git workspace)"
 			}
 		}
 	}
@@ -327,6 +325,17 @@ Write-Host "[$scriptName]   whoami          : $(whoami)"
 $cdafVersion = getProp 'productVersion' "$AUTOMATIONROOT\CDAF.windows"
 Write-Host "[$scriptName]   CDAF Version    : $cdafVersion"
 
+if ( $env:CDAF_ERROR_DIAG ) {
+	Write-Host "[$scriptName]   CDAF_ERROR_DIAG : $CDAF_ERROR_DIAG"
+} else {
+	$env:CDAF_ERROR_DIAG = getProp 'CDAF_ERROR_DIAG' "$SOLUTIONROOT\CDAF.solution"
+	if ( $env:CDAF_ERROR_DIAG ) {
+		Write-Host "[$scriptName]   CDAF_ERROR_DIAG : $CDAF_ERROR_DIAG (defined in $SOLUTIONROOT\CDAF.solution)"
+	} else {
+		Write-Host "[$scriptName]   CDAF_ERROR_DIAG : (not set or defined in $SOLUTIONROOT\CDAF.solution)"
+	}
+}
+
 # Process optional post-packaging tasks (Task driver support added in release 2.4.4)
 if (Test-Path "$prebuild") {
 	Write-Host "`n[$scriptName] Process Pre-Build Task ...`n"
@@ -371,7 +380,6 @@ if ( $ACTION -eq 'container_build' ) {
 				Write-Host "`n[$scriptName] `$ACTION = $ACTION, container build defined (${containerBuild}) but skipped ...`n"
 				Clear-Variable -Name 'containerBuild'
 			} else {
-					$versionTest = cmd /c docker --version 2`>`&1
 				if ( $LASTEXITCODE -ne 0 ) {
 					cmd /c "exit 0"
 					Write-Host "[$scriptName]   containerBuild  : containerBuild defined in $SOLUTIONROOT\CDAF.solution, but Docker not installed, will attempt to execute natively"
@@ -379,13 +387,13 @@ if ( $ACTION -eq 'container_build' ) {
 					$executeNative = $true
 				} else {
 					Write-Host "[$scriptName]   containerBuild  : $containerBuild"
+					$versionTest = cmd /c docker --version 2`>`&1
 					$array = $versionTest.split(" ")
 					$dockerRun = $($array[2])
 					Write-Host "[$scriptName]   Docker          : $dockerRun"
 					# Test Docker is running
 					If (Get-Service Docker -ErrorAction SilentlyContinue) {
-						$dockerStatus = executeReturn '(Get-Service Docker).Status'
-						$dockerStatus
+						$dockerStatus = (Get-Service Docker).Status
 						if ( $dockerStatus -ne 'Running' ) {
 							if ( $dockerdProcess = Get-Process dockerd -ea SilentlyContinue ) {
 								Write-Host "[$scriptName] Process dockerd is running..."
@@ -439,8 +447,7 @@ if ( $imageBuild ) {
 		Write-Host "[$scriptName]   imageBuild      : $skipImageBuild"
 	} else {
 		If (Get-Service Docker -ErrorAction SilentlyContinue) {
-			$dockerStatus = executeReturn '(Get-Service Docker).Status'
-			$dockerStatus
+			$dockerStatus = (Get-Service Docker).Status
 			if ( $dockerStatus -ne 'Running' ) {
 				if ( $dockerdProcess = Get-Process dockerd -ea SilentlyContinue ) {
 					Write-Host "[$scriptName] Process dockerd is running..."

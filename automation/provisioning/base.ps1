@@ -251,4 +251,5 @@ if ( $env:rebootRequired -eq 'yes' ) {
 }
 
 Write-Host "`n[$scriptName] ---------- stop ----------"
+$error.clear()
 exit 0

@@ -1,4 +1,4 @@
-# Entry Point for Build Process, child scripts inherit the functions of parent scripts, so these definitions are global for the CD process
+# Entry Point for Delivery Process, child scripts inherit the functions of parent scripts, so these definitions are global for the CD process
 Param (
 	[string]$ENVIRONMENT,
 	[string]$RELEASE,
@@ -224,6 +224,17 @@ Write-Host "[$scriptName]   whoami           : $(whoami)"
 $propertiesFile = "$WORK_DIR_DEFAULT\CDAF.properties"
 $cdafVersion = getProp 'productVersion'
 Write-Host "[$scriptName]   CDAF Version     : $cdafVersion"
+
+if ( $env:CDAF_ERROR_DIAG ) {
+	Write-Host "[$scriptName]   CDAF_ERROR_DIAG : $CDAF_ERROR_DIAG"
+} else {
+	$env:CDAF_ERROR_DIAG = getProp 'CDAF_ERROR_DIAG' "$propertiesFile"
+	if ( $env:CDAF_ERROR_DIAG ) {
+		Write-Host "[$scriptName]   CDAF_ERROR_DIAG : $CDAF_ERROR_DIAG (defined in $propertiesFile)"
+	} else {
+		Write-Host "[$scriptName]   CDAF_ERROR_DIAG : (not set or defined in $propertiesFile)"
+	}
+}
 
 $propertiesFile = "$WORK_DIR_DEFAULT\manifest.txt"
 $processSequence = getProp 'processSequence'

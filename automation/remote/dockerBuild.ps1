@@ -109,7 +109,7 @@ if ( $LASTEXITCODE -ne 0 ) {
 Write-Host "`n[$scriptName] As of 1.13.0 new prune commands, if using older version, suppress error"
 executeSuppress "docker system prune -f"
 
-$buildCommand = 'docker build'
+$buildCommand = 'docker build --progress plain'
 
 foreach ( $envVar in Get-ChildItem env:) {
 	if ($envVar.Name.Contains('CDAF_IB_')) {
@@ -139,6 +139,7 @@ if ($tag) {
 $buildCommand += " --label=cdaf.${imageName}.image.version=${version}"
 
 # Execute the constucted build command using dockerfile from current directory (.)
+$env:PROGRESS_NO_TRUNC = '1'
 executeExpression "$buildCommand ."
 
 Write-Host "`n[$scriptName] List Resulting images...`n"
