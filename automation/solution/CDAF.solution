@@ -3,7 +3,7 @@ solutionName=myproduct
 
 # containerBuild=& $AUTOMATIONROOT/processor/containerBuild.ps1 ${SOLUTION} ${BUILDNUMBER} ${REVISION}
 # containerImage=mcr.microsoft.com/windows/servercore:ltsc2019@sha256:acae9dedd8ce6fbc624e8c4b52555a9d3201eb47aacd45b4a00e0d81083b4cab
-# CDAF_ERROR_DIAG=foreach ( $item in ( Get-WmiObject Win32_LogicalDisk )) { get-volume -DriveLetter ($item.DeviceID).split(':')[0] }
+# CDAF_ERROR_DIAG=foreach ( $item in ( Get-WmiObject Win32_LogicalDisk )) { get-volume -DriveLetter ($item.DeviceID).split(":")[0] }
 
 # constructor=TasksLocal
 # imageBuild=& $AUTOMATIONROOT/remote/imageBuild.ps1 ${SOLUTION}_${REVISION} ${BUILDNUMBER} $runtimeImage $constructor
