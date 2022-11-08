@@ -325,6 +325,7 @@ Write-Host "[$scriptName]   whoami          : $(whoami)"
 $cdafVersion = getProp 'productVersion' "$AUTOMATIONROOT\CDAF.windows"
 Write-Host "[$scriptName]   CDAF Version    : $cdafVersion"
 
+# 2.5.5 default error diagnostic command as solution property
 if ( $env:CDAF_ERROR_DIAG ) {
 	Write-Host "[$scriptName]   CDAF_ERROR_DIAG : $CDAF_ERROR_DIAG"
 } else {
