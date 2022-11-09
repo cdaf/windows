@@ -129,14 +129,6 @@ if ( $LASTEXITCODE -ne 0 ) {
 	Write-Host "  NuGet                   : $($array[2])"
 }
 
-$versionTest = cmd /c 7za.exe i 2`>`&1
-if ( $LASTEXITCODE -ne 0 ) {
-	Write-Host "  7za.exe                 : not installed"
-} else {
-	$array = $versionTest.split(" ")
-	Write-Host "  7za.exe                 : $($array[3])"
-}
-
 $versionTest = cmd /c curl.exe --version 2`>`&1
 if ( $LASTEXITCODE -ne 0 ) {
 	Write-Host "  curl.exe                : not installed"
@@ -205,6 +197,13 @@ if ( $LASTEXITCODE -ne 0 ) {
 	Write-Host "  NPM                     : not installed"
 } else {
 	Write-Host "  NPM                     : $versionTest"
+}
+
+$versionTest = cmd /c wrangler -v 2`>`&1
+if ( $LASTEXITCODE -ne 0 ){
+	Write-Host "  wrangler                : not installed"
+} else {
+	Write-Host "  wrangler                : $versionTest"
 }
 
 # Kubectl is required for Helm
