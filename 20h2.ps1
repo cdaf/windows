@@ -149,7 +149,8 @@ if ( $virtualisation -eq 'hyperv' ) {
 
     executeExpression ".\automation\provisioning\base.ps1 'adoptopenjdk11 maven eclipse'"
     executeExpression ".\automation\provisioning\base.ps1 'nuget.commandline' -verion 5.8.1" # 5.9 is broken
-    executeExpression ".\automation\provisioning\base.ps1 'azure-cli visualstudio2022enterprise vscode dotnetcore-sdk'"
+    executeExpression ".\automation\provisioning\base.ps1 'azure-cli visualstudio2022enterprise vscode'"
+    executeExpression ".\automation\provisioning\base.ps1 'dotnetcore-sdk' -verion 6.0.403"
 
     # Ensure NuGet is a source, by default it is not (ignore if already added)
     Write-Host "nuget sources add -Name NuGet.org -Source https://api.nuget.org/v3/index.json"
