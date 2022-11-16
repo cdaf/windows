@@ -169,6 +169,14 @@ if ( $LASTEXITCODE -ne 0 ) {
 	Write-Host "  terraform               : $($array[1].TrimStart('v'))"
 }
 
+$versionTest = cmd /c hugo version 2`>`&1
+if ( $LASTEXITCODE -ne 0 ) {
+	Write-Host "  Hugo                    : not installed"
+} else {
+	$array = $versionTest.split(" ")
+	Write-Host "  Hugo                    : $($array[1].TrimStart('v'))"
+}
+
 $versionTest = cmd /c python --version 2`>`&1
 if ( $LASTEXITCODE -ne 0 ) {
 	Write-Host "  Python                  : not installed"
