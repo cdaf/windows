@@ -98,6 +98,21 @@ if ( $version -eq '2' ) {
 			$url = "https://download.visualstudio.microsoft.com/download/pr/64ae43e4-fcf0-4247-80ec-ac87d7f198f7/af4cec1666bbc03578442c174f4ad4be/${file}"
 		}
 	} 
+} elseif ( $version -eq '6' ) {
+	if ( $sdk -eq 'yes' ) {
+		$version = '6.0.403'
+		$file = "dotnet-sdk-${version}-win-x64.exe"
+		$url = "https://download.visualstudio.microsoft.com/download/pr/08ada4db-1e64-4829-b36d-5beb71f67bff/b77050cf7e0c71d3b95418651db1a9b8/${file}"
+	} else {
+		$version = '6.0.11'
+		if ( $sdk -eq 'asp' ) {
+			$file = "dotnet-hosting-${version}-win.exe"
+			$url = "https://download.visualstudio.microsoft.com/download/pr/db07eed5-297a-45b8-bea2-1e93c623a88c/6e5a8d3432e6213f071be3751ae53a08/${file}"
+		} else {
+			$file = "aspnetcore-runtime-${version}-win-x64.exe"
+			$url = "https://download.visualstudio.microsoft.com/download/pr/e874914f-d43d-4b61-8479-f6a5536e44b1/7043adfe896aa9f980ce23e884aae37d/${file}"
+		}
+	} 
 } else {
 	Write-Host "[$scriptName] version $version not supported!";
 	exit 8873
