@@ -55,22 +55,22 @@ if (!($dockerExpose)) {
     }
     
     if ($environment) {
-        Write-Host "[$scriptName] environment   : $environment (not passed, set to same value as tag)"
+        Write-Host "[$scriptName] environment   : $environment"
     } else {
         $environment = $tag
-        Write-Host "[$scriptName] environment   : $environment"
+        Write-Host "[$scriptName] environment   : $environment (not passed, set to same value as tag)"
     }
     
     if ($registry) {
-        Write-Host "[$scriptName] registry      : not passed, use local repo"
-    } else {
         Write-Host "[$scriptName] registry      : $registry"
+    } else {
+        Write-Host "[$scriptName] registry      : not passed, use local repo"
     }
     
     if ($dockerOpt) {
-        Write-Host "[$scriptName] dockerOpt     : not passed"
-    } else {
         Write-Host "[$scriptName] dockerOpt     : $dockerOpt"
+    } else {
+        Write-Host "[$scriptName] dockerOpt     : not passed"
     }
 }
 
