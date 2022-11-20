@@ -24,8 +24,7 @@ function executeExpression ($expression) {
 }
 
 if ($dockerExpose) {
-    Write-Host "`n[$scriptName] Start a container instance, if an instance (based on `"instance`") exists it is"
-    Write-Host "[$scriptName] stopped and removed before starting the new instance."
+    Write-Host "`n[$scriptName] Start a container instance, if an existing instance (based on image and port) is running, it will be replaced."
 }
 
 Write-Host "`n[$scriptName] --- start ---"
