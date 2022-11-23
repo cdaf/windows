@@ -127,6 +127,7 @@ if ( $optionalArgs ) {
 
 if ($env:CONTAINER_IMAGE) {
 	$buildCommand += " --build-arg CONTAINER_IMAGE=$env:CONTAINER_IMAGE"
+    executeExpression "docker pull $env:CONTAINER_IMAGE"
 }
 
 if ($tag) {
