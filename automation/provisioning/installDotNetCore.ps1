@@ -33,17 +33,12 @@ function executeExpression ($expression) {
 	}
 }
 
-# As at dotnet 2 runtime files have changed https://www.microsoft.com/net/download/dotnet-core/2.1
-# ASP.NET Core/.NET Core	dotnet-hosting-2.1.x-win.exe         (no)
-# ASP.NET Core Installer	aspnetcore-runtime-2.1.x-win-x64.exe (asp)
-# .NET Core Binaries		dotnet-runtime-2.1.x-win-x64.exe     (not supported)
-
 Write-Host "`n[$scriptName] ---------- start ----------"
 if ( $sdk ) {
-	Write-Host "[$scriptName] sdk      : $sdk (choices yes, no or asp)"
+	Write-Host "[$scriptName] sdk      : $sdk (choices yes, asp for IIS Hosting or runtime only)"
 } else {
 	$sdk = 'yes'
-	Write-Host "[$scriptName] sdk      : $sdk (default, choices yes, no or asp)"
+	Write-Host "[$scriptName] sdk      : $sdk (default, choices yes, asp for IIS Hosting or runtime only)"
 }
 
 if ( $version ) {
