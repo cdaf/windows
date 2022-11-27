@@ -166,10 +166,16 @@ if ( Test-Path $installer ) {
 	executeExpression "(New-Object System.Net.WebClient).DownloadFile('$url', '$installer')"
 }
 
-executeExpression "Start-Process -FilePath '$installer' -ArgumentList '/INSTALL /QUIET /NORESTART /LOG $installer.log' -PassThru -Wait"
+Write-Host "Start-Process -FilePath '$installer' -ArgumentList '/INSTALL /QUIET /NORESTART /LOG $installer.log' -PassThru -Wait"
+$proc = Start-Process -FilePath "$installer" -ArgumentList "/INSTALL /QUIET /NORESTART /LOG $installer.log" -PassThru -Wait
+if ( $proc.ExitCode -ne 0 ) {
+	Write-Host "`n[$scriptName][EXIT] List $installer.log and exit with `$LASTEXITCODE = $($proc.ExitCode)`n"
+	Get-Content $installer.log
+    exit $proc.ExitCode
+}
 
 Write-Host "[$scriptName] Reload path (without logging off and back on) " -ForegroundColor Green
-$env:Path = executeExpression "[System.Environment]::GetEnvironmentVariable('Path','Machine') + ';' + [System.Environment]::GetEnvironmentVariable('Path','User')"
+executeExpression '$env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")'
 
 $(dotnet --info | select-string -pattern 'Version')
 if ($versionTest -like '*not recognized*') {
