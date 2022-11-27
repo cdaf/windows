@@ -172,16 +172,18 @@ if ( $proc.ExitCode -ne 0 ) {
 Write-Host "[$scriptName] Reload path (without logging off and back on) " -ForegroundColor Green
 executeExpression '$env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")'
 
-$(dotnet --info | select-string -pattern 'Version')
-if ($versionTest -like '*not recognized*') {
-	Write-Host "  dotnet core not installed! Exiting with error 666"; exit 666
-} else {
-	$versionLine = $(foreach ($line in dotnet) { Select-String  -InputObject $line -CaseSensitive "Version" })
-	if ( $versionLine ) {
-	$arr = $versionLine -split ':'
-		Write-Host "  dotnet core : $($arr[1])"
+if ( $sdk -eq 'yes' ) {
+	$(dotnet --info | select-string -pattern 'Version')
+	if ($versionTest -like '*not recognized*') {
+		Write-Host "  dotnet core not installed! Exiting with error 666"; exit 666
 	} else {
-		Write-Host "  dotnet core : $versionTest"
+		$versionLine = $(foreach ($line in dotnet) { Select-String  -InputObject $line -CaseSensitive "Version" })
+		if ( $versionLine ) {
+		$arr = $versionLine -split ':'
+			Write-Host "  dotnet core : $($arr[1])"
+		} else {
+			Write-Host "  dotnet core : $versionTest"
+		}
 	}
 }
 
