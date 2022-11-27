@@ -49,7 +49,7 @@ if ( $sdk ) {
 if ( $version ) {
 	Write-Host "[$scriptName] version  : $version"
 } else {
-	$version = '5'
+	$version = '6'
 	Write-Host "[$scriptName] version  : $version (default)"
 }
 
