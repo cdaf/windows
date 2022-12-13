@@ -219,7 +219,7 @@ $versionTest = cmd /c kubectl version --short=true --client=true 2`>`&1
 if ( $LASTEXITCODE -ne 0 ) {
 	Write-Host "  kubectl                 : not installed"
 } else {
-	Write-Host "  kubectl                 : $($versionTest[1].Split('v')[1])"
+	Write-Host "  kubectl                 : $($versionTest.Split('v')[1])"
 }
 
 $versionTest = cmd /c helm version --short 2`>`&1
