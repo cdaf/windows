@@ -68,7 +68,7 @@ $versionTest = cmd /c dotnet --version 2`>`&1
 if ( $LASTEXITCODE -ne 0 ) {
 	Write-Host "  dotnet core             : not installed"
 } else {
-	$versionLine = $(foreach ($line in dotnet) { Select-String  -InputObject $line -CaseSensitive "Version  " })
+	$versionLine = $(foreach ($line in $versionTest) { Select-String  -InputObject $line -CaseSensitive "Version  " })
 	if ( $versionLine ) {
 	$arr = $versionLine -split ':'
 		Write-Host "  dotnet core             : $($arr[1])"
