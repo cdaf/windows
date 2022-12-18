@@ -3,6 +3,9 @@ pipelines:
     - step:
         name: Build and test
         script:
+#          - $env:CDAF_INSTALL_PATH = "${env:USERPROFILE}\.cdaf"
+#          - . { iwr -useb https://raw.githubusercontent.com/cdaf/windows/master/install.ps1 } | iex
+#          - ${env:USERPROFILE}\.cdaf\entry.ps1 $env:BITBUCKET_BUILD_NUMBER $env:BITBUCKET_BRANCH
           - . { iwr -useb https://cdaf.io/static/app/downloads/cdaf.ps1 } | iex
           - $env:DOCKER_HOST = ''
           - .\automation\entry.ps1 $env:BITBUCKET_BUILD_NUMBER $env:BITBUCKET_BRANCH

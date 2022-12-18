@@ -173,16 +173,16 @@ Write-Host "[$scriptName] Reload path (without logging off and back on) " -Foreg
 executeExpression '$env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path","User")'
 
 if ( $sdk -eq 'yes' ) {
-	$(dotnet --info | select-string -pattern 'Version')
-	if ($versionTest -like '*not recognized*') {
-		Write-Host "  dotnet core not installed! Exiting with error 666"; exit 666
+	$versionTest = cmd /c dotnet.exe --version 2`>`&1
+	if ( $LASTEXITCODE -ne 0 ) {
+		Write-Host "  dotnet core             : not installed"
 	} else {
-		$versionLine = $(foreach ($line in dotnet) { Select-String  -InputObject $line -CaseSensitive "Version" })
+		$versionLine = $(foreach ($line in $versionTest) { Select-String  -InputObject $line -CaseSensitive "Version  " })
 		if ( $versionLine ) {
 		$arr = $versionLine -split ':'
-			Write-Host "  dotnet core : $($arr[1])"
+			Write-Host "  dotnet core             : $($arr[1])"
 		} else {
-			Write-Host "  dotnet core : $versionTest"
+			Write-Host "  dotnet core             : $versionTest"
 		}
 	}
 }

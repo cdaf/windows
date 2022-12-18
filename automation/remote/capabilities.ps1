@@ -64,7 +64,7 @@ if ( $LASTEXITCODE -ne 0 ) {
 	Write-Host "  Git                     : $($array[2])"
 }
 
-$versionTest = cmd /c dotnet --version 2`>`&1
+$versionTest = cmd /c dotnet.exe --version 2`>`&1
 if ( $LASTEXITCODE -ne 0 ) {
 	Write-Host "  dotnet core             : not installed"
 } else {
