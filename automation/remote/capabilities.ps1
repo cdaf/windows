@@ -121,7 +121,7 @@ if ( $LASTEXITCODE -ne 0 ) {
 	Write-Host "  Apache Maven            : $($array[2])"
 }
 
-$versionTest = cmd /c NuGet 2`>`&1
+$versionTest = cmd /c NuGet.exe 2`>`&1
 if ( $LASTEXITCODE -ne 0 ) {
 	Write-Host "  NuGet                   : not installed"
 } else {
