@@ -1,3 +1,12 @@
+# Usage examples
+
+# Install to current directory and do not change PATH
+# . { iwr -useb https://raw.githubusercontent.com/cdaf/windows/master/install.ps1 } | iex
+
+# Install to a specified location and add to PATH
+# $env:CDAF_INSTALL_PATH = 'c:\cdaf'
+# . { iwr -useb https://raw.githubusercontent.com/cdaf/windows/master/install.ps1 } | iex
+
 Param (
 	[string]$version
 )
