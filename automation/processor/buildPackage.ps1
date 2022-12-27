@@ -395,47 +395,47 @@ if ( $ACTION -eq 'container_build' ) {
 						$array = $versionTest.split(" ")
 						$dockerRun = $($array[2])
 						Write-Host "[$scriptName]   Docker          : $dockerRun"
-					}
 
-					# Test Docker is running
-					If (Get-Service Docker -ErrorAction SilentlyContinue) {
-						$dockerStatus = (Get-Service Docker).Status
-						if ( $dockerStatus -ne 'Running' ) {
-							if ( $dockerdProcess = Get-Process dockerd -ea SilentlyContinue ) {
-								Write-Host "[$scriptName] Process dockerd is running..."
-							} else {
-								Write-Host "[$scriptName] Process dockerd is not running..."
+						# Test Docker is running
+						If (Get-Service Docker -ErrorAction SilentlyContinue) {
+							$dockerStatus = (Get-Service Docker).Status
+							if ( $dockerStatus -ne 'Running' ) {
+								if ( $dockerdProcess = Get-Process dockerd -ea SilentlyContinue ) {
+									Write-Host "[$scriptName] Process dockerd is running..."
+								} else {
+									Write-Host "[$scriptName] Process dockerd is not running..."
+								}
+							}
+							if (( $dockerStatus -ne 'Running' ) -and ( $null -eq $dockerdProcess )){
+								if ( $env:CDAF_DOCKER_REQUIRED ) {
+									dockerStart
+								} else {			    
+									Write-Host "[$scriptName] Docker installed but not running, will attempt to execute natively (set `$env:CDAF_DOCKER_REQUIRED if docker is mandatory)"
+									cmd /c "exit 0"
+									Clear-Variable -Name 'containerBuild'
+									$executeNative = $true
+								}
 							}
 						}
-						if (( $dockerStatus -ne 'Running' ) -and ( $null -eq $dockerdProcess )){
+
+						Write-Host "[$scriptName] List all current images"
+						Write-Host 'cmd /c docker images 2`>`&1'
+						$imageTest = cmd /c docker images 2`>`&1
+						if ( $LASTEXITCODE -ne 0 ) {
+							cmd /c "exit 0"
+							$error.clear()
+							Write-Host "[$scriptName] Docker not responding, will attempt to execute natively (set `$env:CDAF_DOCKER_REQUIRED if docker is mandatory)"
 							if ( $env:CDAF_DOCKER_REQUIRED ) {
 								dockerStart
 							} else {			    
-								Write-Host "[$scriptName] Docker installed but not running, will attempt to execute natively (set `$env:CDAF_DOCKER_REQUIRED if docker is mandatory)"
+								Write-Host "[$scriptName]   Docker installed but not running, will attempt to execute natively (set `$env:CDAF_DOCKER_REQUIRED if docker is mandatory)"
 								cmd /c "exit 0"
 								Clear-Variable -Name 'containerBuild'
 								$executeNative = $true
 							}
+						} else {
+							$imageTest
 						}
-					}
-					
-					Write-Host "[$scriptName] List all current images"
-					Write-Host 'cmd /c docker images 2`>`&1'
-					$imageTest = cmd /c docker images 2`>`&1
-					if ( $LASTEXITCODE -ne 0 ) {
-						cmd /c "exit 0"
-						$error.clear()
-						Write-Host "[$scriptName] Docker not responding, will attempt to execute natively (set `$env:CDAF_DOCKER_REQUIRED if docker is mandatory)"
-						if ( $env:CDAF_DOCKER_REQUIRED ) {
-							dockerStart
-						} else {			    
-							Write-Host "[$scriptName]   Docker installed but not running, will attempt to execute natively (set `$env:CDAF_DOCKER_REQUIRED if docker is mandatory)"
-							cmd /c "exit 0"
-							Clear-Variable -Name 'containerBuild'
-							$executeNative = $true
-						}
-					} else {
-						$imageTest
 					}
 				}
 			}
