@@ -415,8 +415,8 @@ if ( $ACTION -eq 'container_build' ) {
 					}
 					
 					Write-Host "[$scriptName] List all current images"
-					Write-Host "docker images 2> `$null"
-					docker images 2> $null
+					Write-Host 'cmd /c docker images 2`>`&1'
+					$imageTest = cmd /c docker images 2`>`&1
 					if ( $LASTEXITCODE -ne 0 ) {
 						Write-Host "[$scriptName] Docker not responding, will attempt to execute natively (set `$env:CDAF_DOCKER_REQUIRED if docker is mandatory)"
 						if ( $env:CDAF_DOCKER_REQUIRED ) {
@@ -427,6 +427,8 @@ if ( $ACTION -eq 'container_build' ) {
 							Clear-Variable -Name 'containerBuild'
 							$executeNative = $true
 						}
+					} else {
+						$imageTest
 					}
 				}
 			}
