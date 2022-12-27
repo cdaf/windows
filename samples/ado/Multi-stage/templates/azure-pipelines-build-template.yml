@@ -2,9 +2,12 @@ jobs:
   - job: Build
     displayName: Build and Package
     pool:
-      vmImage: windows-2019
+      vmImage: windows-latest
+#      vmImage: windows-2019
+
 #    pool:
 #      name: Self-hosted Pool Name
+
     steps:
       # - task: PowerShell@2
       #   displayName: Diag
