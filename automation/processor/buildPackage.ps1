@@ -1,4 +1,3 @@
-Param (
 	[string]$BUILDNUMBER,
 	[string]$REVISION,
 	[string]$ACTION,
@@ -389,9 +388,14 @@ if ( $ACTION -eq 'container_build' ) {
 				} else {
 					Write-Host "[$scriptName]   containerBuild  : $containerBuild"
 					$versionTest = cmd /c docker --version 2`>`&1
-					$array = $versionTest.split(" ")
-					$dockerRun = $($array[2])
-					Write-Host "[$scriptName]   Docker          : $dockerRun"
+					if ( $LASTEXITCODE -ne 0 ) {
+						Write-Host "[$scriptName]   Docker          : (not installed, will attempt to execute natively)"
+					} else {
+						$array = $versionTest.split(" ")
+						$dockerRun = $($array[2])
+						Write-Host "[$scriptName]   Docker          : $dockerRun"
+					}
+
 					# Test Docker is running
 					If (Get-Service Docker -ErrorAction SilentlyContinue) {
 						$dockerStatus = (Get-Service Docker).Status
@@ -418,6 +422,8 @@ if ( $ACTION -eq 'container_build' ) {
 					Write-Host 'cmd /c docker images 2`>`&1'
 					$imageTest = cmd /c docker images 2`>`&1
 					if ( $LASTEXITCODE -ne 0 ) {
+						cmd /c "exit 0"
+						$error.clear()
 						Write-Host "[$scriptName] Docker not responding, will attempt to execute natively (set `$env:CDAF_DOCKER_REQUIRED if docker is mandatory)"
 						if ( $env:CDAF_DOCKER_REQUIRED ) {
 							dockerStart
@@ -446,6 +452,7 @@ if ( $imageBuild ) {
 	$versionTest = cmd /c docker --version 2`>`&1
 	if ( $LASTEXITCODE -ne 0 ) {
 		cmd /c "exit 0"
+		$error.clear()
 		$skipImageBuild = "imageBuild defined in $SOLUTIONROOT\CDAF.solution, but Docker not in use, imageBuild will not be attempted"
 		Write-Host "[$scriptName]   imageBuild      : $skipImageBuild"
 	} else {
