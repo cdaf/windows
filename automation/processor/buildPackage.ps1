@@ -1,3 +1,4 @@
+Param (
 	[string]$BUILDNUMBER,
 	[string]$REVISION,
 	[string]$ACTION,
