@@ -382,6 +382,7 @@ if ( $ACTION -eq 'container_build' ) {
 				Clear-Variable -Name 'containerBuild'
 			} else {
 				if ( $LASTEXITCODE -ne 0 ) {
+					$error.clear()
 					cmd /c "exit 0"
 					Write-Host "[$scriptName]   containerBuild  : containerBuild defined in $SOLUTIONROOT\CDAF.solution, but Docker not installed, will attempt to execute natively"
 					Clear-Variable -Name 'containerBuild'
@@ -390,7 +391,11 @@ if ( $ACTION -eq 'container_build' ) {
 					Write-Host "[$scriptName]   containerBuild  : $containerBuild"
 					$versionTest = cmd /c docker --version 2`>`&1
 					if ( $LASTEXITCODE -ne 0 ) {
+						$error.clear()
+						cmd /c "exit 0"
 						Write-Host "[$scriptName]   Docker          : (not installed, will attempt to execute natively)"
+						Clear-Variable -Name 'containerBuild'
+						$executeNative = $true
 					} else {
 						$array = $versionTest.split(" ")
 						$dockerRun = $($array[2])
