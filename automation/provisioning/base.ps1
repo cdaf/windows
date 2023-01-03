@@ -148,9 +148,10 @@ if ($proxy) {
 }
 
 $versionTest = cmd /c choco --version 2`>`&1
-if ($versionTest -like '*not recognized*') {
-	Write-Host "`n[$scriptName] Chocolatey not installed, installing ..."
+if ( $LASTEXITCODE -ne 0 ) {
+	$error.clear()
 	cmd /c "exit 0"
+	Write-Host "`n[$scriptName] Chocolatey not installed, installing ..."
 	if (!( Test-Path $mediaDir )) {
 		Write-Host "[$scriptName] mkdir $mediaDir"
 		Write-Host "[$scriptName]   $(mkdir $mediaDir) created"
