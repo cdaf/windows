@@ -19,7 +19,7 @@ function executeExpression ($expression) {
     if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) { Write-Host "[$scriptName][CDAF_DELIVERY_FAILURE.exit] `$LASTEXITCODE = $LASTEXITCODE "; exit $LASTEXITCODE }
 }
 
-Write-Host "`n[$scriptName] ---------- start ----------`n"
+Write-Host "`n[$scriptName] ---------- start ----------"
 Write-Host "[$scriptName]   SOLUTION    : $SOLUTION"
 Write-Host "[$scriptName]   BUILDNUMBER : $BUILDNUMBER"
 Write-Host "[$scriptName]   TARGET      : $TARGET"
