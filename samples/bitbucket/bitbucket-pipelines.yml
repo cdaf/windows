@@ -16,14 +16,19 @@ pipelines:
     'master':
       - step:
           name: Build and test
+          runs-on:
+            - windows          
           script:
             - . { iwr -useb https://cdaf.io/static/app/downloads/cdaf.ps1 } | iex
             - $env:DOCKER_HOST = ''
             - .\automation\ci.bat $env:BITBUCKET_BUILD_NUMBER $env:BITBUCKET_BRANCH
           artifacts:
             - "release.ps1"
-          runs-on:
-            - windows          
+
+          # Legacy artefacts
+          # artifacts:
+          #   - "TasksLocal/**"
+          #   - "*.zip"
 
       - step:
           name: Deploy to test
