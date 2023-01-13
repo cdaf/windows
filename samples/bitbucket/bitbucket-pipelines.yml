@@ -2,6 +2,12 @@ pipelines:
   default:
     - step:
         name: Build and test
+        runs-on:
+          - windows
+          
+          # Custom tags must be ADDITIONAL to the inbuild tags
+          # - docker.2019          
+
         script:
 #          - $env:CDAF_INSTALL_PATH = "${env:USERPROFILE}\.cdaf"
 #          - . { iwr -useb https://raw.githubusercontent.com/cdaf/windows/master/install.ps1 } | iex
@@ -9,8 +15,6 @@ pipelines:
           - . { iwr -useb https://cdaf.io/static/app/downloads/cdaf.ps1 } | iex
           - $env:DOCKER_HOST = ''
           - .\automation\entry.ps1 $env:BITBUCKET_BUILD_NUMBER $env:BITBUCKET_BRANCH
-        runs-on:
-          - windows          
 
   branches:
     'master':
@@ -32,12 +36,15 @@ pipelines:
 
       - step:
           name: Deploy to test
+          runs-on:
+            - windows          
           deployment: Test
           script:
             - $env:DOCKER_HOST = ''
             - ./release.ps1 $env:BITBUCKET_DEPLOYMENT_ENVIRONMENT
-          runs-on:
-            - windows          
+          
+          # Legacy Delivery
+          #   - ./TasksLocal/delivery.ps1 $env:BITBUCKET_DEPLOYMENT_ENVIRONMENT
 
       - step:
           name: Deploy to staging
@@ -45,15 +52,22 @@ pipelines:
           script:
             - $env:DOCKER_HOST = ''
             - ./release.ps1 $env:BITBUCKET_DEPLOYMENT_ENVIRONMENT
+          
+          # Legacy Delivery
+          #   - ./TasksLocal/delivery.ps1 $env:BITBUCKET_DEPLOYMENT_ENVIRONMENT
+
           runs-on:
             - windows          
 
       - step:
           name: Deploy to production
+          runs-on:
+            - windows          
           deployment: Production
           trigger: manual
           script:
             - $env:DOCKER_HOST = ''
             - ./release.ps1 $env:BITBUCKET_DEPLOYMENT_ENVIRONMENT
-          runs-on:
-            - windows          
+          
+          # Legacy Delivery
+          #   - ./TasksLocal/delivery.ps1 $env:BITBUCKET_DEPLOYMENT_ENVIRONMENT
