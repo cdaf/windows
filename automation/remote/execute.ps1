@@ -50,8 +50,6 @@ function executeExpression ($expression) {
 		$_.Exception.StackTrace
 		if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) {
 			ERRMSG "[EXEC][EXCEPTION] $message" $LASTEXITCODE
-		} else {
-			ERRMSG "[EXEC][EXCEPTION] $message" 1212
 		}
 	}
     if ( $LASTEXITCODE ) {

@@ -109,7 +109,7 @@ $versionTest = cmd /c ant -version 2`>`&1
 if ( $LASTEXITCODE -ne 0 ) {
 	Write-Host "  Apache Ant              : not installed"
 } else {
-	$array = $versionTest.split(" ")
+	$array = $versionTest[-1].split(" ")
 	Write-Host "  Apache Ant              : $($array[3])"
 }
 
@@ -219,6 +219,9 @@ $versionTest = cmd /c kubectl version --short=true --client=true 2`>`&1
 if ( $LASTEXITCODE -ne 0 ) {
 	Write-Host "  kubectl                 : not installed"
 } else {
+	if ( $versionTest[0].Split()[0] -ne 'Client' ) {
+		$versionTest = $versionTest[1]
+	}	
 	Write-Host "  kubectl                 : $($versionTest.Split('v')[1])"
 }
 

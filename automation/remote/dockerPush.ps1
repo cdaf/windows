@@ -7,9 +7,6 @@ Param (
 	[string]$registryToken
 )
 
-# Consolidated Error processing function
-#  required : error message
-#  optional : exit code, if not supplied only error message is written
 function ERRMSG ($message, $exitcode) {
 	if ( $exitcode ) {
 		Write-Host "`n[$scriptName]$message" -ForegroundColor Red
@@ -47,8 +44,6 @@ function executeExpression ($expression) {
 		$_.Exception.StackTrace
 		if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) {
 			ERRMSG "[EXEC][EXCEPTION] $message" $LASTEXITCODE
-		} else {
-			ERRMSG "[EXEC][EXCEPTION] $message" 1212
 		}
 	}
     if ( $LASTEXITCODE ) {
@@ -135,25 +130,7 @@ if ( $registryToken ) {
 #   docker push https://private.registry/iis:666
 
 if (( $registryUser ) -and ( $registryToken )) {
-	"echo `$registryToken | docker login --username $registryUser --password-stdin $registryURL"
-	echo $registryToken | docker login --username $registryUser --password-stdin $registryURL
-    if ( $LASTEXITCODE ) {
-    	if ( $LASTEXITCODE -ne 0 ) {
-			ERRMSG "[EXEC][EXIT] `$LASTEXITCODE is $LASTEXITCODE" $LASTEXITCODE
-		} else {
-			if ( $error ) {
-				ERRMSG "[EXEC][WARN] `$LASTEXITCODE is $LASTEXITCODE, but standard error populated"
-			}
-		} 
-	} else {
-	    if ( $error ) {
-	    	if ( $env:CDAF_IGNORE_WARNING -eq 'no' ) {
-				ERRMSG "[EXEC][ERROR] `$env:CDAF_IGNORE_WARNING is 'no' so exiting" 1213
-	    	} else {
-				ERRMSG "[EXEC][WARN] `$LASTEXITCODE not set, but standard error populated"
-	    	}
-		}
-	}
+	executeExpression "docker login --username $registryUser --password `$registryToken $registryURL"
 }
 
 if ( $registryURL ) {
