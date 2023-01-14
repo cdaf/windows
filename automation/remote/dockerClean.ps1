@@ -23,8 +23,8 @@ function executeSuppress ($expression) {
 	Write-Host "[$scriptName] $expression"
 	try {
 		Invoke-Expression $expression
-	    if(!$?) { Write-Host "[$scriptName] `$? = $?"; exit 1 }
-	} catch { Write-Host $_.Exception|format-list -force; exit 2 }
+	    if(!$?) { Write-Host "[$scriptName] `$? = $?" }
+	} catch { Write-Host $_.Exception|format-list -force }
 	$error.clear()
     if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) { Write-Host "[$scriptName] Suppress `$LASTEXITCODE ($LASTEXITCODE)"; cmd /c "exit 0" } # reset LASTEXITCODE
 }
