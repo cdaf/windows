@@ -104,7 +104,9 @@ if ( $env:http_proxy ) {
 }
 
 executeExpression "cd ~"
-executeExpression "set-executionpolicy unrestricted -Force"
+Write-Host "set-executionpolicy unrestricted -Force"
+set-executionpolicy unrestricted -Force
+
 executeExpression ". { iwr -useb http://cdaf.io/static/app/downloads/cdaf.ps1 } | iex"
 
 if ( $virtualisation -eq 'hyperv' ) {
