@@ -105,7 +105,8 @@ if ( $LASTEXITCODE -ne 0 ) {
 	}
 }
 
-$versionTest = cmd /c ant -version 2`>`&1
+$versionTest = @()
+$versionTest += cmd /c ant -version 2`>`&1
 if ( $LASTEXITCODE -ne 0 ) {
 	Write-Host "  Apache Ant              : not installed"
 } else {
