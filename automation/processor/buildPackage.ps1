@@ -257,7 +257,8 @@ if ($REVISION) {
 			} else {
 				cmd /c "exit 0"
 				$error.clear()
-				Write-Host "[$scriptName]   REVISION        : (not set, Git installed but not a Git workspace)"
+				$REVISION = 'revision'
+				Write-Host "[$scriptName]   REVISION        : $REVISION (default, Git installed but not a Git workspace)"
 			}
 		}
 	}
