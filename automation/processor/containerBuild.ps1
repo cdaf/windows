@@ -108,7 +108,13 @@ if ( $buildImage ) {
 	
 	$imageTag = 0
 	foreach ( $imageDetails in docker images --filter label=cdaf.${buildImage}.image.version --format "{{.Tag}}" ) {
-		if ($imageTag -lt [INT]$imageDetails ) { $imageTag = [INT]$imageDetails }
+		try {
+			$imageDetailsTag = [INT]$imageDetails
+			if ( $imageTag -lt $imageDetailsTag ) { $imageTag = $imageDetailsTag }
+		} catch {
+			# Ignore tags that are not integers
+			$Error.Clear()
+		}
 	}
 	if ( $imageTag ) {
 		Write-Host "[$scriptName] Last image tag is $imageTag, new image will be $($imageTag + 1)"
@@ -141,7 +147,13 @@ if ( $buildImage ) {
 		# Retrieve the latest image number
 		$imageTag = 0
 		foreach ( $imageDetails in docker images --filter label=cdaf.${buildImage}.image.version --format "{{.Tag}}" ) {
-			if ($imageTag -lt [INT]$imageDetails ) { $imageTag = [INT]$imageDetails }
+			try {
+				$imageDetailsTag = [INT]$imageDetails
+				if ( $imageTag -lt $imageDetailsTag ) { $imageTag = $imageDetailsTag }
+			} catch {
+				# Ignore tags that are not integers
+				$Error.Clear()
+			}
 		}
 	
 		$workspace = (Get-Location).Path
