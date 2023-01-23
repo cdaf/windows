@@ -80,6 +80,41 @@ function executeExpression ($expression) {
 	}
 }
 
+function executeCMD ($expression, $ignore) {
+	$error.clear()
+	Write-Host "[$(Get-Date)] $expression"
+	try {
+		cmd /c $expression
+	    if(!$?) { ERRMSG "[TRAP] `$? = $?" $(if ( ! $ignore ) { 1211 }) }
+	} catch {
+		$message = $_.Exception.Message
+		$_.Exception | format-list -force
+		$_.Exception.StackTrace
+		if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) {
+			ERRMSG "[EXEC][EXCEPTION] $message" $(if ( ! $ignore ) { $LASTEXITCODE })
+		} else {
+			ERRMSG "[EXEC][EXCEPTION] $message" $(if ( ! $ignore ) { 1212 })
+		}
+	}
+    if ( $LASTEXITCODE ) {
+    	if ( $LASTEXITCODE -ne 0 ) {
+			ERRMSG "[EXEC][EXIT] `$LASTEXITCODE is $LASTEXITCODE" $(if ( ! $ignore ) { $LASTEXITCODE })
+		} else {
+			if ( $error ) {
+				ERRMSG "[EXEC][WARN] `$LASTEXITCODE is $LASTEXITCODE, but standard error populated"
+			}
+		} 
+	} else {
+	    if ( $error ) {
+	    	if ( $env:CDAF_IGNORE_WARNING -eq 'no' ) {
+				ERRMSG "[EXEC][ERROR] `$env:CDAF_IGNORE_WARNING is 'no' so exiting" $(if ( ! $ignore ) { 1213 })
+	    	} else {
+				ERRMSG "[EXEC][WARN] `$LASTEXITCODE not set, but standard error populated"
+	    	}
+		}
+	}
+}
+
 function MD5MSK ($value) {
 	(Get-FileHash -InputStream $([IO.MemoryStream]::new([byte[]][char[]]$value)) -Algorithm MD5).Hash
 }
@@ -156,18 +191,28 @@ if ( $virtualisation -eq 'hyperv' ) {
 	
 } else {
 
-    Write-Host "Set-Service beep -StartupType disabled"
-    Set-Service beep -StartupType disabled
+    executeExpression "Set-Service beep -StartupType disabled"
     executeExpression "Get-AppxPackage Microsoft.YourPhone -AllUsers | Remove-AppxPackage"
     executeExpression "(Get-WmiObject Win32_TerminalServiceSetting -Namespace root\cimv2\TerminalServices).SetAllowTsConnections(1,1) | Out-Null"
     executeExpression "(Get-WmiObject -Class 'Win32_TSGeneralSetting' -Namespace root\cimv2\TerminalServices -Filter `"TerminalName='RDP-tcp'`").SetUserAuthenticationRequired(0) | Out-Null"
     executeExpression "Get-NetFirewallRule -DisplayName `"Remote Desktop*`" | Set-NetFirewallRule -enabled true"
 
     executeExpression ".\automation\provisioning\base.ps1 'microsoft-openjdk11 maven eclipse'"
+
+    executeExpression ".\automation\provisioning\base.ps1 nodejs-lts"
+    executeExpression ".\automation\provisioning\base.ps1 python"
+
     executeExpression ".\automation\provisioning\base.ps1 'nuget.commandline' -verion 5.8.1" # 5.9 is broken
-    executeExpression ".\automation\provisioning\base.ps1 azure-cli"
     executeExpression ".\automation\provisioning\base.ps1 visualstudio2022enterprise"
-    executeExpression ".\automation\provisioning\base.ps1 dotnetcore-sdk"
+    executeExpression "curl.exe -fSL $env:CURL_OPT -O https://aka.ms/vs/17/release/vs_enterprise.exe"
+    executeCMD "start /w vs_enterprise.exe --quiet --wait --norestart --nocache --noUpdateInstaller --noWeb --add Microsoft.VisualStudio.Workload.Azure --locale en-US"
+    executeCMD "start /w vs_enterprise.exe --quiet --wait --norestart --nocache --noUpdateInstaller --noWeb --add Microsoft.VisualStudio.Workload.NetWeb --locale en-US"
+    executeCMD "start /w vs_enterprise.exe --quiet --wait --norestart --nocache --noUpdateInstaller --noWeb --add Microsoft.VisualStudio.Workload.Node --locale en-US"
+    executeCMD "start /w vs_enterprise.exe --quiet --wait --norestart --nocache --noUpdateInstaller --noWeb --add Microsoft.VisualStudio.Workload.Python --locale en-US"
+    executeCMD "start /w vs_enterprise.exe --quiet --wait --norestart --nocache --noUpdateInstaller --noWeb --add Microsoft.Component.PythonTools.Web --locale en-US"
+
+    executeExpression ".\automation\provisioning\base.ps1 azure-cli"
+    executeExpression ".\automation\provisioning\base.ps1 dotnet-6.0-sdk"
 
     # Ensure NuGet is a source, by default it is not (ignore if already added)
     Write-Host "nuget sources add -Name NuGet.org -Source https://api.nuget.org/v3/index.json"
@@ -176,8 +221,6 @@ if ( $virtualisation -eq 'hyperv' ) {
     executeExpression ".\automation\provisioning\base.ps1 'vswhere'" # Install this now that VS is installed
 
     executeExpression ".\automation\provisioning\base.ps1 nano"
-    executeExpression ".\automation\provisioning\base.ps1 nodejs-lts"
-    executeExpression ".\automation\provisioning\base.ps1 python"
     executeExpression ".\automation\provisioning\base.ps1 svn"
     executeExpression ".\automation\provisioning\base.ps1 vnc-viewer"
     executeExpression ".\automation\provisioning\base.ps1 putty"
