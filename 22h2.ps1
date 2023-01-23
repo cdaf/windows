@@ -164,7 +164,8 @@ if ( $virtualisation -eq 'hyperv' ) {
  
     executeExpression "Dism /online /enable-feature /all /featurename:Microsoft-Hyper-V /NoRestart"
     executeExpression "Enable-WindowsOptionalFeature -Online -FeatureName Containers -All -NoRestart"
-    executeExpression ".\automation\provisioning\base.ps1 'docker-desktop wsl2'"
+    executeExpression ".\automation\provisioning\base.ps1 docker-desktop"
+    executeExpression ".\automation\provisioning\base.ps1 wsl2"
     executeExpression ".\automation\provisioning\base.ps1 'vagrant' -autoReboot no"
     executeExpression  "Remove-Item -Recurse -Force automation"
 
