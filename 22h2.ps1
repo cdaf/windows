@@ -8,7 +8,8 @@
 
 Param (
 	[string]$virtualisation,
-	[string]$vagrantPass
+	[string]$vagrantPass,
+	[string]$vagrantUser
 )
 
 cmd /c "exit 0"
@@ -96,6 +97,11 @@ if ($vagrantPass) {
 } else {
     Write-Host "vagrantPass    : (not specified)"
 }
+if ($vagrantPass) {
+    Write-Host "vagrantUSer    : $vagrantUser"
+} else {
+    Write-Host "vagrantPass    : (not specified, will use current user if password set)"
+}
 
 if ( $env:http_proxy ) {
     executeExpression "[system.net.webrequest]::defaultwebproxy = New-Object system.net.webproxy('$env:http_proxy')"
@@ -112,9 +118,13 @@ executeExpression ". { iwr -useb http://cdaf.io/static/app/downloads/cdaf.ps1 } 
 if ( $virtualisation -eq 'hyperv' ) {
 
     executeExpression ".\automation\provisioning\setenv.ps1 VAGRANT_DEFAULT_PROVIDER hyperv"
-    executeExpression ".\automation\provisioning\setenv.ps1 VAGRANT_SMB_USER $env:USERNAME"
     if ($vagrantPass) {
         executeExpression ".\automation\provisioning\setenv.ps1 VAGRANT_SMB_PASS $vagrantPass"
+        if ($vagrantUser) {
+	    executeExpression ".\automation\provisioning\setenv.ps1 VAGRANT_SMB_USER $vagrantUser"
+        } else {
+	    executeExpression ".\automation\provisioning\setenv.ps1 VAGRANT_SMB_USER $env:USERNAME"
+	}
     }
  
     executeExpression "Dism /online /enable-feature /all /featurename:Microsoft-Hyper-V /NoRestart"
