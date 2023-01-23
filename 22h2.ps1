@@ -164,7 +164,8 @@ if ( $virtualisation -eq 'hyperv' ) {
 
     executeExpression ".\automation\provisioning\base.ps1 'microsoft-openjdk11 maven eclipse'"
     executeExpression ".\automation\provisioning\base.ps1 'nuget.commandline' -verion 5.8.1" # 5.9 is broken
-    executeExpression ".\automation\provisioning\base.ps1 'azure-cli visualstudio2022enterprise vscode'"
+    executeExpression ".\automation\provisioning\base.ps1 azure-cli"
+    executeExpression ".\automation\provisioning\base.ps1 visualstudio2022enterprise"
     executeExpression ".\automation\provisioning\base.ps1 dotnetcore-sdk"
 
     # Ensure NuGet is a source, by default it is not (ignore if already added)
@@ -173,10 +174,21 @@ if ( $virtualisation -eq 'hyperv' ) {
     
     executeExpression ".\automation\provisioning\base.ps1 'vswhere'" # Install this now that VS is installed
 
-    executeExpression ".\automation\provisioning\base.ps1 'nano nodejs-lts python git svn vnc-viewer putty winscp postman'"
+    executeExpression ".\automation\provisioning\base.ps1 nano"
+    executeExpression ".\automation\provisioning\base.ps1 nodejs-lts"
+    executeExpression ".\automation\provisioning\base.ps1 python"
+    executeExpression ".\automation\provisioning\base.ps1 svn"
+    executeExpression ".\automation\provisioning\base.ps1 vnc-viewer"
+    executeExpression ".\automation\provisioning\base.ps1 putty"
+    executeExpression ".\automation\provisioning\base.ps1 winscp"
+    executeExpression ".\automation\provisioning\base.ps1 postman"
+
+    executeExpression ".\automation\provisioning\base.ps1 git"
     executeExpression "git config --global core.autocrlf false"
+
     executeExpression ".\automation\provisioning\base.ps1 'googlechrome' -checksum ignore" # Google does not provide a static download, so checksum can briefly fail on new releases
 
+    executeExpression ".\automation\provisioning\base.ps1 vscode"
     $extensions = @()
     $extensions += "42crunch.vscode-openapi"
     $extensions += "bierner.markdown-mermaid"
