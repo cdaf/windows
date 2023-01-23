@@ -3,7 +3,7 @@
 
 # Install Virtualisation choices
 # iwr -useb https://raw.githubusercontent.com/cdaf/windows/master/22h2.ps1 -o 22h2.ps1
-# .\22h2.ps1 hyperv <smbpassword>
+# .\22h2.ps1 hyperv or .\22h2.ps1 hyperv <smbpassword> or .\22h2.ps1 hyperv <smbpassword> <smbusername>
 # .\22h2.ps1 virtualbox
 
 Param (
