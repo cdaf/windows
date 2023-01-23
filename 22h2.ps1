@@ -59,7 +59,7 @@ function executeExpression ($expression) {
 	}
     if ( $LASTEXITCODE ) {
     	if ( $LASTEXITCODE -ne 0 ) {
-			if ( $LASTEXITCODE -ne 3010 ) {
+			if ( $LASTEXITCODE -eq 3010 ) {
 				ERRMSG "[WARN] Pending Reboot, `$LASTEXITCODE is $LASTEXITCODE"
 			} else {
 				ERRMSG "[EXIT] `$LASTEXITCODE is $LASTEXITCODE" $LASTEXITCODE
@@ -119,7 +119,7 @@ function MD5MSK ($value) {
 	(Get-FileHash -InputStream $([IO.MemoryStream]::new([byte[]][char[]]$value)) -Algorithm MD5).Hash
 }
 
-$scriptName = 'dev.ps1'
+$scriptName = '22h2.ps1'
 
 Write-Host "`n[$scriptName] ---------- start ----------"
 if ($virtualisation) {
