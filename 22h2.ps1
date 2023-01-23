@@ -145,8 +145,11 @@ if ( $env:http_proxy ) {
 }
 
 executeExpression "cd ~"
+
+Write-Host "Allow script execution, do not fail if not allowed"
 Write-Host "set-executionpolicy unrestricted -Force"
 set-executionpolicy unrestricted -Force
+$error.clear()
 
 executeExpression ". { iwr -useb http://cdaf.io/static/app/downloads/cdaf.ps1 } | iex"
 
