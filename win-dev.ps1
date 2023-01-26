@@ -216,6 +216,7 @@ if ( $virtualisation -eq 'hyperv' ) {
     executeCMD "start /w vs_enterprise.exe --quiet --wait --norestart --nocache --noUpdateInstaller --noWeb --add Microsoft.Component.PythonTools.Web --locale en-US"
 
     executeExpression ".\automation\provisioning\base.ps1 azure-cli"
+    executeExpression "az config set extension.use_dynamic_install=yes_without_prompt"
     executeExpression ".\automation\provisioning\base.ps1 dotnet-6.0-sdk"
 
     # Ensure NuGet is a source, by default it is not (ignore if already added)
