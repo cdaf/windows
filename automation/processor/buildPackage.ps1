@@ -628,6 +628,11 @@ if ( $ACTION -ne 'container_build' ) {
 				}
 			}
 			executeExpression "$imageBuild"
+
+			$postBuild = getProp 'postBuild' "$SOLUTIONROOT\CDAF.solution"  
+			if ( $postBuild ) {
+				executeExpression "$postBuild"
+			}
 		}
 	}
 
@@ -729,3 +734,5 @@ if (( $ACTION -eq 'buildonly' ) -or ( $ACTION -eq 'clean' )) {
 } else {
 	Write-Host "`n[$scriptName][$(Get-Date)] Process complete, artefacts [$artefactList] placed in $stageTarget" -ForegroundColor Green
 }
+$error.clear()
+exit 0

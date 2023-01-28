@@ -216,10 +216,10 @@ if ($BUILDNUMBER) {
 }
 
 # Runtime information
-$env:WORK_SPACE = "$(Get-Location)"
-Write-Host "[$scriptName]   `$env:WORK_SPACE  : $env:WORK_SPACE"
-Write-Host "[$scriptName]   hostname         : $(hostname)" 
-Write-Host "[$scriptName]   whoami           : $(whoami)"
+$WORKSPACE = "$(Get-Location)"
+Write-Host "[$scriptName]   WORKSPACE        = $WORKSPACE"
+Write-Host "[$scriptName]   hostname         = $(hostname)" 
+Write-Host "[$scriptName]   whoami           = $(whoami)"
 
 $propertiesFile = "$WORK_DIR_DEFAULT\CDAF.properties"
 $cdafVersion = getProp 'productVersion'
@@ -250,7 +250,7 @@ foreach ($step in $processSequence.Split()) {
 	if ( $step ) {
 		Write-Host
 		executeExpression "& .\$WORK_DIR_DEFAULT\$step '$ENVIRONMENT' '$BUILDNUMBER' '$SOLUTION' '$WORK_DIR_DEFAULT' '$OPT_ARG'"
-		Set-Location $env:WORK_SPACE
+		Set-Location $WORKSPACE
 	}
 }
 
