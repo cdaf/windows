@@ -216,8 +216,8 @@ if ($BUILDNUMBER) {
 }
 
 # Runtime information
-$WORKSPACE = "$(Get-Location)"
-Write-Host "[$scriptName]   WORKSPACE        = $WORKSPACE"
+$WORKING_DIRECTORY = (Get-Location).Path
+Write-Host "[$scriptName]   pwd              = $WORKING_DIRECTORY"
 Write-Host "[$scriptName]   hostname         = $(hostname)" 
 Write-Host "[$scriptName]   whoami           = $(whoami)"
 
@@ -250,7 +250,7 @@ foreach ($step in $processSequence.Split()) {
 	if ( $step ) {
 		Write-Host
 		executeExpression "& .\$WORK_DIR_DEFAULT\$step '$ENVIRONMENT' '$BUILDNUMBER' '$SOLUTION' '$WORK_DIR_DEFAULT' '$OPT_ARG'"
-		Set-Location $WORKSPACE
+		Set-Location $WORKING_DIRECTORY
 	}
 }
 
