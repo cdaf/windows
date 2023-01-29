@@ -1,0 +1,5 @@
+mvn --batch-mode archetype:generate -D"archetypeGroupId=com.github.netyjq" -D"archetypeArtifactId=spring-boot-archetype" -D"archetypeVersion=0.0.2.release" -D"groupId=io.cdaf.springboot" -D"artifactId=container-build" -D"version=1.0-SNAPSHOT"
+
+cd .\container-build
+
+mvn install -B -V

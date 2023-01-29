@@ -20,9 +20,9 @@ executeExpression '$env:CDAF_INSTALL_PATH = "c:\cdaf"'
 executeExpression '. { iwr -useb https://raw.githubusercontent.com/cdaf/windows/master/install.ps1 } | iex'
 
 Write-Host "[$scriptName] List components of the base image`n"
-executeExpression "provisioning\base.ps1 'adoptopenjdk'"
-executeExpression "provisioning\base.ps1 'maven' -otherArgs '--ignore-dependencies'" # avoid Oracle Java dependency
-executeExpression "remote\capabilities.ps1"
+executeExpression "base.ps1 'microsoft-openjdk11'"
+executeExpression "base.ps1 'maven' -otherArgs '--ignore-dependencies'" # avoid Oracle Java dependency
+executeExpression "capabilities.ps1"
 
 Write-Host "`n[$scriptName] ---------- stop ----------"
 $error.clear()
