@@ -17,7 +17,7 @@ function ERRMSG ($message, $exitcode) {
 	if ( $exitcode ) {
 		Write-Host "`n[$scriptName]$message" -ForegroundColor Red
 	} else {
-		Write-Warning "`n[$scriptName]$message" -ForegroundColor Yellow
+		Write-Warning "`n[$scriptName]$message"
 	}
 	if ( $error ) {
 		$i = 0
