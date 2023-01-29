@@ -17,7 +17,7 @@ function ERRMSG ($message, $exitcode) {
 	if ( $exitcode ) {
 		Write-Host "`n[$scriptName]$message" -ForegroundColor Red
 	} else {
-		Write-Host "`n[$scriptName]$message" -ForegroundColor Yellow
+		Write-Warning "`n[$scriptName]$message" -ForegroundColor Yellow
 	}
 	if ( $error ) {
 		$i = 0
@@ -28,11 +28,11 @@ function ERRMSG ($message, $exitcode) {
 		}
 		$Error.clear()
 	}
-	if ( $env:CDAF_ERROR_DIAG ) {
-		Write-Host "`n[$scriptName] Invoke custom diag `$env:CDAF_ERROR_DIAG = $env:CDAF_ERROR_DIAG`n"
-		Invoke-Expression $env:CDAF_ERROR_DIAG
-	}
 	if ( $exitcode ) {
+		if ( $env:CDAF_ERROR_DIAG ) {
+			Write-Host "`n[$scriptName] Invoke custom diag `$env:CDAF_ERROR_DIAG = $env:CDAF_ERROR_DIAG`n"
+			Invoke-Expression $env:CDAF_ERROR_DIAG
+		}
 		Write-Host "`n[$scriptName] Exit with LASTEXITCODE = $exitcode`n" -ForegroundColor Red
 		exit $exitcode
 	}
