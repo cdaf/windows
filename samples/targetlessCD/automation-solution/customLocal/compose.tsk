@@ -28,28 +28,30 @@ cd $composePersist
 Write-Host "List containers current state`n"
 docker ps
 
-Write-Host "`nCleanup from previously test`n"
-docker-compose down --remove-orphans
-docker-compose rm -f
+Write-Host "Cleanup from previous test`n"
+
+cmd /c docker-compose down --remove-orphans 2`>`&1
+
+cmd /c docker-compose rm -f 2`>`&1
 
 Write-Host "Set the build number to use`n"
 ASSIGN $env:TARGET_TAG = "${env:TARGET_TAG}:${BUILDNUMBER}"
 ASSIGN $env:TEST_TAG = "${env:TEST_TAG}:${BUILDNUMBER}"
 
-docker-compose up -d target
+cmd /c docker-compose up -d target 2`>`&1
 
 Write-Host "Deploy to target (allow up to 2 minutes)`n"
 $containerID = $(docker ps -aq --filter "ancestor=$env:TARGET_TAG")
 & $WORKSPACE\dockerLog.ps1 $containerID 'Delivery Process Complete' 120
 
-docker-compose up -d test
+cmd /c docker-compose up -d test 2`>`&1
 
 Write-Host "Execute tests (allow 5 minutes to complete)`n"
 $containerID = $(docker ps -aq --filter "ancestor=$env:TEST_TAG")
 & $WORKSPACE\dockerLog.ps1 $containerID 'Automated Test Execution completed successfully.' 300
 
 Write-Host "`nTear down if `$env:COMPOSE_KEEP ($env:COMPOSE_KEEP) not set`n"
-if ( $env:COMPOSE_KEEP ) { docker inspect -f '{{.Name}} - {{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' $(docker ps -aq) } else { docker-compose down; docker-compose rm -f }
+if ( $env:COMPOSE_KEEP ) { docker inspect -f '{{.Name}} - {{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' $(docker ps -aq) } else { cmd /c docker-compose down 2`>`&1 }
 
 cd $WORKSPACE
 
