@@ -68,13 +68,13 @@ cmd /c "exit 0" # ensure LASTEXITCODE is 0
 
 Write-Host "`n[$scriptName] ---------- start ----------"
 if ($port) {
-    Write-Host "[$scriptName] port : $port"
+    Write-Host "[$scriptName] port   : $port"
 } else {
-    Write-Host "[$scriptName] port : (not supplied, reverse proxy will not be configured)"
+    Write-Host "[$scriptName] port   : (not supplied, reverse proxy will not be configured)"
 }
 
 Write-Host "[$scriptName] pwd    = $(pwd)"
-Write-Host "[$scriptName] whoami = $(whoami)"
+Write-Host "[$scriptName] whoami = $(whoami)`N"
 
 executeExpression "[System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]'Tls11,Tls12'"
 
