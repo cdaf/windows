@@ -142,6 +142,10 @@ if ($port) {
 	executeExpression 'Add-Content C:\inetpub\wwwroot\web.config "</configuration>"'
 }
 
-executeExpression 'Get-Content C:\inetpub\wwwroot\web.config'
+if ( Test-Path "C:\inetpub\wwwroot\web.config" ) {
+	executeExpression 'Get-Content C:\inetpub\wwwroot\web.config'
+} else {
+	Write-Host "C:\inetpub\wwwroot\web.config does not exist, ARR not configured."
+}
 
 Write-Host "`n[$scriptName] ---------- stop ----------"
