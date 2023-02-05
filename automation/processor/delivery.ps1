@@ -222,7 +222,7 @@ Write-Host "[$scriptName]   hostname         = $(hostname)"
 Write-Host "[$scriptName]   whoami           = $(whoami)"
 
 # Load TargetlessCD environment variable
-$env:WORK_SPACE = $$WORKING_DIRECTORY
+$env:WORK_SPACE = $WORKING_DIRECTORY
 
 $propertiesFile = "$WORK_DIR_DEFAULT\CDAF.properties"
 $cdafVersion = getProp 'productVersion'
