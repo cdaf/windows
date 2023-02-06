@@ -71,7 +71,7 @@ if ($imageName) {
 	foreach ( $imageDetails in docker images --filter label=cdaf.${imageName}.image.version --format "{{.ID}}:{{.Tag}}:{{.Repository}}" ) {
 		$arr = $imageDetails.split(':')
 		$imageID = $arr[0]
-		try { $imageTag = [INT]$arr[1] } catch { Write-Host "Tag $arr[1] is not an integer, ignoring..." }
+		try { $imageTag = [INT]$arr[1] } catch { Write-Host "Image $imageID Tag ${arr[1]} is not an integer, ignoring..." }
 		$Repository = $arr[2]
 		if ( $tag ) {
 			if ( $imageTag -lt $tag ) {
