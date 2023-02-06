@@ -147,7 +147,7 @@ if ( $env:http_proxy ) {
 executeExpression "cd ~"
 
 Write-Host "Allow script execution, do not fail if not allowed"
-Write-Host "set-executionpolicy unrestricted -Force"
+Write-Host "set-executionpolicy unrestricted -Force`n"
 try { set-executionpolicy unrestricted -Force } catch { Write-Warning "Unable to alter powershell execution policy, continuing ..." }
 $error.clear()
 
