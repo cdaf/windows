@@ -148,7 +148,7 @@ executeExpression "cd ~"
 
 Write-Host "Allow script execution, do not fail if not allowed"
 Write-Host "set-executionpolicy unrestricted -Force"
-set-executionpolicy unrestricted -Force
+try { set-executionpolicy unrestricted -Force } catch { Write-Warning "Unable to alter powershell execution policy, continuing ..." }
 $error.clear()
 
 executeExpression ". { iwr -useb http://cdaf.io/static/app/downloads/cdaf.ps1 } | iex"
