@@ -161,8 +161,6 @@ if ( $virtualisation -eq 'hyperv' ) {
 
     executeExpression "Dism /online /enable-feature /all /featurename:Microsoft-Hyper-V /NoRestart"
     executeExpression "Enable-WindowsOptionalFeature -Online -FeatureName Containers -All -NoRestart"
-    executeExpression ".\automation\provisioning\base.ps1 docker-desktop"
-    executeExpression ".\automation\provisioning\base.ps1 wsl2"
 
     if ($vagrantPass) {
         executeExpression ".\automation\provisioning\base.ps1 'vagrant' -autoReboot no"
@@ -174,6 +172,10 @@ if ( $virtualisation -eq 'hyperv' ) {
 	    executeExpression ".\automation\provisioning\setenv.ps1 VAGRANT_SMB_USER $env:USERNAME"
 	}
     }
+
+    executeExpression ".\automation\provisioning\base.ps1 docker-desktop"
+    executeExpression ".\automation\provisioning\base.ps1 wsl2"
+    executeExpression "wsl --install --distribution Ubuntu"
 
     executeExpression  "Remove-Item -Recurse -Force automation"
     executeExpression "shutdown /r /t 0"
