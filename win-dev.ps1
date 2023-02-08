@@ -159,8 +159,14 @@ executeExpression ". { iwr -useb http://cdaf.io/static/app/downloads/cdaf.ps1 } 
 
 if ( $virtualisation -eq 'hyperv' ) {
 
-    executeExpression ".\automation\provisioning\setenv.ps1 VAGRANT_DEFAULT_PROVIDER hyperv"
+    executeExpression "Dism /online /enable-feature /all /featurename:Microsoft-Hyper-V /NoRestart"
+    executeExpression "Enable-WindowsOptionalFeature -Online -FeatureName Containers -All -NoRestart"
+    executeExpression ".\automation\provisioning\base.ps1 docker-desktop"
+    executeExpression ".\automation\provisioning\base.ps1 wsl2"
+
     if ($vagrantPass) {
+        executeExpression ".\automation\provisioning\base.ps1 'vagrant' -autoReboot no"
+        executeExpression ".\automation\provisioning\setenv.ps1 VAGRANT_DEFAULT_PROVIDER hyperv"
         executeExpression ".\automation\provisioning\setenv.ps1 VAGRANT_SMB_PASS $vagrantPass"
         if ($vagrantUser) {
 	    executeExpression ".\automation\provisioning\setenv.ps1 VAGRANT_SMB_USER $vagrantUser"
@@ -168,14 +174,8 @@ if ( $virtualisation -eq 'hyperv' ) {
 	    executeExpression ".\automation\provisioning\setenv.ps1 VAGRANT_SMB_USER $env:USERNAME"
 	}
     }
- 
-    executeExpression "Dism /online /enable-feature /all /featurename:Microsoft-Hyper-V /NoRestart"
-    executeExpression "Enable-WindowsOptionalFeature -Online -FeatureName Containers -All -NoRestart"
-    executeExpression ".\automation\provisioning\base.ps1 docker-desktop"
-    executeExpression ".\automation\provisioning\base.ps1 wsl2"
-    executeExpression ".\automation\provisioning\base.ps1 'vagrant' -autoReboot no"
-    executeExpression  "Remove-Item -Recurse -Force automation"
 
+    executeExpression  "Remove-Item -Recurse -Force automation"
     executeExpression "shutdown /r /t 0"
 
 } elseif ( $virtualisation -eq 'virtualbox' ) {
