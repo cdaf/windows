@@ -6,6 +6,10 @@
 # .\win-dev.ps1 hyperv or .\win-dev.ps1 hyperv <smbpassword> or .\win-dev.ps1 hyperv <smbpassword> <smbusername>
 # .\win-dev.ps1 virtualbox
 
+# Legacy Software Components
+# iwr -useb https://raw.githubusercontent.com/cdaf/windows/master/win-dev.ps1 -o win-dev.ps1
+# .\win-dev.ps1 legacy
+
 Param (
 	[string]$virtualisation,
 	[string]$vagrantPass,
@@ -192,7 +196,12 @@ if ( $virtualisation -eq 'hyperv' ) {
     executeExpression  "Remove-Item -Recurse -Force automation"
 
     executeExpression "shutdown /r /t 0"
-	
+
+} elseif ( $virtualisation -eq 'legacy' ) {
+
+    executeExpression ".\automation\provisioning\base.ps1 svn"
+    executeExpression ".\automation\provisioning\base.ps1 vnc-viewer"
+
 } else {
 
     executeExpression "Set-Service beep -StartupType disabled"
@@ -226,8 +235,6 @@ if ( $virtualisation -eq 'hyperv' ) {
     executeExpression ".\automation\provisioning\base.ps1 'vswhere'" # Install this now that VS is installed
 
     executeExpression ".\automation\provisioning\base.ps1 nano"
-    executeExpression ".\automation\provisioning\base.ps1 svn"
-    executeExpression ".\automation\provisioning\base.ps1 vnc-viewer"
     executeExpression ".\automation\provisioning\base.ps1 putty"
     executeExpression ".\automation\provisioning\base.ps1 winscp"
     executeExpression ".\automation\provisioning\base.ps1 postman"
