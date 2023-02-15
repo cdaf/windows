@@ -173,7 +173,7 @@ if ( $virtualisation -eq 'hyperv' ) {
 	}
     }
 
-    executeExpression ".\automation\provisioning\base.ps1 docker-desktop"
+    executeExpression ".\automation\provisioning\base.ps1 docker-desktop -version 4.16.2"
     executeExpression ".\automation\provisioning\base.ps1 wsl2"
     executeExpression "wsl --install --distribution Ubuntu"
 
