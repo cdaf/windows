@@ -244,8 +244,6 @@ if ( $virtualisation -eq 'hyperv' ) {
     executeExpression ".\automation\provisioning\base.ps1 git"
     executeExpression "git config --global core.autocrlf false"
 
-    executeExpression ".\automation\provisioning\base.ps1 'googlechrome' -checksum ignore" # Google does not provide a static download, so checksum can briefly fail on new releases
-
     executeExpression ".\automation\provisioning\base.ps1 vscode"
     $extensions = @()
     $extensions += "42crunch.vscode-openapi"
@@ -282,6 +280,10 @@ if ( $virtualisation -eq 'hyperv' ) {
     foreach ($extension in $extensions) {
         executeExpression "code --install-extension $extension --force"
     }
+
+    Write-Host "Google does not provide a static download for Chrome, so checksum can briefly fail on new releases, if install fails, this script will not error."
+    Write-Host ".\automation\provisioning\base.ps1 'googlechrome' -checksum ignore" # Google does not provide a static download, so checksum can briefly fail on new releases
+    .\automation\provisioning\base.ps1 'googlechrome' -checksum ignore"
 
 }
 
