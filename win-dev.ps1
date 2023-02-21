@@ -283,7 +283,7 @@ if ( $virtualisation -eq 'hyperv' ) {
 
     Write-Host "Google does not provide a static download for Chrome, so checksum can briefly fail on new releases, if install fails, this script will not error."
     Write-Host ".\automation\provisioning\base.ps1 'googlechrome' -checksum ignore" # Google does not provide a static download, so checksum can briefly fail on new releases
-    .\automation\provisioning\base.ps1 'googlechrome' -checksum ignore"
+    .\automation\provisioning\base.ps1 'googlechrome' -checksum ignore
 
 }
 
