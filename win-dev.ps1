@@ -225,6 +225,7 @@ if ( $virtualisation -eq 'hyperv' ) {
     executeCMD "start /w vs_enterprise.exe --quiet --wait --norestart --nocache --noUpdateInstaller --noWeb --add Microsoft.VisualStudio.Workload.Node --locale en-US"
     executeCMD "start /w vs_enterprise.exe --quiet --wait --norestart --nocache --noUpdateInstaller --noWeb --add Microsoft.VisualStudio.Workload.Python --locale en-US"
     executeCMD "start /w vs_enterprise.exe --quiet --wait --norestart --nocache --noUpdateInstaller --noWeb --add Microsoft.Component.PythonTools.Web --locale en-US"
+    executeExpression ".\automation\provisioning\base.ps1 webdeploy"
 
     executeExpression ".\automation\provisioning\base.ps1 azure-cli"
     executeExpression "az config set extension.use_dynamic_install=yes_without_prompt"
@@ -276,7 +277,7 @@ if ( $virtualisation -eq 'hyperv' ) {
     $extensions += "redhat.vscode-yaml"
     $extensions += "streetsidesoftware.code-spell-checker"
     $extensions += "vscoss.vscode-ansible"
-    
+
     foreach ($extension in $extensions) {
         executeExpression "code --install-extension $extension --force"
     }
