@@ -72,6 +72,14 @@ if (!( $env:MS_BUILD )) {
 	}
 }
 
+if (! ($env:VS_TEST) ) {
+	$versionTest = cmd /c vstest.console.exe --help 2`>`&1
+	if ( $LASTEXITCODE -eq 0 ) {
+		Write-Host "vstest.console.exe : $($versionTest[0])"
+		$env:VS_TEST = where.exe vstest.console.exe
+	}
+}
+
 if (! ($env:MS_BUILD) ) {
 	Write-Host "`n[$scriptName] MSBuild not found, search common Visual Studio paths ..."
 	$testlookup = Get-ChildItem -Recurse "C:\Program Files (x86)\Microsoft Visual Studio" -Filter "MSBuild.exe"
