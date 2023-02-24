@@ -1,5 +1,8 @@
 # Usage examples
 
+# Windows 2016
+# [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]'Tls11,Tls12'
+
 # Install to current directory and do not change PATH
 # . { iwr -useb https://raw.githubusercontent.com/cdaf/windows/master/install.ps1 } | iex
 
