@@ -216,14 +216,20 @@ if ( $LASTEXITCODE -ne 0 ){
 }
 
 # Kubectl is required for Helm
+$versionTest = @()
 $versionTest = cmd /c kubectl version --short=true --client=true 2`>`&1
 if ( $LASTEXITCODE -ne 0 ) {
 	Write-Host "  kubectl                 : not installed"
 } else {
-	if ( $versionTest[0].Split()[0] -ne 'Client' ) {
-		$versionTest = $versionTest[1]
+	try { $firstLine = $versionTest[0].Split()[0] } catch {
+		Write-Host "  kubectl                 : installed but unable to determine from $versionTest"
+	}
+	if ( $firstLine -ne 'Client' ) {
+		try { $secondLine = $versionTest[1].Split('v')[1] } catch {
+			Write-Host "  kubectl                 : installed but unable to determine from $versionTest"
+		}
 	}	
-	Write-Host "  kubectl                 : $($versionTest.Split('v')[1])"
+	Write-Host "  kubectl                 : $secondLine"
 }
 
 $versionTest = cmd /c helm version --short 2`>`&1
