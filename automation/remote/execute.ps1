@@ -75,6 +75,7 @@ function executeExpression ($expression) {
 
 # Windows Command Execution combining standard error and standard out, with only non-zero exit code triggering error
 function EXECMD ($expression) {
+	Write-Host "[$(Get-Date)] $expression"
 	cmd /c "$expression 2>&1"
     if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) {
 		ERRMSG "[EXECMD][EXIT] `$LASTEXITCODE is $LASTEXITCODE" $LASTEXITCODE
