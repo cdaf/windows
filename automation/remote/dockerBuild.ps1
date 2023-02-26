@@ -109,7 +109,7 @@ if ( $LASTEXITCODE -ne 0 ) {
 Write-Host "`n[$scriptName] As of 1.13.0 new prune commands, if using older version, suppress error"
 executeSuppress "docker system prune -f"
 
-$buildCommand = 'docker build --progress plain'
+$buildCommand = 'docker build'
 
 foreach ( $envVar in Get-ChildItem env:) {
 	if ($envVar.Name.Contains('CDAF_IB_')) {
