@@ -248,6 +248,14 @@ if ( $LASTEXITCODE -ne 0 ) {
 	Write-Host "  helmsman                : $($versionTest.Split('v')[2])"
 }
 
+try { 
+	$msPath = Get-Item -Path 'HKLM:\Software\Microsoft\IIS Extensions\MSDeploy\*' -ErrorAction SilentlyContinue
+	$versionTest = $msPath[-1].Name.Split('\')[-1] 
+} catch {
+	$versionTest = 'not installed'
+}
+Write-Host "  Web Deploy              : $versionTest"
+
 $versionTest = cmd /c vswhere -products * 2`>`&1
 if ( $LASTEXITCODE -ne 0 ) {
 	Write-Host "  VSWhere                 : not installed"
