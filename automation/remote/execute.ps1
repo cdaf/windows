@@ -73,6 +73,14 @@ function executeExpression ($expression) {
 	}
 }
 
+# Windows Command Execution combining standard error and standard out, with only non-zero exit code triggering error
+function EXECMD ($expression) {
+	cmd /c "$expression 2>&1"
+    if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) {
+		ERRMSG "[EXECMD][EXIT] `$LASTEXITCODE is $LASTEXITCODE" $LASTEXITCODE
+	}
+}
+
 function MAKDIR ($itemPath) { 
 	# If directory already exists, just report, otherwise create the directory and report
 	if ( Test-Path $itemPath ) {
