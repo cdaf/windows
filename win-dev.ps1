@@ -220,12 +220,12 @@ if ( $virtualisation -eq 'hyperv' ) {
     executeExpression ".\automation\provisioning\base.ps1 'nuget.commandline' -verion 5.8.1" # 5.9 is broken
     executeExpression ".\automation\provisioning\base.ps1 visualstudio2022enterprise"
     executeExpression "curl.exe -fSL $env:CURL_OPT -O https://aka.ms/vs/17/release/vs_enterprise.exe"
+    executeExpression ".\automation\provisioning\base.ps1 webdeploy" # Install explicitely to include Agent, VS workload will not include agent
     executeCMD "start /w vs_enterprise.exe --quiet --wait --norestart --nocache --noUpdateInstaller --noWeb --add Microsoft.VisualStudio.Workload.Azure --locale en-US"
     executeCMD "start /w vs_enterprise.exe --quiet --wait --norestart --nocache --noUpdateInstaller --noWeb --add Microsoft.VisualStudio.Workload.NetWeb --locale en-US"
     executeCMD "start /w vs_enterprise.exe --quiet --wait --norestart --nocache --noUpdateInstaller --noWeb --add Microsoft.VisualStudio.Workload.Node --locale en-US"
     executeCMD "start /w vs_enterprise.exe --quiet --wait --norestart --nocache --noUpdateInstaller --noWeb --add Microsoft.VisualStudio.Workload.Python --locale en-US"
     executeCMD "start /w vs_enterprise.exe --quiet --wait --norestart --nocache --noUpdateInstaller --noWeb --add Microsoft.Component.PythonTools.Web --locale en-US"
-    executeExpression ".\automation\provisioning\base.ps1 webdeploy"
 
     executeExpression ".\automation\provisioning\base.ps1 azure-cli"
     executeExpression "az config set extension.use_dynamic_install=yes_without_prompt"
