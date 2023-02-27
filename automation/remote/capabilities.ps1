@@ -262,6 +262,10 @@ if ( $LASTEXITCODE -ne 0 ) {
 } else {
 	if ( $versionTest ) { 
 		Write-Host "  VSWhere                 : $($versionTest[0].Replace('Visual Studio Locator version ', '')) "
+
+		$versionTest = cmd /c vswhere -property catalog_productDisplayVersion 2`>`&1
+		Write-Host "  Visual Studio           : $versionTest"
+
 		Write-Host "`n[$scriptName] List the build tools`n"
 		$regkey = 'HKLM:\Software\Microsoft\MSBuild\ToolsVersions'
 		if (!($versionTest -like '*not recognized*') ) {
@@ -291,25 +295,6 @@ if ( Test-Path $regkey ) {
 	}
 } else {
 	Write-Host "  Windows Identity Foundation not installed ($regkey)"
-}
-
-Write-Host "`n[$scriptName] List installed MVC products (not applicable after MVC4)`n"
-if (Test-Path 'C:\Program Files (x86)\Microsoft ASP.NET' ) {
-	foreach($mvc in Get-ChildItem 'C:\Program Files (x86)\Microsoft ASP.NET') {
-		Write-Host "  $mvc"
-	}
-} else {
-	Write-Host "  MVC not explicitely installed (not required for MVC 5 and above)"
-}
-
-Write-Host "`n[$scriptName] List Web Deploy versions installed`n"
-$regkey = 'HKLM:\Software\Microsoft\IIS Extensions\MSDeploy'
-if ( Test-Path $regkey ) { 
-	foreach($msDeploy in Get-ChildItem $regkey) {
-		Write-Host "  $msDeploy"
-	}
-} else {
-	Write-Host "  Web Deploy not installed ($regkey)"
 }
 
 Write-Host "`n[$scriptName] List the .NET Versions"
