@@ -159,7 +159,7 @@ if ( $LASTEXITCODE -ne 0 ) {
 	Write-Host "  docker-compose          : not installed"
 } else {
 	$array = $versionTest.split(" ")
-	Write-Host "  docker-compose          : $($array[2].TrimEnd(','))"
+	Write-Host "  docker-compose          : $($array[-1].TrimEnd(','))"
 }
 
 $versionTest = cmd /c terraform --version 2`>`&1
@@ -249,12 +249,28 @@ if ( $LASTEXITCODE -ne 0 ) {
 }
 
 try { 
+	$msPath = Get-Item -Path 'HKLM:\Software\Microsoft\MSBuild\ToolsVersions\*' -ErrorAction SilentlyContinue
+	$versionTest = $msPath[-1].Name.Split('\')[-1]
+} catch {
+	$versionTest = 'not installed'
+}
+Write-Host "  MS Build                : $versionTest"
+
+try { 
 	$msPath = Get-Item -Path 'HKLM:\Software\Microsoft\IIS Extensions\MSDeploy\*' -ErrorAction SilentlyContinue
 	$versionTest = $msPath[-1].Name.Split('\')[-1] 
 } catch {
 	$versionTest = 'not installed'
 }
 Write-Host "  Web Deploy              : $versionTest"
+
+try { 
+	$msPath = Get-Item -Path 'HKLM:\SOFTWARE\Microsoft\Windows Identity Foundation\setup\*' -ErrorAction SilentlyContinue
+	$versionTest = $msPath[-1].Name.Split('\')[-1] 
+} catch {
+	$versionTest = 'not installed'
+}
+Write-Host "  Win Identity Foundation : $versionTest"
 
 $versionTest = cmd /c vswhere -products * 2`>`&1
 if ( $LASTEXITCODE -ne 0 ) {
@@ -263,38 +279,18 @@ if ( $LASTEXITCODE -ne 0 ) {
 	if ( $versionTest ) { 
 		Write-Host "  VSWhere                 : $($versionTest[0].Replace('Visual Studio Locator version ', '')) "
 
-		$versionTest = cmd /c vswhere -property catalog_productDisplayVersion 2`>`&1
-		Write-Host "  Visual Studio           : $versionTest"
+		foreach ($line in $versionTest) {
+			if ( $line -like '*productId*' ) {
+				Write-Host "  Visual Studio Edition   : $($line.Split()[-1])"
+			}
+		}
 
-		Write-Host "`n[$scriptName] List the build tools`n"
-		$regkey = 'HKLM:\Software\Microsoft\MSBuild\ToolsVersions'
-		if (!($versionTest -like '*not recognized*') ) {
-			foreach ($line in $versionTest) {
-				if ( $line -like '*productId*' ) {
-					Write-Host "  $($line.replace('productId: ', ''))"
-				}
-			}
-		}
-		if ( Test-Path $regkey ) { 
-			foreach($buildTool in Get-ChildItem $regkey) {
-				Write-Host "  $buildTool"
-			}
-		} else {
-			Write-Host "  Build tools not found ($regkey)"
-		}
+		$versionTest = cmd /c vswhere -property catalog_productDisplayVersion 2`>`&1
+		Write-Host "  Visual Studio Version   : $versionTest"
+		
 	} else {
 		Write-Host "VSWhere is not returning results, known bug in 4.7.2 Microsoft image https://github.com/microsoft/vswhere/issues/182"
 	}
-}
-
-Write-Host "`n[$scriptName] List the WIF Installed Versions`n"
-$regkey = 'HKLM:\SOFTWARE\Microsoft\Windows Identity Foundation\setup'
-if ( Test-Path $regkey ) { 
-	foreach($wif in Get-ChildItem $regkey) {
-		Write-Host "  $wif"
-	}
-} else {
-	Write-Host "  Windows Identity Foundation not installed ($regkey)"
 }
 
 Write-Host "`n[$scriptName] List the .NET Versions"
