@@ -282,12 +282,12 @@ if ( $LASTEXITCODE -ne 0 ) {
 
 		foreach ( $line in $versionTest ) {
 			if ( $line -like '*productId*' ) {
-				Write-Host "  Visual Studio Edition   : $($line.Split()[-1])"
+				Write-Host "    Visual Studio Edition : $($line.Split()[-1])"
 			}
 		}
 
 		$versionTest = cmd /c vswhere -property catalog_productDisplayVersion 2`>`&1
-		Write-Host "  Visual Studio Version   : $versionTest"
+		Write-Host "    Visual Studio Version : $versionTest"
 		
 	} else {
 		Write-Host "VSWhere is not returning results, known bug in 4.7.2 Microsoft image https://github.com/microsoft/vswhere/issues/182"
