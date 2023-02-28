@@ -250,11 +250,12 @@ if ( $LASTEXITCODE -ne 0 ) {
 
 try { 
 	$msPath = Get-Item -Path 'HKLM:\Software\Microsoft\MSBuild\ToolsVersions\*' -ErrorAction SilentlyContinue
-	$versionTest = $msPath[-1].Name.Split('\')[-1]
+	foreach ( $msbuild in $msPath ) {
+		Write-Host "  MS Build                : $($msbuild.Name.Split('\')[-1])"
+	}
 } catch {
 	$versionTest = 'not installed'
 }
-Write-Host "  MS Build                : $versionTest"
 
 try { 
 	$msPath = Get-Item -Path 'HKLM:\Software\Microsoft\IIS Extensions\MSDeploy\*' -ErrorAction SilentlyContinue
@@ -279,7 +280,7 @@ if ( $LASTEXITCODE -ne 0 ) {
 	if ( $versionTest ) { 
 		Write-Host "  VSWhere                 : $($versionTest[0].Replace('Visual Studio Locator version ', '')) "
 
-		foreach ($line in $versionTest) {
+		foreach ( $line in $versionTest ) {
 			if ( $line -like '*productId*' ) {
 				Write-Host "  Visual Studio Edition   : $($line.Split()[-1])"
 			}
