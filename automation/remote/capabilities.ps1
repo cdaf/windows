@@ -158,8 +158,7 @@ $versionTest = cmd /c docker-compose --version 2`>`&1
 if ( $LASTEXITCODE -ne 0 ) {
 	Write-Host "  docker-compose          : not installed"
 } else {
-	$array = $versionTest.split(" ")
-	Write-Host "  docker-compose          : $(($array[-1].TrimEnd(',')).split('v')[-1])"
+	Write-Host "  docker-compose          : $((($versionTest.Split(',')[0]).Split()[-1]).split('v')[-1])"
 }
 
 $versionTest = cmd /c terraform --version 2`>`&1
