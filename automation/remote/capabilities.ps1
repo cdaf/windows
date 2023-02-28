@@ -265,14 +265,6 @@ try {
 }
 Write-Host "  Web Deploy              : $versionTest"
 
-try { 
-	$msPath = Get-Item -Path 'HKLM:\SOFTWARE\Microsoft\Windows Identity Foundation\setup\*' -ErrorAction SilentlyContinue
-	$versionTest = $msPath[-1].Name.Split('\')[-1] 
-} catch {
-	$versionTest = 'not installed'
-}
-Write-Host "  Win Identity Foundation : $versionTest"
-
 $versionTest = cmd /c vswhere -products * 2`>`&1
 if ( $LASTEXITCODE -ne 0 ) {
 	Write-Host "  VSWhere                 : not installed"
