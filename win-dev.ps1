@@ -203,6 +203,7 @@ if ( $virtualisation -eq 'hyperv' ) {
 
     executeExpression ".\automation\provisioning\base.ps1 svn"
     executeExpression ".\automation\provisioning\base.ps1 vnc-viewer"
+    executeExpression ".\automation\provisioning\base.ps1 dotnet3.5"
 
 } else {
 
@@ -223,6 +224,7 @@ if ( $virtualisation -eq 'hyperv' ) {
     executeExpression ".\automation\provisioning\base.ps1 webdeploy" # Install explicitely to include Agent, VS workload will not include agent
     executeCMD "start /w vs_enterprise.exe --quiet --wait --norestart --nocache --noUpdateInstaller --noWeb --add Microsoft.VisualStudio.Workload.Azure --locale en-US"
     executeCMD "start /w vs_enterprise.exe --quiet --wait --norestart --nocache --noUpdateInstaller --noWeb --add Microsoft.VisualStudio.Workload.NetWeb --locale en-US"
+    executeCMD "start /w vs_enterprise.exe --quiet --wait --norestart --nocache --noUpdateInstaller --noWeb --add Microsoft.VisualStudio.Workload.ManagedDesktop --locale en-US"
     executeCMD "start /w vs_enterprise.exe --quiet --wait --norestart --nocache --noUpdateInstaller --noWeb --add Microsoft.VisualStudio.Workload.Node --locale en-US"
     executeCMD "start /w vs_enterprise.exe --quiet --wait --norestart --nocache --noUpdateInstaller --noWeb --add Microsoft.VisualStudio.Workload.Python --locale en-US"
     executeCMD "start /w vs_enterprise.exe --quiet --wait --norestart --nocache --noUpdateInstaller --noWeb --add Microsoft.Component.PythonTools.Web --locale en-US"
