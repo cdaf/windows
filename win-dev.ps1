@@ -167,18 +167,17 @@ if ( $virtualisation -eq 'hyperv' ) {
         executeExpression ".\automation\provisioning\setenv.ps1 VAGRANT_DEFAULT_PROVIDER hyperv"
         executeExpression ".\automation\provisioning\setenv.ps1 VAGRANT_SMB_PASS $vagrantPass"
         if ($vagrantUser) {
-	    executeExpression ".\automation\provisioning\setenv.ps1 VAGRANT_SMB_USER $vagrantUser"
-        } else {
-	    executeExpression ".\automation\provisioning\setenv.ps1 VAGRANT_SMB_USER $env:USERNAME"
-	}
+		    executeExpression ".\automation\provisioning\setenv.ps1 VAGRANT_SMB_USER $vagrantUser"
+	    } else {
+		    executeExpression ".\automation\provisioning\setenv.ps1 VAGRANT_SMB_USER $env:USERNAME"
+		}
     }
 
     executeExpression ".\automation\provisioning\base.ps1 docker-desktop"
     executeExpression ".\automation\provisioning\base.ps1 wsl2"
     executeExpression "wsl --install --distribution Ubuntu"
 
-    executeExpression  "Remove-Item -Recurse -Force automation"
-    executeExpression "shutdown /r /t 0"
+    $restart = 'yes'
 
 } elseif ( $virtualisation -eq 'virtualbox' ) {
 
@@ -192,18 +191,18 @@ if ( $virtualisation -eq 'hyperv' ) {
     executeExpression "addHOSTS.ps1 172.16.17.101 windows-1.mshome.net"
     executeExpression "addHOSTS.ps1 172.16.17.102 windows-2.mshome.net"
     executeExpression "addHOSTS.ps1 172.16.17.103 app.mshome.net"
- 
     executeExpression ".\automation\provisioning\base.ps1 'virtualbox'"
-    executeExpression ".\automation\provisioning\base.ps1 'vagrant' -autoReboot no"
-    executeExpression  "Remove-Item -Recurse -Force automation"
 
-    executeExpression "shutdown /r /t 0"
+    $restart = 'yes'
 
 } elseif ( $virtualisation -eq 'legacy' ) {
 
     executeExpression ".\automation\provisioning\base.ps1 svn"
     executeExpression ".\automation\provisioning\base.ps1 vnc-viewer"
     executeExpression ".\automation\provisioning\base.ps1 dotnet3.5"
+    executeExpression ".\automation\provisioning\base.ps1 vagrant"
+
+    $restart = 'yes'
 
 } else {
 
@@ -224,6 +223,7 @@ if ( $virtualisation -eq 'hyperv' ) {
     executeExpression ".\automation\provisioning\base.ps1 webdeploy" # Install explicitely to include Agent, VS workload will not include agent
     executeCMD "start /w vs_enterprise.exe --quiet --wait --norestart --nocache --noUpdateInstaller --noWeb --add Microsoft.VisualStudio.Workload.Azure --locale en-US"
     executeCMD "start /w vs_enterprise.exe --quiet --wait --norestart --nocache --noUpdateInstaller --noWeb --add Microsoft.VisualStudio.Workload.NetWeb --locale en-US"
+    executeCMD "start /w vs_enterprise.exe --quiet --wait --norestart --nocache --noUpdateInstaller --noWeb --add Microsoft.VisualStudio.Workload.WebBuildTools --locale en-US"
     executeCMD "start /w vs_enterprise.exe --quiet --wait --norestart --nocache --noUpdateInstaller --noWeb --add Microsoft.VisualStudio.Workload.ManagedDesktop --locale en-US"
     executeCMD "start /w vs_enterprise.exe --quiet --wait --norestart --nocache --noUpdateInstaller --noWeb --add Microsoft.VisualStudio.Workload.Node --locale en-US"
     executeCMD "start /w vs_enterprise.exe --quiet --wait --norestart --nocache --noUpdateInstaller --noWeb --add Microsoft.VisualStudio.Workload.Python --locale en-US"
@@ -292,5 +292,13 @@ if ( $virtualisation -eq 'hyperv' ) {
 
 Write-Host "`n[$scriptName] List installed Chocolatey packages..."
 executeExpression "choco list --localonly"
+
+Write-Host "`n[$scriptName] Clean-up"
+executeExpression  "Remove-Item -Recurse -Force automation"
+
+if ( $restart ) {
+	Write-Host "`n[$scriptName] Restart = $restart"
+    executeExpression "shutdown /r /t 0"
+}
 
 Write-Host "`n[$scriptName] ---------- stop ----------"
