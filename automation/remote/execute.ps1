@@ -272,15 +272,15 @@ function DETOKN ( $tokenFile, $properties, $aeskey ) {
     	if ( $aeskey ) {
 			if (( $aeskey -eq 'resolve' ) -or ( $aeskey -eq 'reveal' )) {
 				$env:propldAction = $aeskey
-				$expression = ".\Transform.ps1 '$properties' '$tokenFile'"
+				$expression = "$transform '$properties' '$tokenFile'"
 			} else {
-				$expression = ".\Transform.ps1 '$properties' '$tokenFile' `$aeskey"
+				$expression = "$transform '$properties' '$tokenFile' `$aeskey"
 			}
         } else {
-	        $expression = ".\Transform.ps1 '$properties' '$tokenFile'"
+	        $expression = "$transform '$properties' '$tokenFile'"
         }
     } else {
-		$expression = ".\Transform.ps1 '$TARGET' '$tokenFile'"
+		$expression = "$transform '$TARGET' '$tokenFile'"
 	}
 	executeExpression $expression
 	$env:propldAction = ''
@@ -422,7 +422,12 @@ function VARCHK ($propertiesFile) {
 		Write-Host "  VARCHK using $propertiesFile"
 	} else {
 		$propertiesFile = 'properties.varchk'
-		Write-Host "  VARCHK using $propertiesFile (default)"
+		if ( Test-Path $propertiesFile ) {
+			Write-Host "  VARCHK using $propertiesFile (default)"
+		} else {
+			$propertiesFile = "$SOLUTIONROOT\properties.varchk"		
+			Write-Host "  VARCHK using $propertiesFile (solution default)"
+		}
 	}
 
 	if ( -not ( Test-Path $propertiesFile )) {
@@ -525,26 +530,23 @@ $automationHelper = "$AUTOMATIONROOT\remote"
 # Load the target properties (although these are global in powershell, load again as a diagnostic tool
 $propFile = "$TARGET"
 $transform = "$(pwd)\Transform.ps1"
+if (!( test-path "$transform")) {
 
-if ( test-path -path "$TARGET" -pathtype leaf ) {
-	if (!( test-path "$transform")) {
-	
-		# Test for running as a build process
-		$transform = "..\$automationHelper\Transform.ps1"
-		if ( test-path $transform ) {
-			$transform = (Get-Item $transform).FullName	
-		} else {
-	
-			# Assume running as a package parocess
-			$transform = "$automationHelper\Transform.ps1"
-		}
+	# Test for running as a build process
+	$transform = "..\$automationHelper\Transform.ps1"
+	if ( test-path $transform ) {
+		$transform = (Get-Item $transform).FullName	
+	} else {
+
+		# Assume running as a package process
+		$transform = "$automationHelper\Transform.ps1"
 	}
-	try {
-		& $transform "$propFile" | ForEach-Object { invoke-expression $_ }
-	    if(!$?) { taskException "TARGET_LOAD_TRAP" }
-	} catch { taskException "TARGET_LOAD_EXCEPTION" $_ }
-	Write-Host
-}	
+}
+try {
+	& $transform "$propFile" | ForEach-Object { invoke-expression $_ }
+    if(!$?) { taskException "TARGET_LOAD_TRAP" }
+} catch { taskException "TARGET_LOAD_EXCEPTION" $_ }
+Write-Host
 
 if (!( Test-Path $TASK_LIST )) {
     Write-Host "`n[$scriptName] Task Execution file ($TASK_LIST) not found! `$LASTEXITCODE 9998" -ForegroundColor Red
@@ -584,20 +586,7 @@ Foreach ($line in get-content $TASK_LIST) {
 					$argArray = -split $arguments
 					$propFile = $ExecutionContext.InvokeCommand.ExpandString($argArray[0])
 					$env:propldAction = $argArray[1]
-					$transform = ".\Transform.ps1"
 	
-					# Load all properties as runtime variables (transform provides logging)
-					# Test for running as delivery process
-					if (!( test-path $transform)) {
-					
-						# Test for running as a build process
-						$transform = "..\$automationHelper\Transform.ps1"
-						if (! (test-path $transform)) {
-					
-							# Assume running as a package parocess
-							$transform = "$automationHelper\Transform.ps1"
-						}
-					}
 					Write-Host "[$(Get-Date)] $transform $propFile $env:propldAction"
 					try {
 						& $transform "$propFile" | ForEach-Object { invoke-expression $_ }
