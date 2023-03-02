@@ -524,14 +524,16 @@ $automationHelper = "$AUTOMATIONROOT\remote"
 
 # Load the target properties (although these are global in powershell, load again as a diagnostic tool
 $propFile = "$TARGET"
-$transform = '.\Transform.ps1'
+$transform = "$(pwd)\Transform.ps1"
 
 if ( test-path -path "$TARGET" -pathtype leaf ) {
 	if (!( test-path "$transform")) {
 	
 		# Test for running as a build process
 		$transform = "..\$automationHelper\Transform.ps1"
-		if (! (test-path $transform)) {
+		if ( test-path $transform ) {
+			$transform = (Get-Item $transform).FullName	
+		} else {
 	
 			# Assume running as a package parocess
 			$transform = "$automationHelper\Transform.ps1"
