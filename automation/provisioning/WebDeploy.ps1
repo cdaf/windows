@@ -101,13 +101,23 @@ $name = 'InstallPath'
 if ( Test-Path -Path "$key" ) {
 	$InstallPath = (Get-ItemProperty -Path "$key" -Name $name).$name
 }
+
 if ( $InstallPath ) {
 	if ($Installtype -eq 'agent') {
 		Write-Host "[$scriptName] Web Deploy already installed, requested install type is agent, verifying Agent is installed"
+		$service = Get-Service MsDepSvc -ErrorAction SilentlyContinue
+		if ( $service ) {
+			Write-Host "[$scriptName] Web Deploy agent is $($service.Status)"
+		} else {
+			Write-Host "[$scriptName] Web Deploy agent is not installed, re-install Web Deploy with Agent"
+			$InstallPath = ''
+		}
 	} else {
 		Write-Host "[$scriptName] Web Deploy already installed, no action attempted."
 	}
-} else {
+}
+
+if ( ! $InstallPath ) {
 
 	# Prepare Install Media
 	$installFile = $mediaDir + '\' + $file
