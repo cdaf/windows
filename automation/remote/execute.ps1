@@ -542,11 +542,14 @@ if (!( test-path "$transform")) {
 		$transform = "$automationHelper\Transform.ps1"
 	}
 }
-try {
-	& $transform "$propFile" | ForEach-Object { invoke-expression $_ }
-    if(!$?) { taskException "TARGET_LOAD_TRAP" }
-} catch { taskException "TARGET_LOAD_EXCEPTION" $_ }
-Write-Host
+
+if ( test-path -path "$TARGET" -pathtype leaf ) {
+	try {
+		& $transform "$propFile" | ForEach-Object { invoke-expression $_ }
+	    if(!$?) { taskException "TARGET_LOAD_TRAP" }
+	} catch { taskException "TARGET_LOAD_EXCEPTION" $_ }
+	Write-Host
+}
 
 if (!( Test-Path $TASK_LIST )) {
     Write-Host "`n[$scriptName] Task Execution file ($TASK_LIST) not found! `$LASTEXITCODE 9998" -ForegroundColor Red
