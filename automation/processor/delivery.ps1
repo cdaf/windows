@@ -187,6 +187,14 @@ if ( $WORK_DIR_DEFAULT ) {
 	Write-Host "[$scriptName]   WORK_DIR_DEFAULT : $WORK_DIR_DEFAULT (default)"
 }
 
+if ( Test-Path $WORK_DIR_DEFAULT ) {
+	$WORK_DIR_DEFAULT = (Get-Item $WORK_DIR_DEFAULT).FullName
+} else {
+	Write-Host "[$scriptName] WORK_DIR_DEFAULT not found!" -ForegroundColor Red
+    write-host "[$scriptName]   `$host.SetShouldExit(52)" -ForegroundColor Red
+    $host.SetShouldExit(52); exit
+}
+
 if ($SOLUTION) {
 	Write-Host "[$scriptName]   SOLUTION         : $SOLUTION"
 } else {
@@ -252,7 +260,7 @@ if ( $processSequence ) {
 foreach ($step in $processSequence.Split()) {
 	if ( $step ) {
 		Write-Host
-		executeExpression "& .\$WORK_DIR_DEFAULT\$step '$ENVIRONMENT' '$BUILDNUMBER' '$SOLUTION' '$WORK_DIR_DEFAULT' '$OPT_ARG'"
+		executeExpression "& $WORK_DIR_DEFAULT\$step '$ENVIRONMENT' '$BUILDNUMBER' '$SOLUTION' '$WORK_DIR_DEFAULT' '$OPT_ARG'"
 		Set-Location $WORKING_DIRECTORY
 	}
 }

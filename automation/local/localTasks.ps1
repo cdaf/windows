@@ -21,18 +21,19 @@ $localEnvironmentPath = 'propertiesForLocalEnvironment\'
 
 # change to working directory
 cd $WORK_DIR_DEFAULT
+$WORK_DIR_DEFAULT = (Get-Location).Path
 
 # Pre and Post traget processing tasks
 $propertiesFile = "$localEnvironmentPath\$ENVIRONMENT"
 if ( Test-Path $propertiesFile ) {
 	try {
-		$localEnvPreDeployTask=$(& .\getProperty.ps1 $propertiesFile "localEnvPreDeployTask")
+		$localEnvPreDeployTask=$(& ${WORK_DIR_DEFAULT}\getProperty.ps1 $propertiesFile "localEnvPreDeployTask")
 		if(!$?){ taskWarning }
 	} catch { exceptionExit 'GET_ENVIRONMENT_PRE_TASK_101' $_ }
 	Write-Host "[$scriptName]   localEnvPreDeployTask  : $localEnvPreDeployTask" 
 	
 	try {
-		$localEnvPostDeployTask=$(& .\getProperty.ps1 $propertiesFile "localEnvPostDeployTask")
+		$localEnvPostDeployTask=$(& ${WORK_DIR_DEFAULT}\getProperty.ps1 $propertiesFile "localEnvPostDeployTask")
 		if(!$?){ taskWarning }
 	} catch { exceptionExit 'GET_ENVIRONMENT_POST_TASK_102' $_ }
 	Write-Host "[$scriptName]   localEnvPostDeployTask : $localEnvPostDeployTask" 
@@ -46,7 +47,7 @@ if ( Test-Path $propertiesFile ) {
 $propertiesFile = "CDAF.properties"
 $propName = "productVersion"
 try {
-	$cdafVersion=$(& .\getProperty.ps1 $propertiesFile $propName)
+	$cdafVersion=$(& ${WORK_DIR_DEFAULT}\getProperty.ps1 $propertiesFile $propName)
 	if(!$?){ taskWarning }
 } catch { exceptionExit 'GET_CDAF_VERSION_103' $_ }
 
@@ -63,8 +64,8 @@ $exitStatus = 0
 if ( $localEnvPreDeployTask) {
     Write-Host
     # Execute the Tasks Driver File
-    & .\execute.ps1 $SOLUTION $BUILD $localEnvironmentPath\$ENVIRONMENT $localEnvPreDeployTask $OPT_ARG
-	if($LASTEXITCODE -ne 0){ passExitCode "LOCAL_TASKS_PRE_DEPLOY_NON_ZERO_EXIT .\execute.ps1 $SOLUTION $BUILD $localEnvironmentPath\$ENVIRONMENT $localEnvPreDeployTask" $LASTEXITCODE }
+    & ${WORK_DIR_DEFAULT}\execute.ps1 $SOLUTION $BUILD $localEnvironmentPath\$ENVIRONMENT $localEnvPreDeployTask $OPT_ARG
+	if($LASTEXITCODE -ne 0){ passExitCode "LOCAL_TASKS_PRE_DEPLOY_NON_ZERO_EXIT ${WORK_DIR_DEFAULT}\execute.ps1 $SOLUTION $BUILD $localEnvironmentPath\$ENVIRONMENT $localEnvPreDeployTask" $LASTEXITCODE }
     if(!$?){ taskFailure "LOCAL_TASKS_PRE_DEPLOY_TRAP" }
 }
 
@@ -89,8 +90,8 @@ if (-not(Test-Path $propertiesFilter)) {
 		$propFilename = getFilename($propFile.ToString())
 
 		write-host "`n[$scriptName]   --- Process Target $propFilename --- " -ForegroundColor Green
-		& .\localTasksTarget.ps1 $ENVIRONMENT $SOLUTION $BUILD $propFilename $OPT_ARG
-		if($LASTEXITCODE -ne 0){ passExitCode "LOCAL_NON_ZERO_EXIT & .\localTasksTarget.ps1 $ENVIRONMENT $SOLUTION $BUILD $propFilename" $LASTEXITCODE }
+		& ${WORK_DIR_DEFAULT}\localTasksTarget.ps1 $ENVIRONMENT $SOLUTION $BUILD $propFilename $OPT_ARG
+		if($LASTEXITCODE -ne 0){ passExitCode "LOCAL_NON_ZERO_EXIT & ${WORK_DIR_DEFAULT}\localTasksTarget.ps1 $ENVIRONMENT $SOLUTION $BUILD $propFilename" $LASTEXITCODE }
 		if(!$?){ taskWarning }
 
 		write-host "`n[$scriptName]   --- Completed Target $propFilename --- " -ForegroundColor Green
@@ -101,8 +102,8 @@ if (-not(Test-Path $propertiesFilter)) {
 if ( $localEnvPostDeployTask) {
     Write-Host
     # Execute the Tasks Driver File
-    & .\execute.ps1 $SOLUTION $BUILD $localEnvironmentPath\$ENVIRONMENT $localEnvPostDeployTask $OPT_ARG
-	if($LASTEXITCODE -ne 0){ passExitCode "LOCAL_TASKS_POST_DEPLOY_NON_ZERO_EXIT .\execute.ps1 $SOLUTION $BUILD $localEnvironmentPath\$ENVIRONMENT $localEnvPostDeployTask" $LASTEXITCODE }
+    & ${WORK_DIR_DEFAULT}\execute.ps1 $SOLUTION $BUILD $localEnvironmentPath\$ENVIRONMENT $localEnvPostDeployTask $OPT_ARG
+	if($LASTEXITCODE -ne 0){ passExitCode "LOCAL_TASKS_POST_DEPLOY_NON_ZERO_EXIT ${WORK_DIR_DEFAULT}\execute.ps1 $SOLUTION $BUILD $localEnvironmentPath\$ENVIRONMENT $localEnvPostDeployTask" $LASTEXITCODE }
     if(!$?){ taskFailure "LOCAL_TASKS_POST_DEPLOY_TRAP" }
 }
 
