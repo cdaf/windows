@@ -48,7 +48,7 @@ if ( $remotePass ) {
 if ($remoteUser) {
 	try {
 		if ($decryptThb) {
-			$remotePass = & .\${WORK_DIR_DEFAULT}\decryptKey.ps1 .\${WORK_DIR_DEFAULT}\cryptLocal\$remoteCred $decryptThb
+			$remotePass = & ${WORK_DIR_DEFAULT}\decryptKey.ps1 ${WORK_DIR_DEFAULT}\cryptLocal\$remoteCred $decryptThb
 		    $password = ConvertTo-SecureString $remotePass -asplaintext -force
 		} else {
 			if ($remotePass) {
