@@ -23,23 +23,21 @@ jobs:
 #          GIT_PASS: $(GIT_PASS)
         inputs:
 
+          targetType: 'inline' # Use latest published version
+          script: |
+            . { iwr -useb https://cdaf.io/static/app/downloads/cdaf.ps1 } | iex
+            .\automation\entry.ps1 $(Build.BuildNumber) $(Build.SourceBranch) staging@$(Build.ArtifactStagingDirectory)
+
 #          targetType: 'inline' # Use edge CDAF version from GitHub
 #          script: |
-#            $env:CDAF_PATH = '~\.cdaf'
 #            . { iwr -useb https://raw.githubusercontent.com/cdaf/windows/master/install.ps1 } | iex
-#            ~\.cdaf\entry.ps1 $(Build.BuildNumber) $(Build.SourceBranch) staging@$(Build.ArtifactStagingDirectory)
+#            .\automation\entry.ps1 $(Build.BuildNumber) $(Build.SourceBranch) staging@$(Build.ArtifactStagingDirectory)
 
-          targetType: 'inline' # Use a specific CDAF version
-          script: |
-            iwr -useb http://cdaf.io/static/app/downloads/WU-CDAF-2.5.3.zip -OutFile WU_CDAF.zip
-            Expand-Archive WU_CDAF.zip
-            .\WU_CDAF\automation\entry.ps1 $(Build.BuildNumber) $(Build.SourceBranch) staging@$(Build.ArtifactStagingDirectory)
-
-#          targetType: 'inline' # Use latest published version
+#          targetType: 'inline' # Use a specific CDAF version
 #          script: |
-#            $env:CDAF_PATH = '~\.cdaf'
-#            . { iwr -useb https://cdaf.io/static/app/downloads/cdaf.ps1 } | iex
-#            ~\.cdaf\entry.ps1 $(Build.BuildNumber) $(Build.SourceBranch) staging@$(Build.ArtifactStagingDirectory)
+#            iwr -useb http://cdaf.io/static/app/downloads/WU-CDAF-2.5.3.zip -OutFile WU_CDAF.zip
+#            Expand-Archive WU_CDAF.zip
+#            .\WU_CDAF\automation\entry.ps1 $(Build.BuildNumber) $(Build.SourceBranch) staging@$(Build.ArtifactStagingDirectory)
 
 #          "In-source" implemenation
 #          targetType: filePath
