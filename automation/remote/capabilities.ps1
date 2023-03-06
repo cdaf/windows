@@ -259,10 +259,31 @@ try {
 try { 
 	$msPath = Get-Item -Path 'HKLM:\Software\Microsoft\IIS Extensions\MSDeploy\*' -ErrorAction SilentlyContinue
 	$versionTest = $msPath[-1].Name.Split('\')[-1] 
+	$absPath = & where.exe msdeploy.exe 2>null
+	if ( $LASTEXITCODE -ne 0 ) {
+		$absPath = "C:\Program Files (x86)\IIS\Microsoft Web Deploy V${versionTest}\msdeploy.exe"
+		try {
+			$versionCheck = & $absPath
+			$versionCheck = $versionCheck[1].split()[-1]
+			Write-Host "  Web Deploy              : ${versionTest} ($versionCheck)"
+		} catch {
+			$absPath = "C:\Program Files\IIS\Microsoft Web Deploy V${versionTest}\msdeploy.exe"
+			try {
+				$versionCheck = & $absPath
+				$versionCheck = $versionCheck[1].split()[-1]
+				Write-Host "  Web Deploy              : ${versionTest} ($versionCheck)"
+			} catch {
+				Write-Host "  Web Deploy              : not installed"
+			}
+		}
+	} else {
+		$versionCheck = & $absPath
+		$versionCheck = $versionCheck[1].split()[-1]
+		Write-Host "  Web Deploy              : ${versionTest} ($versionCheck)"
+	}
 } catch {
-	$versionTest = 'not installed'
+	Write-Host "  Web Deploy              : not installed"
 }
-Write-Host "  Web Deploy              : $versionTest"
 
 $versionTest = cmd /c vswhere -products * 2`>`&1
 if ( $LASTEXITCODE -ne 0 ) {
