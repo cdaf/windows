@@ -47,7 +47,7 @@ if ($MsDepSvcPort) {
 if ($version) {
     Write-Host "[$scriptName] version      : $version"
 } else {
-	$version = '3.6'
+	$version = '4'
     Write-Host "[$scriptName] version      : $version (default, choices $versionChoices)"
 }
 
@@ -74,6 +74,11 @@ if ($env:interactive) {
 
 # Install path is used for reading from registry after install is complete
 switch ($version) {
+	'4' {
+		$regKeyLeaf = '3'
+		$file = 'WebDeploy_amd64_en-US.msi'
+		$uri = 'https://download.visualstudio.microsoft.com/download/pr/e1828da1-907a-46fe-a3cf-f3b9ea1c485c/035860f3c0d2bab0458e634685648385/' + $file
+	}
 	'3.6' {
 		$regKeyLeaf = '3'
 		$file = 'WebDeploy_amd64_en-US.msi'
