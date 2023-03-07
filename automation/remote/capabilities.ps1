@@ -279,6 +279,8 @@ try {
 	} else {
 		$versionCheck = & $absPath
 		$versionCheck = $versionCheck[1].split()[-1]
+		$three = '7.1.1973.0'
+		if ( [System.Version]$versionCheck -gt [System.Version]$three ) { $versionTest = '4' }
 		Write-Host "  Web Deploy              : ${versionTest} ($versionCheck)"
 	}
 } catch {
