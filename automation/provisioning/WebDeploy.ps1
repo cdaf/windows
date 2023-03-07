@@ -132,22 +132,16 @@ if ( ! $InstallPath ) {
 	Write-Host "[$scriptName] logFile     = $logFile`n"
 	
 	if ( Test-Path $installFile ) {
-		Write-Host "[$scriptName] $installFile exists, download not required"
-	} else {
-		Write-Host "[$scriptName] $file does not exist in $mediaDir, listing contents"
-		try {
-			Get-ChildItem $mediaDir | Format-Table name
-		    if(!$?) { $installFile = listAndContinue }
-		} catch { $installFile = listAndContinue }
-
-		if ( $env:http_proxy ) {
-			Write-Host "[$scriptName] Attempt download using proxy"
-			executeExpression "[system.net.webrequest]::defaultwebproxy = new-object system.net.webproxy('$env:http_proxy')"
-		} else {
-			Write-Host "[$scriptName] Attempt download without proxy (set `$env:http_proxy to use)"
-		}
-		executeExpression "(New-Object System.Net.WebClient).DownloadFile('$uri', '$installFile')"
+		executeExpression "Remove-Item $installFile"
 	}
+
+	if ( $env:http_proxy ) {
+		Write-Host "[$scriptName] Attempt download using proxy"
+		executeExpression "[system.net.webrequest]::defaultwebproxy = new-object system.net.webproxy('$env:http_proxy')"
+	} else {
+		Write-Host "[$scriptName] Attempt download without proxy (set `$env:http_proxy to use)"
+	}
+	executeExpression "(New-Object System.Net.WebClient).DownloadFile('$uri', '$installFile')"
 
 	# Copy to temp dir in-case the media directory is a SMB mount
 	$installFile = $env:TEMP + '\' + $file
