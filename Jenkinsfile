@@ -27,9 +27,15 @@ timeout(time: 4, unit: 'HOURS') {
           Write-Host "`nList CDAF Product Version`n"
           Get-Content automation\\CDAF.windows | findstr "productVersion"
 
-          Write-Host "`ncontainerBuild Test`n"
+          Write-Host "`nNodeJS Test`n"
           cd samples/containerBuild-nodejs
           ../../automation/ci.bat
+          cd ../..
+
+          Write-Host "`n.NET Test`n"
+          cd samples/containerBuild-dotnet
+          ../../automation/ci.bat
+          cd ../..
         '''
       }
 

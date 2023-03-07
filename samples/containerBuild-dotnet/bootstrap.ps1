@@ -31,17 +31,9 @@ $error.clear()
 
 Write-Host "`n[$scriptName] ---------- start ----------"
 
-$env:CDAF_PATH = 'automation'
-executeExpression '. { iwr -useb https://raw.githubusercontent.com/cdaf/windows/master/install.ps1 } | iex'
-# executeExpression '. { iwr -useb https://cdaf.io/static/app/downloads/cdaf.ps1 } | iex'
-executeExpression '.\automation\provisioning\base.ps1 nuget.commandline'
-
-executeExpression 'nuget.exe install Microsoft.TestPlatform'
-executeExpression ".\automation\provisioning\addPath.ps1 '$((Get-ChildItem -Recurse "C:\solution" -Filter "vstest.console.exe").FullName)'"
-executeExpression ".\automation\provisioning\setenv.ps1 VSTEST_CONSOLE '$((Get-ChildItem -Recurse "C:\solution" -Filter "vstest.console.exe").FullName)'"
-
-executeExpression '.\automation\provisioning\base.ps1 vswhere'
-
-executeExpression '.\automation\provisioning\installAgent.ps1 -version 2.210.0'
+# If not using cdaf/windows image, install CDAF
+# executeExpression '$env:CDAF_INSTALL_PATH = "c:\cdaf"'
+# executeExpression '. { iwr -useb https://raw.githubusercontent.com/cdaf/windows/master/install.ps1 } | iex'
+# executeExpression "base.ps1 'dotnet'"
 
 Write-Host "`n[$scriptName] ---------- stop ----------"
