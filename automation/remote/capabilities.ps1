@@ -1,5 +1,16 @@
 $scriptName = 'Capabilities.ps1'
 
+cmd /c "exit 0"
+$Error.clear()
+
+function webDeployVersion ( $absPath ) {
+	$versionCheck = & $absPath
+	$versionCheck = $versionCheck[1].split()[-1]
+	$three = '7.1.1973.0'
+	if ( [System.Version]$versionCheck -gt [System.Version]$three ) { $versionTest = '4' }
+	Write-Host "  Web Deploy              : ${versionTest} ($versionCheck)"
+}
+
 Write-Host "`n[$scriptName] ---------- start ----------"
 
 $scriptPath = split-path -parent $MyInvocation.MyCommand.Definition
@@ -263,25 +274,17 @@ try {
 	if ( $LASTEXITCODE -ne 0 ) {
 		$absPath = "C:\Program Files (x86)\IIS\Microsoft Web Deploy V${versionTest}\msdeploy.exe"
 		try {
-			$versionCheck = & $absPath
-			$versionCheck = $versionCheck[1].split()[-1]
-			Write-Host "  Web Deploy              : ${versionTest} ($versionCheck)"
+			webDeployVersion $absPath
 		} catch {
 			$absPath = "C:\Program Files\IIS\Microsoft Web Deploy V${versionTest}\msdeploy.exe"
 			try {
-				$versionCheck = & $absPath
-				$versionCheck = $versionCheck[1].split()[-1]
-				Write-Host "  Web Deploy              : ${versionTest} ($versionCheck)"
+				webDeployVersion $absPath
 			} catch {
 				Write-Host "  Web Deploy              : not installed"
 			}
 		}
 	} else {
-		$versionCheck = & $absPath
-		$versionCheck = $versionCheck[1].split()[-1]
-		$three = '7.1.1973.0'
-		if ( [System.Version]$versionCheck -gt [System.Version]$three ) { $versionTest = '4' }
-		Write-Host "  Web Deploy              : ${versionTest} ($versionCheck)"
+		webDeployVersion $absPath
 	}
 } catch {
 	Write-Host "  Web Deploy              : not installed"
