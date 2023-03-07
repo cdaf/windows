@@ -19,9 +19,9 @@ Write-Host "`n[$scriptName] ---------- start ----------`n"
 # If not using cdaf/windows image, install CDAF
 # executeExpression '$env:CDAF_INSTALL_PATH = "c:\cdaf"'
 # executeExpression '. { iwr -useb https://raw.githubusercontent.com/cdaf/windows/master/install.ps1 } | iex'
+# executeExpression "base.ps1 'nodejs-lts'"
 
 Write-Host "[$scriptName] Mutually Exclusive Components can be installed`n"
-executeExpression "base.ps1 'nodejs-lts'"
 executeExpression "npm install -g yo"
 executeExpression "npm install -g generator-rest"
 
