@@ -13,7 +13,7 @@ timeout(time: 4, unit: 'HOURS') {
 
     try {
 
-      stage ('Prepare Workspace') {
+      stage ('Samples Verification Test') {
 
         checkout scm
 
@@ -27,14 +27,9 @@ timeout(time: 4, unit: 'HOURS') {
           Write-Host "`nList CDAF Product Version`n"
           Get-Content automation\\CDAF.windows | findstr "productVersion"
 
-          Write-Host "`nCopy solution to workspace`n"
-          if ( Test-Path solution ) { Remove-Item -Recurse solution }
-          Copy-Item -Recurse automation\\solution solution
-          if ( Test-Path solution\\CDAF.solution ) {
-            Get-Content solution\\CDAF.solution
-          } else {
-            exit 8833
-          }
+          Write-Host "`ncontainerBuild Test`n"
+          cd samples/containerBuild-nodejs
+          ../../automation/ci.bat
         '''
       }
 

@@ -22,9 +22,7 @@ Write-Host "`n[$scriptName] ---------- start ----------`n"
 # executeExpression "base.ps1 'nodejs-lts'"
 
 Write-Host "[$scriptName] Mutually Exclusive Components can be installed`n"
-executeExpression "npm install -g yo"
-executeExpression "npm install -g generator-rest"
-
+executeExpression "npm install -g express"
 executeExpression "capabilities.ps1"
 
 Write-Host "`n[$scriptName] ---------- stop ----------"
