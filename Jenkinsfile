@@ -27,32 +27,37 @@ timeout(time: 4, unit: 'HOURS') {
           Write-Host "`nList CDAF Product Version`n"
           Get-Content automation\\CDAF.windows | findstr "productVersion"
 
-          Write-Host "`nNodeJS Test`n"
-          cd samples/containerBuild-nodejs
-          ../../automation/ci.bat
-          cd ../..
+          $edition = foreach ($sProperty in Get-WmiObject -class Win32_OperatingSystem -computername ".") { $sProperty.Caption }
+          if ( $edition -eq 'Microsoft Windows Server 2019 Standard' ) {
+            Write-Host "`nNodeJS Test`n"
+            cd samples/containerBuild-nodejs
+            ../../automation/ci.bat
+            cd ../..
 
-          Write-Host "`n.NET Test`n"
-          cd samples/containerBuild-dotnet
-          ../../automation/ci.bat
-          cd ../..
+            Write-Host "`n.NET Test`n"
+            cd samples/containerBuild-dotnet
+            ../../automation/ci.bat
+            cd ../..
+          }
         '''
       }
 
       stage ('Test the CDAF sample on Windows Server 2019') {
-    
-        bat '''
-          IF EXIST .vagrant vagrant destroy -f & verify >nul
-          IF EXIST .vagrant vagrant box list & verify >nul
+
+        powershell '''
+          $edition = foreach ($sProperty in Get-WmiObject -class Win32_OperatingSystem -computername ".") { $sProperty.Caption }
+          if ( $edition -eq 'Microsoft Windows Server 2019 Standard' ) {
+            $env:OVERRIDE_IMAGE = 'cdaf/WindowsServerCore'
+          } elseif ( $edition -eq 'Microsoft Windows Server 2022 Standard' ) {
+            $env:OVERRIDE_IMAGE = 'cdaf/WindowsServer2022'
+          }
+
+          if ( Test-Path .vagrant ) {
+            vagrant destroy -f & verify
+            vagrant box list
+          }
           vagrant up
           vagrant destroy -f
-        '''
-      }
-
-      stage ('Test the CDAF sample on Windows Server 2016') {
-        bat '''
-          SET OVERRIDE_IMAGE=cdaf/WindowsServer
-          vagrant up
         '''
       }
 
