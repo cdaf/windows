@@ -18,17 +18,15 @@ timeout(time: 4, unit: 'HOURS') {
         checkout scm
 
         powershell '''
-          Write-Host "`nList Jenkinsfile`n"
-          Get-Content Jenkinsfile
-
-          Write-Host "`nList Vagrantfile`n"
-          Get-Content Vagrantfile
-
           Write-Host "`nList CDAF Product Version`n"
           Get-Content automation\\CDAF.windows | findstr "productVersion"
 
+          Write-Host "`nList Jenkinsfile`n"
+          Get-Content Jenkinsfile
+
           $edition = foreach ($sProperty in Get-WmiObject -class Win32_OperatingSystem -computername ".") { $sProperty.Caption }
           if ( $edition -eq 'Microsoft Windows Server 2022 Standard' ) {
+
             Write-Host "`nNodeJS Test`n"
             cd samples/containerBuild-nodejs
             ../../automation/ci.bat
@@ -58,10 +56,14 @@ timeout(time: 4, unit: 'HOURS') {
             Write-Host "`nOVERRIDE_IMAGE not set as as OS is ${edition}`n"
           }
 
+          Write-Host "`nList Vagrantfile`n"
+          Get-Content Vagrantfile
+
           if ( Test-Path .vagrant ) {
             vagrant destroy -f
             vagrant box list
           }
+
           vagrant up
           vagrant destroy -f
         '''
