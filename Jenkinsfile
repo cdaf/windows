@@ -38,6 +38,8 @@ timeout(time: 4, unit: 'HOURS') {
             cd samples/containerBuild-dotnet
             ../../automation/ci.bat
             cd ../..
+          } else {
+            Write-Host "`nSkipping Container build as OS is ${edition}`n"
           }
         '''
       }
@@ -48,12 +50,16 @@ timeout(time: 4, unit: 'HOURS') {
           $edition = foreach ($sProperty in Get-WmiObject -class Win32_OperatingSystem -computername ".") { $sProperty.Caption }
           if ( $edition -eq 'Microsoft Windows Server 2019 Standard' ) {
             $env:OVERRIDE_IMAGE = 'cdaf/WindowsServerCore'
+            Write-Host "`nOVERRIDE_IMAGE set to ${env:OVERRIDE_IMAGE} as OS is ${edition}`n"
           } elseif ( $edition -eq 'Microsoft Windows Server 2022 Standard' ) {
             $env:OVERRIDE_IMAGE = 'cdaf/WindowsServer2022'
+            Write-Host "`nOVERRIDE_IMAGE set to ${env:OVERRIDE_IMAGE} as OS is ${edition}`n"
+          } else {
+            Write-Host "`nOVERRIDE_IMAGE not set as as OS is ${edition}`n"
           }
 
           if ( Test-Path .vagrant ) {
-            vagrant destroy -f & verify
+            vagrant destroy -f
             vagrant box list
           }
           vagrant up
