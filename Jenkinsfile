@@ -28,7 +28,7 @@ timeout(time: 4, unit: 'HOURS') {
           Get-Content automation\\CDAF.windows | findstr "productVersion"
 
           $edition = foreach ($sProperty in Get-WmiObject -class Win32_OperatingSystem -computername ".") { $sProperty.Caption }
-          if ( $edition -eq 'Microsoft Windows Server 2019 Standard' ) {
+          if ( $edition -eq 'Microsoft Windows Server 2022 Standard' ) {
             Write-Host "`nNodeJS Test`n"
             cd samples/containerBuild-nodejs
             ../../automation/ci.bat
