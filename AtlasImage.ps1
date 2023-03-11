@@ -1,5 +1,4 @@
 Param (
-	[string]$hypervisor,
 	[string]$emailTo,
 	[string]$smtpServer,
 	[string]$emailFrom,
@@ -55,13 +54,6 @@ function emailProgress ($subject) {
 emailProgress "starting, logging to $imageLog"
 
 writeLog "---------- start ----------"
-if ($hypervisor) {
-    writeLog "hypervisor : $hypervisor"
-} else {
-	$hypervisor = 'virtualbox'
-    writeLog "hypervisor : (not specified, defaulted to $hypervisor)"
-}
-
 if ($emailTo) {
     Write-Host "[$scriptName] emailTo    : $emailTo"
 } else {
@@ -93,6 +85,14 @@ if ($stripDISM) {
 	$stripDISM = 'no'
     writeLog "stripDISM  : $stripDISM (default)"
 }
+
+$systeminfo = systeminfo
+if ( $systeminfo -match 'VirtualBox' ) {
+	$hypervisor = 'virtualbox'
+} else {
+	$hypervisor = 'hyperv'
+}
+writeLog "hypervisor = $hypervisor"
 
 executeExpression "cd $(split-path -parent $MyInvocation.MyCommand.Definition)"
 executeExpression "[System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]'Tls11,Tls12'"
