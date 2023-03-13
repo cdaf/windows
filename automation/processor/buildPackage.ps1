@@ -654,36 +654,54 @@ if ( $ACTION -ne 'container_build' ) {
 				Write-Host "[$scriptName] package output .\TasksLocal missing! ABORTING with LASTEXITCODE 2548."
 				exit 2548
 			}
-			executeExpression 'Add-Type -AssemblyName System.IO.Compression.FileSystem'
-			executeExpression "[System.IO.Compression.ZipFile]::CreateFromDirectory('$(Get-Location)\$artifactID', '$(Get-Location)\$artifactID.zip', 'Optimal', `$false)"
-	
-			$NewFileToAdd = "${SOLUTION}-${BUILDNUMBER}.zip"
-			if ( Test-Path $NewFileToAdd ) {
-				Write-Host "[$scriptName]   Include remote package in $artifactID.zip"
-				$zip = [System.IO.Compression.ZipFile]::Open("$(Get-Location)\$artifactID.zip","Update")
-				$FileName = [System.IO.Path]::GetFileName($NewFileToAdd)
-				executeExpression "[System.IO.Compression.ZipFileExtensions]::CreateEntryFromFile(`$zip, '$(Get-Location)\$NewFileToAdd' , '$FileName') | Out-Null"
-				$Zip.Dispose()
+
+			$legacyPackage = getProp 'legacyPackage' "$SOLUTIONROOT\CDAF.solution"
+			if ( $legacyPackage ) {
+				$compressedArtefact = "${artifactID}.zip"
+				executeExpression 'Add-Type -AssemblyName System.IO.Compression.FileSystem'
+				executeExpression "[System.IO.Compression.ZipFile]::CreateFromDirectory('$(Get-Location)\$artifactID', '$(Get-Location)\${compressedArtefact}', 'Optimal', `$false)"
+		
+				$NewFileToAdd = "${SOLUTION}-${BUILDNUMBER}.zip"
+				if ( Test-Path $NewFileToAdd ) {
+					Write-Host "[$scriptName]   Include remote package in ${compressedArtefact}"
+					$zip = [System.IO.Compression.ZipFile]::Open("$(Get-Location)\${compressedArtefact}","Update")
+					$FileName = [System.IO.Path]::GetFileName($NewFileToAdd)
+					executeExpression "[System.IO.Compression.ZipFileExtensions]::CreateEntryFromFile(`$zip, '$(Get-Location)\$NewFileToAdd' , '$FileName') | Out-Null"
+					$Zip.Dispose()
+				}
+				$SourceFile = (get-item "${artifactID}.zip").FullName
+			} else {
+				$compressedArtefact = "${artifactID}.tar.gz"
+				$NewFileToAdd = "${SOLUTION}-${BUILDNUMBER}.zip"
+				if ( Test-Path $NewFileToAdd ) {
+					executeExpression "tar -czf ${compressedArtefact} --directory=$artifactID ."# --file=$NewFileToAdd ."
+				} else {
+					executeExpression "tar -czf ${compressedArtefact} --directory=$artifactID ."
+				}
+				$SourceFile = (get-item "${compressedArtefact}").FullName
 			}
-	
+
 			Write-Host "[$scriptName]   Create single script artefact release.ps1"
-			$SourceFile = (get-item "$artifactID.zip").FullName
-			
-			[IO.File]::WriteAllBytes("$pwd\release.ps1",[char[]][Convert]::ToBase64String([IO.File]::ReadAllBytes($SourceFile)))
-	
+
 			$scriptLines = @('Param (', '[string]$ENVIRONMENT,' ,'[string]$RELEASE,','[string]$OPT_ARG',')','Import-Module Microsoft.PowerShell.Utility','Import-Module Microsoft.PowerShell.Management','Import-Module Microsoft.PowerShell.Security')
 			$scriptLines += "Write-Host 'Launching release.ps1 (${artifactPrefix}.${BUILDNUMBER}) ...'"
-			$scriptLines += '$Base64 = "'
-			$scriptLines + (get-content "release.ps1") | set-content "release.ps1"
-	
-			Add-Content "release.ps1" '"'
+			$scriptLines += '$Base64 = "$([IO.File]::WriteAllBytes("$pwd\release.ps1",[char[]][Convert]::ToBase64String([IO.File]::ReadAllBytes($SourceFile))))"'
+			set-content "release.ps1" $scriptLines 
+
 			Add-Content "release.ps1" 'if ( Test-Path "TasksLocal" ) { Remove-Item -Recurse TasksLocal }'
-			Add-Content "release.ps1" "Remove-Item ${SOLUTION}*.zip"
+			Add-Content "release.ps1" "Remove-Item ${SOLUTION}*.zip" # remote package
 			Add-Content "release.ps1" '$Content = [System.Convert]::FromBase64String($Base64)'
-			Add-Content "release.ps1" "Set-Content -Path '${SOLUTION}-${artifactPrefix}.${BUILDNUMBER}.zip' -Value `$Content -Encoding Byte"
-			# TODO conditional for PS core in the future Add-Content "release.ps1" "Set-Content -Path '${SOLUTION}-${artifactPrefix}.${BUILDNUMBER}.zip' -Value `$Content -AsByteStream"
-			Add-Content "release.ps1" 'Add-Type -AssemblyName System.IO.Compression.FileSystem'
-			Add-Content "release.ps1" "[System.IO.Compression.ZipFile]::ExtractToDirectory(`"`$PWD\${SOLUTION}-${artifactPrefix}.${BUILDNUMBER}.zip`", `"`$PWD`")"
+			Add-Content "release.ps1" "Set-Content -Path '${compressedArtefact}' -Value `$Content -Encoding Byte"
+			Add-Content "release.ps1" "dir"
+
+			if ( $legacyPackage ) {
+				# TODO conditional for PS core in the future Add-Content "release.ps1" "Set-Content -Path '${compressedArtefact}' -Value `$Content -AsByteStream"
+				Add-Content "release.ps1" 'Add-Type -AssemblyName System.IO.Compression.FileSystem'
+				Add-Content "release.ps1" "[System.IO.Compression.ZipFile]::ExtractToDirectory(`"`$PWD\${compressedArtefact}`", `"`$PWD`")"
+			} else {
+				Add-Content "release.ps1" "tar -zxvf ${compressedArtefact}"
+			}
+
 			Add-Content "release.ps1" '.\TasksLocal\delivery.bat "$ENVIRONMENT" "$RELEASE" "$OPT_ARG"'
 			Add-Content "release.ps1" 'exit $LASTEXITCODE'
 			$artefactList = @('release.ps1')
@@ -710,7 +728,7 @@ if ( $ACTION -like 'staging@*' ) { # Primarily for ADO pipelines
 } else {
 	$stageTarget = Get-Location
 }
-
+exit 666
 if ( $ACTION -ne 'container_build' ) {
 	Write-Host "`n[$scriptName] Clean Workspace..."
 	itemRemove "propertiesForLocalTasks"
@@ -724,8 +742,8 @@ if ( $ACTION -ne 'container_build' ) {
 	if ( $artifactPrefix ) {
 		itemRemove "$LOCAL_WORK_DIR"
 		itemRemove "${SOLUTION}-${BUILDNUMBER}.zip"
-		itemRemove "${SOLUTION}-${artifactPrefix}.${BUILDNUMBER}.zip"
-		itemRemove "${SOLUTION}-${artifactPrefix}.${BUILDNUMBER}"
+		itemRemove "${compressedArtefact}"
+		itemRemove "${artifactID}"
 	}
 }
 
