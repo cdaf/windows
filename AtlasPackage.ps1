@@ -312,12 +312,21 @@ if ($action -eq 'Clone') {
 		Write-Host "$logFile" "[$scriptName] vagrant destroy -f"
 		$proc = Start-Process -FilePath 'vagrant' -ArgumentList 'destroy -f' -PassThru -Wait -NoNewWindow
 		if ( $proc.ExitCode -ne 0 ) {
-			Write-Host "`n[$scriptName] WARNING Laster `$LASTEXITCODE = $($proc.ExitCode)`n"
+			Write-Host "`n[$scriptName] WARNING `$LASTEXITCODE = $($proc.ExitCode)`n"
 			cmd /c "exit 0"
 		}
-	
+
+		Write-Host "`n[$scriptName] vagrant box remove cdaf/$boxname"
+		Write-Host "$logFile" "[$scriptName] vagrant box remove cdaf/$boxname"
+		$proc = Start-Process -FilePath 'vagrant' -ArgumentList "box remove cdaf/$boxname" -PassThru -Wait -NoNewWindow
+		if ( $proc.ExitCode -ne 0 ) {
+			Write-Host "`n[$scriptName] WARNING `$LASTEXITCODE = $($proc.ExitCode)`n"
+			cmd /c "exit 0"
+		}
+
 		Write-Host "`n[$scriptName] Clean-up Vagrant Temporary files"
 		executeExpression "Remove-Item -Recurse $env:USERPROFILE\.vagrant.d\tmp\*"
+
 	}
 	
 	Write-Host "$logFile" "[$scriptName] vagrant box list"
