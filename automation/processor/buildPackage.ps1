@@ -674,32 +674,36 @@ if ( $ACTION -ne 'container_build' ) {
 				$compressedArtefact = "${artifactID}.tar.gz"
 				$NewFileToAdd = "${SOLUTION}-${BUILDNUMBER}.zip"
 				if ( Test-Path $NewFileToAdd ) {
-					executeExpression "tar -czf ${compressedArtefact} --directory=$artifactID ."# --file=$NewFileToAdd ."
-				} else {
-					executeExpression "tar -czf ${compressedArtefact} --directory=$artifactID ."
+					executeExpression "Move-Item $NewFileToAdd $artifactID"
 				}
+				executeExpression "cd $artifactID"
+				executeExpression "tar -czf ../${compressedArtefact} ."
+				executeExpression "cd .."
 				$SourceFile = (get-item "${compressedArtefact}").FullName
 			}
 
 			Write-Host "[$scriptName]   Create single script artefact release.ps1"
-
+			$SourceFile = (get-item ${compressedArtefact}).FullName
+			
+			[IO.File]::WriteAllBytes("$pwd\release.ps1",[char[]][Convert]::ToBase64String([IO.File]::ReadAllBytes($SourceFile)))
+	
 			$scriptLines = @('Param (', '[string]$ENVIRONMENT,' ,'[string]$RELEASE,','[string]$OPT_ARG',')','Import-Module Microsoft.PowerShell.Utility','Import-Module Microsoft.PowerShell.Management','Import-Module Microsoft.PowerShell.Security')
 			$scriptLines += "Write-Host 'Launching release.ps1 (${artifactPrefix}.${BUILDNUMBER}) ...'"
-			$scriptLines += '$Base64 = "$([IO.File]::WriteAllBytes("$pwd\release.ps1",[char[]][Convert]::ToBase64String([IO.File]::ReadAllBytes($SourceFile))))"'
-			set-content "release.ps1" $scriptLines 
-
+			$scriptLines += '$Base64 = "'
+			$scriptLines + (get-content "release.ps1") | set-content "release.ps1"
+	
+			Add-Content "release.ps1" '"'
 			Add-Content "release.ps1" 'if ( Test-Path "TasksLocal" ) { Remove-Item -Recurse TasksLocal }'
 			Add-Content "release.ps1" "Remove-Item ${SOLUTION}*.zip" # remote package
 			Add-Content "release.ps1" '$Content = [System.Convert]::FromBase64String($Base64)'
 			Add-Content "release.ps1" "Set-Content -Path '${compressedArtefact}' -Value `$Content -Encoding Byte"
-			Add-Content "release.ps1" "dir"
 
 			if ( $legacyPackage ) {
 				# TODO conditional for PS core in the future Add-Content "release.ps1" "Set-Content -Path '${compressedArtefact}' -Value `$Content -AsByteStream"
 				Add-Content "release.ps1" 'Add-Type -AssemblyName System.IO.Compression.FileSystem'
 				Add-Content "release.ps1" "[System.IO.Compression.ZipFile]::ExtractToDirectory(`"`$PWD\${compressedArtefact}`", `"`$PWD`")"
 			} else {
-				Add-Content "release.ps1" "tar -zxvf ${compressedArtefact}"
+				Add-Content "release.ps1" "tar -zxf ${compressedArtefact}"
 			}
 
 			Add-Content "release.ps1" '.\TasksLocal\delivery.bat "$ENVIRONMENT" "$RELEASE" "$OPT_ARG"'
@@ -728,7 +732,7 @@ if ( $ACTION -like 'staging@*' ) { # Primarily for ADO pipelines
 } else {
 	$stageTarget = Get-Location
 }
-exit 666
+
 if ( $ACTION -ne 'container_build' ) {
 	Write-Host "`n[$scriptName] Clean Workspace..."
 	itemRemove "propertiesForLocalTasks"
