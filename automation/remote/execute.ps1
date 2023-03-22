@@ -316,7 +316,7 @@ function IGNORE ($expression) {
 function ELEVAT ($command) {
     $scriptBlock = [scriptblock]::Create($command)
     configuration elevated {
-		Import-DscResource -ModuleName 'PSDesiredStateConfiguration'
+		executeExpression "Import-DscResource -ModuleName 'PSDesiredStateConfiguration'"
         Set-StrictMode -Off
         Node localhost {
             Script execute {
