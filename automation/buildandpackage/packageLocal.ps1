@@ -92,7 +92,7 @@ pathTest $containerGenPropDir
 if ( Test-Path "$WORK_DIR_DEFAULT" ) {
 	Write-Host "`n[$scriptName] $WORK_DIR_DEFAULT already exists, assume created by package.tsk, no action required" 
 } else {
-	Write-Host "`n[$scriptName] mkdir $WORK_DIR_DEFAULT and seed with solution files" 
+	Write-Host "`n[$scriptName] Create $WORK_DIR_DEFAULT and seed with solution files" 
 	New-Item $WORK_DIR_DEFAULT -type directory > $null
 	if(!$?){ taskFailure ("mkdir $WORK_DIR_DEFAULT") }
 }

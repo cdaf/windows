@@ -68,9 +68,9 @@ function copyDir ($sourceDir, $targetDir, $flat) {
 	if(!$?){ taskFailure ("mkdir $targetDir\$dirName") }
 	foreach ($item in (Get-ChildItem -Path $sourceDir)) {
 		if ($flat) {
-			copySet $item $sourceDir $targetDir
+			copySet $item.Name $sourceDir $targetDir
 		} else {
-			copySet $item $sourceDir $targetDir\$dirName
+			copySet $item.Name $sourceDir $targetDir\$dirName
 		}
 	}
 }
