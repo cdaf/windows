@@ -24,6 +24,7 @@ function propMerge ($generatedPropDir, $generatedPropertyFile) {
 		Write-Host "[$scriptName]   $(mkdir $WORK_DIR_DEFAULT\${generatedPropDir})"
 	}
 	foreach ( $generatedPropertyFile in (Get-ChildItem ".\${generatedPropDir}")) {
+		$generatedPropertyFile = $generatedPropertyFile.Name
 		Write-Host "[$scriptName]   ${generatedPropDir}\${generatedPropertyFile} --> $WORK_DIR_DEFAULT\${generatedPropDir}\${generatedPropertyFile}"
 		Get-Content ".\${generatedPropDir}\${generatedPropertyFile}" | Add-Content "$WORK_DIR_DEFAULT\${generatedPropDir}\${generatedPropertyFile}"
 	}
