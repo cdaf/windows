@@ -339,6 +339,17 @@ function ELEVAT ($command) {
 	if ( $error ) { Write-Host "[ELEVAT][WARN] `$Error[] = $Error" ; $Error.clear() }
 }
 
+# Run command if user is Administrator
+function IFADMN ($command) {
+    if (([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] "Administrator")) {
+		Write-Host
+		executeExpression $command
+	} else {
+		Write-Host "`n[WARN] $(whoami) is not an Administrator, or not elevated, command not attempted`n"
+	}
+
+}
+
 # Requires vswhere
 function MSTOOL ($command) { 
 	if ( Test-Path ".\msTools.ps1" ) {
