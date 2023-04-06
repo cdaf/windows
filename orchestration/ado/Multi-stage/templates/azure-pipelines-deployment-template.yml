@@ -1,13 +1,13 @@
 jobs:
 # Environment of Virtual Machines, replaces legacy "Deployment Groups"
-  - deployment: Release
+  - deployment: Release # do not use "Deploy" or job will get stuck at "Job is pending..."
     displayName: ${{ parameters.displayName }}
     environment:
       name: PROD
       resourceType: VirtualMachine
 
 # Deploy to agent pool, either Microsoft hosted or Self-hosted
-#  - deployment: Release
+#  - deployment: Deploy
 #    displayName: ${{ parameters.displayName }}
 #    environment: ${{ parameters.environment }}
 #    pool:
