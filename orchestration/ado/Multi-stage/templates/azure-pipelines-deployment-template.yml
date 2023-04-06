@@ -1,15 +1,17 @@
 jobs:
+# Environment of Virtual Machines, replaces legacy "Deployment Groups"
   - deployment: Release
     displayName: ${{ parameters.displayName }}
+    environment:
+      name: PROD
+      resourceType: VirtualMachine
 
-# Environment of Virtual Machines, replaces legacy "Deployment Groups"
-#    environment:
-#      name: PROD
-#      resourceType: VirtualMachine
-
-    environment: ${{ parameters.environment }}
-    pool:
-      vmImage: windows-2019
+# Deploy to agent pool, either Microsoft hosted or Self-hosted
+#  - deployment: Release
+#    displayName: ${{ parameters.displayName }}
+#    environment: ${{ parameters.environment }}
+#    pool:
+#      vmImage: windows-latest
 #    pool:
 #      name: Self-hosted Pool Name
 
