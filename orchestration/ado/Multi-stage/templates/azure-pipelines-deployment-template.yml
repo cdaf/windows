@@ -3,7 +3,7 @@ jobs:
   - deployment: Release # do not use "Deploy" or job will get stuck at "Job is pending..."
     displayName: ${{ parameters.displayName }}
     environment:
-      name: PROD
+      name: ${{ parameters.environment }}
       resourceType: VirtualMachine
 
 # Deploy to agent pool, either Microsoft hosted or Self-hosted
