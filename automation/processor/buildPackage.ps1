@@ -718,6 +718,15 @@ if ( $ACTION -ne 'container_build' ) {
 	$artefactList += "$(Get-Location)\TasksLocal\"
 }
 
+foreach ( $object in $artefactList ) {
+	if ( (Get-Item $object) -is [System.IO.DirectoryInfo] ) {
+		$FileSize += (Get-ChildItem $object | Measure-Object -Property Length -sum).Sum
+	} else {
+		$FileSize += (get-item $object).Length/1MB
+	}
+}
+Write-Host "[$(Get-Date)] Created $artefactList, MB : $FileSize"
+
 if ( $ACTION -like 'staging@*' ) { # Primarily for ADO pipelines
 	$parts = $ACTION.split('@')
 	$stageTarget = $parts[1]
