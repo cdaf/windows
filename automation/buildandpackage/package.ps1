@@ -196,6 +196,18 @@ try {
 } catch { exceptionExit "PACK_GET_CDAF_VERSION" }
 Write-Host "[$scriptName]   CDAF Version               : $cdafVersion"
 
+$propertiesFile = "$SOLUTIONROOT\CDAF.solution"
+$propName = "packageFeatures"
+try {
+	$packageFeatures=$(& $AUTOMATIONROOT\remote\getProperty.ps1 $propertiesFile $propName)
+	if(!$?){ taskWarning }
+} catch { exceptionExit "PACK_FEATUES_CDAF_VERSION" }
+if ( $packageFeatures) {
+	Write-Host "[$scriptName]   packageFeatures            : $packageFeatures (option minimal)"
+} else {
+	Write-Host "[$scriptName]   packageFeatures            : (optional property not set, option minimal)"
+}
+
 # Cannot brute force clear the workspace as the Visual Studio solution file is here
 write-host "`n[$scriptName]   --- Start Package Process ---`n" -ForegroundColor Green
 itemRemove ".\manifest.txt"

@@ -1,0 +1,5 @@
+productName=Minimal Release Package
+artifactPrefix=0.0
+solutionName=minimal-package
+packageFeatures=minimal
+processSequence=localTasks.ps1
