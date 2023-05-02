@@ -655,8 +655,18 @@ if ( $ACTION -ne 'container_build' ) {
 				exit 2548
 			}
 
-			$legacyPackage = getProp 'legacyPackage' "$SOLUTIONROOT\CDAF.solution"
-			if ( $legacyPackage ) {
+			$packageMethod = getProp 'packageMethod' "$SOLUTIONROOT\CDAF.solution"
+			if ( $packageMethod -eq 'tarball' ) {
+				$compressedArtefact = "${artifactID}.tar.gz"
+				$NewFileToAdd = "${SOLUTION}-${BUILDNUMBER}.zip"
+				if ( Test-Path $NewFileToAdd ) {
+					executeExpression "Move-Item $NewFileToAdd $artifactID"
+				}
+				executeExpression "cd $artifactID"
+				executeExpression "tar -czf ../${compressedArtefact} ."
+				executeExpression "cd .."
+				$SourceFile = (get-item "${compressedArtefact}").FullName
+			} else {
 				$compressedArtefact = "${artifactID}.zip"
 				executeExpression 'Add-Type -AssemblyName System.IO.Compression.FileSystem'
 				executeExpression "[System.IO.Compression.ZipFile]::CreateFromDirectory('$(Get-Location)\$artifactID', '$(Get-Location)\${compressedArtefact}', 'Optimal', `$false)"
@@ -670,16 +680,6 @@ if ( $ACTION -ne 'container_build' ) {
 					$Zip.Dispose()
 				}
 				$SourceFile = (get-item "${artifactID}.zip").FullName
-			} else {
-				$compressedArtefact = "${artifactID}.tar.gz"
-				$NewFileToAdd = "${SOLUTION}-${BUILDNUMBER}.zip"
-				if ( Test-Path $NewFileToAdd ) {
-					executeExpression "Move-Item $NewFileToAdd $artifactID"
-				}
-				executeExpression "cd $artifactID"
-				executeExpression "tar -czf ../${compressedArtefact} ."
-				executeExpression "cd .."
-				$SourceFile = (get-item "${compressedArtefact}").FullName
 			}
 
 			Write-Host "[$scriptName]   Create single script artefact release.ps1"
@@ -695,10 +695,12 @@ if ( $ACTION -ne 'container_build' ) {
 			Add-Content "release.ps1" '"'
 			Add-Content "release.ps1" 'if ( Test-Path "TasksLocal" ) { Remove-Item -Recurse TasksLocal }'
 			Add-Content "release.ps1" "Remove-Item ${SOLUTION}*.zip" # remote package
+			Add-Content "release.ps1" 'Write-Host "[$(Get-Date)] Extracting embedded package file ..."'
 			Add-Content "release.ps1" '$Content = [System.Convert]::FromBase64String($Base64)'
 			Add-Content "release.ps1" "Set-Content -Path '${compressedArtefact}' -Value `$Content -Encoding Byte"
 
-			if ( $legacyPackage ) {
+			Add-Content "release.ps1" 'Write-Host "[$(Get-Date)] Decompressing package file ..."'
+			if ( $packageMethod ) {
 				# TODO conditional for PS core in the future Add-Content "release.ps1" "Set-Content -Path '${compressedArtefact}' -Value `$Content -AsByteStream"
 				Add-Content "release.ps1" 'Add-Type -AssemblyName System.IO.Compression.FileSystem'
 				Add-Content "release.ps1" "[System.IO.Compression.ZipFile]::ExtractToDirectory(`"`$PWD\${compressedArtefact}`", `"`$PWD`")"
@@ -706,6 +708,7 @@ if ( $ACTION -ne 'container_build' ) {
 				Add-Content "release.ps1" "tar -zxf ${compressedArtefact}"
 			}
 
+			Add-Content "release.ps1" 'Write-Host "[$(Get-Date)] Execute Deployment ..."'
 			Add-Content "release.ps1" '.\TasksLocal\delivery.bat "$ENVIRONMENT" "$RELEASE" "$OPT_ARG"'
 			Add-Content "release.ps1" 'exit $LASTEXITCODE'
 			$artefactList = @('release.ps1')
