@@ -46,17 +46,17 @@ if ($waitTime) {
 }
 
 if ($exactMatch) {
-    Write-Host "[$scriptName] exactMatch    : $exactMatch"
+    Write-Host "[$scriptName] exactMatch  : $exactMatch"
 } else {
 	$exactMatch = 'CONTAINS'
-    Write-Host "[$scriptName] exactMatch    : $exactMatch (default)"
+    Write-Host "[$scriptName] exactMatch  : $exactMatch (default)"
 }
 
 if ($trim) {
-    Write-Host "[$scriptName] trim    : $trim"
+    Write-Host "[$scriptName] trim        : $trim"
 } else {
 	$trim = 'NO_TRIM'
-    Write-Host "[$scriptName] trim    : $trim (default)"
+    Write-Host "[$scriptName] trim        : $trim (default)"
 }
 
 if ( Test-Path test.log ) { Remove-Item -Force test.log }
