@@ -1,0 +1,11 @@
+echo "execute a test on remote target without shipping package"
+EXCREM .\RemoteTest.ps1
+
+echo "Execute again, with an arguments"
+EXCREM .\RemoteTest.ps1 $pid $True
+
+echo "execute a command on remote target"
+EXCREM hostname
+
+echo "execute a command on remote target, with argument"
+EXCREM Get-PSDrive C

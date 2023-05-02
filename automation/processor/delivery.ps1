@@ -238,13 +238,13 @@ Write-Host "[$scriptName]   CDAF Version     : $cdafVersion"
 
 # 2.5.5 default error diagnostic command as solution property
 if ( $env:CDAF_ERROR_DIAG ) {
-	Write-Host "[$scriptName]   CDAF_ERROR_DIAG : $CDAF_ERROR_DIAG"
+	Write-Host "[$scriptName]   CDAF_ERROR_DIAG  : $CDAF_ERROR_DIAG"
 } else {
 	$env:CDAF_ERROR_DIAG = getProp 'CDAF_ERROR_DIAG' "$propertiesFile"
 	if ( $env:CDAF_ERROR_DIAG ) {
-		Write-Host "[$scriptName]   CDAF_ERROR_DIAG : $CDAF_ERROR_DIAG (defined in $propertiesFile)"
+		Write-Host "[$scriptName]   CDAF_ERROR_DIAG  : $CDAF_ERROR_DIAG (defined in $propertiesFile)"
 	} else {
-		Write-Host "[$scriptName]   CDAF_ERROR_DIAG : (not set or defined in $propertiesFile)"
+		Write-Host "[$scriptName]   CDAF_ERROR_DIAG  : (not set or defined in $propertiesFile)"
 	}
 }
 

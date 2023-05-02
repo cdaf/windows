@@ -111,11 +111,29 @@ if (Test-Path "$solutionRoot\delivery.bat") {
 	copySet "delivery.ps1" "$AUTOMATIONROOT\processor" $WORK_DIR_DEFAULT
 }
 
-# Copy all local script helpers, flat set to true to copy to root, not sub directory
-copyDir "$AUTOMATIONROOT\local" $WORK_DIR_DEFAULT $true
+# 2.5.7 Support for reduced number of helper scripts to be included in release package
+$propertiesFile = "$SOLUTIONROOT\CDAF.solution"
+try {
+	$packageFeatures=$(& $AUTOMATIONROOT\remote\getProperty.ps1 "$propertiesFile" 'packageFeatures')
+	if(!$?){
+		throw "`$packageFeatures=`$(& $AUTOMATIONROOT\remote\getProperty.ps1 $propertiesFile packageFeatures)"
+		throw "Exception Reading packageFeatures property from $AUTOMATIONROOT\manifest.txt" 
+	}
+} catch { 
+	Write-Host "Exception attempting `$packageFeatures=`$(& $AUTOMATIONROOT\remote\getProperty.ps1 $propertiesFile packageFeatures)"
+	throw "Exception Reading packageFeatures property from $AUTOMATIONROOT\manifest.txt" 
+}
+if ( $packageFeatures -eq 'minimal' ) {
+	Write-Host "`n[$scriptName] packageFeatures = ${packageFeatures}"
+	copySet "getProperty.ps1" "$AUTOMATIONROOT\remote" "$WORK_DIR_DEFAULT"
+	copySet "localTasks.ps1" "$AUTOMATIONROOT\local" "$WORK_DIR_DEFAULT"
+} else {
+	# Copy all local script helpers, flat set to true to copy to root, not sub directory
+	copyDir "$AUTOMATIONROOT\local" $WORK_DIR_DEFAULT $true
 
-# Copy all remote script helpers, flat set to true to copy to root, not sub directory
-copyDir "$AUTOMATIONROOT\remote" $WORK_DIR_DEFAULT $true
+	# Copy all remote script helpers, flat set to true to copy to root, not sub directory
+	copyDir "$AUTOMATIONROOT\remote" $WORK_DIR_DEFAULT $true
+}
 
 Write-Host "`n[$scriptName] Copy local and remote defintions`n"
 $listOfTaskFile = "tasksRunLocal.tsk", "tasksRunRemote.tsk"
@@ -205,13 +223,13 @@ if ( Test-Path $genericArtifactList ) {
 # (SOLUTION and BUILDNUMBER) are merged into the manifest file.
 $propertiesFile = "$WORK_DIR_DEFAULT\manifest.txt"
 try {
-	$zipLocal=$(& $WORK_DIR_DEFAULT\getProperty.ps1 "$propertiesFile" 'zipLocal')
+	$zipLocal=$(& $AUTOMATIONROOT\remote\getProperty.ps1 "$propertiesFile" 'zipLocal')
 	if(!$?){
-		throw "`$zipLocal=`$(& $WORK_DIR_DEFAULT\getProperty.ps1 $propertiesFile zipLocal)"
+		throw "`$zipLocal=`$(& $AUTOMATIONROOT\remote\getProperty.ps1 $propertiesFile zipLocal)"
 		throw "Exception Reading zipLocal property from $AUTOMATIONROOT\manifest.txt" 
 	}
 } catch { 
-	Write-Host "Exception attempting `$zipLocal=`$(& $WORK_DIR_DEFAULT\getProperty.ps1 $propertiesFile zipLocal)"
+	Write-Host "Exception attempting `$zipLocal=`$(& $AUTOMATIONROOT\remote\getProperty.ps1 $propertiesFile zipLocal)"
 	throw "Exception Reading zipLocal property from $AUTOMATIONROOT\manifest.txt" 
 }
 
