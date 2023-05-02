@@ -11,7 +11,7 @@ echo "Detokenise a setting file`n"
 DETOKN example.yaml
 
 echo "Detokenise setting file using environment variable`n"
-REPLAC example.yaml @secret@ $env:CLIENTNAME
+REPLAC example.yaml @secret@ $env:COMPUTERNAME
 
 echo "In a real pipeline, can rely on secret masking`n"
 cat example.yaml

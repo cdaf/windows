@@ -1,4 +1,5 @@
 /TasksLocal/
 /minimal-package-*.zip
+/minimal-package-*.tar.gz
 /bin.bat
 /release.ps1

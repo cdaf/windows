@@ -1,4 +1,4 @@
 env:NON_EXIST=optional
 
 # Verify variable is populated and log the checksum value
-env:CLIENTNAME=secret
+env:COMPUTERNAME=secret

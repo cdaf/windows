@@ -29,7 +29,6 @@ jobs:
           path: release.ps1
 
   NO_PROP:
-    if: github.ref == 'refs/heads/master'
     name: Verify nothing attempted when unknown Environment supplied
     needs: build
     runs-on: windows-latest
@@ -46,7 +45,6 @@ jobs:
           .\release.ps1 NO_PROP
 
   WINDOWS:
-    if: github.ref == 'refs/heads/master'
     name: Decryption Test from Sample
     needs: [build, NO_PROP]
     runs-on: windows-latest
