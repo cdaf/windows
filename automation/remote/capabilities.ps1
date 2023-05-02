@@ -270,7 +270,7 @@ try {
 try { 
 	$msPath = Get-Item -Path 'HKLM:\Software\Microsoft\IIS Extensions\MSDeploy\*' -ErrorAction SilentlyContinue
 	$versionTest = $msPath[-1].Name.Split('\')[-1] 
-	$absPath = & where.exe msdeploy.exe 2>null
+	$absPath = & where.exe msdeploy.exe 2>$null
 	if ( $LASTEXITCODE -ne 0 ) {
 		$absPath = "C:\Program Files (x86)\IIS\Microsoft Web Deploy V${versionTest}\msdeploy.exe"
 		try {

@@ -232,9 +232,12 @@ if ( $virtualisation -eq 'hyperv' ) {
     executeCMD "start /w vs_enterprise.exe --quiet --wait --norestart --nocache --noUpdateInstaller --noWeb --add Microsoft.VisualStudio.Workload.Python --locale en-US"
     executeCMD "start /w vs_enterprise.exe --quiet --wait --norestart --nocache --noUpdateInstaller --noWeb --add Microsoft.Component.PythonTools.Web --locale en-US"
 
+	Write-Host "Install .NET SDKs"
+    executeExpression ".\automation\provisioning\base.ps1 netfx-4.8-devpack" # 4.8
+    executeExpression ".\automation\provisioning\base.ps1 dotnet-6.0-sdk"
+
     executeExpression ".\automation\provisioning\base.ps1 azure-cli"
     executeExpression "az config set extension.use_dynamic_install=yes_without_prompt"
-    executeExpression ".\automation\provisioning\base.ps1 dotnet-6.0-sdk"
 
     # Ensure NuGet is a source, by default it is not (ignore if already added)
     Write-Host "nuget sources add -Name NuGet.org -Source https://api.nuget.org/v3/index.json"

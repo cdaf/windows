@@ -1,3 +1,6 @@
+echo "Am I an Administrator?"
+IFADMN "whoami"
+
 echo "List Agent/Runner capabilities"
 & $AUTOMATIONROOT\remote\capabilities.ps1
 
@@ -5,12 +8,12 @@ echo "Clean Build workspace (not solution)"
 REMOVE *.binary
 
 echo "If ACTION (emulation only) is clean, do not perform any further action"
-ASSIGN $terminate = $ACTION
+EXITIF $terminate = $ACTION
 
 echo "artifactPrefix is automatically loaded from CDAF.solution, combine with build number to create symantic (http://semver.org/) version"
 ASSIGN $productVersion = "${artifactPrefix}.${BUILDNUMBER}"
 
-echo "Perform build"
-echo "I'm a build artefact" > build.binary
-echo "Artefact symantic version : $productVersion" >> build.binary
-cat build.binary
+echo "Perform build in DOS Command"
+EXECMD "echo @echo off > bin.bat"
+EXECMD "echo echo Artefact symantic version : $productVersion >> bin.bat"
+.\bin.bat
