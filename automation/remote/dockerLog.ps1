@@ -1,7 +1,9 @@
 Param (
     [string]$container,
     [string]$stringMatch,
-    [string]$waitTime
+    [string]$waitTime,
+    [string]$exactMatch,
+    [string]$trim
 )
 
 cmd /c "exit 0"
@@ -43,6 +45,20 @@ if ($waitTime) {
     Write-Host "[$scriptName] waitTime    : $waitTime (default)"
 }
 
+if ($exactMatch) {
+    Write-Host "[$scriptName] exactMatch  : $exactMatch"
+} else {
+	$exactMatch = 'CONTAINS'
+    Write-Host "[$scriptName] exactMatch  : $exactMatch (default)"
+}
+
+if ($trim) {
+    Write-Host "[$scriptName] trim        : $trim"
+} else {
+	$trim = 'NO_TRIM'
+    Write-Host "[$scriptName] trim        : $trim (default)"
+}
+
 if ( Test-Path test.log ) { Remove-Item -Force test.log }
 if ( Test-Path prevtest.log ) { Remove-Item -Force prevtest.log }
 
@@ -64,14 +80,23 @@ while (( $retryCount -le $retryMax ) -and ($exitCode -ne 0)) {
 	    	if ( $lineCount -gt $lastLineNumber ) {
 				Write-Host "> $line"
 				$lastLineNumber = $lineCount
+				if ( $exactMatch  -eq 'EXACT' ) {
+					if ( $trim  -eq 'TRIM' ) {
+						$line.Trim()
+					}
+					if ( $line -eq  $stringMatch ) {
+						Write-Host "[$scriptName] $exactMatch stringMatch ($stringMatch) found."
+						$exitCode = 0
+					}
+				} else {
+					if ( $line -match $stringMatch ) {
+						Write-Host "[$scriptName] stringMatch ($stringMatch) found."
+						$exitCode = 0
+					}
+				}
 			}
 			$lineCount += 1
 	    }
-	
-	    if ( Select-String -Pattern $stringMatch -InputObject $output ) {
-			Write-Host "[$scriptName] stringMatch ($stringMatch) found."
-		    $exitCode = 0
-		}
 		
 	    if ( Select-String -Pattern 'CDAF_DELIVERY_FAILURE.' -InputObject $output ) {
 			Write-Host "[$scriptName] Error Detected (CDAF_DELIVERY_FAILURE.) exit with error code 335"
