@@ -127,6 +127,9 @@ if ( $packageFeatures -eq 'minimal' ) {
 	Write-Host "`n[$scriptName] packageFeatures = ${packageFeatures}"
 	copySet "getProperty.ps1" "$AUTOMATIONROOT\remote" "$WORK_DIR_DEFAULT"
 	copySet "localTasks.ps1" "$AUTOMATIONROOT\local" "$WORK_DIR_DEFAULT"
+	copySet "localTasksTarget.ps1" "$AUTOMATIONROOT\local" "$WORK_DIR_DEFAULT"
+	copySet "execute.ps1" "$AUTOMATIONROOT\remote" "$WORK_DIR_DEFAULT"
+	copySet "Transform.ps1" "$AUTOMATIONROOT\remote" "$WORK_DIR_DEFAULT"
 } else {
 	# Copy all local script helpers, flat set to true to copy to root, not sub directory
 	copyDir "$AUTOMATIONROOT\local" $WORK_DIR_DEFAULT $true

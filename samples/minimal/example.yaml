@@ -1,0 +1,4 @@
+---
+  application:
+    message: "%literal%"
+    secret: "@secret@"
