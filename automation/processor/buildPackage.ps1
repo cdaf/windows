@@ -684,15 +684,19 @@ if ( $ACTION -ne 'container_build' ) {
 
 			Write-Host "[$scriptName]   Create single script artefact release.ps1"
 			$SourceFile = (get-item ${compressedArtefact}).FullName
-			
 			[IO.File]::WriteAllBytes("$pwd\release.ps1",[char[]][Convert]::ToBase64String([IO.File]::ReadAllBytes($SourceFile)))
-	
-			$scriptLines = @('Param (', '[string]$ENVIRONMENT,' ,'[string]$RELEASE,','[string]$OPT_ARG',')','Import-Module Microsoft.PowerShell.Utility','Import-Module Microsoft.PowerShell.Management','Import-Module Microsoft.PowerShell.Security')
-			$scriptLines += "Write-Host 'Launching release.ps1 (${artifactPrefix}.${BUILDNUMBER}) ...'"
-			$scriptLines += '$Base64 = "'
-			$scriptLines + (get-content "release.ps1") | set-content "release.ps1"
-	
-			Add-Content "release.ps1" '"'
+			$base64 = get-content "release.ps1"
+
+			Set-Content "release.ps1" 'Param ('
+			Add-Content "release.ps1" '  [string]$ENVIRONMENT,'
+			Add-Content "release.ps1" '  [string]$RELEASE,'
+			Add-Content "release.ps1" '  [string]$OPT_ARG'
+			Add-Content "release.ps1" ')'
+			Add-Content "release.ps1" 'Import-Module Microsoft.PowerShell.Utility'
+			Add-Content "release.ps1" 'Import-Module Microsoft.PowerShell.Management'
+			Add-Content "release.ps1" 'Import-Module Microsoft.PowerShell.Security'
+			Add-Content "release.ps1" 'Write-Host "Launching release.ps1 (${artifactPrefix}.${BUILDNUMBER}) ..."'
+			Add-Content "release.ps1" "`$Base64 = `"$base64`""
 			Add-Content "release.ps1" 'if ( Test-Path "TasksLocal" ) { Remove-Item -Recurse TasksLocal }'
 			Add-Content "release.ps1" "Remove-Item ${SOLUTION}*.zip" # remote package
 			Add-Content "release.ps1" 'Write-Host "[$(Get-Date)] Extracting embedded package file ..."'
@@ -700,12 +704,12 @@ if ( $ACTION -ne 'container_build' ) {
 			Add-Content "release.ps1" "Set-Content -Path '${compressedArtefact}' -Value `$Content -Encoding Byte"
 
 			Add-Content "release.ps1" 'Write-Host "[$(Get-Date)] Decompressing package file ..."'
-			if ( $packageMethod ) {
+			if ( $packageMethod -eq 'tarball' ) {
+				Add-Content "release.ps1" "tar -zxf ${compressedArtefact}"
+			} else {
 				# TODO conditional for PS core in the future Add-Content "release.ps1" "Set-Content -Path '${compressedArtefact}' -Value `$Content -AsByteStream"
 				Add-Content "release.ps1" 'Add-Type -AssemblyName System.IO.Compression.FileSystem'
 				Add-Content "release.ps1" "[System.IO.Compression.ZipFile]::ExtractToDirectory(`"`$PWD\${compressedArtefact}`", `"`$PWD`")"
-			} else {
-				Add-Content "release.ps1" "tar -zxf ${compressedArtefact}"
 			}
 
 			Add-Content "release.ps1" 'Write-Host "[$(Get-Date)] Execute Deployment ..."'

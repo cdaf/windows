@@ -1,5 +1,8 @@
 productName=Minimal Release Package
-artifactPrefix=0.0
 solutionName=minimal-package
+
+artifactPrefix=0.0
 packageFeatures=minimal
+packageMethod=tarball
+
 processSequence=localTasks.ps1
