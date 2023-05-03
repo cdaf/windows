@@ -702,7 +702,8 @@ if ( $ACTION -ne 'container_build' ) {
 			Add-Content "release.ps1" 'Write-Host "[$(Get-Date)] Extracting embedded package file ..."'
 			Add-Content "release.ps1" '$Content = [System.Convert]::FromBase64String($Base64)'
 			Add-Content "release.ps1" "Set-Content -Path '${compressedArtefact}' -Value `$Content -Encoding Byte"
-			Add-Content "release.ps1" "if ( (get-item '${compressedArtefact}').Length/1MB -gt 50 ) { Write-Host '[`$(Get-Date)] pause to release memory ...' ; `$memsleep = 'yes'; sleep 10 }" # allow memory release time
+			Add-Content "release.ps1" "`$packagesize = (get-item '${compressedArtefact}').Length/1MB"
+			Add-Content "release.ps1" "if ( `$packagesize -gt 50 ) { Write-Host `"[`$(Get-Date)] pause to release memory due to large package size (`$packagesize MB) ...`" ; sleep 10 }"
 
 			Add-Content "release.ps1" 'Write-Host "[$(Get-Date)] Decompressing package file ..."'
 			if ( $packageMethod -eq 'tarball' ) {
@@ -712,7 +713,7 @@ if ( $ACTION -ne 'container_build' ) {
 				Add-Content "release.ps1" 'Add-Type -AssemblyName System.IO.Compression.FileSystem'
 				Add-Content "release.ps1" "[System.IO.Compression.ZipFile]::ExtractToDirectory(`"`$PWD\${compressedArtefact}`", `"`$PWD`")"
 			}
-			Add-Content "release.ps1" "if ( `$memsleep -eq 'yes' ) { Write-Host '[`$(Get-Date)] pause to release memory ...' ; sleep 10 }" # allow memory release time
+			Add-Content "release.ps1" "if ( `$packagesize -gt 50 ) { Write-Host `"[`$(Get-Date)] pause to release memory ...`" ; sleep 10 }"
 
 			Add-Content "release.ps1" 'Write-Host "[$(Get-Date)] Execute Deployment ..."'
 			Add-Content "release.ps1" '.\TasksLocal\delivery.bat "$ENVIRONMENT" "$RELEASE" "$OPT_ARG"'
