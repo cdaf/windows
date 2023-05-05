@@ -125,9 +125,11 @@ if ( $optionalArgs ) {
 	$buildCommand += " $optionalArgs"
 }
 
-if ($env:CONTAINER_IMAGE) {
+if ( $env:CONTAINER_IMAGE ) {
 	$buildCommand += " --build-arg CONTAINER_IMAGE=$env:CONTAINER_IMAGE"
-    executeExpression "docker pull $env:CONTAINER_IMAGE"
+	if ( $env:CDAF_SKIP_PULL -ne 'yes' ) {
+	    executeExpression "docker pull $env:CONTAINER_IMAGE"
+	}
 }
 
 if ($tag) {

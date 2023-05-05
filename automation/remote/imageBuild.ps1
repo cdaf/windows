@@ -185,6 +185,12 @@ if (!( $id )) {
 			Write-Host "[$scriptName]   constructor         : (not supplied, will process all directories)"
 		}
 
+		if ( $env:CDAF_SKIP_PULL ) {
+			Write-Host "[$scriptName]   CDAF_SKIP_PULL      : $env:CDAF_SKIP_PULL"
+		} else {
+			Write-Host "[$scriptName]   CDAF_SKIP_PULL      : (not supplied)"
+		}
+
 		if ( $env:CDAF_REGISTRY_URL ) {
 			Write-Host "[$scriptName]   CDAF_REGISTRY_URL   : $env:CDAF_REGISTRY_URL"
 		} else {
