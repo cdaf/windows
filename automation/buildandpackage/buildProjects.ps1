@@ -1,6 +1,6 @@
 
 function removeTempFiles {
-	$itemList = @("*.zip", "*.nupkg")
+	$itemList = @("*.zip", "*.tar.gz", "*.nupkg")
 	foreach ($itemName in $itemList) {  
 		itemRemove ".\${itemName}"
     }
