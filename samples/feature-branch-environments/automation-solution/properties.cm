@@ -1,0 +1,4 @@
+context  target  usage
+local    LINUX   "Default environment"
+local    DEV1    "Feature branch environment for feature or hotfix branch"
+local    DEV2    "Feature branch environment for bugfix or hotfix branch"

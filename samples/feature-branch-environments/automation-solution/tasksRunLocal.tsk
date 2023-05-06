@@ -1,0 +1,6 @@
+echo "In this example, only branch names containing 'feature', 'bugfix' or 'hotfix' will execute from etnry.sh,"
+echo "This configuration has no affect on cdEmulate execution."
+
+PROPLD manifest.txt
+
+echo "deploying branch name $REVISION to $TARGET"

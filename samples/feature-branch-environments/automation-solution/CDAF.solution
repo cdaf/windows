@@ -1,0 +1,7 @@
+productName=Deploying from Feature Branch Based on Branch Name
+solutionName=feature-branch-environments
+
+artifactPrefix=0.0
+packageFeatures=minimal
+
+processSequence=localTasks.ps1
