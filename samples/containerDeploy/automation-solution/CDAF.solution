@@ -3,7 +3,7 @@ solutionName=container-deploy
 artifactPrefix=0.0
 
 # Container image used for both containerBuild and containerDeploy if runtimeImage not specified
-containerImage=mcr.microsoft.com/windows/servercore:ltsc2019@sha256:c09d8edfe68365f519b02827171aacc61ed3451f7863325cee4059b96f41c0ce
+containerImage=mcr.microsoft.com/windows/servercore:ltsc2019
 
 processSequence=containerTasks.ps1
 
