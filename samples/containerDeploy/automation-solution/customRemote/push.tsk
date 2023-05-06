@@ -1,6 +1,0 @@
-
-if (!(${env:ADO_PACKAGE_PAT})) { Write-Host "ADO_PACKAGE_PAT not supplied!"; exit 7721 }
-
-mvn --batch-mode deploy:deploy-file -D"ado.pat=${env:ADO_PACKAGE_PAT}" -D"generatePom=false" -D"groupId=nz.co.datacom.sprintzero" -D"artifactId=${env:SOLUTION}" -D"version=${env:VERSION}" -D"file=./${env:SOLUTION}-${env:VERSION}-mule-application.jar" -D"repositoryId=apis" -D"url=https://pkgs.dev.azure.com/datacom-group/microlith/_packaging/apis/maven/v1"
-
-anypoint-cli exchange asset describe 17044f89-8963-4d44-945f-ac229cb9ecd6/api-x-development/1.2.3
