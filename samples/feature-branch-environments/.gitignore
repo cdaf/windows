@@ -12,3 +12,4 @@
 /release.ps1
 /*.zip
 /*.tar.gz
+/runtime.ps1
