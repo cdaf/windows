@@ -20,11 +20,13 @@ function executeExpression ($expression) {
 }
 
 Write-Host "`n[$scriptName] ---------- start ----------`n"
-Write-Host "[$scriptName]   SOLUTION    : $SOLUTION"
-Write-Host "[$scriptName]   BUILDNUMBER : $BUILDNUMBER"
-Write-Host "[$scriptName]   ACTION      : $ACTION"
+Write-Host "[$scriptName] Test connectivity deployer@localhost`n"
 
-executeExpression "pwd"
+foreach ($dirName in Get-ChildItem -Directory) {
+	executeExpression "cd $dirName"
+	executeExpression "..\..\automation\cdEmulate"
+	executeExpression "cd .."
+}
 
 Write-Host "`n[$scriptName] ---------- stop ----------"
 $error.clear()
