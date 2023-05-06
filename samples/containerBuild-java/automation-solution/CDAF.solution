@@ -5,5 +5,6 @@ artifactPrefix=0.0
 containerBuild=& ${AUTOMATIONROOT}/processor/containerBuild.ps1 $SOLUTION $BUILDNUMBER $REVISION $ACTION
 containerImage=cdaf/windows
 
-# imageBuild=automation-solution/imageBuild.ps1 $SOLUTION $BUILDNUMBER $REVISION $ACTION
-# processSequence=localTasks.ps1 remoteTasks.ps1
+packageFeatures=minimal
+
+processSequence=localTasks.ps1
