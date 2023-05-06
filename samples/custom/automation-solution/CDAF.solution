@@ -1,0 +1,8 @@
+productName=Custom Build and Deployment Scripts
+solutionName=custom
+
+artifactPrefix=0.0
+packageFeatures=minimal
+packageMethod=tarball
+
+processSequence=localTasks.ps1

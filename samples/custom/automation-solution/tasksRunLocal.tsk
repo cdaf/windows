@@ -1,0 +1,17 @@
+echo "Minimum function checklist"
+VARCHK 
+
+echo "Load a property file to memory`n"
+PROPLD manifest.txt
+
+echo "Display a resolved variable`n"
+ASSIGN $username = "$var_load"
+
+echo "Detokenise a setting file`n"
+DETOKN example.yaml
+
+echo "Detokenise setting file using environment variable`n"
+REPLAC example.yaml @secret@ $env:COMPUTERNAME
+
+echo "In a real pipeline, can rely on secret masking`n"
+cat example.yaml

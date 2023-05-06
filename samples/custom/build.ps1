@@ -67,11 +67,15 @@ Write-Host "[$scriptName]   ENVIRONMENT : $ENVIRONMENT"
 Write-Host "[$scriptName]   ACTION      : $ACTION"
 
 # Properties file loader, all properties are instantiated as runtime variables and listed in the logs
-write-host "The transform does not support relative paths, so the parent path must be resolved before invokation"
+write-host "`nThe transform does not support relative paths, so the parent path must be resolved before invokation"
 $parentPath = (Get-Item -Path "..\" -Verbose).FullName
-..\autodeploy\remote\Transform.ps1 "$parentPath\autodeploy\solution\propertiesForLocalTasks\$ENVIRONMENT" | ForEach-Object { invoke-expression $_ }
+& $AUTOMATIONROOT\remote\Transform.ps1 "$SOLUTIONROOT\CDAF.solution" | ForEach-Object { invoke-expression $_ }
 
-executeExpression "dir"
+Write-Host
+executeExpression 'Set-Content runtime.ps1 "Write-Host `"Deploy %integer%, property set to : %property%`""'
+
+Write-Host "Verify tokenised artefact`n"
+executeExpression '.\runtime.ps1'
 
 Write-Host "`n[$scriptName] ---------- stop ----------"
 $error.clear()

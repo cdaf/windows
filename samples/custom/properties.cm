@@ -1,6 +1,0 @@
-context  target     deployTaskOverride  resource_group
-local    WINDOWS    webdeploy.tsk       desktop-group
-local    WORKGROUP  webdeploy.tsk       desktop-group
-local    DEV        webdeploy.tsk       dev-group
-local    TEST       webdeploy.tsk       user-acceptance-group
-local    PROD       webdeploy.tsk       production-group
