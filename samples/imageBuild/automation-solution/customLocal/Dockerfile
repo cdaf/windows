@@ -2,9 +2,6 @@
 ARG CONTAINER_IMAGE
 FROM ${CONTAINER_IMAGE}
 
-ARG HTTP_PROXY
-ENV HTTP_PROXY=$HTTP_PROXY
-
 # Create root, i.e. C:\solution
 WORKDIR /solution
 
