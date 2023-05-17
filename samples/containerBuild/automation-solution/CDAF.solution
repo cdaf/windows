@@ -1,0 +1,10 @@
+productName=Container Build Sample
+solutionName=container-build
+artifactPrefix=0.0
+
+containerBuild=& ${AUTOMATIONROOT}/processor/containerBuild.ps1 $SOLUTION $BUILDNUMBER $REVISION $ACTION
+containerImage=cdaf/windows
+
+packageFeatures=minimal
+
+processSequence=localTasks.ps1
