@@ -67,51 +67,7 @@ function executeExpression ($expression) {
 }
 
 function dockerLogin {
-	if ( Test-Path manifest.txt ) {
-		Write-Host "`n[$scriptName] Loading registry properties from manifest.txt..."
-	} else {
-		Write-Host "`n[$scriptName] manifest.txt file not found! If processing from CI context, use wrap.tsk driver.`n"
-		exit 6630
-	}
-
-	$value = & .\getProperty.ps1 "manifest.txt" "CDAF_REGISTRY_URL"
-	if ( $value ) {
-		$env:CDAF_REGISTRY_URL = Invoke-Expression "Write-Output $value"
-	}
-	if ( $env:CDAF_REGISTRY_URL ) {
-		if ( $registryURL -eq 'DOCKER-HUB' ) {
-			Write-Host  "[$scriptName]  CDAF_REGISTRY_URL   = $env:CDAF_REGISTRY_URL (will be set to blank)"
-			$env:CDAF_REGISTRY_URL = ''
-		} else {
-			Write-Host  "[$scriptName]  CDAF_REGISTRY_URL   = $env:CDAF_REGISTRY_URL"
-		}
-	} else {
-		Write-Host  "[$scriptName]  CDAF_REGISTRY_URL   = (not supplied, do not set when pushing to Dockerhub)"
-	}
-
-	$value = & .\getProperty.ps1 "manifest.txt" "CDAF_REGISTRY_USER"
-	if ( $value ) {
-		$env:CDAF_REGISTRY_USER = Invoke-Expression "Write-Output $value"
-	}
-	if ( $env:CDAF_REGISTRY_USER ) {
-		Write-Host  "[$scriptName]  CDAF_REGISTRY_USER  = $env:CDAF_REGISTRY_USER"
-	} else {
-		Write-Host  "[$scriptName]  CDAF_REGISTRY_USER not supplied! User credentials required for publishing."
-		exit 6631
-	}
-
-	$value = & .\getProperty.ps1 "manifest.txt" "CDAF_REGISTRY_TOKEN"
-	if ( $value ) {
-		$env:CDAF_REGISTRY_TOKEN = Invoke-Expression "Write-Output $value"
-	}
-	if ( $env:CDAF_REGISTRY_TOKEN ) {
-		Write-Host  "[$scriptName]  CDAF_REGISTRY_TOKEN = $env:CDAF_REGISTRY_TOKEN"
-	} else {
-		Write-Host  "[$scriptName]  CDAF_REGISTRY_TOKEN not supplied! User credentials required for publishing."
-		exit 6632
-	}
-
-	executeExpression "echo `$env:CDAF_REGISTRY_TOKEN | docker login --username $env:CDAF_REGISTRY_USER --password-stdin $env:CDAF_REGISTRY_URL"
+	executeExpression "docker login --username $registryUser --password `$registryToken $registryURL"
 }
 
 function REMOVE ($itemPath) { 
@@ -121,14 +77,18 @@ function REMOVE ($itemPath) {
 		if(!$?) { ERRMSG "[REMOVE] Remove-Item $itemPath -Recurse -Force Failed" 10006 }
 	}
 }
-	
+
+function MASKED ($value) {
+	(Get-FileHash -InputStream $([IO.MemoryStream]::new([byte[]][char[]]$value)) -Algorithm SHA256).Hash
+}
+
 $scriptName = 'imageBuild.ps1'
 cmd /c "exit 0"
 $error.clear()
 
 Write-Host "`n[$scriptName] ---------- start ----------"
 if (!( $id )) {
-	dockerLogin
+	Write-Host "[$scriptName]   ID not supplied, will only attempt login"
 } else {
 	$id = $id.ToLower()
 	$SOLUTION = ($id.Split('_'))[0]  # Use solution name for temp directory name
@@ -137,44 +97,22 @@ if (!( $id )) {
 	if (!( $buildNumber )) {
 
 		Write-Host "[$scriptName]   BUILDNUMBER not supplied, will publish $id as latest"
-		dockerLogin
-		$noTag,$tag = ${id}.Split(':')
-		if ( $env:CDAF_REGISTRY_URL ) {
-			executeExpression "docker tag $env:CDAF_REGISTRY_URL/${id} $env:CDAF_REGISTRY_URL/${noTag}:latest"
-			executeExpression "docker push $env:CDAF_REGISTRY_URL/${noTag}:latest"
-		} else {
-			executeExpression "docker tag ${id} ${noTag}:latest"
-			executeExpression "docker push ${noTag}:latest"
-		}
 
 	} else {
 		Write-Host "[$scriptName]   BUILDNUMBER         : $BUILDNUMBER"
 
 		if ( $containerImage ) {
-			if (($env:CONTAINER_IMAGE) -or ($CONTAINER_IMAGE)) {
-				Write-Host "[$scriptName]   containerImage      : $containerImage"
-				if ($env:CONTAINER_IMAGE) {
-					Write-Host "[$scriptName]   CONTAINER_IMAGE     : $env:CONTAINER_IMAGE (not changed as already set)"
-				} else {
-					$env:CONTAINER_IMAGE = $CONTAINER_IMAGE
-					Write-Host "[$scriptName]   CONTAINER_IMAGE     : $env:CONTAINER_IMAGE (loaded from `$CONTAINER_IMAGE)"
-				}
+			if ( $env:CONTAINER_IMAGE ) {
+			    Write-Host "[$scriptName]   CONTAINER_IMAGE     : $containerImage (override environment variable $env:CONTAINER_IMAGE)"
 			} else {
-				$env:CONTAINER_IMAGE = $containerImage
-				Write-Host "[$scriptName]   CONTAINER_IMAGE     : $env:CONTAINER_IMAGE (set to `$containerImage)"
+			    Write-Host "[$scriptName]   CONTAINER_IMAGE     : $containerImage"
 			}
-		} else {
-			if (($env:CONTAINER_IMAGE) -or ($CONTAINER_IMAGE)) {
-				Write-Host "[$scriptName]   containerImage      : $containerImage"
-				if ($env:CONTAINER_IMAGE) {
-					Write-Host "[$scriptName]   CONTAINER_IMAGE     : $env:CONTAINER_IMAGE (containerImage not passed, using existing environment variable)"
-				} else {
-					$env:CONTAINER_IMAGE = $CONTAINER_IMAGE
-					Write-Host "[$scriptName]   CONTAINER_IMAGE     : $env:CONTAINER_IMAGE (containerImage not passed, loaded from `$CONTAINER_IMAGE)"
-				}
+		} else {	
+			if ( $env:CONTAINER_IMAGE ) {
+			    Write-Host "[$scriptName]   CONTAINER_IMAGE     : $env:CONTAINER_IMAGE (loaded from environment variable)"
+				$containerImage = "$env:CONTAINER_IMAGE"
 			} else {
-				Write-Host "[$scriptName][ERROR] containerImage not passed and neither `$env:CONTAINER_IMAGE nor `$CONTAINER_IMAGE set, exiting with `$LASTEXITCODE 6674"
-				exit 6674
+			    Write-Host "[$scriptName]   CONTAINER_IMAGE     : (not supplied)"
 			}
 		}
 
@@ -183,36 +121,6 @@ if (!( $id )) {
 			Write-Host "[$scriptName]   constructor         : $constructor"
 		} else {
 			Write-Host "[$scriptName]   constructor         : (not supplied, will process all directories)"
-		}
-
-		if ( $env:CDAF_SKIP_PULL ) {
-			Write-Host "[$scriptName]   CDAF_SKIP_PULL      : $env:CDAF_SKIP_PULL"
-		} else {
-			Write-Host "[$scriptName]   CDAF_SKIP_PULL      : (not supplied)"
-		}
-
-		if ( $env:CDAF_REGISTRY_URL ) {
-			Write-Host "[$scriptName]   CDAF_REGISTRY_URL   : $env:CDAF_REGISTRY_URL"
-		} else {
-			Write-Host "[$scriptName]   CDAF_REGISTRY_URL   : (not supplied)"
-		}
-
-		if ( $env:CDAF_REGISTRY_TAG ) {
-			Write-Host "[$scriptName]   CDAF_REGISTRY_TAG   : $env:CDAF_REGISTRY_TAG"
-		} else {
-			Write-Host "[$scriptName]   CDAF_REGISTRY_TAG   : (not supplied)"
-		}
-
-		if ( $env:CDAF_REGISTRY_USER ) {
-			Write-Host "[$scriptName]   CDAF_REGISTRY_USER  : $env:CDAF_REGISTRY_USER"
-		} else {
-			Write-Host "[$scriptName]   CDAF_REGISTRY_USER  : (not supplied, push will not be attempted)"
-		}
-
-		if ( $env:CDAF_REGISTRY_TOKEN ) {
-			Write-Host "[$scriptName]   CDAF_REGISTRY_TOKEN : $env:CDAF_REGISTRY_TOKEN"
-		} else {
-			Write-Host "[$scriptName]   CDAF_REGISTRY_TOKEN : (not supplied)"
 		}
 
 		if ( $optionalArgs ) {
@@ -226,6 +134,115 @@ if (!( $id )) {
 		Write-Host "[$scriptName]   whoami              : $(whoami)"
 		$workspace = $(Get-Location)
 		Write-Host "[$scriptName]   workspace           : ${workspace}`n"
+	}
+}
+
+if ( $env:CDAF_SKIP_PULL ) {
+	Write-Host "[$scriptName]   CDAF_SKIP_PULL      : $env:CDAF_SKIP_PULL"
+} else {
+	Write-Host "[$scriptName]   CDAF_SKIP_PULL      : (not supplied)"
+}
+
+$cdafRegistryURL = & "${env:CDAF_CORE}\getProperty.ps1" "$WORKSPACE\manifest.txt" "CDAF_REGISTRY_URL"
+if ( $cdafRegistryURL ) {
+	$cdafRegistryURL = Invoke-Expression "Write-Output $cdafRegistryURL"
+	if ( $env:CDAF_REGISTRY_URL ) {
+	    Write-Host "[$scriptName]   CDAF_REGISTRY_URL   : $cdafRegistryURL (loaded from manifest.txt, override environment variable $env:CDAF_REGISTRY_URL)"
+	} else {
+	    Write-Host "[$scriptName]   CDAF_REGISTRY_URL   : $cdafRegistryURL (loaded from manifest.txt)"
+	}
+	$registryURL = "$cdafRegistryURL"
+} else {	
+	if ( $env:CDAF_REGISTRY_URL ) {
+	    Write-Host "[$scriptName]   CDAF_REGISTRY_URL   : $env:CDAF_REGISTRY_URL (loaded from environment variable)"
+		$registryURL = "$env:CDAF_REGISTRY_URL"
+	} else {
+	    Write-Host "[$scriptName]   CDAF_REGISTRY_URL   : (not supplied, do not set when pushing to Dockerhub)"
+	}
+}
+
+$cdafRegistryUser = & "${env:CDAF_CORE}\getProperty.ps1" "$WORKSPACE\manifest.txt" "CDAF_REGISTRY_USER"
+if ( $cdafRegistryUser ) {
+	$cdafRegistryUser = Invoke-Expression "Write-Output $cdafRegistryUser" 
+	if ( $env:CDAF_REGISTRY_USER ) {
+	    Write-Host "[$scriptName]   CDAF_REGISTRY_USER  : $cdafRegistryUser (loaded from manifest.txt, override environment variable $env:CDAF_REGISTRY_USER)"
+	} else {
+	    Write-Host "[$scriptName]   CDAF_REGISTRY_USER  : $cdafRegistryUser (loaded from manifest.txt)"
+	}
+	$registryUser = "$cdafRegistryUser"
+} else {	
+	if ( $env:CDAF_REGISTRY_USER ) {
+	    Write-Host "[$scriptName]   CDAF_REGISTRY_USER  : $env:CDAF_REGISTRY_USER (loaded from environment variable)"
+		$registryUser = "$env:CDAF_REGISTRY_USER"
+	} else {
+		$registryUser = '.'
+	    Write-Host "[$scriptName]   CDAF_REGISTRY_USER  : $registryUser (not supplied, set to default)"
+	}
+}
+
+$cdafRegistryToken = & "${env:CDAF_CORE}\getProperty.ps1" "$WORKSPACE\manifest.txt" "CDAF_REGISTRY_TOKEN"
+if ( $cdafRegistryToken ) {
+	$cdafRegistryToken = Invoke-Expression "Write-Output $cdafRegistryToken"
+	if ( $env:CDAF_REGISTRY_TOKEN ) {
+	    Write-Host "[$scriptName]   CDAF_REGISTRY_TOKEN : $(MASKED $cdafRegistryToken) (loaded from manifest.txt, override environment variable $(MASKED $env:CDAF_REGISTRY_TOKEN))"
+	} else {
+	    Write-Host "[$scriptName]   CDAF_REGISTRY_TOKEN : $(MASKED $cdafRegistryToken) (loaded from manifest.txt)"
+	}
+	$registryToken = "$cdafRegistryToken"
+} else {	
+	if ( $env:CDAF_REGISTRY_TOKEN ) {
+	    Write-Host "[$scriptName]   CDAF_REGISTRY_TOKEN : $(MASKED $env:CDAF_REGISTRY_TOKEN) (loaded from environment variable)"
+		$registryToken = "$env:CDAF_REGISTRY_TOKEN"
+	} else {
+	    Write-Host "[$scriptName]   CDAF_REGISTRY_TOKEN : (not supplied, login and push will not be attempted)"
+	}
+}
+
+$cdafRegistryTag = & "${env:CDAF_CORE}\getProperty.ps1" "$WORKSPACE\manifest.txt" "CDAF_REGISTRY_TAG"
+if ( $cdafRegistryTag ) {
+	$cdafRegistryTag = Invoke-Expression "Write-Output $cdafRegistryTag"
+	if ( $env:CDAF_REGISTRY_TAG ) {
+	    Write-Host "[$scriptName]   CDAF_REGISTRY_TAG   : $cdafRegistryTag (loaded from manifest.txt, override environment variable $env:CDAF_REGISTRY_TAG)`n"
+	} else {
+	    Write-Host "[$scriptName]   CDAF_REGISTRY_TAG   : $cdafRegistryTag (loaded from manifest.txt)`n"
+	}
+	$registryTag = "$cdafRegistryTag"
+} else {	
+	if ( $env:CDAF_REGISTRY_TAG ) {
+	    Write-Host "[$scriptName]   CDAF_REGISTRY_TAG   : $env:CDAF_REGISTRY_TAG (loaded from environment variable)`n"
+		$registryTag = "$env:CDAF_REGISTRY_TAG"
+	} else {
+	    Write-Host "[$scriptName]   CDAF_REGISTRY_TAG   : (not supplied)`n"
+	}
+}
+
+if (!( $id )) {
+
+	if ( "$registryToken" ) {
+		dockerLogin
+	} else {
+		Write-Host "[$scriptName]   CDAF_REGISTRY_TOKEN not set, skipping login"
+	}
+
+} else {
+
+	if (!( $buildNumber )) {
+
+		if ( "$registryToken" ) {
+			dockerLogin
+			$noTag,$tag = ${id}.Split(':')
+			if ( $env:CDAF_REGISTRY_URL ) {
+				executeExpression "docker tag $env:CDAF_REGISTRY_URL/${id} $env:CDAF_REGISTRY_URL/${noTag}:latest"
+				executeExpression "docker push $env:CDAF_REGISTRY_URL/${noTag}:latest"
+			} else {
+				executeExpression "docker tag ${id} ${noTag}:latest"
+				executeExpression "docker push ${noTag}:latest"
+			}
+		} else {
+			Write-Host "[$scriptName]   CDAF_REGISTRY_TOKEN not set, skipping login and push"
+		}
+
+	} else {
 
 		$transient = "$env:TEMP\${SOLUTION}\${id}"
 
@@ -273,24 +290,31 @@ if (!( $id )) {
 			executeExpression "cd ${transient}\${image}"
 			executeExpression "cat Dockerfile"
 			if ( $optionalArgs ) {
-				executeExpression "./dockerBuild.ps1 ${id}_${image} $BUILDNUMBER -optionalArgs '${optionalArgs}'"
+				if ( $baseImage ) {
+					executeExpression "./dockerBuild.ps1 ${id}_${image} $BUILDNUMBER -optionalArgs '${optionalArgs}' -baseImage '$containerImage'"
+				} else {
+					executeExpression "./dockerBuild.ps1 ${id}_${image} $BUILDNUMBER -optionalArgs '${optionalArgs}'"
+				}
 			} else {
-				executeExpression "./dockerBuild.ps1 ${id}_${image} $BUILDNUMBER"
+				if ( $baseImage ) {
+					executeExpression "./dockerBuild.ps1 ${id}_${image} $BUILDNUMBER -baseImage '$containerImage'"
+				} else {
+					executeExpression "./dockerBuild.ps1 ${id}_${image} $BUILDNUMBER"
+				}
 			}
 			executeExpression "cd $workspace"
 		}
 
 		# 2.2.0 Integrated Registry push, not masking of secrets, it is expected the CI tool will know to mask these
-		if ( "$env:CDAF_REGISTRY_USER" ) {
-			executeExpression "echo $env:CDAF_REGISTRY_TOKEN | docker login --username $env:CDAF_REGISTRY_USER --password-stdin $env:CDAF_REGISTRY_URL"
-			executeExpression "docker tag ${id}_${image}:$BUILDNUMBER $env:CDAF_REGISTRY_TAG"
-			executeExpression "docker push $env:CDAF_REGISTRY_TAG"
+		if ( "$registryToken" ) {
+			executeExpression "docker login --username $registryUser --password `$registryToken $registryURL"
+			executeExpression "docker tag ${id}_${image}:$BUILDNUMBER $registryTag"
+			executeExpression "docker push $registryTag"
 		} else {
-			Write-Host "`$env:CDAF_REGISTRY_USER not set, to push to registry set CDAF_REGISTRY_URL, CDAF_REGISTRY_TAG, CDAF_REGISTRY_USER & CDAF_REGISTRY_TOKEN"
+			Write-Host "CDAF_REGISTRY_TOKEN not set, to push to registry set CDAF_REGISTRY_URL, CDAF_REGISTRY_TAG, CDAF_REGISTRY_USER & CDAF_REGISTRY_TOKEN"
 			Write-Host "Do not set CDAF_REGISTRY_URL when pushing to dockerhub"
 		}
 	}
-
 }
 
 Write-Host "`n[$scriptName] ---------- stop ----------"

@@ -3,7 +3,8 @@ Param (
 	[string]$tag,
 	[string]$version,
 	[string]$rebuild,
-	[string]$optionalArgs
+	[string]$optionalArgs,
+	[string]$baseImage
 )
 
 # Common expression logging and error handling function, copied, not referenced to ensure atomic process
@@ -52,46 +53,121 @@ function executeSuppress ($expression) {
     if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) { Write-Host "[$scriptName] Suppress `$LASTEXITCODE ($LASTEXITCODE)"; cmd /c "exit 0" } # reset LASTEXITCODE
 }
 
+function MASKED ($value) {
+	(Get-FileHash -InputStream $([IO.MemoryStream]::new([byte[]][char[]]$value)) -Algorithm SHA256).Hash
+}
+
 $scriptName = 'dockerBuild.ps1'
 $Error.clear()
 cmd /c "exit 0"
 
 Write-Host "`n[$scriptName] Build docker image, resulting image tag will be ${imageName}:${tag}"
 Write-Host "`n[$scriptName] ---------- start ----------"
-if ($imageName) {
+if ( $imageName ) {
 	$imageName = $imageName.ToLower()
-    Write-Host "[$scriptName] imageName    : $imageName"
+    Write-Host "[$scriptName] imageName                : $imageName"
 } else {
     Write-Host "[$scriptName] imageName not supplied, exit with `$LASTEXITCODE = 1"; exit 1
 }
 
-if ($tag) {
-    Write-Host "[$scriptName] tag          : $tag"
+if ( $tag ) {
+    Write-Host "[$scriptName] tag                      : $tag"
 } else {
-    Write-Host "[$scriptName] tag          : not supplied"
+    Write-Host "[$scriptName] tag                      : not supplied"
 }
 
-if ($version) {
-    Write-Host "[$scriptName] version      : $version"
+if ( $version ) {
+    Write-Host "[$scriptName] version                  : $version"
 } else {
 	if ( $tag ) {
 		$version = $tag
 	} else {
 		$version = '0.0.0'
 	}
-    Write-Host "[$scriptName] version      : $version (not supplied, defaulted to tag if passed, else set to 0.0.0)"
+    Write-Host "[$scriptName] version                  : $version (not supplied, defaulted to tag if passed, else set to 0.0.0)"
 }
 
-if ($rebuild) {
-    Write-Host "[$scriptName] rebuild      : $rebuild"
+if ( $rebuild ) {
+    Write-Host "[$scriptName] rebuild                  : $rebuild"
 } else {
-    Write-Host "[$scriptName] rebuild      : (not supplied, docker will use cache where possible)"
+    Write-Host "[$scriptName] rebuild                  : (not supplied, docker will use cache where possible)"
 }
 
-if ($optionalArgs) {
-    Write-Host "[$scriptName] optionalArgs : $optionalArgs"
+if ( $optionalArgs ) {
+    Write-Host "[$scriptName] optionalArgs             : $optionalArgs"
 } else {
-    Write-Host "[$scriptName] optionalArgs : (not supplied)"
+    Write-Host "[$scriptName] optionalArgs             : (not supplied)"
+}
+
+if ( $baseImage ) {
+	if ( $env:CONTAINER_IMAGE ) {
+	    Write-Host "[$scriptName] baseImage                : $baseImage (override environment variable $CONTAINER_IMAGE)"
+	} else {
+	    Write-Host "[$scriptName] baseImage                : $baseImage"
+	}
+	$containerImage = "$baseImage"
+} else {	
+	if ( $env:CONTAINER_IMAGE ) {
+	    Write-Host "[$scriptName] CONTAINER_IMAGE          : $env:CONTAINER_IMAGE (loaded from environment variable)"
+		$containerImage = "$env:CONTAINER_IMAGE"
+	} else {
+	    Write-Host "[$scriptName] CONTAINER_IMAGE          : (not supplied)"
+	}
+}
+
+$cdafRegistryPullURL = & "${env:CDAF_CORE}\getProperty.ps1" "$WORKSPACE\manifest.txt" "CDAF_PULL_REGISTRY_URL"
+if ( $cdafRegistryPullURL ) {
+	$cdafRegistryPullURL = Invoke-Expression "Write-Output $cdafRegistryPullURL"
+	if ( $env:CDAF_PULL_REGISTRY_URL ) {
+	    Write-Host "[$scriptName] CDAF_PULL_REGISTRY_URL   : $cdafRegistryPullURL (loaded from manifest.txt, override environment variable $env:CDAF_PULL_REGISTRY_URL)"
+	} else {
+	    Write-Host "[$scriptName] CDAF_PULL_REGISTRY_URL   : $cdafRegistryPullURL (loaded from manifest.txt)"
+	}
+	$registryPullURL = "$cdafRegistryPullURL"
+} else {	
+	if ( $env:CDAF_PULL_REGISTRY_URL ) {
+	    Write-Host "[$scriptName] CDAF_PULL_REGISTRY_URL   : $env:CDAF_PULL_REGISTRY_URL (loaded from environment variable)"
+		$registryPullURL = "$env:CDAF_PULL_REGISTRY_URL"
+	} else {
+	    Write-Host "[$scriptName] CDAF_PULL_REGISTRY_URL   : (not supplied, do not set when pulling from Dockerhub)"
+	}
+}
+
+$cdafRegistryPullUser = & "${env:CDAF_CORE}\getProperty.ps1" "$WORKSPACE\manifest.txt" "CDAF_PULL_REGISTRY_USER"
+if ( $cdafRegistryPullUser ) {
+	$cdafRegistryPullUser = Invoke-Expression "Write-Output $cdafRegistryPullUser"
+	if ( $env:CDAF_PULL_REGISTRY_USER ) {
+	    Write-Host "[$scriptName] CDAF_PULL_REGISTRY_USER  : $cdafRegistryPullUser (loaded from manifest.txt, override environment variable $CDAF_PULL_REGISTRY_USER)"
+	} else {
+	    Write-Host "[$scriptName] CDAF_PULL_REGISTRY_USER  : $cdafRegistryPullUser (loaded from manifest.txt)"
+	}
+	$registryPullUser = "$cdafRegistryPullUser"
+} else {	
+	if ( $env:CDAF_PULL_REGISTRY_USER ) {
+	    Write-Host "[$scriptName] CDAF_PULL_REGISTRY_USER  : $env:CDAF_PULL_REGISTRY_USER (loaded from environment variable)"
+		$registryPullUser = "$env:CDAF_PULL_REGISTRY_USER"
+	} else {
+		$registryPullUser = '.'
+	    Write-Host "[$scriptName] CDAF_PULL_REGISTRY_USER  : $registryPullUser (not supplied, set to default)"
+	}
+}
+
+$cdafRegistryPullToken = & "${env:CDAF_CORE}\getProperty.ps1" "$WORKSPACE\manifest.txt" "CDAF_PULL_REGISTRY_TOKEN"
+if ( $cdafRegistryPullToken ) {
+	$cdafRegistryPullToken = Invoke-Expression "Write-Output $cdafRegistryPullToken"
+	if ( $env:CDAF_PULL_REGISTRY_TOKEN ) {
+	    Write-Host "[$scriptName] CDAF_PULL_REGISTRY_TOKEN : $(MASKED $cdafRegistryPullToken) (loaded from manifest.txt, override environment variable $(MASKED $env:CDAF_PULL_REGISTRY_TOKEN))"
+	} else {
+	    Write-Host "[$scriptName] CDAF_PULL_REGISTRY_TOKEN : $(MASKED $cdafRegistryPullToken) (loaded from manifest.txt)"
+	}
+	$registryPullToken = "$cdafRegistryPullToken"
+} else {	
+	if ( $env:CDAF_PULL_REGISTRY_TOKEN ) {
+	    Write-Host "[$scriptName] CDAF_PULL_REGISTRY_TOKEN : $(MASKED $env:CDAF_PULL_REGISTRY_TOKEN) (loaded from environment variable)"
+		$registryPullToken = "$env:CDAF_PULL_REGISTRY_TOKEN"
+	} else {
+	    Write-Host "[$scriptName] CDAF_PULL_REGISTRY_TOKEN : (not supplied, login will not be attempted)"
+	}
 }
 
 Write-Host "`n[$scriptName] List existing images ...`n"
@@ -125,10 +201,16 @@ if ( $optionalArgs ) {
 	$buildCommand += " $optionalArgs"
 }
 
-if ( $env:CONTAINER_IMAGE ) {
-	$buildCommand += " --build-arg CONTAINER_IMAGE=$env:CONTAINER_IMAGE"
+if ( $registryPullToken ) {
+	Write-Host "`n[$scriptName] CDAF_PULL_REGISTRY_TOKEN set, attempt login..."
+	executeExpression "docker login --username $registryPullUser --password `$registryPullToken $registryPullURL"
+}
+
+if ( $containerImage ) {
+	$buildCommand += " --build-arg CONTAINER_IMAGE=$containerImage"
+
 	if ( $env:CDAF_SKIP_PULL -ne 'yes' ) {
-	    executeExpression "docker pull $env:CONTAINER_IMAGE"
+	    executeExpression "docker pull $containerImage"
 	}
 }
 
