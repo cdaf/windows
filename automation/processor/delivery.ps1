@@ -186,6 +186,7 @@ if ( $WORK_DIR_DEFAULT ) {
 	$WORK_DIR_DEFAULT = 'TasksLocal'
 	Write-Host "[$scriptName]   WORK_DIR_DEFAULT : $WORK_DIR_DEFAULT (default)"
 }
+$env:CDAF_CORE = "$(pwd)\$WORK_DIR_DEFAULT"
 
 if ( Test-Path $WORK_DIR_DEFAULT ) {
 	$WORK_DIR_DEFAULT = (Get-Item $WORK_DIR_DEFAULT).FullName
@@ -201,7 +202,7 @@ if ($SOLUTION) {
 	$propertiesFile = "$WORK_DIR_DEFAULT\manifest.txt"
 	$SOLUTION = getProp 'SOLUTION'
 	if ($SOLUTION) {
-		Write-Host "[$scriptName]   SOLUTION         : $SOLUTION (from $WORK_DIR_DEFAULT\manifest.txt)"
+		Write-Host "[$scriptName]   SOLUTION         : $SOLUTION (from manifest.txt)"
 	} else {
 		Write-Host "[$scriptName] DELIVERY_SOLUTION_NOT_FOUND Solution not supplied and unable to derive from manifest.txt"
 	    write-host "[$scriptName]   `$host.SetShouldExit(54)" -ForegroundColor Red
@@ -215,7 +216,7 @@ if ($BUILDNUMBER) {
 	$propertiesFile = "$WORK_DIR_DEFAULT\manifest.txt"
 	$BUILDNUMBER = getProp 'BUILDNUMBER'
 	if ($BUILDNUMBER) {
-		Write-Host "[$scriptName]   BUILDNUMBER      : $BUILDNUMBER (from $WORK_DIR_DEFAULT\manifest.txt)"
+		Write-Host "[$scriptName]   BUILDNUMBER      : $BUILDNUMBER (from manifest.txt)"
 	} else {
 		Write-Host "[$scriptName] DELIVERY_BUILD_NUMBER_NOT_FOUND Build number not supplied and unable to derive from manifest.txt"
 	    write-host "[$scriptName]   `$host.SetShouldExit(55)" -ForegroundColor Red
@@ -238,13 +239,13 @@ Write-Host "[$scriptName]   CDAF Version     : $cdafVersion"
 
 # 2.5.5 default error diagnostic command as solution property
 if ( $env:CDAF_ERROR_DIAG ) {
-	Write-Host "[$scriptName]   CDAF_ERROR_DIAG  : $CDAF_ERROR_DIAG"
+	Write-Host "[$scriptName]   CDAF_ERROR_DIAG   : $CDAF_ERROR_DIAG"
 } else {
 	$env:CDAF_ERROR_DIAG = getProp 'CDAF_ERROR_DIAG' "$propertiesFile"
 	if ( $env:CDAF_ERROR_DIAG ) {
-		Write-Host "[$scriptName]   CDAF_ERROR_DIAG  : $CDAF_ERROR_DIAG (defined in $propertiesFile)"
+		Write-Host "[$scriptName]   CDAF_ERROR_DIAG   : $CDAF_ERROR_DIAG (defined in $propertiesFile)"
 	} else {
-		Write-Host "[$scriptName]   CDAF_ERROR_DIAG  : (not set or defined in $propertiesFile)"
+		Write-Host "[$scriptName]   CDAF_ERROR_DIAG   : (not set or defined in $propertiesFile)"
 	}
 }
 
