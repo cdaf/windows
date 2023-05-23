@@ -2,8 +2,6 @@ Write-Host "`nLoad the branch (REVISION) and container image from the manifest, 
 PROPLD manifest.txt
 
 ASSIGN $id = $("${SOLUTION}_${REVISION}").ToLower()
-$env:WORK_SPACE = Split-Path -parent $workspace
-Write-host $env:WORK_SPACE
 
 # Copy any artefacts needed into specific images here, example brings in remoteTasks package
 # VECOPY ..\${SOLUTION}-${BUILDNUMBER}.zip compose/target/deploy.zip
@@ -17,22 +15,25 @@ cd ..
 
 ASSIGN $env:TARGET_TAG = "${id}_target"
 ASSIGN $env:TEST_TAG = "${id}_test"
-.\dockerClean.ps1 $env:TARGET_TAG ${BUILDNUMBER}
-.\dockerClean.ps1 $env:TEST_TAG ${BUILDNUMBER}
-
-ASSIGN $composePersist = "${env:TEMP}\${id}"
-MAKDIR $composePersist
-VECOPY compose\docker-compose.yml $composePersist
-cd $composePersist
+& $WORKSPACE\dockerClean.ps1 $env:TARGET_TAG ${BUILDNUMBER}
+& $WORKSPACE\dockerClean.ps1 $env:TEST_TAG ${BUILDNUMBER}
 
 Write-Host "List containers current state`n"
 docker ps
 
-Write-Host "Cleanup from previous test`n"
+Write-Host "Load desired state to persistent store`n"
+ASSIGN $composePersist = "${env:TEMP}\${id}"
+MAKDIR $composePersist
+cd $composePersist
+$env:WORK_SPACE = $(pwd)
 
-EXECMD "docker-compose down --remove-orphans"
+Write-Host "`nCleanup from previously test`n"
+if ( Test-Path docker-compose.yml ) { EXECMD "docker-compose down --remove-orphans" }
 
-EXECMD "docker-compose rm -f"
+$parent = Split-Path -parent $WORKSPACE
+Write-Host "`nLoad current artefact set from $parent`n"
+VECOPY $WORKSPACE\compose\docker-compose.yml $composePersist
+REFRSH $parent\TasksLocal $composePersist\TasksLocal
 
 Write-Host "Set the build number to use`n"
 ASSIGN $env:TARGET_TAG = "${env:TARGET_TAG}:${BUILDNUMBER}"
