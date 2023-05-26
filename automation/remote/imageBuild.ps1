@@ -143,7 +143,13 @@ if ( $env:CDAF_SKIP_PULL ) {
 	Write-Host "[$scriptName]   CDAF_SKIP_PULL      : (not supplied)"
 }
 
-$cdafRegistryURL = & "${env:CDAF_CORE}\getProperty.ps1" "$WORKSPACE\manifest.txt" "CDAF_REGISTRY_URL"
+$manifest = "${WORKSPACE}\manifest.txt"
+if ( ! ( Test-Path ${manifest} )) {
+	echo "[$scriptName] Manifest not found ($manifest)!"
+	exit 5343
+}
+
+$cdafRegistryURL = & "${env:CDAF_CORE}\getProperty.ps1" "${manifest}" "CDAF_REGISTRY_URL"
 if ( $cdafRegistryURL ) { $cdafRegistryURL = Invoke-Expression "Write-Output $cdafRegistryURL" }
 if ( $cdafRegistryURL ) {
 	if ( $env:CDAF_REGISTRY_URL ) {
@@ -161,7 +167,7 @@ if ( $cdafRegistryURL ) {
 	}
 }
 
-$cdafRegistryUser = & "${env:CDAF_CORE}\getProperty.ps1" "$WORKSPACE\manifest.txt" "CDAF_REGISTRY_USER"
+$cdafRegistryUser = & "${env:CDAF_CORE}\getProperty.ps1" "${manifest}" "CDAF_REGISTRY_USER"
 if ( $cdafRegistryUser ) { $cdafRegistryUser = Invoke-Expression "Write-Output $cdafRegistryUser" }
 if ( $cdafRegistryUser ) {
 	if ( $env:CDAF_REGISTRY_USER ) {
@@ -180,7 +186,7 @@ if ( $cdafRegistryUser ) {
 	}
 }
 
-$cdafRegistryToken = & "${env:CDAF_CORE}\getProperty.ps1" "$WORKSPACE\manifest.txt" "CDAF_REGISTRY_TOKEN"
+$cdafRegistryToken = & "${env:CDAF_CORE}\getProperty.ps1" "${manifest}" "CDAF_REGISTRY_TOKEN"
 if ( $cdafRegistryToken ) { $cdafRegistryToken = Invoke-Expression "Write-Output $cdafRegistryToken" }
 if ( $cdafRegistryToken ) {
 	if ( $env:CDAF_REGISTRY_TOKEN ) {
@@ -198,7 +204,7 @@ if ( $cdafRegistryToken ) {
 	}
 }
 
-$cdafRegistryTag = & "${env:CDAF_CORE}\getProperty.ps1" "$WORKSPACE\manifest.txt" "CDAF_REGISTRY_TAG"
+$cdafRegistryTag = & "${env:CDAF_CORE}\getProperty.ps1" "${manifest}" "CDAF_REGISTRY_TAG"
 if ( $cdafRegistryTag ) { $cdafRegistryTag = Invoke-Expression "Write-Output $cdafRegistryTag" }
 if ( $cdafRegistryTag ) {
 	if ( $env:CDAF_REGISTRY_TAG ) {
@@ -303,6 +309,19 @@ if (!( $id )) {
 				}
 			}
 			executeExpression "cd $workspace"
+		}
+
+		$pushFeatureBranch = & "${env:CDAF_CORE}\getProperty.ps1" "${manifest}" "pushFeatureBranch"
+		if ( $pushFeatureBranch -ne 'yes' ) {
+			$REVISION = & "${env:CDAF_CORE}\getProperty.ps1" "${manifest}" "REVISION"
+			$defaultBranch = & "${env:CDAF_CORE}\getProperty.ps1" "${manifest}" "defaultBranch"
+			if (!( $defaultBranch )) {
+				$defaultBranch = 'master'
+			}
+			if ( $REVISION -ne $defaultBranch ) {
+				Write-Host "Do not push feature branch, set pushFeatureBranch=yes to force push, clearing registryToken`n"
+				$registryToken = ''
+			}
 		}
 
 		# 2.2.0 Integrated Registry push, not masking of secrets, it is expected the CI tool will know to mask these
