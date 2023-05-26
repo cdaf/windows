@@ -144,8 +144,8 @@ if ( $env:CDAF_SKIP_PULL ) {
 }
 
 $cdafRegistryURL = & "${env:CDAF_CORE}\getProperty.ps1" "$WORKSPACE\manifest.txt" "CDAF_REGISTRY_URL"
+if ( $cdafRegistryURL ) { $cdafRegistryURL = Invoke-Expression "Write-Output $cdafRegistryURL" }
 if ( $cdafRegistryURL ) {
-	$cdafRegistryURL = Invoke-Expression "Write-Output $cdafRegistryURL"
 	if ( $env:CDAF_REGISTRY_URL ) {
 	    Write-Host "[$scriptName]   CDAF_REGISTRY_URL   : $cdafRegistryURL (loaded from manifest.txt, override environment variable $env:CDAF_REGISTRY_URL)"
 	} else {
@@ -162,8 +162,8 @@ if ( $cdafRegistryURL ) {
 }
 
 $cdafRegistryUser = & "${env:CDAF_CORE}\getProperty.ps1" "$WORKSPACE\manifest.txt" "CDAF_REGISTRY_USER"
+if ( $cdafRegistryUser ) { $cdafRegistryUser = Invoke-Expression "Write-Output $cdafRegistryUser" }
 if ( $cdafRegistryUser ) {
-	$cdafRegistryUser = Invoke-Expression "Write-Output $cdafRegistryUser" 
 	if ( $env:CDAF_REGISTRY_USER ) {
 	    Write-Host "[$scriptName]   CDAF_REGISTRY_USER  : $cdafRegistryUser (loaded from manifest.txt, override environment variable $env:CDAF_REGISTRY_USER)"
 	} else {
@@ -181,8 +181,8 @@ if ( $cdafRegistryUser ) {
 }
 
 $cdafRegistryToken = & "${env:CDAF_CORE}\getProperty.ps1" "$WORKSPACE\manifest.txt" "CDAF_REGISTRY_TOKEN"
+if ( $cdafRegistryToken ) { $cdafRegistryToken = Invoke-Expression "Write-Output $cdafRegistryToken" }
 if ( $cdafRegistryToken ) {
-	$cdafRegistryToken = Invoke-Expression "Write-Output $cdafRegistryToken"
 	if ( $env:CDAF_REGISTRY_TOKEN ) {
 	    Write-Host "[$scriptName]   CDAF_REGISTRY_TOKEN : $(MASKED $cdafRegistryToken) (loaded from manifest.txt, override environment variable $(MASKED $env:CDAF_REGISTRY_TOKEN))"
 	} else {
@@ -199,8 +199,8 @@ if ( $cdafRegistryToken ) {
 }
 
 $cdafRegistryTag = & "${env:CDAF_CORE}\getProperty.ps1" "$WORKSPACE\manifest.txt" "CDAF_REGISTRY_TAG"
+if ( $cdafRegistryTag ) { $cdafRegistryTag = Invoke-Expression "Write-Output $cdafRegistryTag" }
 if ( $cdafRegistryTag ) {
-	$cdafRegistryTag = Invoke-Expression "Write-Output $cdafRegistryTag"
 	if ( $env:CDAF_REGISTRY_TAG ) {
 	    Write-Host "[$scriptName]   CDAF_REGISTRY_TAG   : $cdafRegistryTag (loaded from manifest.txt, override environment variable $env:CDAF_REGISTRY_TAG)`n"
 	} else {
