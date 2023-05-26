@@ -557,6 +557,12 @@ if (( $containerBuild ) -and ( $ACTION -ne 'packageonly' )) {
 
 if ( $ACTION -ne 'container_build' ) {
 
+	# 2.4.4 Process optional post-packaging tasks
+	$postBuild = getProp 'postBuild' "$SOLUTIONROOT\CDAF.solution"  
+	if ( $postBuild ) {
+		executeExpression "$postBuild"
+	}
+
 	# 2.2.0 Image Build as an incorperated function, no longer conditional on containerBuild, but do not attempt if within containerbuild
 	if ( $imageBuild ) {
 
@@ -586,19 +592,8 @@ if ( $ACTION -ne 'container_build' ) {
 				Write-Host "[$scriptName]   constructor   = $constructor"
 			}
 
-			$defaultBranch = getProp 'defaultBranch' "$SOLUTIONROOT\CDAF.solution"
-			if ( $defaultBranch ) {
-				Write-Host "[$scriptName]   defaultBranch = $defaultBranch"
-			} else {
-				$defaultBranch = 'master'
-			}
-
 			executeExpression "$imageBuild"
 
-			$postBuild = getProp 'postBuild' "$SOLUTIONROOT\CDAF.solution"  
-			if ( $postBuild ) {
-				executeExpression "$postBuild"
-			}
 		}
 	}
 
