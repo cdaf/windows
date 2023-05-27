@@ -115,57 +115,49 @@ if ( $baseImage ) {
 	}
 }
 
-$cdafRegistryPullURL = & "${env:CDAF_CORE}\getProperty.ps1" "$WORKSPACE\manifest.txt" "CDAF_PULL_REGISTRY_URL"
-if ( $cdafRegistryPullURL ) {
-	$cdafRegistryPullURL = Invoke-Expression "Write-Output $cdafRegistryPullURL"
-	if ( $env:CDAF_PULL_REGISTRY_URL ) {
-	    Write-Host "[$scriptName] CDAF_PULL_REGISTRY_URL   : $cdafRegistryPullURL (loaded from manifest.txt, override environment variable $env:CDAF_PULL_REGISTRY_URL)"
-	} else {
-	    Write-Host "[$scriptName] CDAF_PULL_REGISTRY_URL   : $cdafRegistryPullURL (loaded from manifest.txt)"
-	}
-	$registryPullURL = "$cdafRegistryPullURL"
-} else {	
-	if ( $env:CDAF_PULL_REGISTRY_URL ) {
-	    Write-Host "[$scriptName] CDAF_PULL_REGISTRY_URL   : $env:CDAF_PULL_REGISTRY_URL (loaded from environment variable)"
-		$registryPullURL = "$env:CDAF_PULL_REGISTRY_URL"
+
+$manifest = "${WORKSPACE}\manifest.txt"
+if ( ! ( Test-Path ${manifest} )) {
+	echo "[$scriptName] Manifest not found ($manifest)!"
+	exit 1114
+}
+
+if ( $env:CDAF_PULL_REGISTRY_URL ) {
+    Write-Host "[$scriptName] CDAF_PULL_REGISTRY_URL   : $env:CDAF_PULL_REGISTRY_URL (loaded from environment variable)"
+	$registryPullURL = "$env:CDAF_PULL_REGISTRY_URL"
+} else {
+	$registryPullURL = & "${env:CDAF_CORE}\getProperty.ps1" "${manifest}" "CDAF_PULL_REGISTRY_URL"
+	if ( $registryPullURL ) { $registryPullURL = Invoke-Expression "Write-Output $registryPullURL"
+	if ( $registryPullURL ) {
+	    Write-Host "[$scriptName] CDAF_PULL_REGISTRY_URL   : $registryPullURL (loaded from manifest.txt)"
 	} else {
 	    Write-Host "[$scriptName] CDAF_PULL_REGISTRY_URL   : (not supplied, do not set when pulling from Dockerhub)"
 	}
 }
 
-$cdafRegistryPullUser = & "${env:CDAF_CORE}\getProperty.ps1" "$WORKSPACE\manifest.txt" "CDAF_PULL_REGISTRY_USER"
-if ( $cdafRegistryPullUser ) {
-	$cdafRegistryPullUser = Invoke-Expression "Write-Output $cdafRegistryPullUser"
-	if ( $env:CDAF_PULL_REGISTRY_USER ) {
-	    Write-Host "[$scriptName] CDAF_PULL_REGISTRY_USER  : $cdafRegistryPullUser (loaded from manifest.txt, override environment variable $CDAF_PULL_REGISTRY_USER)"
-	} else {
-	    Write-Host "[$scriptName] CDAF_PULL_REGISTRY_USER  : $cdafRegistryPullUser (loaded from manifest.txt)"
-	}
-	$registryPullUser = "$cdafRegistryPullUser"
-} else {	
-	if ( $env:CDAF_PULL_REGISTRY_USER ) {
-	    Write-Host "[$scriptName] CDAF_PULL_REGISTRY_USER  : $env:CDAF_PULL_REGISTRY_USER (loaded from environment variable)"
-		$registryPullUser = "$env:CDAF_PULL_REGISTRY_USER"
-	} else {
+if ( $env:CDAF_PULL_REGISTRY_USER ) {
+    Write-Host "[$scriptName] CDAF_PULL_REGISTRY_USER  : $env:CDAF_PULL_REGISTRY_USER (loaded from environment variable)"
+	$registryPullUser = "$env:CDAF_PULL_REGISTRY_USER"
+} else {
+	$registryPullUser = & "${env:CDAF_CORE}\getProperty.ps1" "${manifest}" "CDAF_PULL_REGISTRY_USER"
+	if ( $registryPullUser ) { $registryPullUser = Invoke-Expression "Write-Output $registryPullUser" }
+	if ( $registryPullUser ) {
+	    Write-Host "[$scriptName] CDAF_PULL_REGISTRY_USER  : $registryPullUser (loaded from manifest.txt)"
+	} else {	
 		$registryPullUser = '.'
 	    Write-Host "[$scriptName] CDAF_PULL_REGISTRY_USER  : $registryPullUser (not supplied, set to default)"
 	}
 }
 
-$cdafRegistryPullToken = & "${env:CDAF_CORE}\getProperty.ps1" "$WORKSPACE\manifest.txt" "CDAF_PULL_REGISTRY_TOKEN"
-if ( $cdafRegistryPullToken ) {
-	$cdafRegistryPullToken = Invoke-Expression "Write-Output $cdafRegistryPullToken"
-	if ( $env:CDAF_PULL_REGISTRY_TOKEN ) {
-	    Write-Host "[$scriptName] CDAF_PULL_REGISTRY_TOKEN : $(MASKED $cdafRegistryPullToken) (loaded from manifest.txt, override environment variable $(MASKED $env:CDAF_PULL_REGISTRY_TOKEN))"
-	} else {
-	    Write-Host "[$scriptName] CDAF_PULL_REGISTRY_TOKEN : $(MASKED $cdafRegistryPullToken) (loaded from manifest.txt)"
-	}
-	$registryPullToken = "$cdafRegistryPullToken"
+if ( $env:CDAF_PULL_REGISTRY_TOKEN ) {
+    Write-Host "[$scriptName] CDAF_PULL_REGISTRY_TOKEN : $(MASKED $env:CDAF_PULL_REGISTRY_TOKEN) (loaded from environment variable)"
+	$registryPullToken = "$env:CDAF_PULL_REGISTRY_TOKEN"
 } else {	
-	if ( $env:CDAF_PULL_REGISTRY_TOKEN ) {
-	    Write-Host "[$scriptName] CDAF_PULL_REGISTRY_TOKEN : $(MASKED $env:CDAF_PULL_REGISTRY_TOKEN) (loaded from environment variable)"
-		$registryPullToken = "$env:CDAF_PULL_REGISTRY_TOKEN"
-	} else {
+	$registryPullToken = & "${env:CDAF_CORE}\getProperty.ps1" "${manifest}" "CDAF_PULL_REGISTRY_TOKEN"
+	if ( $registryPullToken ) { $registryPullToken = Invoke-Expression "Write-Output $registryPullToken" }
+	if ( $registryPullToken ) {
+	    Write-Host "[$scriptName] CDAF_PULL_REGISTRY_TOKEN : $(MASKED $registryPullToken) (loaded from manifest.txt)"
+	} else {	
 	    Write-Host "[$scriptName] CDAF_PULL_REGISTRY_TOKEN : (not supplied, login will not be attempted)"
 	}
 }
