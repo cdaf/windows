@@ -2,9 +2,9 @@ Param (
 	[string]$imageTag,
 	[string]$registryContext,
 	[string]$registryTags,
-	[string]$registryURL,
+	[string]$registryToken,
 	[string]$registryUser,
-	[string]$registryToken
+	[string]$registryURL
 )
 
 function ERRMSG ($message, $exitcode) {
