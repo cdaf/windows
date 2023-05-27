@@ -96,40 +96,26 @@ if ( $registryTags ) {
 	exit 2503
 }
 
-if ( $registryURL ) {
-	if ( $registryURL -eq 'DOCKER-HUB' ) {
-		Write-Host  "[$scriptName]   registryURL     : $registryURL (will be set to blank)"
-		$registryURL = ''
-	} else {
-		Write-Host  "[$scriptName]   registryURL     : $registryURL"
-	}
-} else {
-	Write-Host  "[$scriptName]   registryURL     : (not supplied, do not set when pushing to Dockerhub, can also set to DOCKER-HUB to ignore)"
-}
-
-if ( $registryUser ) {
-	Write-Host "[$scriptName]   registryUser    : $registryUser"
-} else {
-	Write-Host "[$scriptName]   registryUser    : (not supplied, login will not be attempted)"
-}
-
 if ( $registryToken ) {
 	Write-Host "[$scriptName]   registryToken   : $(MASKED $registryToken) (MASKED)"
 } else {
 	Write-Host "[$scriptName]   registryToken   : (not supplied, login will not be attempted)"
 }
 
-# DockerHub example
-#   echo xxxxxx | docker login --username cdaf --password-stdin
-#   docker tag iis_master:666 cdaf/iis:666
-#   docker push cdaf/iis:666
+if ( $registryUser ) {
+	Write-Host "[$scriptName]   registryUser    : $registryUser"
+} else {
+	$registryUser = '.'
+	Write-Host "[$scriptName]   registryUser    : $registryUser (default)"
+}
 
-# Private Registry example
-#   echo xxxxxx | docker login --username cdaf --password-stdin https://private.registry
-#   docker tag iis_master:666 https://private.registry/iis:666
-#   docker push https://private.registry/iis:666
+if ( $registryURL ) {
+	Write-Host  "[$scriptName]   registryURL     : $registryURL"
+} else {
+	Write-Host  "[$scriptName]   registryURL     : (not supplied, do not set when pushing to DockerHub)"
+}
 
-if (( $registryUser ) -and ( $registryToken )) {
+if ( $registryToken ) {
 	executeExpression "docker login --username $registryUser --password `$registryToken $registryURL"
 }
 
