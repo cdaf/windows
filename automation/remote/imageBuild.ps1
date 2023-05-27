@@ -143,7 +143,7 @@ if ( $env:CDAF_SKIP_PULL ) {
 	Write-Host "[$scriptName]   CDAF_SKIP_PULL      : (not supplied)"
 }
 
-$manifest = "${WORKSPACE}\manifest.txt"
+$manifest = "${env:WORKSPACE}\manifest.txt"
 if ( ! ( Test-Path ${manifest} )) {
 	echo "[$scriptName] Manifest not found ($manifest)!"
 	exit 5343

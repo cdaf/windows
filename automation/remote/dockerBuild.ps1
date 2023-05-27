@@ -115,8 +115,7 @@ if ( $baseImage ) {
 	}
 }
 
-
-$manifest = "${WORKSPACE}\manifest.txt"
+$manifest = "${env:WORKSPACE}\manifest.txt"
 if ( ! ( Test-Path ${manifest} )) {
 	echo "[$scriptName] Manifest not found ($manifest)!"
 	exit 1114
