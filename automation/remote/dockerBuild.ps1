@@ -67,7 +67,7 @@ if ( $imageName ) {
 	$imageName = $imageName.ToLower()
     Write-Host "[$scriptName] imageName                : $imageName"
 } else {
-    Write-Host "[$scriptName] imageName not supplied, exit with `$LASTEXITCODE = 1"; exit 1
+    Write-Host "[$scriptName] imageName not supplied, exit with `$LASTEXITCODE = 1"; exit 1111
 }
 
 if ( $tag ) {
@@ -115,6 +115,7 @@ if ( $baseImage ) {
 	}
 }
 
+# 2.6.0 Image from Private Registry
 $manifest = "${env:WORKSPACE}\manifest.txt"
 if ( ! ( Test-Path ${manifest} )) {
 	echo "[$scriptName] Manifest not found ($manifest)!"
@@ -122,8 +123,8 @@ if ( ! ( Test-Path ${manifest} )) {
 }
 
 if ( $env:CDAF_PULL_REGISTRY_URL ) {
-    Write-Host "[$scriptName] CDAF_PULL_REGISTRY_URL   : $env:CDAF_PULL_REGISTRY_URL (loaded from environment variable)"
 	$registryPullURL = "$env:CDAF_PULL_REGISTRY_URL"
+    Write-Host "[$scriptName] CDAF_PULL_REGISTRY_URL   : $registryPullURL (loaded from environment variable)"
 } else {
 	$registryPullURL = & "${env:CDAF_CORE}\getProperty.ps1" "${manifest}" "CDAF_PULL_REGISTRY_URL"
 	if ( $registryPullURL ) { $registryPullURL = Invoke-Expression "Write-Output $registryPullURL"
@@ -135,8 +136,8 @@ if ( $env:CDAF_PULL_REGISTRY_URL ) {
 }
 
 if ( $env:CDAF_PULL_REGISTRY_USER ) {
-    Write-Host "[$scriptName] CDAF_PULL_REGISTRY_USER  : $env:CDAF_PULL_REGISTRY_USER (loaded from environment variable)"
 	$registryPullUser = "$env:CDAF_PULL_REGISTRY_USER"
+    Write-Host "[$scriptName] CDAF_PULL_REGISTRY_USER  : $registryPullUser (loaded from environment variable)"
 } else {
 	$registryPullUser = & "${env:CDAF_CORE}\getProperty.ps1" "${manifest}" "CDAF_PULL_REGISTRY_USER"
 	if ( $registryPullUser ) { $registryPullUser = Invoke-Expression "Write-Output $registryPullUser" }
@@ -149,8 +150,8 @@ if ( $env:CDAF_PULL_REGISTRY_USER ) {
 }
 
 if ( $env:CDAF_PULL_REGISTRY_TOKEN ) {
-    Write-Host "[$scriptName] CDAF_PULL_REGISTRY_TOKEN : $(MASKED $env:CDAF_PULL_REGISTRY_TOKEN) (loaded from environment variable)"
 	$registryPullToken = "$env:CDAF_PULL_REGISTRY_TOKEN"
+    Write-Host "[$scriptName] CDAF_PULL_REGISTRY_TOKEN : $(MASKED $registryPullToken) (loaded from environment variable)"
 } else {	
 	$registryPullToken = & "${env:CDAF_CORE}\getProperty.ps1" "${manifest}" "CDAF_PULL_REGISTRY_TOKEN"
 	if ( $registryPullToken ) { $registryPullToken = Invoke-Expression "Write-Output $registryPullToken" }
@@ -158,6 +159,20 @@ if ( $env:CDAF_PULL_REGISTRY_TOKEN ) {
 	    Write-Host "[$scriptName] CDAF_PULL_REGISTRY_TOKEN : $(MASKED $registryPullToken) (loaded from manifest.txt)"
 	} else {	
 	    Write-Host "[$scriptName] CDAF_PULL_REGISTRY_TOKEN : (not supplied, login will not be attempted)"
+	}
+}
+
+if ( $env:CDAF_SKIP_PULL ) {
+	$skipPull = "$env:CDAF_SKIP_PULL"
+    Write-Host "[$scriptName] CDAF_SKIP_PULL           : $skipPull (loaded from environment variable)"
+} else {	
+	$skipPull = & "${env:CDAF_CORE}\getProperty.ps1" "${manifest}" "CDAF_SKIP_PULL"
+	if ( $skipPull ) { $skipPull = Invoke-Expression "Write-Output $skipPull" }
+	if ( $skipPull ) {
+	    Write-Host "[$scriptName] CDAF_SKIP_PULL           : $skipPull (loaded from manifest.txt)"
+	} else {
+		skipPull='no'
+	    Write-Host "[$scriptName] CDAF_SKIP_PULL           : $skipPull (default)"
 	}
 }
 
@@ -200,7 +215,7 @@ if ( $registryPullToken ) {
 if ( $containerImage ) {
 	$buildCommand += " --build-arg CONTAINER_IMAGE=$containerImage"
 
-	if ( $env:CDAF_SKIP_PULL -ne 'yes' ) {
+	if ( $skipPull -ne 'yes' ) {
 	    executeExpression "docker pull $containerImage"
 	}
 }

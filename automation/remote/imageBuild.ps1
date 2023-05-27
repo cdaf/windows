@@ -149,9 +149,10 @@ if ( ! ( Test-Path ${manifest} )) {
 	exit 5343
 }
 
+# 2.6.0 CDAF Solution property support, with environment variable override.
 if ( $env:CDAF_REGISTRY_URL ) {
-    Write-Host "[$scriptName]   CDAF_REGISTRY_URL   : $env:CDAF_REGISTRY_URL (loaded from environment variable)"
 	$registryURL = $env:CDAF_REGISTRY_URL
+    Write-Host "[$scriptName]   CDAF_REGISTRY_URL   : $registryURL (loaded from environment variable)"
 } else {	
 	$registryURL = & "${env:CDAF_CORE}\getProperty.ps1" "${manifest}" "CDAF_REGISTRY_URL"
 	if ( $registryURL ) { $registryURL = Invoke-Expression "Write-Output $registryURL" }
@@ -163,8 +164,8 @@ if ( $env:CDAF_REGISTRY_URL ) {
 }
 
 if ( $env:CDAF_REGISTRY_USER ) {
-    Write-Host "[$scriptName]   CDAF_REGISTRY_USER  : $env:CDAF_REGISTRY_USER (loaded from environment variable)"
 	$registryUser = "$env:CDAF_REGISTRY_USER"
+    Write-Host "[$scriptName]   CDAF_REGISTRY_USER  : $registryUser (loaded from environment variable)"
 } else {
 	$registryUser = & "${env:CDAF_CORE}\getProperty.ps1" "${manifest}" "CDAF_REGISTRY_USER"
 	if ( $registryUser ) { $registryUser = Invoke-Expression "Write-Output $registryUser" }
@@ -178,8 +179,8 @@ if ( $env:CDAF_REGISTRY_USER ) {
 }
 
 if ( $env:CDAF_REGISTRY_TOKEN ) {
-    Write-Host "[$scriptName]   CDAF_REGISTRY_TOKEN : $(MASKED $env:CDAF_REGISTRY_TOKEN) (loaded from environment variable)"
 	$registryToken = "$env:CDAF_REGISTRY_TOKEN"
+    Write-Host "[$scriptName]   CDAF_REGISTRY_TOKEN : $(MASKED $registryToken) (loaded from environment variable)"
 } else {
 	$registryToken = & "${env:CDAF_CORE}\getProperty.ps1" "${manifest}" "CDAF_REGISTRY_TOKEN"
 	if ( $registryToken ) { $registryToken = Invoke-Expression "Write-Output $registryToken" }
@@ -191,15 +192,15 @@ if ( $env:CDAF_REGISTRY_TOKEN ) {
 }
 
 if ( $env:CDAF_REGISTRY_TAG ) {
-    Write-Host "[$scriptName]   CDAF_REGISTRY_TAG   : $env:CDAF_REGISTRY_TAG (loaded from environment variable)`n"
 	$registryTag = "$env:CDAF_REGISTRY_TAG"
+    Write-Host "[$scriptName]   CDAF_REGISTRY_TAG   : $registryTag (loaded from environment variable, supports space separated lis)`n"
 } else {
 	$registryTag = & "${env:CDAF_CORE}\getProperty.ps1" "${manifest}" "CDAF_REGISTRY_TAG"
 	if ( $registryTag ) { $registryTag = Invoke-Expression "Write-Output $registryTag" }
 	if ( $registryTag ) {
-	    Write-Host "[$scriptName]   CDAF_REGISTRY_TAG   : $registryTag (loaded from manifest.txt)`n"
+	    Write-Host "[$scriptName]   CDAF_REGISTRY_TAG   : $registryTag (loaded from manifest.txt, supports space separated lis)`n"
 	} else {	
-	    Write-Host "[$scriptName]   CDAF_REGISTRY_TAG   : (not supplied)`n"
+	    Write-Host "[$scriptName]   CDAF_REGISTRY_TAG   : (not supplied, supports space separated lis)`n"
 	}
 }
 
