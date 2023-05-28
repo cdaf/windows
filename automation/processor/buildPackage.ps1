@@ -275,7 +275,6 @@ if ( $LOCAL_WORK_DIR ) {
 	$LOCAL_WORK_DIR = 'TasksLocal'
 	Write-Host "[$scriptName]   LOCAL_WORK_DIR  : $LOCAL_WORK_DIR (default)"
 }
-$env:WORKSPACE = (Get-Item $LOCAL_WORK_DIR).FullName
 
 if ( $REMOTE_WORK_DIR ) {
 	Write-Host "[$scriptName]   REMOTE_WORK_DIR : $REMOTE_WORK_DIR"
@@ -306,7 +305,8 @@ $env:CDAF_CORE = "${AUTOMATIONROOT}/remote"
 Write-Host "[$scriptName]   AUTOMATIONROOT  : $AUTOMATIONROOT" 
 
 # Runtime information
-Write-Host "[$scriptName]   pwd             : $(Get-Location)"
+$env:WORKSPACE = (Get-Location).Path
+Write-Host "[$scriptName]   pwd             : $env:WORKSPACE"
 Write-Host "[$scriptName]   hostname        : $(hostname)" 
 Write-Host "[$scriptName]   whoami          : $(whoami)"
 
