@@ -98,8 +98,8 @@ if ($imageDir) {
     Write-Host "[$scriptName] imageDir    : $imageDir (not supplied, default set)"
 }
 
-$WORKING_DIRECTORY = (Get-Location).Path
-Write-Host "[$scriptName] pwd         : $WORKING_DIRECTORY`n"
+$env:WORKSPACE = (Get-Location).Path
+Write-Host "[$scriptName] pwd         : ${env:WORKSPACE}`n"
 
 # Prepare the image build directory
 if (!( Test-Path $imageDir )) {
@@ -122,10 +122,10 @@ executeExpression "cd $imageDir"
 
 Write-Host "`n[$scriptName] Remove any remaining deploy containers from previous (failed) deployments"
 $id = "${SOLUTION}_${REVISION}_containerdeploy".ToLower()
-executeExpression "$WORKING_DIRECTORY/dockerRun.ps1 ${id}"
+executeExpression "${env:WORKSPACE}/dockerRun.ps1 ${id}"
 $env:CDAF_CD_ENVIRONMENT = $TARGET
-executeExpression "$WORKING_DIRECTORY/dockerBuild.ps1 ${id} ${BUILDNUMBER}"
-executeExpression "$WORKING_DIRECTORY/dockerClean.ps1 ${id} ${BUILDNUMBER}"
+executeExpression "${env:WORKSPACE}/dockerBuild.ps1 ${id} ${BUILDNUMBER}"
+executeExpression "${env:WORKSPACE}/dockerClean.ps1 ${id} ${BUILDNUMBER}"
 
 Write-Host "[$scriptName] Perform Remote Deployment activity using image ${id}:${BUILDNUMBER}"
 foreach ( $envVar in Get-ChildItem env:) {
@@ -150,6 +150,6 @@ if (( ! ${env:USERPROFILE} ) -or ( ${env:CDAF_HOME_MOUNT} -eq 'no' )) {
 }
 
 Write-Host
-executeExpression "$WORKING_DIRECTORY/dockerRun.ps1 ${id}"
+executeExpression "${env:WORKSPACE}/dockerRun.ps1 ${id}"
 
 Write-Host "`n[$scriptName] --- end ---"

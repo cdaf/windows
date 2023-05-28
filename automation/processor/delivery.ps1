@@ -224,14 +224,12 @@ if ($BUILDNUMBER) {
 	}
 }
 
-# Runtime information
-$WORKING_DIRECTORY = (Get-Location).Path
-Write-Host "[$scriptName]   pwd              = $WORKING_DIRECTORY"
+# Load TargetlessCD environment variable
+$env:WORK_SPACE = (Get-Location).Path
+$env:WORKSPACE = "$(env:WORK_SPACE)\$WORK_DIR_DEFAULT"
+Write-Host "[$scriptName]   pwd              = ${env:WORK_SPACE}"
 Write-Host "[$scriptName]   hostname         = $(hostname)" 
 Write-Host "[$scriptName]   whoami           = $(whoami)"
-
-# Load TargetlessCD environment variable
-$env:WORK_SPACE = $WORKING_DIRECTORY
 
 $propertiesFile = "$WORK_DIR_DEFAULT\CDAF.properties"
 $cdafVersion = getProp 'productVersion'
@@ -262,7 +260,7 @@ foreach ($step in $processSequence.Split()) {
 	if ( $step ) {
 		Write-Host
 		executeExpression "& $WORK_DIR_DEFAULT\$step '$ENVIRONMENT' '$BUILDNUMBER' '$SOLUTION' '$WORK_DIR_DEFAULT' '$OPT_ARG'"
-		Set-Location $WORKING_DIRECTORY
+		Set-Location ${env:WORKSPACE}
 	}
 }
 
