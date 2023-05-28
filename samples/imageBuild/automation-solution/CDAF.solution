@@ -13,12 +13,7 @@ imageBuild=& $AUTOMATIONROOT/remote/imageBuild.ps1 ${SOLUTION}_${REVISION} ${BUI
 # CDAF_PULL_REGISTRY_USER=.
 # CDAF_PULL_REGISTRY_TOKEN=$env:GITLAB_REGISTRY_PAT
 
-# Build Image and push to DockerHub
-# CDAF_REGISTRY_TAG=repo/${SOLUTION}:$BUILDNUMBER
-# CDAF_REGISTRY_USER=.
-# CDAF_REGISTRY_TOKEN=${ACCESS_TOKEN}
-
-# push to registry other than DockerHub
+# push to registry (exclude URL for DockerHub)
 # CDAF_REGISTRY_URL=myregistry.io/repo
 # CDAF_REGISTRY_TAG=${CDAF_REGISTRY_URL}/${SOLUTION}:$BUILDNUMBER
 # CDAF_REGISTRY_USER=.
