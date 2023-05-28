@@ -4,12 +4,13 @@ artifactPrefix=0.1
 
 # defaultBranch=main
 
+containerImage=override-by-runtimeImage
 constructor=TasksLocal
 runtimeImage=mcr.microsoft.com/windows/servercore:ltsc2019
 imageBuild=& $AUTOMATIONROOT/remote/imageBuild.ps1 ${SOLUTION}_${REVISION} ${BUILDNUMBER} $runtimeImage $constructor
 
 # Base Image from Private Registry
-# CDAF_PULL_REGISTRY_URL=registry.gitlab.com
+CDAF_PULL_REGISTRY_URL=registry.gitlab.com
 # CDAF_PULL_REGISTRY_USER=.
 # CDAF_PULL_REGISTRY_TOKEN=$env:GITLAB_REGISTRY_PAT
 
@@ -19,7 +20,7 @@ imageBuild=& $AUTOMATIONROOT/remote/imageBuild.ps1 ${SOLUTION}_${REVISION} ${BUI
 # CDAF_REGISTRY_TOKEN=${ACCESS_TOKEN}
 
 # push to registry other than DockerHub
-# CDAF_REGISTRY_URL=myregistry.io/repo
+CDAF_REGISTRY_URL=myregistry.io/repo
 # CDAF_REGISTRY_TAG=${CDAF_REGISTRY_URL}/${SOLUTION}:$BUILDNUMBER
 # CDAF_REGISTRY_USER=.
 # CDAF_REGISTRY_TOKEN=${ACCESS_TOKEN}

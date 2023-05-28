@@ -101,17 +101,16 @@ if ( $optionalArgs ) {
 
 if ( $baseImage ) {
 	if ( $env:CONTAINER_IMAGE ) {
-	    Write-Host "[$scriptName] baseImage                : $baseImage (override environment variable $CONTAINER_IMAGE)"
+	    Write-Host "[$scriptName] baseImage                : $baseImage (override environment variable '${env:CONTAINER_IMAGE}')"
 	} else {
 	    Write-Host "[$scriptName] baseImage                : $baseImage"
 	}
-	$containerImage = "$baseImage"
 } else {	
 	if ( $env:CONTAINER_IMAGE ) {
-	    Write-Host "[$scriptName] CONTAINER_IMAGE          : $env:CONTAINER_IMAGE (loaded from environment variable)"
-		$containerImage = "$env:CONTAINER_IMAGE"
+		$baseImage = "$env:CONTAINER_IMAGE"
+	    Write-Host "[$scriptName] baseImage                : $baseImage (loaded from environment variable CONTAINER_IMAGE)"
 	} else {
-	    Write-Host "[$scriptName] CONTAINER_IMAGE          : (not supplied)"
+	    Write-Host "[$scriptName] baseImage                : (not supplied)"
 	}
 }
 
@@ -127,7 +126,7 @@ if ( $env:CDAF_PULL_REGISTRY_URL ) {
     Write-Host "[$scriptName] CDAF_PULL_REGISTRY_URL   : $registryPullURL (loaded from environment variable)"
 } else {
 	$registryPullURL = & "${env:CDAF_CORE}\getProperty.ps1" "${manifest}" "CDAF_PULL_REGISTRY_URL"
-	if ( $registryPullURL ) { $registryPullURL = Invoke-Expression "Write-Output $registryPullURL"
+	if ( $registryPullURL ) { $registryPullURL = Invoke-Expression "Write-Output $registryPullURL" }
 	if ( $registryPullURL ) {
 	    Write-Host "[$scriptName] CDAF_PULL_REGISTRY_URL   : $registryPullURL (loaded from manifest.txt)"
 	} else {
@@ -171,7 +170,7 @@ if ( $env:CDAF_SKIP_PULL ) {
 	if ( $skipPull ) {
 	    Write-Host "[$scriptName] CDAF_SKIP_PULL           : $skipPull (loaded from manifest.txt)"
 	} else {
-		skipPull='no'
+		$skipPull = 'no'
 	    Write-Host "[$scriptName] CDAF_SKIP_PULL           : $skipPull (default)"
 	}
 }
@@ -212,11 +211,11 @@ if ( $registryPullToken ) {
 	executeExpression "docker login --username $registryPullUser --password `$registryPullToken $registryPullURL"
 }
 
-if ( $containerImage ) {
-	$buildCommand += " --build-arg CONTAINER_IMAGE=$containerImage"
+if ( $baseImage ) {
+	$buildCommand += " --build-arg CONTAINER_IMAGE=$baseImage"
 
 	if ( $skipPull -ne 'yes' ) {
-	    executeExpression "docker pull $containerImage"
+	    executeExpression "docker pull $baseImage"
 	}
 }
 

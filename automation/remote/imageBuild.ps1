@@ -1,7 +1,7 @@
 Param (
 	[string]$id,
 	[string]$BUILDNUMBER,
-	[string]$containerImage,
+	[string]$baseImage,
 	[string]$constructor,
 	[string]$optionalArgs
 )
@@ -101,19 +101,10 @@ if (!( $id )) {
 	} else {
 		Write-Host "[$scriptName]   BUILDNUMBER         : $BUILDNUMBER"
 
-		if ( $containerImage ) {
-			if ( $env:CONTAINER_IMAGE ) {
-			    Write-Host "[$scriptName]   CONTAINER_IMAGE     : $containerImage (override environment variable $env:CONTAINER_IMAGE)"
-			} else {
-			    Write-Host "[$scriptName]   CONTAINER_IMAGE     : $containerImage"
-			}
-		} else {	
-			if ( $env:CONTAINER_IMAGE ) {
-			    Write-Host "[$scriptName]   CONTAINER_IMAGE     : $env:CONTAINER_IMAGE (loaded from environment variable)"
-				$containerImage = "$env:CONTAINER_IMAGE"
-			} else {
-			    Write-Host "[$scriptName]   CONTAINER_IMAGE     : (not supplied)"
-			}
+		if ( $baseImage ) {
+		    Write-Host "[$scriptName]   baseImage           : $baseImage"
+	    } else {
+		    Write-Host "[$scriptName]   baseImage           : (not supplied)"
 		}
 
 		# 2.2.0 Replaced optional persist parameter as extension for the support as integrated function, extension to allow custom source directory
@@ -135,12 +126,6 @@ if (!( $id )) {
 		$workspace = $(Get-Location)
 		Write-Host "[$scriptName]   workspace           : ${workspace}`n"
 	}
-}
-
-if ( $env:CDAF_SKIP_PULL ) {
-	Write-Host "[$scriptName]   CDAF_SKIP_PULL      : $env:CDAF_SKIP_PULL"
-} else {
-	Write-Host "[$scriptName]   CDAF_SKIP_PULL      : (not supplied)"
 }
 
 $manifest = "${env:WORKSPACE}\manifest.txt"
@@ -171,8 +156,7 @@ if ( $env:CDAF_REGISTRY_USER ) {
 	if ( $registryUser ) { $registryUser = Invoke-Expression "Write-Output $registryUser" }
 	if ( $registryUser ) {
 	    Write-Host "[$scriptName]   CDAF_REGISTRY_USER  : $registryUser (loaded from manifest.txt)"
-	}
-} else {	
+	} else {	
 		$registryUser = '.'
 	    Write-Host "[$scriptName]   CDAF_REGISTRY_USER  : $registryUser (not supplied, set to default)"
 	}
@@ -279,13 +263,13 @@ if (!( $id )) {
 			executeExpression "cat Dockerfile"
 			if ( $optionalArgs ) {
 				if ( $baseImage ) {
-					executeExpression "./dockerBuild.ps1 ${id}_${image} $BUILDNUMBER -optionalArgs '${optionalArgs}' -baseImage '$containerImage'"
+					executeExpression "./dockerBuild.ps1 ${id}_${image} $BUILDNUMBER -optionalArgs '${optionalArgs}' -baseImage '$baseImage'"
 				} else {
 					executeExpression "./dockerBuild.ps1 ${id}_${image} $BUILDNUMBER -optionalArgs '${optionalArgs}'"
 				}
 			} else {
 				if ( $baseImage ) {
-					executeExpression "./dockerBuild.ps1 ${id}_${image} $BUILDNUMBER -baseImage '$containerImage'"
+					executeExpression "./dockerBuild.ps1 ${id}_${image} $BUILDNUMBER -baseImage '$baseImage'"
 				} else {
 					executeExpression "./dockerBuild.ps1 ${id}_${image} $BUILDNUMBER"
 				}
