@@ -205,7 +205,8 @@ Write-Host "[$scriptName]   SOLUTIONROOT    : " -NoNewline
 foreach ($item in (Get-ChildItem -Path ".")) {
 	if (Test-Path $item -PathType "Container") {
 		if (Test-Path "$item\CDAF.solution") {
-			$SOLUTIONROOT=$item
+			$SOLUTIONROOT = $item
+			$env:SOLUTIONROOT = $item
 		}
 	}
 }

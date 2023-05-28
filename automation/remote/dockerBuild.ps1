@@ -117,9 +117,9 @@ if ( $baseImage ) {
 # 2.6.0 Image from Private Registry
 $manifest = "${env:WORKSPACE}\manifest.txt"
 if ( ! ( Test-Path ${manifest} )) {
-	$manifest = "${SOLUTIONROOT}\CDAF.solution"
+	$manifest = "${env:SOLUTIONROOT}\CDAF.solution"
 	if ( ! ( Test-Path ${manifest} )) {
-		echo "[$scriptName] Manifest not found ($manifest)!"
+		Write-Host "[$scriptName] Properties not found in ${env:WORKSPACE}\manifest.txt or ${manifest}!"
 		exit 1114
 	}
 }
