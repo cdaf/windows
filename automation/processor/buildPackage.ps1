@@ -275,7 +275,7 @@ if ( $LOCAL_WORK_DIR ) {
 	$LOCAL_WORK_DIR = 'TasksLocal'
 	Write-Host "[$scriptName]   LOCAL_WORK_DIR  : $LOCAL_WORK_DIR (default)"
 }
-$env:WORKSPACE = (Get-Location).Path + "\" + ${LOCAL_WORK_DIR}
+$env:WORKSPACE = (Get-Item $LOCAL_WORK_DIR).FullName
 
 if ( $REMOTE_WORK_DIR ) {
 	Write-Host "[$scriptName]   REMOTE_WORK_DIR : $REMOTE_WORK_DIR"

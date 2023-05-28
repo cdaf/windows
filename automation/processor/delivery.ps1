@@ -226,7 +226,7 @@ if ($BUILDNUMBER) {
 
 # Load TargetlessCD environment variable
 $env:WORK_SPACE = (Get-Location).Path
-$env:WORKSPACE = "${env:WORK_SPACE}\$WORK_DIR_DEFAULT"
+$env:WORKSPACE = (Get-Item $WORK_DIR_DEFAULT).FullName
 Write-Host "[$scriptName]   pwd              = ${env:WORK_SPACE}"
 Write-Host "[$scriptName]   hostname         = $(hostname)" 
 Write-Host "[$scriptName]   whoami           = $(whoami)"
