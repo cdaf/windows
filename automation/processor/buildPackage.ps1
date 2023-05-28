@@ -206,7 +206,6 @@ foreach ($item in (Get-ChildItem -Path ".")) {
 	if (Test-Path $item -PathType "Container") {
 		if (Test-Path "$item\CDAF.solution") {
 			$SOLUTIONROOT = $item
-			$env:SOLUTIONROOT = $item
 		}
 	}
 }
@@ -216,6 +215,7 @@ if ($SOLUTIONROOT) {
 	exitWithCode "No directory found containing CDAF.solution, please create a single occurance of this file." 7612
 }
 $SOLUTIONROOT = (Get-Item $SOLUTIONROOT).FullName
+$env:SOLUTIONROOT = $SOLUTIONROOT
 
 if ( $BUILDNUMBER ) {
 	Write-Host "[$scriptName]   BUILDNUMBER     : $BUILDNUMBER"
