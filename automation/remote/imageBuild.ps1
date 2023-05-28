@@ -128,10 +128,14 @@ if (!( $id )) {
 	}
 }
 
+# 2.6.0 Push Private Registry
 $manifest = "${env:WORKSPACE}\manifest.txt"
 if ( ! ( Test-Path ${manifest} )) {
-	echo "[$scriptName] Manifest not found ($manifest)!"
-	exit 5343
+	$manifest = "${SOLUTIONROOT}\CDAF.solution"
+	if ( ! ( Test-Path ${manifest} )) {
+		echo "[$scriptName] Manifest not found ($manifest)!"
+		exit 5343
+	}
 }
 
 # 2.6.0 CDAF Solution property support, with environment variable override.

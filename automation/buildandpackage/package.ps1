@@ -210,7 +210,6 @@ if ( $packageFeatures) {
 
 # Cannot brute force clear the workspace as the Visual Studio solution file is here
 write-host "`n[$scriptName]   --- Start Package Process ---`n" -ForegroundColor Green
-itemRemove ".\manifest.txt"
 itemRemove ".\storeForRemote_manifest.txt"
 itemRemove ".\storeForLocal_manifest.txt"
 itemRemove ".\$SOLUTION*.zip"

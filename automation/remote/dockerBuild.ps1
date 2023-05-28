@@ -117,8 +117,11 @@ if ( $baseImage ) {
 # 2.6.0 Image from Private Registry
 $manifest = "${env:WORKSPACE}\manifest.txt"
 if ( ! ( Test-Path ${manifest} )) {
-	echo "[$scriptName] Manifest not found ($manifest)!"
-	exit 1114
+	$manifest = "${SOLUTIONROOT}\CDAF.solution"
+	if ( ! ( Test-Path ${manifest} )) {
+		echo "[$scriptName] Manifest not found ($manifest)!"
+		exit 1114
+	}
 }
 
 if ( $env:CDAF_PULL_REGISTRY_URL ) {
