@@ -82,6 +82,15 @@ function MASKED ($value) {
 	(Get-FileHash -InputStream $([IO.MemoryStream]::new([byte[]][char[]]$value)) -Algorithm SHA256).Hash
 }
 
+# Windows Command Execution combining standard error and standard out, with only non-zero exit code triggering error
+function EXECMD ($expression) {
+	Write-Host "[$(Get-Date)] $expression"
+	cmd /c "$expression 2>&1"
+    if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) {
+		ERRMSG "[EXECMD][EXIT] `$LASTEXITCODE is $LASTEXITCODE" $LASTEXITCODE
+	}
+}
+
 $scriptName = 'imageBuild.ps1'
 cmd /c "exit 0"
 $error.clear()
@@ -180,15 +189,16 @@ if ( $env:CDAF_REGISTRY_TOKEN ) {
 }
 
 if ( $env:CDAF_REGISTRY_TAG ) {
-	$registryTag = "$env:CDAF_REGISTRY_TAG"
-    Write-Host "[$scriptName]   CDAF_REGISTRY_TAG   : $registryTag (loaded from environment variable, supports space separated lis)`n"
+	$registryTags = "$env:CDAF_REGISTRY_TAG"
+    Write-Host "[$scriptName]   CDAF_REGISTRY_TAG   : $registryTags (loaded from environment variable, supports space separated lis)`n"
 } else {
-	$registryTag = & "${env:CDAF_CORE}\getProperty.ps1" "${manifest}" "CDAF_REGISTRY_TAG"
-	if ( $registryTag ) { $registryTag = Invoke-Expression "Write-Output $registryTag" }
-	if ( $registryTag ) {
-	    Write-Host "[$scriptName]   CDAF_REGISTRY_TAG   : $registryTag (loaded from manifest.txt, supports space separated lis)`n"
-	} else {	
-	    Write-Host "[$scriptName]   CDAF_REGISTRY_TAG   : (not supplied, supports space separated lis)`n"
+	$registryTags = & "${env:CDAF_CORE}\getProperty.ps1" "${manifest}" "CDAF_REGISTRY_TAG"
+	if ( $registryTags ) { $registryTags = Invoke-Expression "Write-Output $registryTags" }
+	if ( $registryTags ) {
+	    Write-Host "[$scriptName]   CDAF_REGISTRY_TAG   : $registryTags (loaded from manifest.txt, supports space separated lis)`n"
+	} else {
+		$registryTags = 'latest'
+	    Write-Host "[$scriptName]   CDAF_REGISTRY_TAG   : (default, supports space separated list)`n"
 	}
 }
 
@@ -296,9 +306,12 @@ if (!( $id )) {
 
 		# 2.2.0 Integrated Registry push, not masking of secrets, it is expected the CI tool will know to mask these
 		if ( "$registryToken" ) {
-			executeExpression "docker login --username $registryUser --password `$registryToken $registryURL"
-			executeExpression "docker tag ${id}_${image}:$BUILDNUMBER $registryTag"
-			executeExpression "docker push $registryTag"
+			# Log the password, rely on the toolchain mask
+			EXECMD "docker login --username $registryUser --password $registryToken $registryURL"
+			foreach ( $tag in $registryTags.Split() ) {
+				EXECMD "docker tag ${id}_${image}:$BUILDNUMBER $tag"
+				EXECMD "docker push $tag"
+			}
 		} else {
 			Write-Host "CDAF_REGISTRY_TOKEN not set, to push to registry set CDAF_REGISTRY_URL, CDAF_REGISTRY_TAG, CDAF_REGISTRY_USER & CDAF_REGISTRY_TOKEN"
 			Write-Host "Do not set CDAF_REGISTRY_URL when pushing to dockerhub"
