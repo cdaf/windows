@@ -444,8 +444,19 @@ if ( $ACTION -eq 'container_build' ) {
 	}
 }
 
-# 2.2.0 Image Build as incorperated function
+# 2.6.1 imageBuild mimimum configuration
+$buildImage = getProp 'buildImage' "$SOLUTIONROOT\CDAF.solution"
+if ( $buildImage ) {
+	Write-Host "[$scriptName]   buildImage      : $buildImage"
+} else {
+	Write-Host "[$scriptName]   buildImage      : (not defined in $SOLUTIONROOT\CDAF.solution)"
+}
+
 $imageBuild = getProp 'imageBuild' "$SOLUTIONROOT\CDAF.solution"
+if (( $buildImage ) -and (! ( $imageBuild ))) {
+	$imageBuild = '& $AUTOMATIONROOT/remote/imageBuild.ps1 ${SOLUTION}_${REVISION} ${BUILDNUMBER} ${buildImage} ${LOCAL_WORK_DIR}'
+	$defaultProcess = ' (imageBuild not defined, using default) '
+}
 if ( $imageBuild ) {
 	$versionTest = cmd /c docker --version 2`>`&1
 	if ( $LASTEXITCODE -ne 0 ) {
@@ -572,23 +583,26 @@ if ( $ACTION -ne 'container_build' ) {
 	# 2.2.0 Image Build as an incorperated function, no longer conditional on containerBuild, but do not attempt if within containerbuild
 	if ( $imageBuild ) {
 
-		Write-Host "[$scriptName] Execute image build..."
+		Write-Host "[$scriptName] Execute image build${defaultProcess}..."
 		if ( $skipImageBuild ) { # docker test already performed
 			Write-Host "[$scriptName] $skipImageBuild"
 		} else {
-			$runtimeImage = getProp 'runtimeImage' "$SOLUTIONROOT\CDAF.solution"
-			if ( $runtimeImage ) {
-				Write-Host "[$scriptName]   runtimeImage  = $runtimeImage"
-			} else {
-				$runtimeImage = getProp 'containerImage' "$SOLUTIONROOT\CDAF.solution"
+			if ( ! ( $buildImage )) {
+				# If an explicit image is not defined, perform implicit cascading load
+				$runtimeImage = getProp 'runtimeImage' "$SOLUTIONROOT\CDAF.solution"
 				if ( $runtimeImage ) {
-					Write-Host "[$scriptName]   runtimeImage  = $runtimeImage (runtimeImage not found, using containerImage)"
+					Write-Host "[$scriptName]   runtimeImage  = $runtimeImage"
 				} else {
-					if ( $Env:CONTAINER_IMAGE ) {
-						Write-Host "[$scriptName][WARN] neither runtimeImage nor containerImage defined in $SOLUTIONROOT/CDAF.solution, assuming a hardcoded image will be used."
+					$runtimeImage = getProp 'containerImage' "$SOLUTIONROOT\CDAF.solution"
+					if ( $runtimeImage ) {
+						Write-Host "[$scriptName]   runtimeImage  = $runtimeImage (runtimeImage not found, using containerImage)"
 					} else {
-						Write-Host "[$scriptName][WARN] neither runtimeImage nor containerImage defined in $SOLUTIONROOT/CDAF.solution, however Environment Variable CONTAINER_IMAGE set to $CONTAINER_IMAGE, overrides image passed to dockerBuild."
-						$runtimeImage = $env:CONTAINER_IMAGE
+						if ( $Env:CONTAINER_IMAGE ) {
+							Write-Host "[$scriptName][WARN] neither runtimeImage nor containerImage defined in $SOLUTIONROOT/CDAF.solution, assuming a hardcoded image will be used."
+						} else {
+							Write-Host "[$scriptName][WARN] neither runtimeImage nor containerImage defined in $SOLUTIONROOT/CDAF.solution, however Environment Variable CONTAINER_IMAGE set to $CONTAINER_IMAGE, overrides image passed to dockerBuild."
+							$runtimeImage = $env:CONTAINER_IMAGE
+						}
 					}
 				}
 			}
