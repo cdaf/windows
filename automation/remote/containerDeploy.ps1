@@ -103,9 +103,29 @@ Write-Host "[$scriptName] pwd         : ${env:WORKSPACE}`n"
 
 # Prepare the image build directory
 if (!( Test-Path $imageDir )) {
-	Write-Host "[$scriptName] $imageDir does not exist! Please ensure this is included in your storeFor or stoteForLocal declaration file"
-	exit 8025
+	Write-Host "`n[$scriptName] $imageDir does not exist, creating default using CDAF image`n"
+	executeExpression "mkdir $imageDir"
+	Write-Host
+
+	Set-Content "${imageDir}/Dockerfile" '# DOCKER-VERSION 1.2.0'
+	Add-Content "${imageDir}/Dockerfile" 'ARG CONTAINER_IMAGE'
+	Add-Content "${imageDir}/Dockerfile" 'FROM ${CONTAINER_IMAGE}'
+	Add-Content "${imageDir}/Dockerfile" ''
+	Add-Content "${imageDir}/Dockerfile" '# Copy solution, provision and then build'
+	Add-Content "${imageDir}/Dockerfile" 'WORKDIR /solution'
+	Add-Content "${imageDir}/Dockerfile" ''
+	Add-Content "${imageDir}/Dockerfile" 'COPY properties/* /solution/deploy/'
+	Add-Content "${imageDir}/Dockerfile" 'COPY deploy.zip .'
+	Add-Content "${imageDir}/Dockerfile" 'RUN powershell -Command Expand-Archive deploy.zip'
+	Add-Content "${imageDir}/Dockerfile" ''
+	Add-Content "${imageDir}/Dockerfile" '# Unlike containerBuild the workspace is not volume mounted, this replicates what the remote deploy process does leaving the image ready to run'
+	Add-Content "${imageDir}/Dockerfile" 'WORKDIR /solution/deploy'
+	Add-Content "${imageDir}/Dockerfile" 'CMD ["./deploy.ps1", "${ENVIRONMENT}"]'
+
+	Get-Content "${imageDir}/Dockerfile"
+	Write-Host
 }
+
 if ( Test-Path automation ) {
 	executeExpression "cp -Recurse automation $imageDir"
 }
