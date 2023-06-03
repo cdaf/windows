@@ -299,22 +299,25 @@ if (!( $id )) {
 				$defaultBranch = 'master'
 			}
 			if ( $REVISION -ne $defaultBranch ) {
-				Write-Host "Do not push feature branch, set pushFeatureBranch=yes to force push, clearing registryToken`n"
-				$registryToken = ''
+				Write-Host "defaultBranch = $defaultBranch"
+				Write-Host "Do not push feature branch ($REVISION), set pushFeatureBranch=yes to force push."
+				$skipPush = 'yes'
 			}
 		}
 
 		# 2.2.0 Integrated Registry push, not masking of secrets, it is expected the CI tool will know to mask these
-		if ( "$registryToken" ) {
-			# Log the password, rely on the toolchain mask
-			EXECMD "docker login --username $registryUser --password $registryToken $registryURL"
-			foreach ( $tag in $registryTags.Split() ) {
-				EXECMD "docker tag ${id}_${image}:$BUILDNUMBER $tag"
-				EXECMD "docker push $tag"
+		if ( $skipPush -eq 'yes' )
+			if ( $registryToken ) {
+				# Log the password, rely on the toolchain mask
+				EXECMD "docker login --username $registryUser --password $registryToken $registryURL"
+				foreach ( $tag in $registryTags.Split() ) {
+					EXECMD "docker tag ${id}_${image}:$BUILDNUMBER $tag"
+					EXECMD "docker push $tag"
+				}
+			} else {
+				Write-Host "CDAF_REGISTRY_TOKEN not set, to push to registry set CDAF_REGISTRY_URL, CDAF_REGISTRY_TAG, CDAF_REGISTRY_USER & CDAF_REGISTRY_TOKEN"
+				Write-Host "Do not set CDAF_REGISTRY_URL when pushing to dockerhub"
 			}
-		} else {
-			Write-Host "CDAF_REGISTRY_TOKEN not set, to push to registry set CDAF_REGISTRY_URL, CDAF_REGISTRY_TAG, CDAF_REGISTRY_USER & CDAF_REGISTRY_TOKEN"
-			Write-Host "Do not set CDAF_REGISTRY_URL when pushing to dockerhub"
 		}
 	}
 }
