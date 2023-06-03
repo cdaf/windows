@@ -1,0 +1,13 @@
+productName=Container Deployment
+solutionName=container-deploy
+artifactPrefix=0.0
+
+# Container image used for both containerBuild and containerDeploy if runtimeImage not specified
+containerImage=mcr.microsoft.com/windows/servercore:ltsc2019
+
+processSequence=containerTasks.ps1
+
+# runtimeImage=mcr.microsoft.com/windows/servercore:ltsc2019
+
+# Use non-default image build location, compose/test instead of containerDeploy
+# containerDeploy=& ${WORK_DIR_DEFAULT}/containerDeploy.ps1 "${TARGET}" "${RELEASE}" "${SOLUTION}" "${BUILDNUMBER}" "${REVISION}" -imageDir compose/test
