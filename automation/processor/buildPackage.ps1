@@ -239,7 +239,17 @@ if ($REVISION) {
 	if ( $REVISION.contains('$')) {
 		$REVISION = Invoke-Expression "Write-Output `"$REVISION`""
 	}
-    Write-Host "[$scriptName]   REVISION        : $REVISION"
+
+	$origRev = $REVISION
+	if ( $REVISION -match '/' ) {
+		$REVISION = $REVISION.Split('/')[-1]
+	}
+	$REVISION = ($REVISION -replace '[^a-zA-Z0-9]', '').ToLower()
+	if ( $origRev -ne $REVISION ) {
+	    Write-Host "[$scriptName]   REVISION        : $REVISION (cleansed from $origRev)"
+	} else {
+	    Write-Host "[$scriptName]   REVISION        : $REVISION"
+	}
 } else {
 	if ( $env:CDAF_BRANCH_NAME ) {
 		$REVISION = $env:CDAF_BRANCH_NAME
@@ -248,12 +258,6 @@ if ($REVISION) {
 		$REVISION = 'revision'
 	}
 }
-if ( $REVISION -match '/' ) {
-	$branchBase = $REVISION.Split('/')[-1]
-} else {
-	$branchBase = $REVISION
-}
-$REVISION = ($branchBase -replace '[^a-zA-Z0-9]', '').ToLower()
 
 Write-Host "[$scriptName]   ACTION          : $ACTION"
 

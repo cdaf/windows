@@ -210,7 +210,18 @@ if ($BRANCH) {
 	if ( $BRANCH.contains('$')) {
 		$BRANCH = Invoke-Expression "Write-Output $BRANCH"
 	}
-    Write-Host "[$scriptName]   BRANCH         : $BRANCH"
+
+	$origRev = $BRANCH
+	if ( $BRANCH -match '/' ) {
+		$BRANCH = $BRANCH.Split('/')[-1]
+	}
+	$BRANCH = ($BRANCH -replace '[^a-zA-Z0-9]', '').ToLower()
+	if ( $origRev -ne $BRANCH ) {
+	    Write-Host "[$scriptName]   BRANCH         : $BRANCH (cleansed from $origRev)"
+	} else {
+	    Write-Host "[$scriptName]   BRANCH         : $BRANCH"
+	}
+
 } else {
 	if ( $env:CDAF_BRANCH_NAME ) {
 		$branch = $env:CDAF_BRANCH_NAME
@@ -225,7 +236,17 @@ if ($BRANCH) {
 		} else {
 			$BRANCH = $(git rev-parse --abbrev-ref HEAD 2>&1)
 			if ( $LASTEXITCODE -eq 0 ) {
-				Write-Host "[$scriptName]   BRANCH         : $BRANCH (determined from workspace)"
+
+				$origRev = $BRANCH
+				if ( $BRANCH -match '/' ) {
+					$BRANCH = $BRANCH.Split('/')[-1]
+				}
+				$BRANCH = ($BRANCH -replace '[^a-zA-Z0-9]', '').ToLower()
+				if ( $origRev -ne $BRANCH ) {
+				    Write-Host "[$scriptName]   BRANCH         : $BRANCH (determined from workspace, cleansed from $origRev)"
+				} else {
+					Write-Host "[$scriptName]   BRANCH         : $BRANCH (determined from workspace)"
+				}
 			} else {
 				cmd /c "exit 0"
 				$BRANCH = 'notworkspace'
