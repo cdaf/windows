@@ -306,7 +306,7 @@ if (!( $id )) {
 		}
 
 		# 2.2.0 Integrated Registry push, not masking of secrets, it is expected the CI tool will know to mask these
-		if ( $skipPush -eq 'yes' )
+		if ( $skipPush -eq 'yes' ) {
 			if ( $registryToken ) {
 				# Log the password, rely on the toolchain mask
 				EXECMD "docker login --username $registryUser --password $registryToken $registryURL"
