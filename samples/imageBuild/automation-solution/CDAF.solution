@@ -1,8 +1,7 @@
-solutionName=imagebuild
+solutionName=imagebuild-minimal
 artifactPrefix=0.1
 
-runtimeImage=mcr.microsoft.com/windows/servercore:ltsc2019
-imageBuild=& $AUTOMATIONROOT/remote/imageBuild.ps1 ${SOLUTION}_${REVISION} ${BUILDNUMBER} ${buildImage} ${LOCAL_WORK_DIR}
+buildImage=cdaf/windows
 
 # Base Image from Private Registry
 # CDAF_PULL_REGISTRY_URL=registry.gitlab.com
@@ -11,6 +10,6 @@ imageBuild=& $AUTOMATIONROOT/remote/imageBuild.ps1 ${SOLUTION}_${REVISION} ${BUI
 
 # push to registry (exclude URL for DockerHub)
 # CDAF_REGISTRY_URL=myregistry.io/repo
-# CDAF_REGISTRY_TAG=${CDAF_REGISTRY_URL}/${SOLUTION}:$BUILDNUMBER
+# CDAF_REGISTRY_TAG=latest ${CDAF_REGISTRY_URL}/${SOLUTION}:$BUILDNUMBER
 # CDAF_REGISTRY_USER=.
 # CDAF_REGISTRY_TOKEN=${ACCESS_TOKEN}
