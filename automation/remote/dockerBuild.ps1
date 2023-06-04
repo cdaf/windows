@@ -231,6 +231,26 @@ if ($tag) {
 # Apply required label for CDAF image management
 $buildCommand += " --label=cdaf.${imageName}.image.version=${version}"
 
+# 2.6.1 Default Dockerfile for imageBuild or containerBuild
+if (!( Test-Path '.\Dockerfile' )) {
+	Write-Host "`n[$scriptName] .\Dockerfile not found, creating default`n"
+
+	Set-Content '.\Dockerfile' '# DOCKER-VERSION 1.2.0'
+	Add-Content '.\Dockerfile' 'ARG CONTAINER_IMAGE'
+	Add-Content '.\Dockerfile' 'FROM ${CONTAINER_IMAGE}'
+	Add-Content '.\Dockerfile' ''
+	Add-Content '.\Dockerfile' 'WORKDIR /solution/workspace'
+	Add-Content '.\Dockerfile' ''
+	
+	$stringWithQuotes = 'SHELL ["powershell", "-Command", "$ErrorActionPreference = ' + "'Stop'" + '; $ProgressPreference = ' + "'Continue'" + '; $verbosePreference = ' + "'Continue'" + ';"]'
+	Add-Content '.\Dockerfile' $stringWithQuotes
+	Add-Content '.\Dockerfile' ''
+	Add-Content '.\Dockerfile' 'CMD ["Wait-Event"]'
+
+	Get-Content '.\Dockerfile'
+	Write-Host
+}
+
 # Execute the constucted build command using dockerfile from current directory (.)
 $env:PROGRESS_NO_TRUNC = '1'
 executeExpression "$buildCommand ."
