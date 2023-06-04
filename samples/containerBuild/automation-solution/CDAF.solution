@@ -1,0 +1,5 @@
+productName=Container Build Sample
+solutionName=container-build-minimal
+artifactPrefix=0.0
+
+containerImage=cdaf/windows
