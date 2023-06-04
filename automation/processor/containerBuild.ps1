@@ -125,9 +125,6 @@ if ( $buildImage ) {
 
 	if ( Test-Path Dockerfile ) {
 		executeExpression "cat Dockerfile"
-	} else {
-		Write-Host "Dockerfile not found! Directory listing of $(pwd)"
-		foreach ( $item in $(Get-ChildItem .) ) { Write-Host "  $item" }
 	}
 		
 	if ( $rebuildImage -eq 'yes') {

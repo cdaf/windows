@@ -101,11 +101,9 @@ if ($imageDir) {
 $env:WORKSPACE = (Get-Location).Path
 Write-Host "[$scriptName] pwd         : ${env:WORKSPACE}`n"
 
-# Prepare the image build directory
+# 2.6.1 Prepare the image build directory and Dockerfile
 if (!( Test-Path $imageDir )) {
-	Write-Host "`n[$scriptName] $imageDir does not exist, creating default using CDAF image`n"
-	executeExpression "mkdir $imageDir"
-	Write-Host
+	Write-Host "`n[$scriptName] $imageDir does not exist, creating $(mkdir $imageDir), with default Dockerfile`n"
 
 	Set-Content "${imageDir}/Dockerfile" '# DOCKER-VERSION 1.2.0'
 	Add-Content "${imageDir}/Dockerfile" 'ARG CONTAINER_IMAGE'

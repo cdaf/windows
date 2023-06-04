@@ -352,10 +352,15 @@ if ( $containerImage ) {
 	}
 }
 
-# CDAF 1.6.7 Container Build process
+# 1.6.7 Container Build process
 if ( $ACTION -eq 'container_build' ) {
 	Write-Host "`n[$scriptName] `$ACTION = $ACTION, container build detection skipped ...`n"
 } else {
+
+	# 2.6.1 default containerBuild process
+	if (( $containerImage ) -and (! ( $containerBuild ))) {
+		$containerBuild = '& ${AUTOMATIONROOT}/processor/containerBuild.ps1 $SOLUTION $BUILDNUMBER $REVISION $ACTION'
+	}
 
 	# Process optional post-packaging tasks (Task driver support added in release 2.4.4)
 	if (Test-Path "$postbuild") {
@@ -452,11 +457,13 @@ if ( $buildImage ) {
 	Write-Host "[$scriptName]   buildImage      : (not defined in $SOLUTIONROOT\CDAF.solution)"
 }
 
+# 2.6.1 Default imageBuild Process
 $imageBuild = getProp 'imageBuild' "$SOLUTIONROOT\CDAF.solution"
 if (( $buildImage ) -and (! ( $imageBuild ))) {
 	$imageBuild = '& $AUTOMATIONROOT/remote/imageBuild.ps1 ${SOLUTION}_${REVISION} ${BUILDNUMBER} ${buildImage} ${LOCAL_WORK_DIR}'
 	$defaultProcess = ' (imageBuild not defined, using default) '
 }
+
 if ( $imageBuild ) {
 	$versionTest = cmd /c docker --version 2`>`&1
 	if ( $LASTEXITCODE -ne 0 ) {

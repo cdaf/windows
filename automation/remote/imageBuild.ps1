@@ -274,7 +274,6 @@ if (!( $id )) {
 				}
 			}
 			executeExpression "cd ${transient}\${image}"
-			executeExpression "cat Dockerfile"
 			if ( $optionalArgs ) {
 				if ( $baseImage ) {
 					executeExpression "./dockerBuild.ps1 ${id}_${image} $BUILDNUMBER -optionalArgs '${optionalArgs}' -baseImage '$baseImage'"
