@@ -3,3 +3,4 @@
 /TasksLocal/
 /container-build-*.zip
 /release.ps1
+/Dockerfile
