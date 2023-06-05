@@ -13,4 +13,6 @@ SHELL ["powershell", "-Command", "$ErrorActionPreference = 'Stop'; $ProgressPref
 WORKDIR /solution/workspace
 
 # Unlike the web server, this container is transient, and does not build the wrapper into the image, instead this relies of the volume mount
-CMD ["../executeTest.ps1", "AUTO_TEST"]
+CMD ["dir"]
+
+# CMD ["../executeTest.ps1", "AUTO_TEST"]

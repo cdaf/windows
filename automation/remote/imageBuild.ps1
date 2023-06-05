@@ -278,16 +278,15 @@ if (!( $id )) {
 				
 				$stringWithQuotes = 'SHELL ["powershell", "-Command", "$ErrorActionPreference = ' + "'Stop'" + '; $ProgressPreference = ' + "'Continue'" + '; $verbosePreference = ' + "'Continue'" + ';"]'
 				Add-Content '.\Dockerfile' $stringWithQuotes
-				Add-Content '.\Dockerfile' 'COPY * .'
+				Add-Content '.\Dockerfile' 'COPY * ./TasksLocal/'
+				if ( Test-Path "delivery.ps1" ) {
+					Add-Content '.\Dockerfile' 'RUN ./TasksLocal/delivery.ps1 IMMUTABLE'
+				}
 				Add-Content '.\Dockerfile' ''
 				Add-Content '.\Dockerfile' 'WORKDIR /solution/workspace'
 				Add-Content '.\Dockerfile' ''
-				if ( Test-Path "deploy.ps1" ) {
-					Add-Content '.\Dockerfile' 'CMD ["../deploy.ps1", "WORKGROUP"]'
-				} elseif ( Test-Path "keepAlive.ps1" ) {
-					Add-Content '.\Dockerfile' 'CMD ["../keepAlive.ps1", "TARGETLESS"]'
-				} else {
-					Add-Content '.\Dockerfile' 'CMD ["Wait-Event"]'
+				if ( Test-Path "keepAlive.ps1" ) {
+					Add-Content '.\Dockerfile' 'CMD ["../keepAlive.ps1"]'
 				}
 			}
 

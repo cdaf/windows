@@ -1,5 +1,0 @@
-MAKDIR cdaf/provisioning/
-MAKDIR cdaf/remote/
-
-VECOPY $AUTOMATIONROOT\provisioning\runner.bat  cdaf\provisioning\
-VECOPY $AUTOMATIONROOT\remote\capabilities.ps1  cdaf\remote\

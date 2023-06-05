@@ -3,5 +3,4 @@ local    DOCKER      compose.tsk
 local    WINDOWS     compose.tsk
 local    WORKGROUP   compose.tsk
 
-local    SERVER      containerRun.tsk
 local    AUTO_TEST   containerTest.tsk
