@@ -12,8 +12,6 @@ services:
           - target:target
         depends_on:
           - target
-        environment:
-          COMPOSE_KEEP: ${COMPOSE_KEEP}
 
 networks:
   default:

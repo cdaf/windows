@@ -1,1 +1,4 @@
-curl.exe target
+curl.exe --silent target
+
+$status = curl.exe --silent -w '%{http_code}' target -o output.log
+if ( $status -ne '200' ) { exit $status }
