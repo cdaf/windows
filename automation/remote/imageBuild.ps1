@@ -249,7 +249,7 @@ if (!( $id )) {
 		} else {
 			[array]$constructor = @((Get-ChildItem -Path "." -directory).Name)
 		}
-		foreach ($image in $constructor ) {
+		foreach ( $image in $constructor ) {
 			Write-Host "`n----------------------"
 			Write-Host "    ${image}"    
 			Write-Host "----------------------`n"
@@ -263,28 +263,49 @@ if (!( $id )) {
 			} else {
 				Write-Host "`n[$scriptName][WARN] CDAF not found in ../automation`n"
 			}
-			if ( Test-Path ../dockerBuild.ps1 ) {
-				executeExpression "cp ../dockerBuild.ps1 ${transient}\${image}"
-			} else {
-				if ( $env:CDAF_AUTOMATION_ROOT ) {
-					executeExpression "cp $env:CDAF_AUTOMATION_ROOT/remote/dockerBuild.ps1 ${transient}\${image}"
+
+			executeExpression "cd ${transient}\${image}"
+
+			# 2.6.1 Default Dockerfile for imageBuild
+			if ( ! ( Test-Path '.\Dockerfile' )) {
+				Write-Host "`n[$scriptName] .\Dockerfile not found, creating default`n"
+			
+				Set-Content '.\Dockerfile' '# DOCKER-VERSION 1.2.0'
+				Add-Content '.\Dockerfile' 'ARG CONTAINER_IMAGE'
+				Add-Content '.\Dockerfile' 'FROM ${CONTAINER_IMAGE}'
+				Add-Content '.\Dockerfile' ''
+				Add-Content '.\Dockerfile' 'WORKDIR /solution'
+				
+				$stringWithQuotes = 'SHELL ["powershell", "-Command", "$ErrorActionPreference = ' + "'Stop'" + '; $ProgressPreference = ' + "'Continue'" + '; $verbosePreference = ' + "'Continue'" + ';"]'
+				Add-Content '.\Dockerfile' $stringWithQuotes
+				Add-Content '.\Dockerfile' 'COPY * .'
+				Add-Content '.\Dockerfile' ''
+				Add-Content '.\Dockerfile' 'WORKDIR /solution/workspace'
+				Add-Content '.\Dockerfile' ''
+				if ( Test-Path "deploy.ps1" ) {
+					Add-Content '.\Dockerfile' 'CMD ["../deploy.ps1", "WORKGROUP"]'
+				} elseif ( Test-Path "keepAlive.ps1" ) {
+					Add-Content '.\Dockerfile' 'CMD ["../keepAlive.ps1", "TARGETLESS"]'
 				} else {
-					Write-Host "`n[$scriptName][ERROR] dockerBuild.ps1 not found in parent directory and `$env:CDAF_AUTOMATION_ROOT not set. ABORT with LASTEXITCODE 7401 `n"
-					exit 7401
+					Add-Content '.\Dockerfile' 'CMD ["Wait-Event"]'
 				}
 			}
-			executeExpression "cd ${transient}\${image}"
+
+			Write-Host "--- Dockerfile ---`n"    
+			Get-Content '.\Dockerfile'
+			Write-Host "`n--- Dockerfile ---`n"    
+
 			if ( $optionalArgs ) {
 				if ( $baseImage ) {
-					executeExpression "./dockerBuild.ps1 ${id}_${image} $BUILDNUMBER -optionalArgs '${optionalArgs}' -baseImage '$baseImage'"
+					executeExpression "${env:CDAF_CORE}/dockerBuild.ps1 ${id}_${image} $BUILDNUMBER -optionalArgs '${optionalArgs}' -baseImage '$baseImage'"
 				} else {
-					executeExpression "./dockerBuild.ps1 ${id}_${image} $BUILDNUMBER -optionalArgs '${optionalArgs}'"
+					executeExpression "${env:CDAF_CORE}/dockerBuild.ps1 ${id}_${image} $BUILDNUMBER -optionalArgs '${optionalArgs}'"
 				}
 			} else {
 				if ( $baseImage ) {
-					executeExpression "./dockerBuild.ps1 ${id}_${image} $BUILDNUMBER -baseImage '$baseImage'"
+					executeExpression "${env:CDAF_CORE}/dockerBuild.ps1 ${id}_${image} $BUILDNUMBER -baseImage '$baseImage'"
 				} else {
-					executeExpression "./dockerBuild.ps1 ${id}_${image} $BUILDNUMBER"
+					executeExpression "${env:CDAF_CORE}/dockerBuild.ps1 ${id}_${image} $BUILDNUMBER"
 				}
 			}
 			executeExpression "cd $workspace"

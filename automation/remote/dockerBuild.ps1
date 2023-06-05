@@ -99,6 +99,16 @@ if ( $optionalArgs ) {
     Write-Host "[$scriptName] optionalArgs             : (not supplied)"
 }
 
+# 2.6.0 Image from Private Registry
+$manifest = "${env:WORKSPACE}\manifest.txt"
+if ( ! ( Test-Path ${manifest} )) {
+	$manifest = "${env:SOLUTIONROOT}\CDAF.solution"
+	if ( ! ( Test-Path ${manifest} )) {
+		Write-Host "[$scriptName] Properties not found in ${env:WORKSPACE}\manifest.txt or ${manifest}!"
+		exit 1114
+	}
+}
+
 if ( $baseImage ) {
 	if ( $env:CONTAINER_IMAGE ) {
 	    Write-Host "[$scriptName] baseImage                : $baseImage (override environment variable '${env:CONTAINER_IMAGE}')"
@@ -110,17 +120,21 @@ if ( $baseImage ) {
 		$baseImage = "$env:CONTAINER_IMAGE"
 	    Write-Host "[$scriptName] baseImage                : $baseImage (loaded from environment variable CONTAINER_IMAGE)"
 	} else {
-	    Write-Host "[$scriptName] baseImage                : (not supplied)"
-	}
-}
 
-# 2.6.0 Image from Private Registry
-$manifest = "${env:WORKSPACE}\manifest.txt"
-if ( ! ( Test-Path ${manifest} )) {
-	$manifest = "${env:SOLUTIONROOT}\CDAF.solution"
-	if ( ! ( Test-Path ${manifest} )) {
-		Write-Host "[$scriptName] Properties not found in ${env:WORKSPACE}\manifest.txt or ${manifest}!"
-		exit 1114
+		# If an explicit image is not defined, perform implicit cascading load
+		$baseImage = & "${env:CDAF_CORE}\getProperty.ps1" "${manifest}" "runtimeImage"
+		if ( $baseImage ) { $baseImage = Invoke-Expression "Write-Output $baseImage" }
+		if ( $baseImage ) {
+		    Write-Host "[$scriptName] baseImage                : $baseImage (not supplied, using runtimeImage property)"
+		} else {
+			$baseImage = & "${env:CDAF_CORE}\getProperty.ps1" "${manifest}" "containerImage"
+			if ( $baseImage ) { $baseImage = Invoke-Expression "Write-Output $baseImage" }
+			if ( $baseImage ) {
+			    Write-Host "[$scriptName] baseImage                : $baseImage (not supplied, using containerImage property)"
+			} else {
+				Write-Host "[$scriptName] baseImage                : (baseImage not supplied or determined, hardcoded image required in Dockerfile)"
+			}
+		}
 	}
 }
 
@@ -231,7 +245,7 @@ if ($tag) {
 # Apply required label for CDAF image management
 $buildCommand += " --label=cdaf.${imageName}.image.version=${version}"
 
-# 2.6.1 Default Dockerfile for imageBuild or containerBuild
+# 2.6.1 Default Dockerfile for containerBuild
 if (!( Test-Path '.\Dockerfile' )) {
 	Write-Host "`n[$scriptName] .\Dockerfile not found, creating default`n"
 

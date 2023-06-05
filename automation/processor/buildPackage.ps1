@@ -272,6 +272,11 @@ if ($SOLUTION) {
 	}
 }
 
+# Load automation root as environment variable
+$env:CDAF_AUTOMATION_ROOT = $AUTOMATIONROOT
+$env:CDAF_CORE = "${AUTOMATIONROOT}/remote"
+Write-Host "[$scriptName]   AUTOMATIONROOT  : $AUTOMATIONROOT" 
+
 # Arguments out of order, as automation root processed first
 if ( $LOCAL_WORK_DIR ) {
 	Write-Host "[$scriptName]   LOCAL_WORK_DIR  : $LOCAL_WORK_DIR"
@@ -285,6 +290,18 @@ if ( $REMOTE_WORK_DIR ) {
 } else {
 	$REMOTE_WORK_DIR = 'TasksRemote'
 	Write-Host "[$scriptName]   REMOTE_WORK_DIR : $REMOTE_WORK_DIR (default)"
+}
+
+# 2.5.5 default error diagnostic command as solution property
+if ( $env:CDAF_ERROR_DIAG ) {
+	Write-Host "[$scriptName]   CDAF_ERROR_DIAG : $CDAF_ERROR_DIAG"
+} else {
+	$env:CDAF_ERROR_DIAG = getProp 'CDAF_ERROR_DIAG' "$SOLUTIONROOT\CDAF.solution"
+	if ( $env:CDAF_ERROR_DIAG ) {
+		Write-Host "[$scriptName]   CDAF_ERROR_DIAG : $CDAF_ERROR_DIAG (defined in $SOLUTIONROOT\CDAF.solution)"
+	} else {
+		Write-Host "[$scriptName]   CDAF_ERROR_DIAG : (not set or defined in $SOLUTIONROOT\CDAF.solution)"
+	}
 }
 
 $prebuild = "$SOLUTIONROOT\prebuild.tsk"
@@ -303,11 +320,6 @@ if (Test-Path "$postbuild") {
 	Write-Host "none ($postbuild)"
 }
 
-# Load automation root as environment variable
-$env:CDAF_AUTOMATION_ROOT = $AUTOMATIONROOT
-$env:CDAF_CORE = "${AUTOMATIONROOT}/remote"
-Write-Host "[$scriptName]   AUTOMATIONROOT  : $AUTOMATIONROOT" 
-
 # Runtime information
 $env:WORKSPACE = (Get-Location).Path
 Write-Host "[$scriptName]   pwd             : $env:WORKSPACE"
@@ -317,245 +329,209 @@ Write-Host "[$scriptName]   whoami          : $(whoami)"
 $cdafVersion = getProp 'productVersion' "$AUTOMATIONROOT\CDAF.windows"
 Write-Host "[$scriptName]   CDAF Version    : $cdafVersion"
 
-# 2.5.5 default error diagnostic command as solution property
-if ( $env:CDAF_ERROR_DIAG ) {
-	Write-Host "[$scriptName]   CDAF_ERROR_DIAG : $CDAF_ERROR_DIAG"
+#--------------------------------------------------------------------------
+# Do not load and log containerBuild properties when executing in container
+#--------------------------------------------------------------------------
+
+if ( $ACTION -eq 'container_build' ) {
+	Write-Host "[$scriptName] `$ACTION = $ACTION, Executing build in container..."
 } else {
-	$env:CDAF_ERROR_DIAG = getProp 'CDAF_ERROR_DIAG' "$SOLUTIONROOT\CDAF.solution"
-	if ( $env:CDAF_ERROR_DIAG ) {
-		Write-Host "[$scriptName]   CDAF_ERROR_DIAG : $CDAF_ERROR_DIAG (defined in $SOLUTIONROOT\CDAF.solution)"
+
+	$configManagementList = Get-ChildItem -Path "$SOLUTIONROOT" -Name '*.cm'
+	if ( $configManagementList ) {
+		foreach ($item in $configManagementList) {
+			Write-Host "[$scriptName]   CM Driver       : $item"
+		}
 	} else {
-		Write-Host "[$scriptName]   CDAF_ERROR_DIAG : (not set or defined in $SOLUTIONROOT\CDAF.solution)"
+			Write-Host "[$scriptName]   CM Driver       : none ($SOLUTIONROOT\*.cm)"
+	}
+	
+	$pivotList = Get-ChildItem -Path "$SOLUTIONROOT" -Name '*.pv'
+	if ( $pivotList ) {
+		foreach ($item in $pivotList) {
+			Write-Host "[$scriptName]   PV Driver       : $item"
+		}
+	} else {
+			Write-Host "[$scriptName]   PV Driver       : none ($SOLUTIONROOT\*.pv)"
+	}
+
+	# 1.6.7 Container Build process
+	$containerBuild = getProp 'containerBuild' "$SOLUTIONROOT\CDAF.solution"
+	$containerImage = getProp 'containerImage' "$SOLUTIONROOT\CDAF.solution"
+	if ( $containerImage ) {
+		if (($env:CONTAINER_IMAGE) -or ($CONTAINER_IMAGE)) {
+			Write-Host "[$scriptName]   containerImage  : $containerImage"
+			if ($env:CONTAINER_IMAGE) {
+				Write-Host "[$scriptName]   CONTAINER_IMAGE : $env:CONTAINER_IMAGE (not changed as already set)"
+			} else {
+				$env:CONTAINER_IMAGE = $CONTAINER_IMAGE
+				Write-Host "[$scriptName]   CONTAINER_IMAGE : $env:CONTAINER_IMAGE (loaded from `$CONTAINER_IMAGE)"
+			}
+		} else {
+			$env:CONTAINER_IMAGE = $containerImage
+			Write-Host "[$scriptName]   CONTAINER_IMAGE : $env:CONTAINER_IMAGE (set to `$containerImage)"
+		}
+
+		# 2.6.1 default containerBuild process
+		if (! ( $containerBuild )) {
+			$containerBuild = '& ${AUTOMATIONROOT}/processor/containerBuild.ps1 $SOLUTION $BUILDNUMBER $REVISION $ACTION'
+			$defaultCBProcess = '(default) '
+		}
+	} else {
+		Write-Host "[$scriptName]   containerImage  : (not defined in $SOLUTIONROOT\CDAF.solution)"
+	}
+
+	if ( $containerBuild ) {
+		Write-Host "[$scriptName]   containerBuild  : $containerBuild $defaultCBProcess"
+	} else {
+		Write-Host "[$scriptName]   containerBuild  : (not defined in $SOLUTIONROOT\CDAF.solution)"
+	}
+
+	# 2.2.0 Image Build as incorperated function
+	$buildImage = getProp 'buildImage' "$SOLUTIONROOT\CDAF.solution"
+	$imageBuild = getProp 'imageBuild' "$SOLUTIONROOT\CDAF.solution"
+	if ( $buildImage ) {
+		Write-Host "[$scriptName]   buildImage      : $buildImage"
+		# 2.6.1 imageBuild mimimum configuration, with default process
+		if ( ! $imageBuild ) {
+			$imageBuild = '& $AUTOMATIONROOT/remote/imageBuild.ps1 ${SOLUTION}_${REVISION} ${BUILDNUMBER} ${buildImage} ${LOCAL_WORK_DIR}'
+			$defaultIBProcess = '(default) '
+		}
+	} else {
+		Write-Host "[$scriptName]   buildImage      : (not defined in $SOLUTIONROOT\CDAF.solution)"
+	}
+
+	if ( ! $imageBuild ) {
+		Write-Host "[$scriptName]   imageBuild      : (not defined in $SOLUTIONROOT\CDAF.solution)"
+	} else {
+		Write-Host "[$scriptName]   imageBuild      : $imageBuild $defaultIBProcess"
+	}
+
+	#----------------------------------------------------------------
+	# Properties Loaded, perform container execution validation steps
+	#----------------------------------------------------------------
+	if (( $containerBuild ) -or ( $imageBuild )) {
+		# 2.5.5 support conditional containerBuild based on environment variable
+		if (( $env:CDAF_SKIP_CONTAINER_BUILD ) -or ( $ACTION -eq 'skip_container_build' )) {
+			Write-Host "`n[$scriptName] `$ACTION = $ACTION, container build defined (${containerBuild}) but skipped ...`n"
+			Clear-Variable -Name 'containerBuild'
+		} else {
+			if ( $LASTEXITCODE -ne 0 ) {
+				$error.clear()
+				cmd /c "exit 0"
+				Write-Host "[$scriptName]   containerBuild  : containerBuild defined in $SOLUTIONROOT\CDAF.solution, but Docker not installed, will attempt to execute natively"
+				Clear-Variable -Name 'containerBuild'
+				$executeNative = $true
+			} else {
+				Write-Host "[$scriptName]   containerBuild  : $containerBuild"
+				$versionTest = cmd /c docker --version 2`>`&1
+				if ( $LASTEXITCODE -ne 0 ) {
+					$error.clear()
+					cmd /c "exit 0"
+					Write-Host "[$scriptName]   Docker          : (not installed, will attempt to execute natively)"
+					Clear-Variable -Name 'containerBuild'
+					$executeNative = $true
+				} else {
+					$array = $versionTest.split(" ")
+					Write-Host "[$scriptName]   Docker          : $($array[2])"
+
+					# Test Docker is running
+					If (Get-Service Docker -ErrorAction SilentlyContinue) {
+						$dockerStatus = (Get-Service Docker).Status
+						if ( $dockerStatus -ne 'Running' ) {
+							if ( $dockerdProcess = Get-Process dockerd -ea SilentlyContinue ) {
+								Write-Host "[$scriptName] Process dockerd is running..."
+							} else {
+								Write-Host "[$scriptName] Process dockerd is not running..."
+							}
+						}
+						if (( $dockerStatus -ne 'Running' ) -and ( $null -eq $dockerdProcess )){
+							if ( $env:CDAF_DOCKER_REQUIRED ) {
+								dockerStart
+							} else {			    
+								Write-Host "[$scriptName] Docker installed but not running, will attempt to execute natively (set `$env:CDAF_DOCKER_REQUIRED if docker is mandatory)"
+								cmd /c "exit 0"
+								Clear-Variable -Name 'containerBuild'
+								$executeNative = $true
+							}
+						}
+					}
+
+					Write-Host 'cmd /c docker images 2`>`&1'
+					$imageTest = cmd /c docker images 2`>`&1
+					if ( $LASTEXITCODE -ne 0 ) {
+						cmd /c "exit 0"
+						$error.clear()
+						Write-Host "[$scriptName] Docker not responding, will attempt to execute natively (set `$env:CDAF_DOCKER_REQUIRED if docker is mandatory)"
+						if ( $env:CDAF_DOCKER_REQUIRED ) {
+							dockerStart
+						} else {			    
+							Write-Host "[$scriptName]   Docker installed but not running, will attempt to execute natively (set `$env:CDAF_DOCKER_REQUIRED if docker is mandatory)"
+							cmd /c "exit 0"
+							Clear-Variable -Name 'containerBuild'
+							$executeNative = $true
+						}
+					}
+				}
+			}
+		}
+	} else {
+		Write-Host "[$scriptName]   containerBuild  : set to '$containerBuildProp' but does not resolve, will perform native build"
 	}
 }
 
-# Process optional post-packaging tasks (Task driver support added in release 2.4.4)
-if (Test-Path "$prebuild") {
+#-------------------------------------------------------------------------------------
+# Property loading and logging complete, start Configuration Management transformation
+#-------------------------------------------------------------------------------------
+
+if ( $ACTION -ne 'container_build' ) {
+	# added in release 1.7.8, extended to list in 1.8.11, moved from build to pre-process 1.8.14), added container tasks 2.4.0
+	Write-Host "`n[$scriptName] Properties generator"
+	$itemList = @(".\manifest.txt", "propertiesForLocalTasks", "propertiesForRemoteTasks", "propertiesForContainerTasks")
+	foreach ($itemName in $itemList) {  
+		itemRemove ".\${itemName}"
+	}
+
+	# Process table with properties as fields and environments as rows, 2.4.0 extend for propertiesForContainerTasks
+	foreach ($propertiesDriver in $configManagementList) {
+		Write-Host "`n[$scriptName] Generating properties files from ${propertiesDriver}"
+		$columns = ( -split (Get-Content $SOLUTIONROOT\$propertiesDriver -First 1 ))
+		foreach ( $line in (Get-Content $SOLUTIONROOT\$propertiesDriver )) {
+			$line = $line.Replace('$', '`$')
+			Invoke-Expression "cmProperties $line"
+		}
+	}
+	
+	# 1.9.3 add pivoted CM table support, with properties as rows and environments as fields, 2.4.0 extend for propertiesForContainerTasks
+	foreach ($propertiesDriver in $pivotList) {
+		Write-Host "`n[$scriptName] Generating properties files from ${propertiesDriver}"
+		$pvRows = Get-Content $SOLUTIONROOT\$propertiesDriver
+		$script:pvContext = -split $pvRows[0]
+		$script:pvtarget = -split $pvRows[1]
+	    for ($i=2; $i -le $pvRows.Count; $i++) {
+	    	$line = $pvRows[$i]
+	    	if ( $line ) {
+				$line = $line.Replace('$', '`$')
+				Invoke-Expression "pvProperties $line"
+			}
+		}
+	}
+}
+
+#--------------------------------------------------------------------------
+# Configuration Management transformation complete, now start build process
+#--------------------------------------------------------------------------
+
+# 2.4.4 Pre-Build Tasks, exclude from container_build to avoid performing twice
+if (( Test-Path "$prebuild" ) -and ( $ACTION -ne 'container_build' )) {
 	Write-Host "`n[$scriptName] Process Pre-Build Task ...`n"
 	& $AUTOMATIONROOT\remote\execute.ps1 $SOLUTION $BUILDNUMBER "package" "$prebuild" $ACTION
 	if(!$?){ exceptionExit ".$AUTOMATIONROOT\remote\execute.ps1 $SOLUTION $BUILDNUMBER `"package`" `"$prebuild`" $ACTION" }
 }
 
-$containerImage = getProp 'containerImage' "$SOLUTIONROOT\CDAF.solution"
-if ( $containerImage ) {
-	if (($env:CONTAINER_IMAGE) -or ($CONTAINER_IMAGE)) {
-		Write-Host "[$scriptName]   containerImage  : $containerImage"
-		if ($env:CONTAINER_IMAGE) {
-			Write-Host "[$scriptName]   CONTAINER_IMAGE : $env:CONTAINER_IMAGE (not changed as already set)"
-		} else {
-			$env:CONTAINER_IMAGE = $CONTAINER_IMAGE
-			Write-Host "[$scriptName]   CONTAINER_IMAGE : $env:CONTAINER_IMAGE (loaded from `$CONTAINER_IMAGE)"
-		}
-	} else {
-		$env:CONTAINER_IMAGE = $containerImage
-		Write-Host "[$scriptName]   CONTAINER_IMAGE : $env:CONTAINER_IMAGE (set to `$containerImage)"
-	}
-}
-
-# 1.6.7 Container Build process
-if ( $ACTION -eq 'container_build' ) {
-	Write-Host "`n[$scriptName] `$ACTION = $ACTION, container build detection skipped ...`n"
-} else {
-
-	# 2.6.1 default containerBuild process
-	if (( $containerImage ) -and (! ( $containerBuild ))) {
-		$containerBuild = '& ${AUTOMATIONROOT}/processor/containerBuild.ps1 $SOLUTION $BUILDNUMBER $REVISION $ACTION'
-	}
-
-	# Process optional post-packaging tasks (Task driver support added in release 2.4.4)
-	if (Test-Path "$postbuild") {
-		Write-Host "`n[$scriptName] Process Post-Build Task ...`n"
-		& $AUTOMATIONROOT\remote\execute.ps1 $SOLUTION $BUILDNUMBER "package" "$postbuild" $ACTION
-		if(!$?){ exceptionExit ".$AUTOMATIONROOT\remote\execute.ps1 $SOLUTION $BUILDNUMBER `"package`" `"$postbuild`" $ACTION" }
-	}
-
-	# 2.5.5 support conditional containerBuild based on environment variable
-	$containerBuildProp = getProp 'containerBuild' "$SOLUTIONROOT\CDAF.solution"
-	if ( $containerBuildProp ) {
-		$containerBuild = Invoke-Expression "Write-Output `"$containerBuildProp`""
-		if ( $containerBuild ) {
-			if (( $env:CDAF_SKIP_CONTAINER_BUILD ) -or ( $ACTION -eq 'skip_container_build' )) {
-				Write-Host "`n[$scriptName] `$ACTION = $ACTION, container build defined (${containerBuild}) but skipped ...`n"
-				Clear-Variable -Name 'containerBuild'
-			} else {
-				if ( $LASTEXITCODE -ne 0 ) {
-					$error.clear()
-					cmd /c "exit 0"
-					Write-Host "[$scriptName]   containerBuild  : containerBuild defined in $SOLUTIONROOT\CDAF.solution, but Docker not installed, will attempt to execute natively"
-					Clear-Variable -Name 'containerBuild'
-					$executeNative = $true
-				} else {
-					Write-Host "[$scriptName]   containerBuild  : $containerBuild"
-					$versionTest = cmd /c docker --version 2`>`&1
-					if ( $LASTEXITCODE -ne 0 ) {
-						$error.clear()
-						cmd /c "exit 0"
-						Write-Host "[$scriptName]   Docker          : (not installed, will attempt to execute natively)"
-						Clear-Variable -Name 'containerBuild'
-						$executeNative = $true
-					} else {
-						$array = $versionTest.split(" ")
-						$dockerRun = $($array[2])
-						Write-Host "[$scriptName]   Docker          : $dockerRun"
-
-						# Test Docker is running
-						If (Get-Service Docker -ErrorAction SilentlyContinue) {
-							$dockerStatus = (Get-Service Docker).Status
-							if ( $dockerStatus -ne 'Running' ) {
-								if ( $dockerdProcess = Get-Process dockerd -ea SilentlyContinue ) {
-									Write-Host "[$scriptName] Process dockerd is running..."
-								} else {
-									Write-Host "[$scriptName] Process dockerd is not running..."
-								}
-							}
-							if (( $dockerStatus -ne 'Running' ) -and ( $null -eq $dockerdProcess )){
-								if ( $env:CDAF_DOCKER_REQUIRED ) {
-									dockerStart
-								} else {			    
-									Write-Host "[$scriptName] Docker installed but not running, will attempt to execute natively (set `$env:CDAF_DOCKER_REQUIRED if docker is mandatory)"
-									cmd /c "exit 0"
-									Clear-Variable -Name 'containerBuild'
-									$executeNative = $true
-								}
-							}
-						}
-
-						Write-Host "[$scriptName] List all current images"
-						Write-Host 'cmd /c docker images 2`>`&1'
-						$imageTest = cmd /c docker images 2`>`&1
-						if ( $LASTEXITCODE -ne 0 ) {
-							cmd /c "exit 0"
-							$error.clear()
-							Write-Host "[$scriptName] Docker not responding, will attempt to execute natively (set `$env:CDAF_DOCKER_REQUIRED if docker is mandatory)"
-							if ( $env:CDAF_DOCKER_REQUIRED ) {
-								dockerStart
-							} else {			    
-								Write-Host "[$scriptName]   Docker installed but not running, will attempt to execute natively (set `$env:CDAF_DOCKER_REQUIRED if docker is mandatory)"
-								cmd /c "exit 0"
-								Clear-Variable -Name 'containerBuild'
-								$executeNative = $true
-							}
-						} else {
-							$imageTest
-						}
-					}
-				}
-			}
-		} else {
-			Write-Host "[$scriptName]   containerBuild  : set to '$containerBuildProp' but does not resolve, will perform native build"
-		}
-	} else {
-		Write-Host "[$scriptName]   containerBuild  : (not defined in $SOLUTIONROOT\CDAF.solution)"
-	}
-}
-
-# 2.6.1 imageBuild mimimum configuration
-$buildImage = getProp 'buildImage' "$SOLUTIONROOT\CDAF.solution"
-if ( $buildImage ) {
-	Write-Host "[$scriptName]   buildImage      : $buildImage"
-} else {
-	Write-Host "[$scriptName]   buildImage      : (not defined in $SOLUTIONROOT\CDAF.solution)"
-}
-
-# 2.6.1 Default imageBuild Process
-$imageBuild = getProp 'imageBuild' "$SOLUTIONROOT\CDAF.solution"
-if (( $buildImage ) -and (! ( $imageBuild ))) {
-	$imageBuild = '& $AUTOMATIONROOT/remote/imageBuild.ps1 ${SOLUTION}_${REVISION} ${BUILDNUMBER} ${buildImage} ${LOCAL_WORK_DIR}'
-	$defaultProcess = ' (imageBuild not defined, using default) '
-}
-
-if ( $imageBuild ) {
-	$versionTest = cmd /c docker --version 2`>`&1
-	if ( $LASTEXITCODE -ne 0 ) {
-		cmd /c "exit 0"
-		$error.clear()
-		$skipImageBuild = "imageBuild defined in $SOLUTIONROOT\CDAF.solution, but Docker not in use, imageBuild will not be attempted"
-		Write-Host "[$scriptName]   imageBuild      : $skipImageBuild"
-	} else {
-		If (Get-Service Docker -ErrorAction SilentlyContinue) {
-			$dockerStatus = (Get-Service Docker).Status
-			if ( $dockerStatus -ne 'Running' ) {
-				if ( $dockerdProcess = Get-Process dockerd -ea SilentlyContinue ) {
-					Write-Host "[$scriptName] Process dockerd is running..."
-				} else {
-					Write-Host "[$scriptName] Process dockerd is not running..."
-				}
-			}
-			if (( $dockerStatus -ne 'Running' ) -and ( $null -eq $dockerdProcess )){
-				if ( $env:CDAF_DOCKER_REQUIRED ) {
-					dockerStart
-				} else {			    
-					Write-Host "[$scriptName] Docker installed but not running, will attempt to execute natively (set `$env:CDAF_DOCKER_REQUIRED if docker is mandatory)"
-					cmd /c "exit 0"
-					Clear-Variable -Name 'containerBuild'
-					$executeNative = $true
-				}
-			}
-		}
-	}
-
-	if ( $executeNative ) { # docker test already performed
-		Write-Host "[$scriptName]   imageBuild      : imageBuild defined in $SOLUTIONROOT\CDAF.solution, but Docker not in use, imageBuild will not be attempted"
-	} else {
-		Write-Host "[$scriptName]   imageBuild      : $imageBuild"
-	}
-} else {
-	Write-Host "[$scriptName]   imageBuild      : (not defined in $SOLUTIONROOT\CDAF.solution)"
-}
-
-# added in release 1.7.8, extended to list in 1.8.11, moved from build to pre-process 1.8.14), added container tasks 2.4.0
-Write-Host "`n[$scriptName] Properties generator"
-$itemList = @(".\manifest.txt", "propertiesForLocalTasks", "propertiesForRemoteTasks", "propertiesForContainerTasks")
-foreach ($itemName in $itemList) {  
-	itemRemove ".\${itemName}"
-}
-
-$configManagementList = Get-ChildItem -Path "$SOLUTIONROOT" -Name '*.cm'
-if ( $configManagementList ) {
-	foreach ($item in $configManagementList) {
-		Write-Host "[$scriptName]   CM Driver       : $item"
-	}
-} else {
-		Write-Host "[$scriptName]   CM Driver       : none ($SOLUTIONROOT\*.cm)"
-}
-
-$pivotList = Get-ChildItem -Path "$SOLUTIONROOT" -Name '*.pv'
-if ( $pivotList ) {
-	foreach ($item in $pivotList) {
-		Write-Host "[$scriptName]   PV Driver       : $item"
-	}
-} else {
-		Write-Host "[$scriptName]   PV Driver       : none ($SOLUTIONROOT\*.pv)"
-}
-
-# Process table with properties as fields and environments as rows, 2.4.0 extend for propertiesForContainerTasks
-foreach ($propertiesDriver in $configManagementList) {
-	Write-Host "`n[$scriptName] Generating properties files from ${propertiesDriver}"
-	$columns = ( -split (Get-Content $SOLUTIONROOT\$propertiesDriver -First 1 ))
-	foreach ( $line in (Get-Content $SOLUTIONROOT\$propertiesDriver )) {
-		$line = $line.Replace('$', '`$')
-		Invoke-Expression "cmProperties $line"
-	}
-}
-
-# 1.9.3 add pivoted CM table support, with properties as rows and environments as fields, 2.4.0 extend for propertiesForContainerTasks
-foreach ($propertiesDriver in $pivotList) {
-	Write-Host "`n[$scriptName] Generating properties files from ${propertiesDriver}"
-	$pvRows = Get-Content $SOLUTIONROOT\$propertiesDriver
-	$script:pvContext = -split $pvRows[0]
-	$script:pvtarget = -split $pvRows[1]
-    for ($i=2; $i -le $pvRows.Count; $i++) {
-    	$line = $pvRows[$i]
-    	if ( $line ) {
-			$line = $line.Replace('$', '`$')
-			Invoke-Expression "pvProperties $line"
-		}
-	}
-}
-
 if (( $containerBuild ) -and ( $ACTION -ne 'packageonly' )) {
 
-	Write-Host "`n[$scriptName] Execute Container build, this performs cionly, buildonly is ignored.`n" -ForegroundColor Green
+	Write-Host "`n[$scriptName] Execute container build ${defaultCBProcess}...`n" -ForegroundColor Green
 	executeExpression $containerBuild
 
 } else { # Native build
@@ -570,7 +546,20 @@ if (( $containerBuild ) -and ( $ACTION -ne 'packageonly' )) {
 		Write-Host
 		executeExpression "& $AUTOMATIONROOT\buildandpackage\buildProjects.ps1 $SOLUTION $BUILDNUMBER $REVISION $AUTOMATIONROOT $SOLUTIONROOT $ACTION"
 	}
-	
+
+	# 2.4.4 Process optional post build, pre-packaging tasks
+	if (Test-Path "$postbuild") {
+		Write-Host "`n[$scriptName] Process Post-Build Task ...`n"
+		& $AUTOMATIONROOT\remote\execute.ps1 $SOLUTION $BUILDNUMBER "package" "$postbuild" $ACTION
+		if(!$?){ exceptionExit ".$AUTOMATIONROOT\remote\execute.ps1 $SOLUTION $BUILDNUMBER `"package`" `"$postbuild`" $ACTION" }
+	}
+
+	# 2.4.4 Process optional post build, pre-packaging process
+	$postBuild = getProp 'postBuild' "$SOLUTIONROOT\CDAF.solution"  
+	if ( $postBuild ) {
+		executeExpression "$postBuild"
+	}
+
 	if (( $ACTION -eq 'buildonly' ) -or ( $ACTION -eq 'clean' )) {
 		Write-Host "`n[$scriptName] ACTION is $ACTION so skipping package process" -ForegroundColor Yellow
 	} else {
@@ -578,19 +567,16 @@ if (( $containerBuild ) -and ( $ACTION -ne 'packageonly' )) {
 		executeExpression "& $AUTOMATIONROOT\buildandpackage\package.ps1 $SOLUTION $BUILDNUMBER $REVISION $AUTOMATIONROOT $SOLUTIONROOT $LOCAL_WORK_DIR $REMOTE_WORK_DIR $ACTION"
 	}
 }
+	
+#-------------------------------------------------------
+# Build process complete, start image and file packaging
+#-------------------------------------------------------
 
 if ( $ACTION -ne 'container_build' ) {
 
-	# 2.4.4 Process optional post-packaging tasks
-	$postBuild = getProp 'postBuild' "$SOLUTIONROOT\CDAF.solution"  
-	if ( $postBuild ) {
-		executeExpression "$postBuild"
-	}
-
 	# 2.2.0 Image Build as an incorperated function, no longer conditional on containerBuild, but do not attempt if within containerbuild
 	if ( $imageBuild ) {
-
-		Write-Host "[$scriptName] Execute image build${defaultProcess}..."
+		Write-Host "[$scriptName] Execute image build ${defaultIBProcess}..."
 		if ( $skipImageBuild ) { # docker test already performed
 			Write-Host "[$scriptName] $skipImageBuild"
 		} else {
@@ -613,14 +599,12 @@ if ( $ACTION -ne 'container_build' ) {
 					}
 				}
 			}
-
+	
 			$constructor = getProp 'constructor' "$SOLUTIONROOT\CDAF.solution"
 			if ( $constructor ) {
 				Write-Host "[$scriptName]   constructor   = $constructor"
 			}
-
 			executeExpression "$imageBuild"
-
 		}
 	}
 
@@ -708,35 +692,31 @@ if ( $ACTION -ne 'container_build' ) {
 		$artefactList = @(Get-ChildItem *.zip)
 		$artefactList += "$(Get-Location)\TasksLocal\"
 	}
-} else { # self-extracting release is never created in container_build
-	$artefactList += "$(Get-Location)\TasksLocal\"
-}
 
-foreach ( $object in $artefactList ) {
-	if ( (Get-Item $object) -is [System.IO.DirectoryInfo] ) {
-		$FileSize += (Get-ChildItem $object | Measure-Object -Property Length -sum).Sum
+	foreach ( $object in $artefactList ) {
+		if ( (Get-Item $object) -is [System.IO.DirectoryInfo] ) {
+			$FileSize += (Get-ChildItem $object | Measure-Object -Property Length -sum).Sum
+		} else {
+			$FileSize += (get-item $object).Length/1MB
+		}
+	}
+	Write-Host "[$(Get-Date)] Created $artefactList, MB : $FileSize"
+	
+	if ( $ACTION -like 'staging@*' ) { # Primarily for ADO pipelines
+		$parts = $ACTION.split('@')
+		$stageTarget = $parts[1]
+		if ( Test-Path $stageTarget ) {
+			executeExpression "Remove-Item -Recurse -Force $stageTarget\*"
+		} else {
+			Write-Host "Created $(mkdir $stageTarget)"
+		}
+		foreach ($artefactItem in $artefactList) {
+			executeExpression "Copy-Item -Recurse '$artefactItem' '$stageTarget'"
+		}
 	} else {
-		$FileSize += (get-item $object).Length/1MB
+		$stageTarget = Get-Location
 	}
-}
-Write-Host "[$(Get-Date)] Created $artefactList, MB : $FileSize"
 
-if ( $ACTION -like 'staging@*' ) { # Primarily for ADO pipelines
-	$parts = $ACTION.split('@')
-	$stageTarget = $parts[1]
-	if ( Test-Path $stageTarget ) {
-		executeExpression "Remove-Item -Recurse -Force $stageTarget\*"
-	} else {
-		Write-Host "Created $(mkdir $stageTarget)"
-	}
-	foreach ($artefactItem in $artefactList) {
-		executeExpression "Copy-Item -Recurse '$artefactItem' '$stageTarget'"
-	}
-} else {
-	$stageTarget = Get-Location
-}
-
-if ( $ACTION -ne 'container_build' ) {
 	Write-Host "`n[$scriptName] Clean Workspace..."
 	itemRemove "propertiesForLocalTasks"
 	itemRemove "propertiesForRemoteTasks"
