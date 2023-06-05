@@ -2,8 +2,6 @@ version: "3"
 services:
     target:
         image: "${TARGET_TAG}"
-        volumes:
-          - ${WORK_SPACE}:c:/solution/workspace
     test:
         image: "${TEST_TAG}"
         volumes:
