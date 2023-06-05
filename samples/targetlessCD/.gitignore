@@ -12,3 +12,5 @@
 /propertiesForContainerTasks/
 /release.ps1
 /*.zip
+
+/targetless-cd-*
