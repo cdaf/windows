@@ -1,5 +1,5 @@
 solutionName=targetless-cd
-containerImage=mcr.microsoft.com/windows/servercore:ltsc2019
+runtimeImage=mcr.microsoft.com/windows/servercore:ltsc2019
 artifactPrefix=0.0
 
 # These are the default values...
