@@ -2,6 +2,8 @@ version: "3"
 services:
     target:
         image: "${TARGET_TAG}"
+        volumes:
+          - ${WORK_SPACE}:c:/solution/workspace
     test:
         image: "${TEST_TAG}"
         volumes:
@@ -10,6 +12,8 @@ services:
           - target:target
         depends_on:
           - target
+        environment:
+          COMPOSE_KEEP: ${COMPOSE_KEEP}
 
 networks:
   default:

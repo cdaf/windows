@@ -13,7 +13,7 @@ cd compose
 ..\imageBuild.ps1 ${id} ${BUILDNUMBER} ${containerImage}
 cd ..
 
-ASSIGN $env:TARGET_TAG = "${id}_taskslocal"
+ASSIGN $env:TARGET_TAG = "${id}_target"
 ASSIGN $env:TEST_TAG = "${id}_test"
 & $WORKSPACE\dockerClean.ps1 $env:TARGET_TAG ${BUILDNUMBER}
 & $WORKSPACE\dockerClean.ps1 $env:TEST_TAG ${BUILDNUMBER}
@@ -39,13 +39,15 @@ Write-Host "Set the build number to use`n"
 ASSIGN $env:TARGET_TAG = "${env:TARGET_TAG}:${BUILDNUMBER}"
 ASSIGN $env:TEST_TAG = "${env:TEST_TAG}:${BUILDNUMBER}"
 
-Write-Host "Start target [${env:TARGET_TAG}]`n"
 EXECMD "docker-compose up -d target"
-$containerID = $(docker ps -aq --filter "ancestor=$env:TARGET_TAG")
-& $WORKSPACE\dockerLog.ps1 $containerID 'IIS logging started'
 
-Write-Host "Execute tests [${env:TEST_TAG}] (allow 5 minutes to complete)`n"
+Write-Host "Deploy to target (allow up to 2 minutes)`n"
+$containerID = $(docker ps -aq --filter "ancestor=$env:TARGET_TAG")
+& $WORKSPACE\dockerLog.ps1 $containerID 'Delivery Process Complete' 120
+
 EXECMD "docker-compose up -d test"
+
+Write-Host "Execute tests (allow 5 minutes to complete)`n"
 $containerID = $(docker ps -aq --filter "ancestor=$env:TEST_TAG")
 & $WORKSPACE\dockerLog.ps1 $containerID 'Automated Test Execution completed successfully.' 300
 

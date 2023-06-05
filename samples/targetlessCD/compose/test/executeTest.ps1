@@ -52,11 +52,11 @@ function executeRetry ($expression) {
     }
 }
 
-Write-Host "`n[$scriptName] ---------- start ----------"
+Write-Host "`n[$scriptName] ---------- start ----------`n"
 if ($ENVIRONMENT) {
-    Write-Host "[$scriptName]  ENVIRONMENT : $ENVIRONMENT"
+    Write-Host "[$scriptName] ENVIRONMENT : $ENVIRONMENT"
 } else {
-    Write-Host "[$scriptName]  ENVIRONMENT : (not supplied)" 
+    Write-Host "[$scriptName] ENVIRONMENT : (not supplied)" 
 }
 
 Write-Host "`n[$scriptName] Execute CDAF Delivery`n"
