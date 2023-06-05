@@ -1,8 +1,5 @@
 solutionName=targetless-cd
-runtimeImage=mcr.microsoft.com/windows/servercore:ltsc2019
 artifactPrefix=0.0
 
-# These are the default values...
-# constructor=TasksLocal
-# runtimeImage=mcr.microsoft.com/windows/servercore:ltsc2019
-# imageBuild=& $AUTOMATIONROOT/remote/imageBuild.ps1 ${SOLUTION}_${REVISION} ${BUILDNUMBER} $runtimeImage $constructor
+buildImage=cdaf/iis
+runtimeImage=mcr.microsoft.com/windows/servercore:ltsc2019

@@ -13,7 +13,7 @@ cd compose
 ..\imageBuild.ps1 ${id} ${BUILDNUMBER} ${containerImage}
 cd ..
 
-ASSIGN $env:TARGET_TAG = "${id}_target"
+ASSIGN $env:TARGET_TAG = "${id}_taskslocal"
 ASSIGN $env:TEST_TAG = "${id}_test"
 & $WORKSPACE\dockerClean.ps1 $env:TARGET_TAG ${BUILDNUMBER}
 & $WORKSPACE\dockerClean.ps1 $env:TEST_TAG ${BUILDNUMBER}
@@ -27,9 +27,10 @@ MAKDIR $composePersist
 cd $composePersist
 $env:WORK_SPACE = $(pwd)
 
-Write-Host "`nCleanup from previously test`n"
+Write-Host "Cleanup from previously test`n"
 if ( Test-Path docker-compose.yml ) { EXECMD "docker-compose down --remove-orphans" }
 
+Write-Host "Load Release to WORK_SPACE ($env:WORK_SPACE)`n"
 $parent = Split-Path -parent $WORKSPACE
 Write-Host "`nLoad current artefact set from $parent`n"
 VECOPY $WORKSPACE\compose\docker-compose.yml $composePersist
@@ -39,15 +40,13 @@ Write-Host "Set the build number to use`n"
 ASSIGN $env:TARGET_TAG = "${env:TARGET_TAG}:${BUILDNUMBER}"
 ASSIGN $env:TEST_TAG = "${env:TEST_TAG}:${BUILDNUMBER}"
 
+Write-Host "Start target [${env:TARGET_TAG}]`n"
 EXECMD "docker-compose up -d target"
-
-Write-Host "Deploy to target (allow up to 2 minutes)`n"
 $containerID = $(docker ps -aq --filter "ancestor=$env:TARGET_TAG")
-& $WORKSPACE\dockerLog.ps1 $containerID 'Delivery Process Complete' 120
+& $WORKSPACE\dockerLog.ps1 $containerID 'IIS logging started'
 
+Write-Host "Execute tests [${env:TEST_TAG}] (allow 5 minutes to complete)`n"
 EXECMD "docker-compose up -d test"
-
-Write-Host "Execute tests (allow 5 minutes to complete)`n"
 $containerID = $(docker ps -aq --filter "ancestor=$env:TEST_TAG")
 & $WORKSPACE\dockerLog.ps1 $containerID 'Automated Test Execution completed successfully.' 300
 
