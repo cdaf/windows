@@ -278,7 +278,7 @@ if (!( $id )) {
 				
 				$stringWithQuotes = 'SHELL ["powershell", "-Command", "$ErrorActionPreference = ' + "'Stop'" + '; $ProgressPreference = ' + "'Continue'" + '; $verbosePreference = ' + "'Continue'" + ';"]'
 				Add-Content '.\Dockerfile' $stringWithQuotes
-				Add-Content '.\Dockerfile' 'COPY * ./TasksLocal/'
+				Add-Content '.\Dockerfile' 'COPY ./ ./TasksLocal/'
 				if ( Test-Path "delivery.ps1" ) {
 					Add-Content '.\Dockerfile' 'RUN ./TasksLocal/delivery.ps1 IMMUTABLE'
 				}
