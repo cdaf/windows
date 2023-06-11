@@ -330,9 +330,9 @@ if (Test-Path "$postbuild") {
 	Write-Host "none ($postbuild)"
 }
 
-#-------------------------------------------------------------------------------------
-# Property loading and logging complete, start Configuration Management transformation
-#-------------------------------------------------------------------------------------
+#---------------------------------------------------------------------
+# Configuration Management transformation only if not within container
+#---------------------------------------------------------------------
 if ( $ACTION -ne 'container_build' ) {
 
 	$configManagementList = Get-ChildItem -Path "$SOLUTIONROOT" -Name '*.cm'
@@ -429,7 +429,8 @@ if ( $loggingList ) {
 #--------------------------------------------------------------------------
 if ( $ACTION -eq 'container_build' ) {
 
-	Write-Host "`n[$scriptName] `$ACTION = $ACTION, Executing build in container..."
+	Write-Host "`n[$scriptName] ACTION = $ACTION, Executing build in container..."
+
 } else {
 
 	#--------------------------------------------------------------------------
@@ -521,12 +522,18 @@ if ( $ACTION -eq 'container_build' ) {
 		if ( $LASTEXITCODE -ne 0 ) {
 			$error.clear()
 			cmd /c "exit 0"
-			$loggingList += "[$scriptName]   Docker                    : (not installed, will attempt to execute natively)"
-			if ( $containerBuild ) {
-				Clear-Variable -Name 'containerBuild'
-			}
-			if ( $imageBuild ) {
-				Clear-Variable -Name 'imageBuild'
+			if ( $env:CDAF_DOCKER_REQUIRED ) {
+				Write-Host "`n[$scriptName] CDAF Container Features Set ..."
+				Write-Output $loggingList
+				ERRMSG "[DOCKEREQ] Docker service not installed, but `$env:CDAF_DOCKER_REQUIRED = ${env:CDAF_DOCKER_REQUIRED}, so halting!" 8911
+			} else {
+				$loggingList += "[$scriptName]   Docker                    : (not installed, will attempt to execute natively)"
+				if ( $containerBuild ) {
+					Clear-Variable -Name 'containerBuild'
+				}
+				if ( $imageBuild ) {
+					Clear-Variable -Name 'imageBuild'
+				}
 			}
 		} else {
 			$array = $versionTest.split(" ")
