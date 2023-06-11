@@ -16,38 +16,64 @@ cmd /c "exit 0"
 $error.clear()
 $scriptName = 'buildPackage.ps1'
 
+# Consolidated Error processing function
+#  required : error message
+#  optional : exit code, if not supplied only error message is written
+function ERRMSG ($message, $exitcode) {
+	if ( $exitcode ) {
+		Write-Host "`n[$scriptName]$message" -ForegroundColor Red
+	} else {
+		Write-Warning "`n[$scriptName]$message"
+	}
+	if ( $error ) {
+		$i = 0
+		foreach ( $item in $Error )
+		{
+			Write-Host "`$Error[$i] $item"
+			$i++
+		}
+		$Error.clear()
+	}
+	if ( $exitcode ) {
+		if ( $env:CDAF_ERROR_DIAG ) {
+			Write-Host "`n[$scriptName] Invoke custom diag `$env:CDAF_ERROR_DIAG = $env:CDAF_ERROR_DIAG`n"
+			Invoke-Expression $env:CDAF_ERROR_DIAG
+		}
+		Write-Host "`n[$scriptName] Exit with LASTEXITCODE = $exitcode`n" -ForegroundColor Red
+		exit $exitcode
+	}
+}
+
 # Common expression logging and error handling function, copied, not referenced to ensure atomic process
 function executeExpression ($expression) {
 	Write-Host "[$(Get-Date)] $expression"
 	try {
-		Invoke-Expression "$expression 2> `$null"
-	    if(!$?) { Write-Host "[$scriptName] `$? = $?"; $error ; exit 1111 }
+		Invoke-Expression $expression
+	    if(!$?) { ERRMSG "[TRAP] `$? = $?" 1211 }
 	} catch {
-		Write-Host "[$scriptName][EXCEPTION] List exception and error array (if populated) and exit with LASTEXITCODE 1112" -ForegroundColor Red
-		Write-Host $_.Exception|format-list -force
-		if ( $error ) { Write-Host "[$scriptName][ERROR] `$Error = $Error" ; $Error.clear() }
-		exit 1112
+		$message = $_.Exception.Message
+		$_.Exception | format-list -force
+		$_.Exception.StackTrace
+		if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) {
+			ERRMSG "[EXEC][EXCEPTION] $message" $LASTEXITCODE
+		} else {
+			ERRMSG "[EXEC][EXCEPTION] $message" 1212
+		}
 	}
     if ( $LASTEXITCODE ) {
     	if ( $LASTEXITCODE -ne 0 ) {
-			Write-Host "[$scriptName] `$LASTEXITCODE = $LASTEXITCODE " -ForegroundColor Red
-			if ( $error ) { Write-Host "[$scriptName][ERROR] `$Error = $Error" ; $Error.clear() }
-			exit $LASTEXITCODE
+			ERRMSG "[EXEC][EXIT] `$LASTEXITCODE is $LASTEXITCODE" $LASTEXITCODE
 		} else {
 			if ( $error ) {
-				Write-Host "[$scriptName][WARN] `$Error = $Error" ; $Error.clear()
-				Write-Host "[$scriptName][WARN] $Error array populated but `$LASTEXITCODE = $LASTEXITCODE so continuing ...`n" -ForegroundColor Yellow
+				ERRMSG "[EXEC][WARN] `$LASTEXITCODE is $LASTEXITCODE, but standard error populated"
 			}
 		} 
 	} else {
 	    if ( $error ) {
-	    	if ( $env:CDAF_IGNORE_STANDARD_ERROR -eq 'yes' ) {
-				Write-Host "[$scriptName][WARN] `$Error = $error"
-				$Error.clear()
-				Write-Host "[$scriptName][WARN] `$env:CDAF_IGNORE_STANDARD_ERROR is 'yes' so continuing ..." -ForegroundColor Yellow
+	    	if ( $env:CDAF_IGNORE_WARNING -eq 'no' ) {
+				ERRMSG "[EXEC][ERROR] `$env:CDAF_IGNORE_WARNING is 'no' so exiting" 1213
 	    	} else {
-		    	Write-Host "[$scriptName][ERROR] `$Error = $error" ; $Error.clear()
-				Write-Host "[$scriptName][ERROR] `$env:CDAF_IGNORE_STANDARD_ERROR is $env:CDAF_IGNORE_STANDARD_ERROR, exiting with error code 1113 ..."  -ForegroundColor Red ; exit 1113
+				ERRMSG "[EXEC][WARN] `$LASTEXITCODE not set, but standard error populated"
 	    	}
 		}
 	}
@@ -126,17 +152,6 @@ function getProp ($propName, $propertiesFile) {
     return $propValue
 }
 
-function dockerStart {
-	Write-Host "[$scriptName] Docker installed but not running, `$env:CDAF_DOCKER_REQUIRED is set so will try and start"
-	executeExpression 'Start-Service Docker'
-	Write-Host '$dockerStatus = ' -NoNewline 
-	$dockerStatus = (Get-Service Docker).Status
-	if ( $dockerStatus -ne 'Running' ) {
-		Write-Host "[$scriptName] Unable to start Docker, `$dockerStatus = $dockerStatus"
-		exit 8910
-	}
-}
-
 # 2.4.1 Use the function call to separate fields, this allows support for whitespace and quote wrapped values
 function cmProperties {
 	if ( $args[0] ) {
@@ -148,8 +163,7 @@ function cmProperties {
 			} elseif ( $args[0] -eq 'container' ) {
 				$cdafPath="./propertiesForContainerTasks"
 			} else {
-				Write-Host "[$scriptName] Unknown CM context $($args[0]), supported contexts are rempote, local or container"
-				exit 5922
+				ERRMGS " Unknown CM context $($args[0]), supported contexts are rempote, local or container" 5922
 			}
 			if ( ! (Test-Path $cdafPath) ) {
 				Write-Host "[$scriptName]   mkdir $(mkdir $cdafPath)"
@@ -180,8 +194,7 @@ function pvProperties {
 			} elseif ( $script:pvContext[$j] -eq 'container' )  {
 				$cdafPath="./propertiesForContainerTasks"
 			} else {
-				Write-Host "[$scriptName] Unknown PV context $($script:pvContext[$j]), supported contexts are rempote, local or container"
-				exit 5923
+				ERRMSG "[PVERR] Unknown PV context $($script:pvContext[$j]), supported contexts are rempote, local or container" 5923
 			}
 			if ( ! (Test-Path $cdafPath) ) {
 				Write-Host "[$scriptName]   mkdir $(mkdir $cdafPath)"
@@ -292,17 +305,14 @@ if ( $REMOTE_WORK_DIR ) {
 	Write-Host "[$scriptName]   REMOTE_WORK_DIR : $REMOTE_WORK_DIR (default)"
 }
 
-# 2.5.5 default error diagnostic command as solution property
-if ( $env:CDAF_ERROR_DIAG ) {
-	Write-Host "[$scriptName]   CDAF_ERROR_DIAG : $CDAF_ERROR_DIAG"
-} else {
-	$env:CDAF_ERROR_DIAG = getProp 'CDAF_ERROR_DIAG' "$SOLUTIONROOT\CDAF.solution"
-	if ( $env:CDAF_ERROR_DIAG ) {
-		Write-Host "[$scriptName]   CDAF_ERROR_DIAG : $CDAF_ERROR_DIAG (defined in $SOLUTIONROOT\CDAF.solution)"
-	} else {
-		Write-Host "[$scriptName]   CDAF_ERROR_DIAG : (not set or defined in $SOLUTIONROOT\CDAF.solution)"
-	}
-}
+# Runtime information
+$env:WORKSPACE = (Get-Location).Path
+Write-Host "[$scriptName]   pwd             : $env:WORKSPACE"
+Write-Host "[$scriptName]   hostname        : $(hostname)" 
+Write-Host "[$scriptName]   whoami          : $(whoami)"
+
+$cdafVersion = getProp 'productVersion' "$AUTOMATIONROOT\CDAF.windows"
+Write-Host "[$scriptName]   CDAF Version    : $cdafVersion"
 
 $prebuild = "$SOLUTIONROOT\prebuild.tsk"
 Write-Host -NoNewLine "[$scriptName]   Pre-build Task  : " 
@@ -320,22 +330,10 @@ if (Test-Path "$postbuild") {
 	Write-Host "none ($postbuild)"
 }
 
-# Runtime information
-$env:WORKSPACE = (Get-Location).Path
-Write-Host "[$scriptName]   pwd             : $env:WORKSPACE"
-Write-Host "[$scriptName]   hostname        : $(hostname)" 
-Write-Host "[$scriptName]   whoami          : $(whoami)"
-
-$cdafVersion = getProp 'productVersion' "$AUTOMATIONROOT\CDAF.windows"
-Write-Host "[$scriptName]   CDAF Version    : $cdafVersion"
-
-#--------------------------------------------------------------------------
-# Do not load and log containerBuild properties when executing in container
-#--------------------------------------------------------------------------
-
-if ( $ACTION -eq 'container_build' ) {
-	Write-Host "[$scriptName] `$ACTION = $ACTION, Executing build in container..."
-} else {
+#-------------------------------------------------------------------------------------
+# Property loading and logging complete, start Configuration Management transformation
+#-------------------------------------------------------------------------------------
+if ( $ACTION -ne 'container_build' ) {
 
 	$configManagementList = Get-ChildItem -Path "$SOLUTIONROOT" -Name '*.cm'
 	if ( $configManagementList ) {
@@ -355,138 +353,7 @@ if ( $ACTION -eq 'container_build' ) {
 			Write-Host "[$scriptName]   PV Driver       : none ($SOLUTIONROOT\*.pv)"
 	}
 
-	# 1.6.7 Container Build process
-	$containerBuild = getProp 'containerBuild' "$SOLUTIONROOT\CDAF.solution"
-	$containerImage = getProp 'containerImage' "$SOLUTIONROOT\CDAF.solution"
-	if ( $containerImage ) {
-		if (($env:CONTAINER_IMAGE) -or ($CONTAINER_IMAGE)) {
-			Write-Host "[$scriptName]   containerImage  : $containerImage"
-			if ($env:CONTAINER_IMAGE) {
-				Write-Host "[$scriptName]   CONTAINER_IMAGE : $env:CONTAINER_IMAGE (not changed as already set)"
-			} else {
-				$env:CONTAINER_IMAGE = $CONTAINER_IMAGE
-				Write-Host "[$scriptName]   CONTAINER_IMAGE : $env:CONTAINER_IMAGE (loaded from `$CONTAINER_IMAGE)"
-			}
-		} else {
-			$env:CONTAINER_IMAGE = $containerImage
-			Write-Host "[$scriptName]   CONTAINER_IMAGE : $env:CONTAINER_IMAGE (set to `$containerImage)"
-		}
-
-		# 2.6.1 default containerBuild process
-		if (! ( $containerBuild )) {
-			$containerBuild = '& ${AUTOMATIONROOT}/processor/containerBuild.ps1 $SOLUTION $BUILDNUMBER $REVISION $ACTION'
-			$defaultCBProcess = '(default) '
-		}
-	} else {
-		Write-Host "[$scriptName]   containerImage  : (not defined in $SOLUTIONROOT\CDAF.solution)"
-	}
-
-	if ( $containerBuild ) {
-		Write-Host "[$scriptName]   containerBuild  : $containerBuild $defaultCBProcess"
-	} else {
-		Write-Host "[$scriptName]   containerBuild  : (not defined in $SOLUTIONROOT\CDAF.solution)"
-	}
-
-	# 2.2.0 Image Build as incorperated function
-	$buildImage = getProp 'buildImage' "$SOLUTIONROOT\CDAF.solution"
-	$imageBuild = getProp 'imageBuild' "$SOLUTIONROOT\CDAF.solution"
-	if ( $buildImage ) {
-		Write-Host "[$scriptName]   buildImage      : $buildImage"
-		# 2.6.1 imageBuild mimimum configuration, with default process
-		if ( ! $imageBuild ) {
-			$imageBuild = '& $AUTOMATIONROOT/remote/imageBuild.ps1 ${SOLUTION}_${REVISION} ${BUILDNUMBER} ${buildImage} ${LOCAL_WORK_DIR}'
-			$defaultIBProcess = '(default) '
-		}
-	} else {
-		Write-Host "[$scriptName]   buildImage      : (not defined in $SOLUTIONROOT\CDAF.solution)"
-	}
-
-	if ( ! $imageBuild ) {
-		Write-Host "[$scriptName]   imageBuild      : (not defined in $SOLUTIONROOT\CDAF.solution)"
-	} else {
-		Write-Host "[$scriptName]   imageBuild      : $imageBuild $defaultIBProcess"
-	}
-
-	#----------------------------------------------------------------
-	# Properties Loaded, perform container execution validation steps
-	#----------------------------------------------------------------
-	if (( $containerBuild ) -or ( $imageBuild )) {
-		# 2.5.5 support conditional containerBuild based on environment variable
-		if (( $env:CDAF_SKIP_CONTAINER_BUILD ) -or ( $ACTION -eq 'skip_container_build' )) {
-			Write-Host "`n[$scriptName] `$ACTION = $ACTION, container build defined (${containerBuild}) but skipped ...`n"
-			Clear-Variable -Name 'containerBuild'
-		} else {
-			if ( $LASTEXITCODE -ne 0 ) {
-				$error.clear()
-				cmd /c "exit 0"
-				Write-Host "[$scriptName]   containerBuild  : containerBuild defined in $SOLUTIONROOT\CDAF.solution, but Docker not installed, will attempt to execute natively"
-				Clear-Variable -Name 'containerBuild'
-				$executeNative = $true
-			} else {
-				Write-Host "[$scriptName]   containerBuild  : $containerBuild"
-				$versionTest = cmd /c docker --version 2`>`&1
-				if ( $LASTEXITCODE -ne 0 ) {
-					$error.clear()
-					cmd /c "exit 0"
-					Write-Host "[$scriptName]   Docker          : (not installed, will attempt to execute natively)"
-					Clear-Variable -Name 'containerBuild'
-					$executeNative = $true
-				} else {
-					$array = $versionTest.split(" ")
-					Write-Host "[$scriptName]   Docker          : $($array[2])"
-
-					# Test Docker is running
-					If (Get-Service Docker -ErrorAction SilentlyContinue) {
-						$dockerStatus = (Get-Service Docker).Status
-						if ( $dockerStatus -ne 'Running' ) {
-							if ( $dockerdProcess = Get-Process dockerd -ea SilentlyContinue ) {
-								Write-Host "[$scriptName] Process dockerd is running..."
-							} else {
-								Write-Host "[$scriptName] Process dockerd is not running..."
-							}
-						}
-						if (( $dockerStatus -ne 'Running' ) -and ( $null -eq $dockerdProcess )){
-							if ( $env:CDAF_DOCKER_REQUIRED ) {
-								dockerStart
-							} else {			    
-								Write-Host "[$scriptName] Docker installed but not running, will attempt to execute natively (set `$env:CDAF_DOCKER_REQUIRED if docker is mandatory)"
-								cmd /c "exit 0"
-								Clear-Variable -Name 'containerBuild'
-								$executeNative = $true
-							}
-						}
-					}
-
-					Write-Host 'cmd /c docker images 2`>`&1'
-					$imageTest = cmd /c docker images 2`>`&1
-					if ( $LASTEXITCODE -ne 0 ) {
-						cmd /c "exit 0"
-						$error.clear()
-						Write-Host "[$scriptName] Docker not responding, will attempt to execute natively (set `$env:CDAF_DOCKER_REQUIRED if docker is mandatory)"
-						if ( $env:CDAF_DOCKER_REQUIRED ) {
-							dockerStart
-						} else {			    
-							Write-Host "[$scriptName]   Docker installed but not running, will attempt to execute natively (set `$env:CDAF_DOCKER_REQUIRED if docker is mandatory)"
-							cmd /c "exit 0"
-							Clear-Variable -Name 'containerBuild'
-							$executeNative = $true
-						}
-					}
-				}
-			}
-		}
-	} else {
-		Write-Host "[$scriptName]   containerBuild  : set to '$containerBuildProp' but does not resolve, will perform native build"
-	}
-}
-
-#-------------------------------------------------------------------------------------
-# Property loading and logging complete, start Configuration Management transformation
-#-------------------------------------------------------------------------------------
-
-if ( $ACTION -ne 'container_build' ) {
 	# added in release 1.7.8, extended to list in 1.8.11, moved from build to pre-process 1.8.14), added container tasks 2.4.0
-	Write-Host "`n[$scriptName] Properties generator"
 	$itemList = @(".\manifest.txt", "propertiesForLocalTasks", "propertiesForRemoteTasks", "propertiesForContainerTasks")
 	foreach ($itemName in $itemList) {  
 		itemRemove ".\${itemName}"
@@ -519,7 +386,219 @@ if ( $ACTION -ne 'container_build' ) {
 }
 
 #--------------------------------------------------------------------------
-# Configuration Management transformation complete, now start build process
+# 2.6.2 Only log system variables if set
+#--------------------------------------------------------------------------
+$loggingList = @()
+
+# 2.5.5 default error diagnostic command as solution property
+if ( $env:CDAF_ERROR_DIAG ) {
+	$loggingList += "[$scriptName]   CDAF_ERROR_DIAG     : $CDAF_ERROR_DIAG"
+} else {
+	$env:CDAF_ERROR_DIAG = getProp 'CDAF_ERROR_DIAG' "$SOLUTIONROOT\CDAF.solution"
+	if ( $env:CDAF_ERROR_DIAG ) {
+		$loggingList += "[$scriptName]   CDAF_ERROR_DIAG     : $CDAF_ERROR_DIAG (defined in $SOLUTIONROOT\CDAF.solution)"
+	}
+}
+
+if ( $env:CDAF_IGNORE_WARNING ) {
+	$loggingList += "[$scriptName]   CDAF_IGNORE_WARNING : $CDAF_IGNORE_WARNING"
+} else {
+	$env:CDAF_IGNORE_WARNING = getProp 'CDAF_IGNORE_WARNING' "$SOLUTIONROOT\CDAF.solution"
+	if ( $env:CDAF_IGNORE_WARNING ) {
+		$loggingList += "[$scriptName]   CDAF_IGNORE_WARNING : $CDAF_IGNORE_WARNING (defined in $SOLUTIONROOT\CDAF.solution)"
+	}
+}
+
+if ( $env:CDAF_OVERRIDE_TOKEN ) {
+	$loggingList += "[$scriptName]   CDAF_OVERRIDE_TOKEN : $CDAF_OVERRIDE_TOKEN"
+} else {
+	$env:CDAF_OVERRIDE_TOKEN = getProp 'CDAF_OVERRIDE_TOKEN' "$SOLUTIONROOT\CDAF.solution"
+	if ( $env:CDAF_OVERRIDE_TOKEN ) {
+		$loggingList += "[$scriptName]   CDAF_OVERRIDE_TOKEN : $CDAF_OVERRIDE_TOKEN (defined in $SOLUTIONROOT\CDAF.solution)"
+	}
+}
+
+if ( $loggingList ) {
+	Write-Host "`n[$scriptName] CDAF System Variables Set ..."
+	Write-Output $loggingList
+}
+
+#--------------------------------------------------------------------------
+# Do not load and log containerBuild properties when executing in container
+#--------------------------------------------------------------------------
+if ( $ACTION -eq 'container_build' ) {
+
+	Write-Host "`n[$scriptName] `$ACTION = $ACTION, Executing build in container..."
+} else {
+
+	#--------------------------------------------------------------------------
+	# 2.6.2 Only log container properties if set
+	#--------------------------------------------------------------------------
+	$loggingList = @()
+	
+	if ( $env:CDAF_SKIP_CONTAINER_BUILD ) {
+		$loggingList += "[$scriptName]   CDAF_SKIP_CONTAINER_BUILD : $env:CDAF_SKIP_CONTAINER_BUILD"
+	} else {	
+		$env:CDAF_SKIP_CONTAINER_BUILD = getProp 'CDAF_SKIP_CONTAINER_BUILD' "$SOLUTIONROOT\CDAF.solution"
+		if ( $env:CDAF_SKIP_CONTAINER_BUILD ) {
+			$loggingList += "[$scriptName]   CDAF_SKIP_CONTAINER_BUILD : $env:CDAF_SKIP_CONTAINER_BUILD (defined in $SOLUTIONROOT\CDAF.solution)"
+		}
+	}
+
+	if ( $env:CDAF_DOCKER_REQUIRED ) {
+		$loggingList += "[$scriptName]   CDAF_DOCKER_REQUIRED      : $env:CDAF_DOCKER_REQUIRED"
+	} else {	
+		$env:CDAF_DOCKER_REQUIRED = getProp 'CDAF_DOCKER_REQUIRED' "$SOLUTIONROOT\CDAF.solution"
+		if ( $env:CDAF_DOCKER_REQUIRED ) {
+			$loggingList += "[$scriptName]   CDAF_DOCKER_REQUIRED      : $env:CDAF_DOCKER_REQUIRED (defined in $SOLUTIONROOT\CDAF.solution)"
+		}
+	}
+
+	# 1.6.7 Container Build process
+	$containerBuild = getProp 'containerBuild' "$SOLUTIONROOT\CDAF.solution"
+	$containerImage = getProp 'containerImage' "$SOLUTIONROOT\CDAF.solution"
+	if ( $containerImage ) {
+		if (($env:CONTAINER_IMAGE) -or ($CONTAINER_IMAGE)) {
+			$loggingList += "[$scriptName]   containerImage            : $containerImage"
+			if ($env:CONTAINER_IMAGE) {
+				$loggingList += "[$scriptName]   CONTAINER_IMAGE           : $env:CONTAINER_IMAGE (not changed as already set)"
+			} else {
+				$env:CONTAINER_IMAGE = $CONTAINER_IMAGE
+				$loggingList += "[$scriptName]   CONTAINER_IMAGE           : $env:CONTAINER_IMAGE (loaded from `$CONTAINER_IMAGE)"
+			}
+		} else {
+			$env:CONTAINER_IMAGE = $containerImage
+			$loggingList += "[$scriptName]   CONTAINER_IMAGE           : $env:CONTAINER_IMAGE (set from containerImage in `$SOLUTIONROOT\CDAF.solution)"
+		}
+
+		# 2.6.1 default containerBuild process
+		if (! ( $containerBuild )) {
+			$containerBuild = '& ${AUTOMATIONROOT}/processor/containerBuild.ps1 $SOLUTION $BUILDNUMBER $REVISION $ACTION'
+			$defaultCBProcess = '(default) '
+		}
+	}
+
+	if ( $containerBuild ) {
+		$loggingList += "[$scriptName]   containerBuild            : $containerBuild $defaultCBProcess"
+	} else {
+		$loggingList += "[$scriptName]   containerBuild            : (not defined in $SOLUTIONROOT\CDAF.solution)"
+	}
+
+	# 2.2.0 Image Build as incorperated function
+	$buildImage = getProp 'buildImage' "$SOLUTIONROOT\CDAF.solution"
+	$imageBuild = getProp 'imageBuild' "$SOLUTIONROOT\CDAF.solution"
+	if ( $buildImage ) {
+		$loggingList += "[$scriptName]   buildImage                : $buildImage"
+		# 2.6.1 imageBuild mimimum configuration, with default process
+		if ( ! $imageBuild ) {
+			$imageBuild = '& $AUTOMATIONROOT/remote/imageBuild.ps1 ${SOLUTION}_${REVISION} ${BUILDNUMBER} ${buildImage} ${LOCAL_WORK_DIR}'
+			$defaultIBProcess = '(default) '
+		}
+	}
+
+	if ( $imageBuild ) {
+		$loggingList += "[$scriptName]   imageBuild                : $imageBuild $defaultIBProcess"
+	}
+
+	#----------------------------------------------------------------
+	# Properties Loaded, perform container execution validation steps
+	#----------------------------------------------------------------
+	if ( $containerBuild ) {
+		# 2.5.5 support conditional containerBuild based on environment variable
+		if ( $ACTION -eq 'skip_container_build' ) {
+			$loggingList += "[$scriptName]   ACTION                    : $ACTION, container build defined but skipped ..."
+			Clear-Variable -Name 'containerBuild'
+		}
+		if ( $env:CDAF_SKIP_CONTAINER_BUILD ) {
+			$loggingList += "[$scriptName]   CDAF_SKIP_CONTAINER_BUILD : $env:CDAF_SKIP_CONTAINER_BUILD, container build defined but skipped ..."
+			Clear-Variable -Name 'containerBuild'
+		}
+	}
+
+	if (( $containerBuild ) -or ( $imageBuild )) {
+		$versionTest = cmd /c docker --version 2`>`&1
+		if ( $LASTEXITCODE -ne 0 ) {
+			$error.clear()
+			cmd /c "exit 0"
+			$loggingList += "[$scriptName]   Docker          : (not installed, will attempt to execute natively)"
+			if ( $containerBuild ) {
+				Clear-Variable -Name 'containerBuild'
+			}
+			if ( $imageBuild ) {
+				Clear-Variable -Name 'imageBuild'
+			}
+		} else {
+			$array = $versionTest.split(" ")
+			$dockerVersion = $array[2].TrimEnd(',')
+	
+			# Test Docker is running
+			if ( Get-Service Docker -ErrorAction SilentlyContinue ) {
+				$dockerStatus = (Get-Service Docker).Status
+				if ( $dockerStatus -eq 'Running' ) {
+					# docker-desktop test
+					$imageTest = cmd /c docker images 2`>`&1
+					if ( $LASTEXITCODE -eq 0 ) {
+						$loggingList += "[$scriptName]   Docker          : $dockerVersion"
+					} else {
+						if ( $env:CDAF_DOCKER_REQUIRED ) {
+							Write-Host "`n[$scriptName] CDAF Container Features Set ..."
+							Write-Output $loggingList
+							ERRMSG "[DOCKEREQ] Docker service installed and running, but not responding (perhaps docker-desktop not started?). `$env:CDAF_DOCKER_REQUIRED = ${env:CDAF_DOCKER_REQUIRED}, so halting!" 8911
+						} else {			    
+							if ( ( $containerBuild ) -and ( $imageBuild )) {
+								$loggingList += "[$scriptName]   Docker          : $dockerVersion (not running, will attempt to execute natively and skip imageBuild process)"
+								Clear-Variable -Name 'containerBuild'
+								Clear-Variable -Name 'imageBuild'
+							} else {
+								if ( $containerBuild ) {
+									$loggingList += "[$scriptName]   Docker          : $dockerVersion (not running, will attempt to execute natively)"
+									Clear-Variable -Name 'containerBuild'
+								}
+								if ( $imageBuild ) {
+									$loggingList += "[$scriptName]   Docker          : $dockerVersion (not running, will skip imageBuild process)"
+									Clear-Variable -Name 'imageBuild'
+								}
+							}
+						}
+					}
+				} else {
+					if ( Get-Process dockerd -ea SilentlyContinue ) {
+						$loggingList += "[$scriptName]   Docker          : $dockerVersion"
+					} else {
+						if ( $env:CDAF_DOCKER_REQUIRED ) {
+							$loggingList += "[$scriptName] Docker installed but not running, `$env:CDAF_DOCKER_REQUIRED is set so will try and start"
+							executeExpression 'Start-Service Docker'
+							Write-Host '$dockerStatus = ' -NoNewline 
+							$dockerStatus = (Get-Service Docker).Status
+							if ( $dockerStatus -ne 'Running' ) {
+								Write-Host "`n[$scriptName] CDAF Container Features Set ..."
+								Write-Output $loggingList
+								ERRMSG "[DOCKERSTART] Unable to start Docker, `$dockerStatus = $dockerStatus" 8910
+							}
+						} else {			    
+							if ( $containerBuild ) {
+								$loggingList += "[$scriptName]   Docker          : $dockerVersion (installed but not running, will attempt to execute natively)"
+								Clear-Variable -Name 'containerBuild'
+							}
+							if ( $imageBuild ) {
+								$loggingList += "[$scriptName]   Docker          : $dockerVersion (installed but not running, will skip imageBuild process)"
+								Clear-Variable -Name 'imageBuild'
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+	if ( $loggingList ) {
+		Write-Host "`n[$scriptName] CDAF Container Features Set ..."
+		Write-Output $loggingList
+	}
+}
+
+#--------------------------------------------------------------------------
+# Start build process
 #--------------------------------------------------------------------------
 
 # 2.4.4 Pre-Build Tasks, exclude from container_build to avoid performing twice
