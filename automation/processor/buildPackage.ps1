@@ -354,7 +354,8 @@ if ( $ACTION -ne 'container_build' ) {
 	}
 
 	# added in release 1.7.8, extended to list in 1.8.11, moved from build to pre-process 1.8.14), added container tasks 2.4.0
-	$itemList = @(".\manifest.txt", "propertiesForLocalTasks", "propertiesForRemoteTasks", "propertiesForContainerTasks")
+	Write-Host "`n[$scriptName] Clean Workspace"
+	$itemList = @("manifest.txt", "propertiesForLocalTasks", "propertiesForRemoteTasks", "propertiesForContainerTasks")
 	foreach ($itemName in $itemList) {  
 		itemRemove ".\${itemName}"
 	}
@@ -520,7 +521,7 @@ if ( $ACTION -eq 'container_build' ) {
 		if ( $LASTEXITCODE -ne 0 ) {
 			$error.clear()
 			cmd /c "exit 0"
-			$loggingList += "[$scriptName]   Docker          : (not installed, will attempt to execute natively)"
+			$loggingList += "[$scriptName]   Docker                    : (not installed, will attempt to execute natively)"
 			if ( $containerBuild ) {
 				Clear-Variable -Name 'containerBuild'
 			}
@@ -538,7 +539,7 @@ if ( $ACTION -eq 'container_build' ) {
 					# docker-desktop test
 					$imageTest = cmd /c docker images 2`>`&1
 					if ( $LASTEXITCODE -eq 0 ) {
-						$loggingList += "[$scriptName]   Docker          : $dockerVersion"
+						$loggingList += "[$scriptName]   Docker                    : $dockerVersion"
 					} else {
 						if ( $env:CDAF_DOCKER_REQUIRED ) {
 							Write-Host "`n[$scriptName] CDAF Container Features Set ..."
@@ -546,16 +547,16 @@ if ( $ACTION -eq 'container_build' ) {
 							ERRMSG "[DOCKEREQ] Docker service installed and running, but not responding (perhaps docker-desktop not started?). `$env:CDAF_DOCKER_REQUIRED = ${env:CDAF_DOCKER_REQUIRED}, so halting!" 8911
 						} else {			    
 							if ( ( $containerBuild ) -and ( $imageBuild )) {
-								$loggingList += "[$scriptName]   Docker          : $dockerVersion (not running, will attempt to execute natively and skip imageBuild process)"
+								$loggingList += "[$scriptName]   Docker                    : $dockerVersion (not running, will attempt to execute natively and skip imageBuild process)"
 								Clear-Variable -Name 'containerBuild'
 								Clear-Variable -Name 'imageBuild'
 							} else {
 								if ( $containerBuild ) {
-									$loggingList += "[$scriptName]   Docker          : $dockerVersion (not running, will attempt to execute natively)"
+									$loggingList += "[$scriptName]   Docker                    : $dockerVersion (not running, will attempt to execute natively)"
 									Clear-Variable -Name 'containerBuild'
 								}
 								if ( $imageBuild ) {
-									$loggingList += "[$scriptName]   Docker          : $dockerVersion (not running, will skip imageBuild process)"
+									$loggingList += "[$scriptName]   Docker                    : $dockerVersion (not running, will skip imageBuild process)"
 									Clear-Variable -Name 'imageBuild'
 								}
 							}
@@ -563,7 +564,7 @@ if ( $ACTION -eq 'container_build' ) {
 					}
 				} else {
 					if ( Get-Process dockerd -ea SilentlyContinue ) {
-						$loggingList += "[$scriptName]   Docker          : $dockerVersion"
+						$loggingList += "[$scriptName]   Docker                    : $dockerVersion"
 					} else {
 						if ( $env:CDAF_DOCKER_REQUIRED ) {
 							$loggingList += "[$scriptName] Docker installed but not running, `$env:CDAF_DOCKER_REQUIRED is set so will try and start"
@@ -577,11 +578,11 @@ if ( $ACTION -eq 'container_build' ) {
 							}
 						} else {			    
 							if ( $containerBuild ) {
-								$loggingList += "[$scriptName]   Docker          : $dockerVersion (installed but not running, will attempt to execute natively)"
+								$loggingList += "[$scriptName]   Docker                    : $dockerVersion (installed but not running, will attempt to execute natively)"
 								Clear-Variable -Name 'containerBuild'
 							}
 							if ( $imageBuild ) {
-								$loggingList += "[$scriptName]   Docker          : $dockerVersion (installed but not running, will skip imageBuild process)"
+								$loggingList += "[$scriptName]   Docker                    : $dockerVersion (installed but not running, will skip imageBuild process)"
 								Clear-Variable -Name 'imageBuild'
 							}
 						}
@@ -816,7 +817,7 @@ if ( $ACTION -ne 'container_build' ) {
 if (( $ACTION -eq 'buildonly' ) -or ( $ACTION -eq 'clean' )) {
 	Write-Host "`n[$scriptName][$(Get-Date)] $ACTION complete." -ForegroundColor Green
 } else {
-	Write-Host "`n[$scriptName][$(Get-Date)] Process complete, artefacts [$artefactList] placed in $stageTarget" -ForegroundColor Green
+	Write-Host "`n[$scriptName][$(Get-Date)] Process complete, artefacts [${artefactList}] placed in $stageTarget" -ForegroundColor Green
 }
 $error.clear()
 exit 0

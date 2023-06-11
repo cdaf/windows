@@ -37,7 +37,7 @@ function executeExpression ($expression) {
 	}
 }
 
-Write-Host "`n[$scriptName] ---------- start ----------`n"
+Write-Host "`n[$scriptName] ---------- start ----------"
 if ( $imageName ) {
 	Write-Host "[$scriptName]   imageName      : ${imageName} (passed, to be used in docker)"
 
@@ -87,24 +87,20 @@ if ( $imageName ) {
 
 if ( Test-Path ".\automation" ) {
 	if ( (Get-Item $env:CDAF_AUTOMATION_ROOT).FullName -ne "$($(pwd).Path)\automation" ) {
-		executeExpression "Remove-Item -Recurse .\automation"
-		executeExpression "Copy-Item -Recurse -Force $env:CDAF_AUTOMATION_ROOT .\automation"
+		Write-Host "`n[$scriptName] Refreshing working copy of CDAF in root of workspace..."
+		executeExpression "  Remove-Item -Recurse .\automation"
+		executeExpression "  Copy-Item -Recurse -Force $env:CDAF_AUTOMATION_ROOT .\automation"
 		$cleanupCDAF = 'yes'
-	} else {
-		Write-Host "[$scriptName]   automationroot : .\automation`n"
 	}
 } else {
 	if ( ((Get-Item $env:CDAF_AUTOMATION_ROOT).Parent).FullName -ne $(pwd).Path ) {
-		Write-Host "[$scriptName]   automationroot : ${env:CDAF_AUTOMATION_ROOT} (copy to .\automation in workspace for docker)`n"
-		executeExpression "Copy-Item -Recurse -Force $env:CDAF_AUTOMATION_ROOT .\automation"
+		Write-Host "`n[$scriptName] Create copy of CDAF in root of workspace..."
+		executeExpression "  Copy-Item -Recurse -Force $env:CDAF_AUTOMATION_ROOT .\automation"
 		$cleanupCDAF = 'yes'
-	} else {
-		Write-Host "[$scriptName]   automationroot : ${env:CDAF_AUTOMATION_ROOT}`n"
 	}
 }
 
 if ( $buildImage ) {
-	Write-Host '$dockerStatus = ' -NoNewline 
 	
 	$imageTag = 0
 	foreach ( $imageDetails in docker images --filter label=cdaf.${buildImage}.image.version --format "{{.Tag}}" ) {
@@ -117,10 +113,10 @@ if ( $buildImage ) {
 		}
 	}
 	if ( $imageTag ) {
-		Write-Host "[$scriptName] Last image tag is $imageTag, new image will be $($imageTag + 1)"
+		Write-Host "`n[$scriptName] Last image tag is $imageTag, new image will be $($imageTag + 1)"
 	} else {
 		$imageTag = 0
-		Write-Host "[$scriptName] No existing images, new image will be $($imageTag + 1)"
+		Write-Host "`n[$scriptName] No existing images, new image will be $($imageTag + 1)"
 	}
 
 	if ( Test-Path Dockerfile ) {
