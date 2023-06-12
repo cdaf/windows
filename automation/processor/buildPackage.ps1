@@ -330,9 +330,9 @@ if (Test-Path "$postbuild") {
 	Write-Host "none ($postbuild)"
 }
 
-#-------------------------------------------------------------------------------------
-# Property loading and logging complete, start Configuration Management transformation
-#-------------------------------------------------------------------------------------
+#---------------------------------------------------------------------
+# Configuration Management transformation only if not within container
+#---------------------------------------------------------------------
 if ( $ACTION -ne 'container_build' ) {
 
 	$configManagementList = Get-ChildItem -Path "$SOLUTIONROOT" -Name '*.cm'
@@ -429,7 +429,8 @@ if ( $loggingList ) {
 #--------------------------------------------------------------------------
 if ( $ACTION -eq 'container_build' ) {
 
-	Write-Host "`n[$scriptName] `$ACTION = $ACTION, Executing build in container..."
+	Write-Host "`n[$scriptName] ACTION = $ACTION, Executing build in container..."
+
 } else {
 
 	#--------------------------------------------------------------------------
@@ -521,17 +522,23 @@ if ( $ACTION -eq 'container_build' ) {
 		if ( $LASTEXITCODE -ne 0 ) {
 			$error.clear()
 			cmd /c "exit 0"
-			$loggingList += "[$scriptName]   Docker                    : (not installed, will attempt to execute natively)"
-			if ( $containerBuild ) {
-				Clear-Variable -Name 'containerBuild'
-			}
-			if ( $imageBuild ) {
-				Clear-Variable -Name 'imageBuild'
+			if ( $env:CDAF_DOCKER_REQUIRED ) {
+				Write-Host "`n[$scriptName] CDAF Container Features Set ..."
+				Write-Output $loggingList
+				ERRMSG "[DOCKE_REQ] Docker not installed, but `$env:CDAF_DOCKER_REQUIRED = ${env:CDAF_DOCKER_REQUIRED}, so halting!" 8911
+			} else {
+				$loggingList += "[$scriptName]   Docker                    : (not installed, will attempt to execute natively)"
+				if ( $containerBuild ) {
+					Clear-Variable -Name 'containerBuild'
+				}
+				if ( $imageBuild ) {
+					Clear-Variable -Name 'imageBuild'
+				}
 			}
 		} else {
 			$array = $versionTest.split(" ")
 			$dockerVersion = $array[2].TrimEnd(',')
-	
+
 			# Test Docker is running
 			if ( Get-Service Docker -ErrorAction SilentlyContinue ) {
 				$dockerStatus = (Get-Service Docker).Status
@@ -544,19 +551,19 @@ if ( $ACTION -eq 'container_build' ) {
 						if ( $env:CDAF_DOCKER_REQUIRED ) {
 							Write-Host "`n[$scriptName] CDAF Container Features Set ..."
 							Write-Output $loggingList
-							ERRMSG "[DOCKEREQ] Docker service installed and running, but not responding (perhaps docker-desktop not started?). `$env:CDAF_DOCKER_REQUIRED = ${env:CDAF_DOCKER_REQUIRED}, so halting!" 8911
-						} else {			    
+							ERRMSG "[DOCKER_NOT_RUNNING] Docker installed and running, but not responding (perhaps docker-desktop not started?). `$env:CDAF_DOCKER_REQUIRED = ${env:CDAF_DOCKER_REQUIRED}, so halting!" 8911
+						} else {
 							if ( ( $containerBuild ) -and ( $imageBuild )) {
-								$loggingList += "[$scriptName]   Docker                    : $dockerVersion (not running, will attempt to execute natively and skip imageBuild process)"
+								$loggingList += "[$scriptName]   Docker                    : $dockerVersion (running, but not responding, will attempt to execute natively and skip imageBuild process)"
 								Clear-Variable -Name 'containerBuild'
 								Clear-Variable -Name 'imageBuild'
 							} else {
 								if ( $containerBuild ) {
-									$loggingList += "[$scriptName]   Docker                    : $dockerVersion (not running, will attempt to execute natively)"
+									$loggingList += "[$scriptName]   Docker                    : $dockerVersion (running, but not responding, will attempt to execute natively)"
 									Clear-Variable -Name 'containerBuild'
 								}
 								if ( $imageBuild ) {
-									$loggingList += "[$scriptName]   Docker                    : $dockerVersion (not running, will skip imageBuild process)"
+									$loggingList += "[$scriptName]   Docker                    : $dockerVersion (running, but not responding, will skip imageBuild process)"
 									Clear-Variable -Name 'imageBuild'
 								}
 							}
@@ -566,25 +573,53 @@ if ( $ACTION -eq 'container_build' ) {
 					if ( Get-Process dockerd -ea SilentlyContinue ) {
 						$loggingList += "[$scriptName]   Docker                    : $dockerVersion"
 					} else {
-						if ( $env:CDAF_DOCKER_REQUIRED ) {
-							$loggingList += "[$scriptName] Docker installed but not running, `$env:CDAF_DOCKER_REQUIRED is set so will try and start"
-							executeExpression 'Start-Service Docker'
-							Write-Host '$dockerStatus = ' -NoNewline 
-							$dockerStatus = (Get-Service Docker).Status
-							if ( $dockerStatus -ne 'Running' ) {
+						executeExpression 'Start-Service Docker'
+						$dockerStatus = (Get-Service Docker).Status
+						$loggingList += "[$scriptName] $dockerStatus = $dockerStatus"
+						if ( $dockerStatus -ne 'Running' ) {
+							if ( $env:CDAF_DOCKER_REQUIRED ) {
 								Write-Host "`n[$scriptName] CDAF Container Features Set ..."
 								Write-Output $loggingList
 								ERRMSG "[DOCKERSTART] Unable to start Docker, `$dockerStatus = $dockerStatus" 8910
+							} else {
+								if ( ( $containerBuild ) -and ( $imageBuild )) {
+									$loggingList += "[$scriptName]   Docker                    : $dockerVersion (not running, will attempt to execute natively and skip imageBuild process)"
+									Clear-Variable -Name 'containerBuild'
+									Clear-Variable -Name 'imageBuild'
+								} else {
+									if ( $containerBuild ) {
+										$loggingList += "[$scriptName]   Docker                    : $dockerVersion (installed but not running, will attempt to execute natively)"
+										Clear-Variable -Name 'containerBuild'
+									}
+									if ( $imageBuild ) {
+										$loggingList += "[$scriptName]   Docker                    : $dockerVersion (installed but not running, will skip imageBuild process)"
+										Clear-Variable -Name 'imageBuild'
+									}
+								}
 							}
-						} else {			    
-							if ( $containerBuild ) {
-								$loggingList += "[$scriptName]   Docker                    : $dockerVersion (installed but not running, will attempt to execute natively)"
-								Clear-Variable -Name 'containerBuild'
-							}
-							if ( $imageBuild ) {
-								$loggingList += "[$scriptName]   Docker                    : $dockerVersion (installed but not running, will skip imageBuild process)"
-								Clear-Variable -Name 'imageBuild'
-							}
+						}
+					}
+				}
+
+			} else {
+
+				if ( $env:CDAF_DOCKER_REQUIRED ) {
+					Write-Host "`n[$scriptName] CDAF Container Features Set ..."
+					Write-Output $loggingList
+					ERRMSG "[DOCKER_SERVICE_NOT_FOUND] Docker installed but service not found (perhaps docker-desktop not started?). `$env:CDAF_DOCKER_REQUIRED = ${env:CDAF_DOCKER_REQUIRED}, so halting!" 8911
+				} else {
+					if (( $containerBuild ) -and ( $imageBuild )) {
+						$loggingList += "[$scriptName]   Docker                    : $dockerVersion (Docker installed but service not found, will attempt to execute natively and skip imageBuild process)"
+						Clear-Variable -Name 'containerBuild'
+						Clear-Variable -Name 'imageBuild'
+					} else {
+						if ( $containerBuild ) {
+							$loggingList += "[$scriptName]   Docker                    : $dockerVersion (Docker installed but service not found, will attempt to execute natively)"
+							Clear-Variable -Name 'containerBuild'
+						}
+						if ( $imageBuild ) {
+							$loggingList += "[$scriptName]   Docker                    : $dockerVersion (Docker installed but service not found, will skip imageBuild process)"
+							Clear-Variable -Name 'imageBuild'
 						}
 					}
 				}
