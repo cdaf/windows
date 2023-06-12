@@ -94,6 +94,10 @@ if ( $systeminfo -match 'VirtualBox' ) {
 }
 writeLog "hypervisor = $hypervisor"
 
+if ( Test-Path $env:systemroot\SoftwareDistribution ) {
+    executeExpression "Remove-Item  $env:systemroot\SoftwareDistribution -Recurse -Force"
+}
+
 executeExpression "cd $(split-path -parent $MyInvocation.MyCommand.Definition)"
 executeExpression "[System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]'Tls11,Tls12'"
 executeExpression "pwd"
