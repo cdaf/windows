@@ -195,9 +195,9 @@ if ($action -eq 'Clone') {
 		}
 	
 		if ( $boxname -Match "Windows" ) { # This tells Vagrant to use WinRM instead of SSH
-			executeExpression "(New-Object System.Net.WebClient).DownloadFile(`'https://raw.githubusercontent.com/cdaf/windows/master/samples/vagrant-box/Vagrantfile`', `"$PWD\Vagrantfile`")"
+			executeExpression "(New-Object System.Net.WebClient).DownloadFile(`'https://raw.githubusercontent.com/cdaf/windows/master/orchestration/vagrant-box/Vagrantfile`', `"$PWD\Vagrantfile`")"
 		} else {
-			executeExpression "(New-Object System.Net.WebClient).DownloadFile(`'https://raw.githubusercontent.com/cdaf/linux/master/samples/vagrant-box/Vagrantfile`', `"$PWD\Vagrantfile`")"
+			executeExpression "(New-Object System.Net.WebClient).DownloadFile(`'https://raw.githubusercontent.com/cdaf/linux/master/orchestration/vagrant-box/Vagrantfile`', `"$PWD\Vagrantfile`")"
 		}
 		
 		$filename = "Vagrantfile"
@@ -227,9 +227,9 @@ if ($action -eq 'Clone') {
 		executeExpression "cat metadata.json"
 	
 		if ( $boxname -Match "Windows" ) { # This tells Vagrant to use WinRM instead of SSH
-			executeExpression "(New-Object System.Net.WebClient).DownloadFile(`'https://raw.githubusercontent.com/cdaf/windows/master/samples/vagrant-box/Vagrantfile`', `"$PWD\Vagrantfile`")"
+			executeExpression "(New-Object System.Net.WebClient).DownloadFile(`'https://raw.githubusercontent.com/cdaf/windows/master/orchestration/vagrant-box/Vagrantfile`', `"$PWD\Vagrantfile`")"
 		} else {
-			executeExpression "(New-Object System.Net.WebClient).DownloadFile(`'https://raw.githubusercontent.com/cdaf/linux/master/samples/vagrant-box/Vagrantfile`', `"$PWD\Vagrantfile`")"
+			executeExpression "(New-Object System.Net.WebClient).DownloadFile(`'https://raw.githubusercontent.com/cdaf/linux/master/orchestration/vagrant-box/Vagrantfile`', `"$PWD\Vagrantfile`")"
 		}
 		$filename = "Vagrantfile"
 		$token = '#hyper-v: '
@@ -291,9 +291,9 @@ if ($action -eq 'Clone') {
 	} else {
 	
 		if ( $boxname -Match "Windows" ) { # This tells Vagrant to use WinRM instead of SSH
-			executeExpression "(New-Object System.Net.WebClient).DownloadFile(`'https://raw.githubusercontent.com/cdaf/windows/master/samples/vagrant-test/Vagrantfile`', `"$PWD\Vagrantfile`")"
+			executeExpression "(New-Object System.Net.WebClient).DownloadFile(`'https://raw.githubusercontent.com/cdaf/windows/master/orchestration/vagrant-test/Vagrantfile`', `"$PWD\Vagrantfile`")"
 		} else {
-			executeExpression "(New-Object System.Net.WebClient).DownloadFile(`'https://raw.githubusercontent.com/cdaf/linux/master/samples/vagrant-test/Vagrantfile`', `"$PWD\Vagrantfile`")"
+			executeExpression "(New-Object System.Net.WebClient).DownloadFile(`'https://raw.githubusercontent.com/cdaf/linux/master/orchestration/vagrant-test/Vagrantfile`', `"$PWD\Vagrantfile`")"
 		}
 	
 		Write-Host "`n[$scriptName] Log vagrant file contents"
