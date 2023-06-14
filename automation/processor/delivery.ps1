@@ -186,7 +186,10 @@ if ( $WORK_DIR_DEFAULT ) {
 	$WORK_DIR_DEFAULT = 'TasksLocal'
 	Write-Host "[$scriptName]   WORK_DIR_DEFAULT : $WORK_DIR_DEFAULT (default)"
 }
-$env:CDAF_CORE = "$(pwd)\$WORK_DIR_DEFAULT"
+
+$CDAF_CORE = "$(pwd)\$WORK_DIR_DEFAULT"
+$env:CDAF_CORE = $CDAF_CORE
+Write-Host "[$scriptName]   CDAF_CORE        : $env:CDAF_CORE"
 
 if ( Test-Path $WORK_DIR_DEFAULT ) {
 	$WORK_DIR_DEFAULT = (Get-Item $WORK_DIR_DEFAULT).FullName
@@ -227,9 +230,9 @@ if ($BUILDNUMBER) {
 # Load TargetlessCD environment variable
 $env:WORK_SPACE = (Get-Location).Path
 $env:WORKSPACE = (Get-Item $WORK_DIR_DEFAULT).FullName
-Write-Host "[$scriptName]   pwd              = ${env:WORK_SPACE}"
-Write-Host "[$scriptName]   hostname         = $(hostname)" 
-Write-Host "[$scriptName]   whoami           = $(whoami)"
+Write-Host "[$scriptName]   pwd              : ${env:WORK_SPACE}"
+Write-Host "[$scriptName]   whoami           : $(whoami)"
+Write-Host "[$scriptName]   hostname         : $(hostname)" 
 
 $propertiesFile = "$WORK_DIR_DEFAULT\CDAF.properties"
 $cdafVersion = getProp 'productVersion'
@@ -237,13 +240,13 @@ Write-Host "[$scriptName]   CDAF Version     : $cdafVersion"
 
 # 2.5.5 default error diagnostic command as solution property
 if ( $env:CDAF_ERROR_DIAG ) {
-	Write-Host "[$scriptName]   CDAF_ERROR_DIAG   : $CDAF_ERROR_DIAG"
+	Write-Host "[$scriptName]   CDAF_ERROR_DIAG  : $CDAF_ERROR_DIAG"
 } else {
 	$env:CDAF_ERROR_DIAG = getProp 'CDAF_ERROR_DIAG' "$propertiesFile"
 	if ( $env:CDAF_ERROR_DIAG ) {
-		Write-Host "[$scriptName]   CDAF_ERROR_DIAG   : $CDAF_ERROR_DIAG (defined in $propertiesFile)"
+		Write-Host "[$scriptName]   CDAF_ERROR_DIAG  : $CDAF_ERROR_DIAG (defined in $propertiesFile)"
 	} else {
-		Write-Host "[$scriptName]   CDAF_ERROR_DIAG   : (not set or defined in $propertiesFile)"
+		Write-Host "[$scriptName]   CDAF_ERROR_DIAG  : (not set or defined in $propertiesFile)"
 	}
 }
 

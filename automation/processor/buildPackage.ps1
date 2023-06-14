@@ -287,7 +287,8 @@ if ($SOLUTION) {
 
 # Load automation root as environment variable
 $env:CDAF_AUTOMATION_ROOT = $AUTOMATIONROOT
-$env:CDAF_CORE = "${AUTOMATIONROOT}/remote"
+$CDAF_CORE = "${AUTOMATIONROOT}/remote"
+$env:CDAF_CORE = $CDAF_CORE
 Write-Host "[$scriptName]   AUTOMATIONROOT  : $AUTOMATIONROOT" 
 
 # Arguments out of order, as automation root processed first

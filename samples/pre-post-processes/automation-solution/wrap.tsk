@@ -1,0 +1,6 @@
+echo "REVISION       = $REVISION"
+echo "SOLUTIONROOT   = $SOLUTIONROOT"
+echo "AUTOMATIONROOT = $AUTOMATIONROOT"
+echo "CDAF_CORE      = $CDAF_CORE"
+
+echo "Post-package Tasks"

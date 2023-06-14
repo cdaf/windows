@@ -1,0 +1,7 @@
+productName=Sample of Optional Processes
+solutionName=pre-post-processes
+
+artifactPrefix=0.0
+packageFeatures=minimal
+
+processSequence=localTasks.ps1
