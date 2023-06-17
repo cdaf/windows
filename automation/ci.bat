@@ -19,10 +19,10 @@ echo [     %~nx0     ] ============================================
 rem Launcher script that overides execution policy
 rem cannot elevate powershell
 
-call powershell -NoProfile -NonInteractive -ExecutionPolicy ByPass -file "%AUTOMATIONROOT%\processor\buildPackage.ps1" "%BUILDNUMBER%" "%REVISION%" "%ACTION%" "%LOCAL_WORK_DIR%" "%REMOTE_WORK_DIR%"
+call powershell -NoProfile -NonInteractive -ExecutionPolicy ByPass -command "& '%AUTOMATIONROOT%\processor\buildPackage.ps1'" "%BUILDNUMBER%" "%REVISION%" "%ACTION%" "%LOCAL_WORK_DIR%" "%REMOTE_WORK_DIR%"
 SET result=%errorlevel%
 if %result% NEQ 0 (
-	echo [%~nx0] BUILD_PACKAGE_ERROR call powershell -NoProfile -NonInteractive -ExecutionPolicy ByPass -file %AUTOMATIONROOT%\processor\buildPackage.ps1 %BUILDNUMBER% %REVISION% %ACTION% %AUTOMATION_ROOT% %LOCAL_WORK_DIR% %REMOTE_WORK_DIR%
+	echo [%~nx0] BUILD_PACKAGE_ERROR call powershell -NoProfile -NonInteractive -ExecutionPolicy ByPass -command & %AUTOMATIONROOT%\processor\buildPackage.ps1 %BUILDNUMBER% %REVISION% %ACTION% %AUTOMATION_ROOT% %LOCAL_WORK_DIR% %REMOTE_WORK_DIR%
 	echo [%~nx0]   Return LASTEXITCODE %result% 
 	exit /b %result%
 )

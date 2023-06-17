@@ -21,10 +21,10 @@ IF [%WORK_DIR_DEFAULT%] == [] (
 	set workDirLocal=%WORK_DIR_DEFAULT%
 )
 
-call powershell -NoProfile -NonInteractive -ExecutionPolicy ByPass -file "%cd%\%workDirLocal%\delivery.ps1" "%ENVIRONMENT%" "%RELEASE%" "%OPT_ARG%" "%WORK_DIR_DEFAULT%"
+call powershell -NoProfile -NonInteractive -ExecutionPolicy ByPass -command "& '%cd%\%workDirLocal%\delivery.ps1'" "%ENVIRONMENT%" "%RELEASE%" "%OPT_ARG%" "%WORK_DIR_DEFAULT%"
 set result=%errorlevel%
 if %result% NEQ 0 (
-	echo [%~nx0] CDAF_DELIVERY_FAILURE call powershell -NoProfile -NonInteractive -ExecutionPolicy ByPass -file %cd%\%workDirLocal%\delivery.ps1 %ENVIRONMENT% %RELEASE% %OPT_ARG% %WORK_DIR_DEFAULT%
+	echo [%~nx0] CDAF_DELIVERY_FAILURE call powershell -NoProfile -NonInteractive -ExecutionPolicy ByPass -command & %cd%\%workDirLocal%\delivery.ps1 %ENVIRONMENT% %RELEASE% %OPT_ARG% %WORK_DIR_DEFAULT%
 	echo [%~nx0]   Return LASTEXITCODE %result% 
 	exit /b %result%
 )
