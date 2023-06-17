@@ -632,7 +632,7 @@ if ( $ACTION -eq 'container_build' ) {
 # 2.4.4 Pre-Build Tasks, exclude from container_build to avoid performing twice
 if (( Test-Path "$prebuild" ) -and ( $ACTION -ne 'container_build' )) {
 	Write-Host "`n[$scriptName] Process Pre-Build Task ...`n"
-	& $AUTOMATIONROOT\remote\execute.ps1 $SOLUTION $BUILDNUMBER "package" "$prebuild" $ACTION
+	& "$AUTOMATIONROOT\remote\execute.ps1" $SOLUTION $BUILDNUMBER "package" "$prebuild" $ACTION
 	if(!$?){ exceptionExit ".$AUTOMATIONROOT\remote\execute.ps1 $SOLUTION $BUILDNUMBER `"package`" `"$prebuild`" $ACTION" }
 }
 
@@ -651,13 +651,13 @@ if (( $containerBuild ) -and ( $ACTION -ne 'packageonly' )) {
 		}
 	} else {
 		Write-Host
-		executeExpression "& $AUTOMATIONROOT\buildandpackage\buildProjects.ps1 $SOLUTION $BUILDNUMBER $REVISION $AUTOMATIONROOT $SOLUTIONROOT $ACTION"
+		executeExpression "& `"$AUTOMATIONROOT\buildandpackage\buildProjects.ps1`" $SOLUTION $BUILDNUMBER $REVISION `"$AUTOMATIONROOT`" `"$SOLUTIONROOT`" $ACTION"
 	}
 
 	# 2.4.4 Process optional post build, pre-packaging tasks
 	if (Test-Path "$postbuild") {
 		Write-Host "`n[$scriptName] Process Post-Build Task ...`n"
-		& $AUTOMATIONROOT\remote\execute.ps1 $SOLUTION $BUILDNUMBER "package" "$postbuild" $ACTION
+		& "$AUTOMATIONROOT\remote\execute.ps1" $SOLUTION $BUILDNUMBER "package" "$postbuild" $ACTION
 		if(!$?){ exceptionExit ".$AUTOMATIONROOT\remote\execute.ps1 $SOLUTION $BUILDNUMBER `"package`" `"$postbuild`" $ACTION" }
 	}
 
@@ -671,7 +671,7 @@ if (( $containerBuild ) -and ( $ACTION -ne 'packageonly' )) {
 		Write-Host "`n[$scriptName] ACTION is $ACTION so skipping package process" -ForegroundColor Yellow
 	} else {
 		Write-Host
-		executeExpression "& $AUTOMATIONROOT\buildandpackage\package.ps1 $SOLUTION $BUILDNUMBER $REVISION $AUTOMATIONROOT $SOLUTIONROOT $LOCAL_WORK_DIR $REMOTE_WORK_DIR $ACTION"
+		executeExpression "& `"$AUTOMATIONROOT\buildandpackage\package.ps1`" $SOLUTION $BUILDNUMBER $REVISION `"$AUTOMATIONROOT`" `"$SOLUTIONROOT`" $LOCAL_WORK_DIR $REMOTE_WORK_DIR $ACTION"
 	}
 }
 	
