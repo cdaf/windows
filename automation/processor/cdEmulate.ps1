@@ -57,97 +57,81 @@ function failureExit ($taskName) {
 $scriptName = $MyInvocation.MyCommand.Name
 
 $ACTION = $args[0]
-Write-Host "[$scriptName]   ACTION              : $ACTION (coded options cionly, buildonly, packageonly or cdonly)"
-
-$AUTOMATIONROOT = $args[1]
 if ($AUTOMATIONROOT) {
-	Write-Host "[$scriptName]   AUTOMATIONROOT      : $AUTOMATIONROOT"
+	Write-Host "[$scriptName]   ACTION              : $ACTION (options cionly, buildonly, packageonly or cdonly)"
 } else {
-	$scriptPath = split-path -parent $MyInvocation.MyCommand.Definition
-	$AUTOMATIONROOT = split-path -parent $scriptPath
-	Write-Host "[$scriptName]   AUTOMATIONROOT      : $AUTOMATIONROOT (default)"
+	Write-Host "[$scriptName]   ACTION              : (not supplied, options cionly, buildonly, packageonly or cdonly)"
 }
-$env:CDAF_AUTOMATION_ROOT = $AUTOMATIONROOT
 
-$counterFile = "$env:USERPROFILE\buildnumber.counter"
+$counterFile = "$env:USERPROFILE\BUILDNUMBER.counter"
 # Use a simple text file ($counterFile) for incrimental build number, using the same logic as entry.ps1
 if ( Test-Path "$counterFile" ) {
-	$buildNumber = Get-Content "$counterFile"
+	$BUILDNUMBER = Get-Content "$counterFile"
 } else {
-	$buildNumber = 0
+	$BUILDNUMBER = 0
 }
-[int]$buildnumber = [convert]::ToInt32($buildNumber)
+[int]$BUILDNUMBER = [convert]::ToInt32($BUILDNUMBER)
 if ( $ACTION -ne "cdonly" ) { # Do not incriment when just deploying
-	$buildNumber += 1
+	$BUILDNUMBER += 1
 }
-Set-Content "$counterFile" "$buildNumber"
-Write-Host "[$scriptName]   buildNumber         : $buildNumber"
+Set-Content "$counterFile" "$BUILDNUMBER"
+Write-Host "[$scriptName]   BUILDNUMBER         : $BUILDNUMBER (auto incrimented from $env:USERPROFILE\BUILDNUMBER.counter)"
+
 if ( $env:CDAF_BRANCH_NAME ) {
-	$revision = $env:CDAF_BRANCH_NAME
+	$REVISION = $env:CDAF_BRANCH_NAME
 } else {
-	$revision = 'feature'
+	$REVISION = 'feature'
 }
-Write-Host "[$scriptName]   revision            : $revision"
-$release = 'emulation-release' 
-Write-Host "[$scriptName]   release             : $release"
+Write-Host "[$scriptName]   REVISION            : $REVISION"
+
+
+$scriptPath = split-path -parent $MyInvocation.MyCommand.Definition
+$AUTOMATIONROOT = split-path -parent $scriptPath
+Write-Host "[$scriptName]   AUTOMATIONROOT      : $AUTOMATIONROOT (default)"
+$CDAF_CORE = "$AUTOMATIONROOT\remote"
 
 # Check for user defined solution folder, i.e. outside of automation root, if found override solution root
-Write-Host "[$scriptName]   solutionRoot        : " -NoNewline
+Write-Host "[$scriptName]   SOLUTIONROOT        : " -NoNewline
 foreach ($item in (Get-ChildItem -Path ".")) {
 	if (Test-Path $item -PathType "Container") {
 		if (Test-Path "$item\CDAF.solution") {
-			$solutionRoot=$item
+			$SOLUTIONROOT=$item
 		}
 	}
 }
-if ($solutionRoot) {
-	write-host "$solutionRoot (override $solutionRoot\CDAF.solution found)"
+if ($SOLUTIONROOT) {
+	write-host "$SOLUTIONROOT (found $SOLUTIONROOT\CDAF.solution)"
 } else {
 	ERRMSG "[NO_SOLUTION_ROOT] No directory found containing CDAF.solution, please create a single occurrence of this file." 7611
 }
 
-# Check for customised CI process
-Write-Host "[$scriptName]   ciProcess           : " -NoNewline
-if (Test-Path "$solutionRoot\buildPackage.bat") {
-	$ciProcess="$solutionRoot\buildPackage.bat"
-	$ciInstruction="$solutionRoot/buildPackage.bat"
-	write-host "$ciProcess (override)"
+# Attempt solution name loading, error if not found
+try {
+	$SOLUTION=$(& "$CDAF_CORE\getProperty.ps1" "$SOLUTIONROOT\CDAF.solution" 'solutionName')
+	if(!$?){  }
+} catch {  }
+if ( $SOLUTION ) {
+	Write-Host "[$scriptName]   SOLUTION            : $SOLUTION (from ${SOLUTIONROOT}\CDAF.solution)"
 } else {
-	$ciProcess="$AUTOMATIONROOT\ci.bat"
-	$ciInstruction="$AUTOMATIONROOT\ci.bat"
-	write-host "$ciProcess (default)"
+	write-host "[$scriptName] Solution name (SOLUTION) not defined in ${SOLUTIONROOT}\CDAF.solution!" -ForegroundColor Red
+    write-host "[$scriptName]   Exit with `$LASTEXITCODE 1" -ForegroundColor Magenta
+    $host.SetShouldExit(1) # Returning exit code to DOS
+    exit
 }
-
-# Check for customised Delivery process
-Write-Host "[$scriptName]   cdProcess           : " -NoNewline
-if (Test-Path "$solutionRoot\delivery.bat") {
-	$cdProcess="$solutionRoot\delivery.bat"
-	write-host "$cdProcess (override)"
-} else {
-	$artifactPrefix=$(& $AUTOMATIONROOT\remote\getProperty.ps1 $solutionRoot\CDAF.solution 'artifactPrefix')
-	if ( $artifactPrefix ) {
-		$cdProcess = '.\release.ps1'
-	} else {
-		$cdProcess = "$AUTOMATIONROOT\processor\delivery.bat"
-		write-host "$cdProcess (default)"
-	}
-}
-# Packaging will ensure either the override or default delivery process is in the workspace root
-$cdInstruction="delivery.bat"
 
 # If environment variable over-rides all other determinations
-if ($CDAF_DELIVERY) { # check for DOS variable and load as PowerShell environment variable
-	$Env:CDAF_DELIVERY = "$CDAF_DELIVERY"
+if ( $CDAF_DELIVERY ) { # check for DOS variable and load as PowerShell environment variable
+	$env:CDAF_DELIVERY = "$CDAF_DELIVERY"
 } else {
-	$CDAF_DELIVERY = "$Env:CDAF_DELIVERY"
+	$CDAF_DELIVERY = "$env:CDAF_DELIVERY"
 }
-if ($CDAF_DELIVERY ) {
+if ( $CDAF_DELIVERY ) {
 	Write-Host "[$scriptName]   CDAF_DELIVERY       : $CDAF_DELIVERY (loaded from `$Env:CDAF_DELIVERY)"
 } else {
 	# Check for customised Delivery environment process
-	if (Test-Path "$solutionRoot\deliveryEnv.ps1") {
-		$CDAF_DELIVERY = $(& $solutionRoot\deliveryEnv.ps1 $AUTOMATIONROOT $solutionRoot)
-		Write-Host "[$scriptName]   CDAF_DELIVERY       : $CDAF_DELIVERY (from $solutionRoot\deliveryEnv.ps1)"
+	if ( Test-Path "$SOLUTIONROOT\deliveryEnv.ps1" ) {
+		$CDAF_DELIVERY = $(& "$SOLUTIONROOT\deliveryEnv.ps1" "$AUTOMATIONROOT" "$SOLUTIONROOT")
+		Write-Host "[$scriptName]   CDAF_DELIVERY       : $CDAF_DELIVERY (from $SOLUTIONROOT\deliveryEnv.ps1)"
 	} else {
 		# Set default depending on domain membership
 		if ((gwmi win32_computersystem).partofdomain -eq $true) {
@@ -159,19 +143,37 @@ if ($CDAF_DELIVERY ) {
 	}
 }
 
-# Attempt solution name loading, error is not found
-try {
-	$solutionName=$(& $AUTOMATIONROOT\remote\getProperty.ps1 $solutionRoot\CDAF.solution 'solutionName')
-	if(!$?){  }
-} catch {  }
-if ( $solutionName ) {
-	Write-Host "[$scriptName]   solutionName        : $solutionName (from ${solutionRoot}\CDAF.solution)"
+# Check for customised CI process
+Write-Host "[$scriptName]   ciProcess           : " -NoNewline
+if ( Test-Path "$SOLUTIONROOT\buildPackage.bat" ) {
+	$ciProcess="$SOLUTIONROOT\buildPackage.bat"
+	$ciInstruction="$SOLUTIONROOT/buildPackage.bat"
+	write-host "$ciProcess (override)"
 } else {
-	write-host "[$scriptName] Solution name (solutionName) not defined in ${solutionRoot}\CDAF.solution!" -ForegroundColor Red
-    write-host "[$scriptName]   Exit with `$LASTEXITCODE 1" -ForegroundColor Magenta
-    $host.SetShouldExit(1) # Returning exit code to DOS
-    exit
+	$ciProcess="$AUTOMATIONROOT\ci.bat"
+	$ciInstruction="$AUTOMATIONROOT\ci.bat"
+	write-host "$ciProcess (default)"
 }
+
+# Check for customised Delivery process
+Write-Host "[$scriptName]   cdProcess           : " -NoNewline
+if ( Test-Path "$SOLUTIONROOT\delivery.bat" ) {
+	$cdProcess="$SOLUTIONROOT\delivery.bat"
+	write-host "$cdProcess (override)"
+} else {
+	$artifactPrefix=$(& "$CDAF_CORE\getProperty.ps1" "$SOLUTIONROOT\CDAF.solution" 'artifactPrefix')
+	if ( $artifactPrefix ) {
+		$cdProcess = '.\release.ps1'
+	} else {
+		$cdProcess = "$AUTOMATIONROOT\processor\delivery.bat"
+	}
+	write-host "$cdProcess (default)"
+}
+# Packaging will ensure either the override or default delivery process is in the workspace root
+$cdInstruction="delivery.bat"
+
+$release = 'emulation-release' 
+Write-Host "[$scriptName]   release             : $release"
 	
 $workDirLocal = 'TasksLocal'
 Write-Host "[$scriptName]   workDirLocal        : $workDirLocal (default, see readme for changing this location)"
@@ -184,23 +186,23 @@ if ( $ACTION -eq "cdonly" ) { # Case insensitive
 	Write-Host "[$scriptName] Action is $ACTION so skipping build and package (CI) process"
 } else {
 	if ( $ACTION ) { # $AUTOMATIONROOT can only be passed if $ACTION is also passed, don't try to pass when not set
-		& $ciProcess $buildNumber $revision $ACTION $solutionName $AUTOMATIONROOT
+		& "$ciProcess" "$BUILDNUMBER" "$REVISION" "$ACTION"
 		if($LASTEXITCODE -ne 0){
-		    write-host "[$scriptName] CI_NON_ZERO_EXIT $ciProcess $buildNumber $revision $ACTION $solutionName $AUTOMATIONROOT" -ForegroundColor Magenta
+		    write-host "[$scriptName] CI_NON_ZERO_EXIT $ciProcess $BUILDNUMBER $REVISION $ACTION" -ForegroundColor Magenta
 		    write-host "[$scriptName]   `$host.SetShouldExit($LASTEXITCODE)" -ForegroundColor Red
 		    $host.SetShouldExit($LASTEXITCODE) # Returning exit code to DOS
 		    exit
 		}
-		if(!$?){ failureExit "$ciProcess $buildNumber $revision $ACTION $solutionName $AUTOMATIONROOT" }
+		if(!$?){ failureExit "$ciProcess $BUILDNUMBER $REVISION $ACTION" }
 	} else {
-		& $ciProcess $buildNumber $revision
+		& $ciProcess $BUILDNUMBER $REVISION
 		if($LASTEXITCODE -ne 0){
-		    write-host "[$scriptName] CI_NON_ZERO_EXIT $ciProcess $buildNumber $revision" -ForegroundColor Magenta
+		    write-host "[$scriptName] CI_NON_ZERO_EXIT $ciProcess $BUILDNUMBER $REVISION" -ForegroundColor Magenta
 		    write-host "[$scriptName]   `$host.SetShouldExit($LASTEXITCODE)" -ForegroundColor Red
 		    $host.SetShouldExit($LASTEXITCODE) # Returning exit code to DOS
 		    exit
 		}
-		if(!$?){ failureExit "$ciProcess $buildNumber $revision" }
+		if(!$?){ failureExit "$ciProcess $BUILDNUMBER $REVISION" }
 	}
 }
 	
@@ -216,7 +218,7 @@ if ( $ACTION ) {
 }
 
 if ( $execCD -eq 'yes' ) {
-	& $cdProcess $CDAF_DELIVERY $release
+	& "$cdProcess" "$CDAF_DELIVERY" "$release"
 	if($LASTEXITCODE -ne 0){
 	    write-host "[$scriptName] CD_NON_ZERO_EXIT $cdProcess $CDAF_DELIVERY $release" -ForegroundColor Magenta
 	    write-host "[$scriptName]   `$host.SetShouldExit($LASTEXITCODE)" -ForegroundColor Red

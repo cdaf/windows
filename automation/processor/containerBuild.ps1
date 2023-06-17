@@ -86,16 +86,16 @@ if ( $imageName ) {
 }
 
 if ( Test-Path ".\automation" ) {
-	if ( (Get-Item $env:CDAF_AUTOMATION_ROOT).FullName -ne "$($(pwd).Path)\automation" ) {
+	if ( (Get-Item AUTOMATIONROOT).FullName -ne "$($(pwd).Path)\automation" ) {
 		Write-Host "`n[$scriptName] Refreshing working copy of CDAF in root of workspace..."
 		executeExpression "  Remove-Item -Recurse .\automation"
-		executeExpression "  Copy-Item -Recurse -Force $env:CDAF_AUTOMATION_ROOT .\automation"
+		executeExpression "  Copy-Item -Recurse -Force AUTOMATIONROOT .\automation"
 		$cleanupCDAF = 'yes'
 	}
 } else {
-	if ( ((Get-Item $env:CDAF_AUTOMATION_ROOT).Parent).FullName -ne $(pwd).Path ) {
+	if ( ((Get-Item AUTOMATIONROOT).Parent).FullName -ne $(pwd).Path ) {
 		Write-Host "`n[$scriptName] Create copy of CDAF in root of workspace..."
-		executeExpression "  Copy-Item -Recurse -Force $env:CDAF_AUTOMATION_ROOT .\automation"
+		executeExpression "  Copy-Item -Recurse -Force AUTOMATIONROOT .\automation"
 		$cleanupCDAF = 'yes'
 	}
 }
@@ -131,10 +131,10 @@ if ( $buildImage ) {
 		$otherOptions += " -optionalArgs '$buildArgs'"
 	}
 
-	executeExpression "$env:CDAF_AUTOMATION_ROOT/remote/dockerBuild.ps1 ${buildImage} $($imageTag + 1) $otherOptions"
+	executeExpression "AUTOMATIONROOT/remote/dockerBuild.ps1 ${buildImage} $($imageTag + 1) $otherOptions"
 	
 	# Remove any older images	
-	executeExpression "$env:CDAF_AUTOMATION_ROOT/remote/dockerClean.ps1 ${buildImage} $($imageTag + 1)"
+	executeExpression "AUTOMATIONROOT/remote/dockerClean.ps1 ${buildImage} $($imageTag + 1)"
 	
 	if ( $rebuildImage -ne 'imageonly') {
 		# Retrieve the latest image number

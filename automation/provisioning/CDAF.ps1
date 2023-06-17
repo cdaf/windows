@@ -67,7 +67,7 @@ if ($action) {
 }
 
 if ($env:CDAF_AUTOMATION_ROOT) {
-	Write-Host "[$scriptName] CDAF_AUTOMATION_ROOT : $env:CDAF_AUTOMATION_ROOT"
+	Write-Host "[$scriptName] CDAF_AUTOMATION_ROOT : $env:CDAF_AUTOMATION_ROOT (using environment variable"
 } else {
 	$env:CDAF_AUTOMATION_ROOT = '.\automation'
 	Write-Host "[$scriptName] CDAF_AUTOMATION_ROOT : $env:CDAF_AUTOMATION_ROOT (default)"

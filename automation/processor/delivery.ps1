@@ -15,7 +15,6 @@ Import-Module Microsoft.PowerShell.Security
 # Initialise
 cmd /c "exit 0"
 $Error.clear()
-$env:CDAF_AUTOMATION_ROOT = ''
 $scriptName = 'delivery.ps1'
 
 # Consolidated Error processing function
@@ -188,8 +187,7 @@ if ( $WORK_DIR_DEFAULT ) {
 }
 
 $CDAF_CORE = "$(pwd)\$WORK_DIR_DEFAULT"
-$env:CDAF_CORE = $CDAF_CORE
-Write-Host "[$scriptName]   CDAF_CORE        : $env:CDAF_CORE"
+Write-Host "[$scriptName]   CDAF_CORE        : $CDAF_CORE"
 
 if ( Test-Path $WORK_DIR_DEFAULT ) {
 	$WORK_DIR_DEFAULT = (Get-Item $WORK_DIR_DEFAULT).FullName

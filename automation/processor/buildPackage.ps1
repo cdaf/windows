@@ -207,29 +207,6 @@ function pvProperties {
 	}
 }
 
-# Load automation root out of sequence as needed for solution root derivation
-if (!($AUTOMATIONROOT)) {
-	$scriptPath = split-path -parent $MyInvocation.MyCommand.Definition
-	$AUTOMATIONROOT = split-path -parent $scriptPath
-}
-
-# Check for user defined solution folder, i.e. outside of automation root, if found override solution root
-Write-Host "[$scriptName]   SOLUTIONROOT    : " -NoNewline
-foreach ($item in (Get-ChildItem -Path ".")) {
-	if (Test-Path $item -PathType "Container") {
-		if (Test-Path "$item\CDAF.solution") {
-			$SOLUTIONROOT = $item
-		}
-	}
-}
-if ($SOLUTIONROOT) {
-	write-host "$SOLUTIONROOT (override $SOLUTIONROOT\CDAF.solution found)"
-} else {
-	exitWithCode "No directory found containing CDAF.solution, please create a single occurance of this file." 7612
-}
-$SOLUTIONROOT = (Get-Item $SOLUTIONROOT).FullName
-$env:SOLUTIONROOT = $SOLUTIONROOT
-
 if ( $BUILDNUMBER ) {
 	Write-Host "[$scriptName]   BUILDNUMBER     : $BUILDNUMBER"
 } else { 
@@ -274,23 +251,6 @@ if ($REVISION) {
 
 Write-Host "[$scriptName]   ACTION          : $ACTION"
 
-if ($SOLUTION) {
-	Write-Host "[$scriptName]   SOLUTION        : $SOLUTION"
-} else {
-	$SOLUTION = getProp 'solutionName' "$SOLUTIONROOT\CDAF.solution"
-	if ($SOLUTION) {
-		Write-Host "[$scriptName]   SOLUTION        : $SOLUTION (from `$SOLUTIONROOT\CDAF.solution)"
-	} else {
-		exitWithCode "SOLUTION_NOT_FOUND Solution not supplied and unable to derive from $SOLUTIONROOT\CDAF.solution" 22
-	}
-}
-
-# Load automation root as environment variable
-$env:CDAF_AUTOMATION_ROOT = $AUTOMATIONROOT
-$CDAF_CORE = "${AUTOMATIONROOT}/remote"
-$env:CDAF_CORE = $CDAF_CORE
-Write-Host "[$scriptName]   AUTOMATIONROOT  : $AUTOMATIONROOT" 
-
 # Arguments out of order, as automation root processed first
 if ( $LOCAL_WORK_DIR ) {
 	Write-Host "[$scriptName]   LOCAL_WORK_DIR  : $LOCAL_WORK_DIR"
@@ -304,6 +264,37 @@ if ( $REMOTE_WORK_DIR ) {
 } else {
 	$REMOTE_WORK_DIR = 'TasksRemote'
 	Write-Host "[$scriptName]   REMOTE_WORK_DIR : $REMOTE_WORK_DIR (default)"
+}
+
+$scriptPath = split-path -parent $MyInvocation.MyCommand.Definition
+$AUTOMATIONROOT = split-path -parent $scriptPath
+Write-Host "[$scriptName]   AUTOMATIONROOT  : $AUTOMATIONROOT"
+$CDAF_CORE = "${AUTOMATIONROOT}/remote"
+
+# Check for user defined solution folder, i.e. outside of automation root, if found override solution root
+Write-Host "[$scriptName]   SOLUTIONROOT    : " -NoNewline
+foreach ($item in (Get-ChildItem -Path ".")) {
+	if (Test-Path $item -PathType "Container") {
+		if (Test-Path "$item\CDAF.solution") {
+			$SOLUTIONROOT = $item
+		}
+	}
+}
+if ( $SOLUTIONROOT ) {
+	$SOLUTIONROOT = (Get-Item $SOLUTIONROOT).FullName
+	write-host "$SOLUTIONROOT (from CDAF.solution)"
+} else {
+	exitWithCode "No directory found containing CDAF.solution, please create a single occurance of this file." 7612
+}
+if ($SOLUTION) {
+	Write-Host "[$scriptName]   SOLUTION        : $SOLUTION"
+} else {
+	$SOLUTION = getProp 'solutionName' "$SOLUTIONROOT\CDAF.solution"
+	if ($SOLUTION) {
+		Write-Host "[$scriptName]   SOLUTION        : $SOLUTION (found `$SOLUTIONROOT\CDAF.solution)"
+	} else {
+		exitWithCode "SOLUTION_NOT_FOUND Solution not supplied and unable to derive from $SOLUTIONROOT\CDAF.solution" 22
+	}
 }
 
 # Runtime information

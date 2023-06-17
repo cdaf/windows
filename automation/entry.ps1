@@ -271,8 +271,6 @@ if ($AUTOMATIONROOT) {
 	$AUTOMATIONROOT = split-path -parent $MyInvocation.MyCommand.Definition
     Write-Host "[$scriptName]   AUTOMATIONROOT : $AUTOMATIONROOT (not supplied, derived from invocation)"
 }
-$env:CDAF_AUTOMATION_ROOT = $AUTOMATIONROOT
-
 
 # Check for user defined solution folder, i.e. outside of automation root, if found override solution root
 Write-Host "[$scriptName]   SOLUTIONROOT   : " -NoNewline
@@ -291,8 +289,8 @@ if ($SOLUTIONROOT) {
 }
 $SOLUTIONROOT = (Get-Item $SOLUTIONROOT).FullName
 
-$automationHelper = "$AUTOMATIONROOT\remote"
-& $automationHelper\Transform.ps1 "$SOLUTIONROOT\CDAF.solution" | ForEach-Object { invoke-expression "$_" }
+$CDAF_CORE = "$AUTOMATIONROOT\remote"
+& "$CDAF_CORE\Transform.ps1" "$SOLUTIONROOT\CDAF.solution" | ForEach-Object { invoke-expression "$_" }
 
 # check for DOS variable and load as PowerShell environment variable
 if ($CDAF_DELIVERY) { $environment = "$CDAF_DELIVERY" }
@@ -330,7 +328,26 @@ Write-Host "[$scriptName]   pwd            : $workspace"
 Write-Host "[$scriptName]   hostname       : $(hostname)" 
 Write-Host "[$scriptName]   whoami         : $(whoami)`n"
 
-executeExpression "$AUTOMATIONROOT\processor\buildPackage.ps1 '$BUILDNUMBER' '$BRANCH' '$ACTION' -AUTOMATIONROOT '$AUTOMATIONROOT'"
+# Check for customised CI process
+Write-Host "[$scriptName]   ciProcess      : " -NoNewline
+if ( Test-Path "$SOLUTIONROOT\buildPackage.bat" ) {
+	$ciProcess="$SOLUTIONROOT\buildPackage.bat"
+	$ciInstruction="$SOLUTIONROOT/buildPackage.bat"
+	write-host "$ciProcess (override)"
+} else {
+	$ciProcess="$AUTOMATIONROOT\ci.bat"
+	$ciInstruction="$AUTOMATIONROOT\ci.bat"
+	write-host "$ciProcess (default)"
+}
+
+& "$ciProcess" "$BUILDNUMBER" "$BRANCH" "$ACTION"
+if($LASTEXITCODE -ne 0){
+	write-host "[$scriptName] CI_NON_ZERO_EXIT $ciProcess $BUILDNUMBER $BRANCH $ACTION" -ForegroundColor Magenta
+	write-host "[$scriptName]   `$host.SetShouldExit($LASTEXITCODE)" -ForegroundColor Red
+	$host.SetShouldExit($LASTEXITCODE) # Returning exit code to DOS
+	exit
+}
+if(!$?){ failureExit "$ciProcess $BUILDNUMBER $REVISION $ACTION" }
 
 if ( $BRANCH -eq $defaultBranch ) {
 	Write-Host "[$scriptName] Only perform container test in CI for branches, $defaultBranch execution in CD pipeline"
