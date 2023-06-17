@@ -4,6 +4,7 @@ artifactPrefix=0.0
 
 containerBuild=& ${AUTOMATIONROOT}/processor/containerBuild.ps1 $SOLUTION $BUILDNUMBER $REVISION $ACTION
 containerImage=cdaf/windows
+CDAF_DOCKER_REQUIRED=yes
 
 packageFeatures=minimal
 

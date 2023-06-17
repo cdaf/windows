@@ -3,3 +3,4 @@ solutionName=container-build-minimal
 artifactPrefix=0.0
 
 containerImage=cdaf/windows
+CDAF_DOCKER_REQUIRED=yes

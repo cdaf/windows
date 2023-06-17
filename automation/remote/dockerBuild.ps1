@@ -102,7 +102,7 @@ if ( $optionalArgs ) {
 # 2.6.0 Image from Private Registry
 $manifest = "${env:WORKSPACE}\manifest.txt"
 if ( ! ( Test-Path ${manifest} )) {
-	$manifest = "${env:SOLUTIONROOT}\CDAF.solution"
+	$manifest = "${SOLUTIONROOT}\CDAF.solution"
 	if ( ! ( Test-Path ${manifest} )) {
 		Write-Host "[$scriptName] Properties not found in ${env:WORKSPACE}\manifest.txt or ${manifest}!"
 		exit 1114
@@ -122,12 +122,12 @@ if ( $baseImage ) {
 	} else {
 
 		# If an explicit image is not defined, perform implicit cascading load
-		$baseImage = & "${env:CDAF_CORE}\getProperty.ps1" "${manifest}" "runtimeImage"
+		$baseImage = & "${CDAF_CORE}\getProperty.ps1" "${manifest}" "runtimeImage"
 		if ( $baseImage ) { $baseImage = Invoke-Expression "Write-Output $baseImage" }
 		if ( $baseImage ) {
 		    Write-Host "[$scriptName] baseImage                : $baseImage (not supplied, using runtimeImage property)"
 		} else {
-			$baseImage = & "${env:CDAF_CORE}\getProperty.ps1" "${manifest}" "containerImage"
+			$baseImage = & "${CDAF_CORE}\getProperty.ps1" "${manifest}" "containerImage"
 			if ( $baseImage ) { $baseImage = Invoke-Expression "Write-Output $baseImage" }
 			if ( $baseImage ) {
 			    Write-Host "[$scriptName] baseImage                : $baseImage (not supplied, using containerImage property)"
@@ -142,7 +142,7 @@ if ( $env:CDAF_PULL_REGISTRY_URL ) {
 	$registryPullURL = "$env:CDAF_PULL_REGISTRY_URL"
     Write-Host "[$scriptName] CDAF_PULL_REGISTRY_URL   : $registryPullURL (loaded from environment variable)"
 } else {
-	$registryPullURL = & "${env:CDAF_CORE}\getProperty.ps1" "${manifest}" "CDAF_PULL_REGISTRY_URL"
+	$registryPullURL = & "${CDAF_CORE}\getProperty.ps1" "${manifest}" "CDAF_PULL_REGISTRY_URL"
 	if ( $registryPullURL ) { $registryPullURL = Invoke-Expression "Write-Output $registryPullURL" }
 	if ( $registryPullURL ) {
 	    Write-Host "[$scriptName] CDAF_PULL_REGISTRY_URL   : $registryPullURL (loaded from manifest.txt)"
@@ -155,7 +155,7 @@ if ( $env:CDAF_PULL_REGISTRY_USER ) {
 	$registryPullUser = "$env:CDAF_PULL_REGISTRY_USER"
     Write-Host "[$scriptName] CDAF_PULL_REGISTRY_USER  : $registryPullUser (loaded from environment variable)"
 } else {
-	$registryPullUser = & "${env:CDAF_CORE}\getProperty.ps1" "${manifest}" "CDAF_PULL_REGISTRY_USER"
+	$registryPullUser = & "${CDAF_CORE}\getProperty.ps1" "${manifest}" "CDAF_PULL_REGISTRY_USER"
 	if ( $registryPullUser ) { $registryPullUser = Invoke-Expression "Write-Output $registryPullUser" }
 	if ( $registryPullUser ) {
 	    Write-Host "[$scriptName] CDAF_PULL_REGISTRY_USER  : $registryPullUser (loaded from manifest.txt)"
@@ -169,7 +169,7 @@ if ( $env:CDAF_PULL_REGISTRY_TOKEN ) {
 	$registryPullToken = "$env:CDAF_PULL_REGISTRY_TOKEN"
     Write-Host "[$scriptName] CDAF_PULL_REGISTRY_TOKEN : $(MASKED $registryPullToken) (loaded from environment variable)"
 } else {	
-	$registryPullToken = & "${env:CDAF_CORE}\getProperty.ps1" "${manifest}" "CDAF_PULL_REGISTRY_TOKEN"
+	$registryPullToken = & "${CDAF_CORE}\getProperty.ps1" "${manifest}" "CDAF_PULL_REGISTRY_TOKEN"
 	if ( $registryPullToken ) { $registryPullToken = Invoke-Expression "Write-Output $registryPullToken" }
 	if ( $registryPullToken ) {
 	    Write-Host "[$scriptName] CDAF_PULL_REGISTRY_TOKEN : $(MASKED $registryPullToken) (loaded from manifest.txt)"
@@ -182,7 +182,7 @@ if ( $env:CDAF_SKIP_PULL ) {
 	$skipPull = "$env:CDAF_SKIP_PULL"
     Write-Host "[$scriptName] CDAF_SKIP_PULL           : $skipPull (loaded from environment variable)"
 } else {	
-	$skipPull = & "${env:CDAF_CORE}\getProperty.ps1" "${manifest}" "CDAF_SKIP_PULL"
+	$skipPull = & "${CDAF_CORE}\getProperty.ps1" "${manifest}" "CDAF_SKIP_PULL"
 	if ( $skipPull ) { $skipPull = Invoke-Expression "Write-Output $skipPull" }
 	if ( $skipPull ) {
 	    Write-Host "[$scriptName] CDAF_SKIP_PULL           : $skipPull (loaded from manifest.txt)"

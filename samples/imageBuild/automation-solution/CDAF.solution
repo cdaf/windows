@@ -2,6 +2,7 @@ solutionName=imagebuild-minimal
 artifactPrefix=0.1
 
 buildImage=cdaf/windows
+CDAF_DOCKER_REQUIRED=yes
 
 # Base Image from Private Registry
 # CDAF_PULL_REGISTRY_URL=registry.gitlab.com

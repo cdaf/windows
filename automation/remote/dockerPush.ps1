@@ -55,7 +55,7 @@ Write-Host "`n[$scriptName] ---------- start ----------"
 # 2.6.0 Push Private Registry
 $manifest = "${env:WORKSPACE}\manifest.txt"
 if ( ! ( Test-Path ${manifest} )) {
-	$manifest = "${env:SOLUTIONROOT}\CDAF.solution"
+	$manifest = "${SOLUTIONROOT}\CDAF.solution"
 	if ( ! ( Test-Path ${manifest} )) {
 		Write-Host "[$scriptName] Properties not found in ${env:WORKSPACE}\manifest.txt or ${manifest}!"
 		exit 5343
@@ -82,7 +82,7 @@ if ( $registryTags ) {
 		$imageTag = "$env:CDAF_PUSH_REGISTRY_TAG"
 	    Write-Host "[$scriptName]   registryTags        : $registryTags (loaded from environment variable CDAF_PUSH_REGISTRY_TAG, supports space separated lis)`n"
 	} else {
-		$registryTags = & "${env:CDAF_CORE}\getProperty.ps1" "${manifest}" "CDAF_PUSH_REGISTRY_TAG"
+		$registryTags = & "${CDAF_CORE}\getProperty.ps1" "${manifest}" "CDAF_PUSH_REGISTRY_TAG"
 		if ( $registryTags ) { $registryTags = Invoke-Expression "Write-Output $registryTags" }
 		if ( $registryTags ) {
 			Write-Host "[$scriptName]   registryTags        : $registryTags"
@@ -101,7 +101,7 @@ if ( $registryToken ) {
 		$registryToken = "$env:CDAF_PUSH_REGISTRY_TOKEN"
 	    Write-Host "[$scriptName]   registryToken   : $(MASKED $registryToken) (loaded from environment variable)"
 	} else {
-		$registryToken = & "${env:CDAF_CORE}\getProperty.ps1" "${manifest}" "CDAF_PUSH_REGISTRY_TOKEN"
+		$registryToken = & "${CDAF_CORE}\getProperty.ps1" "${manifest}" "CDAF_PUSH_REGISTRY_TOKEN"
 		if ( $registryToken ) { $registryToken = Invoke-Expression "Write-Output $registryToken" }
 		if ( $registryToken ) {
 		    Write-Host "[$scriptName]   registryToken   : $(MASKED $registryToken) (loaded from manifest.txt)"
@@ -118,7 +118,7 @@ if ( $registryUser ) {
 		$registryUser = "$env:CDAF_PUSH_REGISTRY_USER"
 	    Write-Host "[$scriptName]   registryUser    : $registryUser (loaded from environment variable)"
 	} else {
-		$registryUser = & "${env:CDAF_CORE}\getProperty.ps1" "${manifest}" "CDAF_PUSH_REGISTRY_USER"
+		$registryUser = & "${CDAF_CORE}\getProperty.ps1" "${manifest}" "CDAF_PUSH_REGISTRY_USER"
 		if ( $registryUser ) { $registryUser = Invoke-Expression "Write-Output $registryUser" }
 		if ( $registryUser ) {
 		    Write-Host "[$scriptName]   registryUser    : $registryUser (loaded from manifest.txt)"
@@ -136,7 +136,7 @@ if ( $registryURL ) {
 		$registryURL = $env:CDAF_PUSH_REGISTRY_URL
 	    Write-Host "[$scriptName]   registryURL     : $registryURL (loaded from environment variable)"
 	} else {	
-		$registryURL = & "${env:CDAF_CORE}\getProperty.ps1" "${manifest}" "CDAF_PUSH_REGISTRY_URL"
+		$registryURL = & "${CDAF_CORE}\getProperty.ps1" "${manifest}" "CDAF_PUSH_REGISTRY_URL"
 		if ( $registryURL ) { $registryURL = Invoke-Expression "Write-Output $registryURL" }
 		if ( $registryURL ) {
 		    Write-Host "[$scriptName]   registryURL     : $registryURL (loaded from manifest.txt)"
