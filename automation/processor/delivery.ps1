@@ -191,7 +191,7 @@ if ( Test-Path $WORK_DIR_DEFAULT ) {
     $host.SetShouldExit(52); exit
 }
 
-$CDAF_CORE = "$(pwd)\$WORK_DIR_DEFAULT"
+$CDAF_CORE = "$WORK_DIR_DEFAULT"
 Write-Host "[$scriptName]   CDAF_CORE        : $CDAF_CORE"
 
 $propertiesFile = "$WORK_DIR_DEFAULT\manifest.txt"

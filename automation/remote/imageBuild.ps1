@@ -296,18 +296,18 @@ if (!( $id )) {
 
 			if ( $optionalArgs ) {
 				if ( $baseImage ) {
-					executeExpression "${CDAF_CORE}/dockerBuild.ps1 ${id}_${image} $BUILDNUMBER -optionalArgs '${optionalArgs}' -baseImage '$baseImage'"
+					executeExpression "& '${CDAF_CORE}\dockerBuild.ps1' ${id}_${image} $BUILDNUMBER -optionalArgs '${optionalArgs}' -baseImage '$baseImage'"
 				} else {
-					executeExpression "${CDAF_CORE}/dockerBuild.ps1 ${id}_${image} $BUILDNUMBER -optionalArgs '${optionalArgs}'"
+					executeExpression "& '${CDAF_CORE}\dockerBuild.ps1' ${id}_${image} $BUILDNUMBER -optionalArgs '${optionalArgs}'"
 				}
 			} else {
 				if ( $baseImage ) {
-					executeExpression "${CDAF_CORE}/dockerBuild.ps1 ${id}_${image} $BUILDNUMBER -baseImage '$baseImage'"
+					executeExpression "& '${CDAF_CORE}\dockerBuild.ps1' ${id}_${image} $BUILDNUMBER -baseImage '$baseImage'"
 				} else {
-					executeExpression "${CDAF_CORE}/dockerBuild.ps1 ${id}_${image} $BUILDNUMBER"
+					executeExpression "& '${CDAF_CORE}\dockerBuild.ps1' ${id}_${image} $BUILDNUMBER"
 				}
 			}
-			executeExpression "cd $workspace"
+			executeExpression "cd '$workspace'"
 		}
 
 		$pushFeatureBranch = & "${CDAF_CORE}\getProperty.ps1" "${manifest}" "pushFeatureBranch"
