@@ -80,7 +80,7 @@ Write-Host "[$scriptName]   BUILDNUMBER         : $BUILDNUMBER (auto incrimented
 if ( $env:CDAF_BRANCH_NAME ) {
 	$REVISION = $env:CDAF_BRANCH_NAME
 } else {
-	$REVISION = 'feature'
+	$REVISION = 'release'
 }
 Write-Host "[$scriptName]   REVISION            : $REVISION"
 
@@ -172,12 +172,6 @@ if ( Test-Path "$SOLUTIONROOT\delivery.bat" ) {
 # Packaging will ensure either the override or default delivery process is in the workspace root
 $cdInstruction="delivery.bat"
 
-$release = 'emulation-release' 
-Write-Host "[$scriptName]   release             : $release"
-	
-$workDirLocal = 'TasksLocal'
-Write-Host "[$scriptName]   workDirLocal        : $workDirLocal (default, see readme for changing this location)"
-
 if ( $ACTION ) { # Do not list configuration instructions when an action is passed
 	write-host "`n[$scriptName] Action is $ACTION" -ForegroundColor "Blue"
 }
@@ -218,14 +212,14 @@ if ( $ACTION ) {
 }
 
 if ( $execCD -eq 'yes' ) {
-	& "$cdProcess" "$CDAF_DELIVERY" "$release"
+	& "$cdProcess" "$CDAF_DELIVERY"
 	if($LASTEXITCODE -ne 0){
-	    write-host "[$scriptName] CD_NON_ZERO_EXIT $cdProcess $CDAF_DELIVERY $release" -ForegroundColor Magenta
+	    write-host "[$scriptName] CD_NON_ZERO_EXIT $cdProcess $CDAF_DELIVERY" -ForegroundColor Magenta
 	    write-host "[$scriptName]   `$host.SetShouldExit($LASTEXITCODE)" -ForegroundColor Red
 	    $host.SetShouldExit($LASTEXITCODE) # Returning exit code to DOS
 	    exit
 	}
-	if(!$?){ failureExit "$cdProcess $CDAF_DELIVERY $release" }
+	if(!$?){ failureExit "$cdProcess $CDAF_DELIVERY" }
 }
 
 write-host "`n[$scriptName] ------------------"

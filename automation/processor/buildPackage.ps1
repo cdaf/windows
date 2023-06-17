@@ -346,7 +346,7 @@ if ( $ACTION -ne 'container_build' ) {
 	}
 
 	# added in release 1.7.8, extended to list in 1.8.11, moved from build to pre-process 1.8.14), added container tasks 2.4.0
-	Write-Host "`n[$scriptName] Clean Workspace"
+	Write-Host "`n[$scriptName] Remove Build Process Temporary files and directories"
 	$itemList = @("manifest.txt", "propertiesForLocalTasks", "propertiesForRemoteTasks", "propertiesForContainerTasks")
 	foreach ($itemName in $itemList) {  
 		itemRemove ".\${itemName}"
