@@ -3,6 +3,7 @@ artifactPrefix=0.1
 
 runtimeImage=mcr.microsoft.com/windows/servercore:ltsc2019
 imageBuild=& $AUTOMATIONROOT/remote/imageBuild.ps1 ${SOLUTION}_${REVISION} ${BUILDNUMBER} ${buildImage} ${LOCAL_WORK_DIR}
+CDAF_DOCKER_REQUIRED=yes
 
 # Base Image from Private Registry
 # CDAF_PULL_REGISTRY_URL=registry.gitlab.com

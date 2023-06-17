@@ -15,7 +15,7 @@ echo [%~nx0]   URL         : %URL%
 rem Launcher script that overides execution policy
 rem cannot elevate powershell
 
-call powershell -NoProfile -NonInteractive -ExecutionPolicy ByPass -command %cd%\%WORK_DIR_DEFAULT%\automation\local\push.ps1 %PACKAGE_LOC% %KEY_FILE% %URL%
+call powershell -NoProfile -NonInteractive -ExecutionPolicy ByPass -command "& '%cd%\%WORK_DIR_DEFAULT%\automation\local\push.ps1' %PACKAGE_LOC% %KEY_FILE% %URL%
 set result=%errorlevel%
 if %result% NEQ 0 (
 	echo.

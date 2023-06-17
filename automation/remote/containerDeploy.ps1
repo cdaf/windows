@@ -102,8 +102,10 @@ $env:WORKSPACE = (Get-Location).Path
 Write-Host "[$scriptName] pwd         : ${env:WORKSPACE}`n"
 
 # 2.6.1 Prepare the image build directory and Dockerfile
-if (!( Test-Path $imageDir )) {
-	Write-Host "`n[$scriptName] $imageDir does not exist, creating $(mkdir $imageDir), with default Dockerfile`n"
+if ( Test-Path $imageDir ) {
+	Write-Host "`n[$scriptName] $imageDir exists, perform customer image build...`n"
+} else {
+	Write-Host "`n[$scriptName] $imageDir does not exist, creating $(mkdir $imageDir), with default Dockerfile...`n"
 
 	Set-Content "${imageDir}/Dockerfile" '# DOCKER-VERSION 1.2.0'
 	Add-Content "${imageDir}/Dockerfile" 'ARG CONTAINER_IMAGE'
@@ -140,10 +142,10 @@ executeExpression "cd $imageDir"
 
 Write-Host "`n[$scriptName] Remove any remaining deploy containers from previous (failed) deployments"
 $id = "${SOLUTION}_${REVISION}_containerdeploy".ToLower()
-executeExpression "${env:WORKSPACE}/dockerRun.ps1 ${id}"
+executeExpression "& '${env:WORKSPACE}/dockerRun.ps1' ${id}"
 $env:CDAF_CD_ENVIRONMENT = $TARGET
-executeExpression "${env:WORKSPACE}/dockerBuild.ps1 ${id} ${BUILDNUMBER}"
-executeExpression "${env:WORKSPACE}/dockerClean.ps1 ${id} ${BUILDNUMBER}"
+executeExpression "& '${env:WORKSPACE}/dockerBuild.ps1' ${id} ${BUILDNUMBER}"
+executeExpression "& '${env:WORKSPACE}/dockerClean.ps1' ${id} ${BUILDNUMBER}"
 
 Write-Host "[$scriptName] Perform Remote Deployment activity using image ${id}:${BUILDNUMBER}"
 foreach ( $envVar in Get-ChildItem env:) {
@@ -164,10 +166,10 @@ if (( ! ${env:USERPROFILE} ) -or ( ${env:CDAF_HOME_MOUNT} -eq 'no' )) {
 	Write-Host "[$scriptName] `${env:USERPROFILE}     = ${env:USERPROFILE}"
 	executeExpression "docker run ${buildCommand} --label cdaf.${id}.container.instance=${REVISION} --name ${id} ${id}:${BUILDNUMBER} deploy.bat ${TARGET}"
 } else {
-	executeExpression "docker run --volume ${env:USERPROFILE}:C:/solution/home ${buildCommand} --label cdaf.${id}.container.instance=${REVISION} --name ${id} ${id}:${BUILDNUMBER} deploy.bat ${TARGET}"
+	executeExpression "docker run --volume '${env:USERPROFILE}:C:/solution/home' ${buildCommand} --label cdaf.${id}.container.instance=${REVISION} --name ${id} ${id}:${BUILDNUMBER} deploy.bat ${TARGET}"
 }
 
 Write-Host
-executeExpression "${env:WORKSPACE}/dockerRun.ps1 ${id}"
+executeExpression "& '${env:WORKSPACE}/dockerRun.ps1' ${id}"
 
 Write-Host "`n[$scriptName] --- end ---"

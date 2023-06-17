@@ -86,16 +86,16 @@ if ( $imageName ) {
 }
 
 if ( Test-Path ".\automation" ) {
-	if ( (Get-Item AUTOMATIONROOT).FullName -ne "$($(pwd).Path)\automation" ) {
+	if ( (Get-Item $AUTOMATIONROOT).FullName -ne "$($(pwd).Path)\automation" ) {
 		Write-Host "`n[$scriptName] Refreshing working copy of CDAF in root of workspace..."
 		executeExpression "  Remove-Item -Recurse .\automation"
-		executeExpression "  Copy-Item -Recurse -Force AUTOMATIONROOT .\automation"
+		executeExpression "  Copy-Item -Recurse -Force '$AUTOMATIONROOT' .\automation"
 		$cleanupCDAF = 'yes'
 	}
 } else {
-	if ( ((Get-Item AUTOMATIONROOT).Parent).FullName -ne $(pwd).Path ) {
+	if ( ((Get-Item $AUTOMATIONROOT).Parent).FullName -ne $(pwd).Path ) {
 		Write-Host "`n[$scriptName] Create copy of CDAF in root of workspace..."
-		executeExpression "  Copy-Item -Recurse -Force AUTOMATIONROOT .\automation"
+		executeExpression "  Copy-Item -Recurse -Force '$AUTOMATIONROOT' .\automation"
 		$cleanupCDAF = 'yes'
 	}
 }
@@ -131,10 +131,10 @@ if ( $buildImage ) {
 		$otherOptions += " -optionalArgs '$buildArgs'"
 	}
 
-	executeExpression "AUTOMATIONROOT/remote/dockerBuild.ps1 ${buildImage} $($imageTag + 1) $otherOptions"
+	executeExpression "& '$AUTOMATIONROOT/remote/dockerBuild.ps1' ${buildImage} $($imageTag + 1) $otherOptions"
 	
 	# Remove any older images	
-	executeExpression "AUTOMATIONROOT/remote/dockerClean.ps1 ${buildImage} $($imageTag + 1)"
+	executeExpression "& '$AUTOMATIONROOT/remote/dockerClean.ps1' ${buildImage} $($imageTag + 1)"
 	
 	if ( $rebuildImage -ne 'imageonly') {
 		# Retrieve the latest image number
@@ -165,9 +165,9 @@ if ( $buildImage ) {
 		}
 
 		if ( $env:USERPROFILE ) {
-			executeExpression "docker run --volume ${env:USERPROFILE}\:C:/solution/home --volume ${env:WORKSPACE}\:C:/solution/workspace ${buildCommand} ${buildImage}:${imageTag} automation\ci.bat $buildNumber $revision container_build"
+			executeExpression "docker run --volume '${env:USERPROFILE}\:C:/solution/home' --volume '${env:WORKSPACE}\:C:/solution/workspace' ${buildCommand} ${buildImage}:${imageTag} automation\ci.bat $buildNumber $revision container_build"
 		} else {
-			executeExpression "docker run --volume ${env:WORKSPACE}\:C:/solution/workspace ${buildCommand} ${buildImage}:${imageTag} automation\ci.bat $buildNumber $revision container_build"
+			executeExpression "docker run --volume '${env:WORKSPACE}\:C:/solution/workspace' ${buildCommand} ${buildImage}:${imageTag} automation\ci.bat $buildNumber $revision container_build"
 		}
 
 		Write-Host "`n[$scriptName] List and remove all stopped containers"

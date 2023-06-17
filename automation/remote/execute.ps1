@@ -272,15 +272,15 @@ function DETOKN ( $tokenFile, $properties, $aeskey ) {
     	if ( $aeskey ) {
 			if (( $aeskey -eq 'resolve' ) -or ( $aeskey -eq 'reveal' )) {
 				$env:propldAction = $aeskey
-				$expression = "$transform '$properties' '$tokenFile'"
+				$expression = "& '$transform' '$properties' '$tokenFile'"
 			} else {
-				$expression = "$transform '$properties' '$tokenFile' `$aeskey"
+				$expression = "& '$transform' '$properties' '$tokenFile' `$aeskey"
 			}
         } else {
-	        $expression = "$transform '$properties' '$tokenFile'"
+	        $expression = "& '$transform' '$properties' '$tokenFile'"
         }
     } else {
-		$expression = "$transform '$TARGET' '$tokenFile'"
+		$expression = "& '$transform' '$TARGET' '$tokenFile'"
 	}
 	executeExpression $expression
 	$env:propldAction = ''
@@ -447,7 +447,7 @@ function VARCHK ($propertiesFile) {
 
 	$failureCount = 0
 	try {
-		$propList = & $transform "$propertiesFile"
+		$propList = & "$transform" "$propertiesFile"
 		Write-Host
 		foreach ( $variableProp in $propList ) {
 			$variableName, $variableValidation = $variableProp -split '=' , 2           # Transform returns $ prefix applied to variable name with two leading spaces
@@ -556,7 +556,7 @@ if (!( test-path "$transform")) {
 
 if ( test-path -path "$TARGET" -pathtype leaf ) {
 	try {
-		& $transform "$propFile" | ForEach-Object { invoke-expression $_ }
+		& "$transform" "$propFile" | ForEach-Object { invoke-expression $_ }
 	    if(!$?) { taskException "TARGET_LOAD_TRAP" }
 	} catch { taskException "TARGET_LOAD_EXCEPTION" $_ }
 	Write-Host
@@ -603,7 +603,7 @@ Foreach ($line in get-content $TASK_LIST) {
 	
 					Write-Host "[$(Get-Date)] $transform $propFile $env:propldAction"
 					try {
-						& $transform "$propFile" | ForEach-Object { invoke-expression $_ }
+						& "$transform" "$propFile" | ForEach-Object { invoke-expression $_ }
 						if(!$?) { taskException "PROPLD_TRAP" }
 					} catch { taskException "PROPLD_EXCEPTION" $_ }
 	            }

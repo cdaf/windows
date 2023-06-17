@@ -140,7 +140,7 @@ if (!( $id )) {
 # 2.6.0 Push Private Registry
 $manifest = "${env:WORKSPACE}\manifest.txt"
 if ( ! ( Test-Path ${manifest} )) {
-	$manifest = "${env:SOLUTIONROOT}\CDAF.solution"
+	$manifest = "${SOLUTIONROOT}\CDAF.solution"
 	if ( ! ( Test-Path ${manifest} )) {
 		Write-Host "[$scriptName] Properties not found in ${env:WORKSPACE}\manifest.txt or ${manifest}!"
 		exit 5343
@@ -152,7 +152,7 @@ if ( $env:CDAF_REGISTRY_URL ) {
 	$registryURL = $env:CDAF_REGISTRY_URL
     Write-Host "[$scriptName]   CDAF_REGISTRY_URL   : $registryURL (loaded from environment variable)"
 } else {	
-	$registryURL = & "${env:CDAF_CORE}\getProperty.ps1" "${manifest}" "CDAF_REGISTRY_URL"
+	$registryURL = & "${CDAF_CORE}\getProperty.ps1" "${manifest}" "CDAF_REGISTRY_URL"
 	if ( $registryURL ) { $registryURL = Invoke-Expression "Write-Output $registryURL" }
 	if ( $registryURL ) {
 	    Write-Host "[$scriptName]   CDAF_REGISTRY_URL   : $registryURL (loaded from manifest.txt)"
@@ -165,7 +165,7 @@ if ( $env:CDAF_REGISTRY_USER ) {
 	$registryUser = "$env:CDAF_REGISTRY_USER"
     Write-Host "[$scriptName]   CDAF_REGISTRY_USER  : $registryUser (loaded from environment variable)"
 } else {
-	$registryUser = & "${env:CDAF_CORE}\getProperty.ps1" "${manifest}" "CDAF_REGISTRY_USER"
+	$registryUser = & "${CDAF_CORE}\getProperty.ps1" "${manifest}" "CDAF_REGISTRY_USER"
 	if ( $registryUser ) { $registryUser = Invoke-Expression "Write-Output $registryUser" }
 	if ( $registryUser ) {
 	    Write-Host "[$scriptName]   CDAF_REGISTRY_USER  : $registryUser (loaded from manifest.txt)"
@@ -179,7 +179,7 @@ if ( $env:CDAF_REGISTRY_TOKEN ) {
 	$registryToken = "$env:CDAF_REGISTRY_TOKEN"
     Write-Host "[$scriptName]   CDAF_REGISTRY_TOKEN : $(MASKED $registryToken) (loaded from environment variable)"
 } else {
-	$registryToken = & "${env:CDAF_CORE}\getProperty.ps1" "${manifest}" "CDAF_REGISTRY_TOKEN"
+	$registryToken = & "${CDAF_CORE}\getProperty.ps1" "${manifest}" "CDAF_REGISTRY_TOKEN"
 	if ( $registryToken ) { $registryToken = Invoke-Expression "Write-Output $registryToken" }
 	if ( $registryToken ) {
 	    Write-Host "[$scriptName]   CDAF_REGISTRY_TOKEN : $(MASKED $registryToken) (loaded from manifest.txt)"
@@ -192,7 +192,7 @@ if ( $env:CDAF_REGISTRY_TAG ) {
 	$registryTags = "$env:CDAF_REGISTRY_TAG"
     Write-Host "[$scriptName]   CDAF_REGISTRY_TAG   : $registryTags (loaded from environment variable, supports space separated lis)`n"
 } else {
-	$registryTags = & "${env:CDAF_CORE}\getProperty.ps1" "${manifest}" "CDAF_REGISTRY_TAG"
+	$registryTags = & "${CDAF_CORE}\getProperty.ps1" "${manifest}" "CDAF_REGISTRY_TAG"
 	if ( $registryTags ) { $registryTags = Invoke-Expression "Write-Output $registryTags" }
 	if ( $registryTags ) {
 	    Write-Host "[$scriptName]   CDAF_REGISTRY_TAG   : $registryTags (loaded from manifest.txt, supports space separated lis)`n"
@@ -296,24 +296,24 @@ if (!( $id )) {
 
 			if ( $optionalArgs ) {
 				if ( $baseImage ) {
-					executeExpression "${env:CDAF_CORE}/dockerBuild.ps1 ${id}_${image} $BUILDNUMBER -optionalArgs '${optionalArgs}' -baseImage '$baseImage'"
+					executeExpression "& '${CDAF_CORE}\dockerBuild.ps1' ${id}_${image} $BUILDNUMBER -optionalArgs '${optionalArgs}' -baseImage '$baseImage'"
 				} else {
-					executeExpression "${env:CDAF_CORE}/dockerBuild.ps1 ${id}_${image} $BUILDNUMBER -optionalArgs '${optionalArgs}'"
+					executeExpression "& '${CDAF_CORE}\dockerBuild.ps1' ${id}_${image} $BUILDNUMBER -optionalArgs '${optionalArgs}'"
 				}
 			} else {
 				if ( $baseImage ) {
-					executeExpression "${env:CDAF_CORE}/dockerBuild.ps1 ${id}_${image} $BUILDNUMBER -baseImage '$baseImage'"
+					executeExpression "& '${CDAF_CORE}\dockerBuild.ps1' ${id}_${image} $BUILDNUMBER -baseImage '$baseImage'"
 				} else {
-					executeExpression "${env:CDAF_CORE}/dockerBuild.ps1 ${id}_${image} $BUILDNUMBER"
+					executeExpression "& '${CDAF_CORE}\dockerBuild.ps1' ${id}_${image} $BUILDNUMBER"
 				}
 			}
-			executeExpression "cd $workspace"
+			executeExpression "cd '$workspace'"
 		}
 
-		$pushFeatureBranch = & "${env:CDAF_CORE}\getProperty.ps1" "${manifest}" "pushFeatureBranch"
+		$pushFeatureBranch = & "${CDAF_CORE}\getProperty.ps1" "${manifest}" "pushFeatureBranch"
 		if ( $pushFeatureBranch -ne 'yes' ) {
-			$REVISION = & "${env:CDAF_CORE}\getProperty.ps1" "${manifest}" "REVISION"
-			$defaultBranch = & "${env:CDAF_CORE}\getProperty.ps1" "${manifest}" "defaultBranch"
+			$REVISION = & "${CDAF_CORE}\getProperty.ps1" "${manifest}" "REVISION"
+			$defaultBranch = & "${CDAF_CORE}\getProperty.ps1" "${manifest}" "defaultBranch"
 			if (!( $defaultBranch )) {
 				$defaultBranch = 'master'
 			}
