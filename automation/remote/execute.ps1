@@ -355,7 +355,7 @@ function MSTOOL ($command) {
 	if ( Test-Path ".\msTools.ps1" ) {
 		executeExpression ".\msTools.ps1"
 	} else {
-		executeExpression "$automationHelper\msTools.ps1"
+		executeExpression "$CDAF_CORE\msTools.ps1"
 	}
 }
 
@@ -524,19 +524,16 @@ Write-Host "[$scriptName]  TARGET      : $TARGET"
 Write-Host "[$scriptName]  TASK_LIST   : $TASK_LIST"
 Write-Host "[$scriptName]  ACTION      : $ACTION"
 
-$TMPDIR = [Environment]::GetEnvironmentVariable("TEMP","Machine")
-Write-Host "[$scriptName]  TMPDIR      : $TMPDIR"
-
 $WORKSPACE = (Get-Location).Path
 Write-Host "[$scriptName]  WORKSPACE   : $WORKSPACE"
+
+$TMPDIR = [Environment]::GetEnvironmentVariable("TEMP","Machine")
+Write-Host "[$scriptName]  TMPDIR      : $TMPDIR"
 
 if ( $PROJECT ) {
 	Write-Host "[$scriptName]  PROJECT     : $PROJECT"
 }
 Write-Host
-
-# If called from build process, automation root will be set
-$automationHelper = "$AUTOMATIONROOT\remote"
 
 # Load the target properties (although these are global in powershell, load again as a diagnostic tool
 $propFile = "$TARGET"
@@ -544,16 +541,17 @@ $transform = "$(pwd)\Transform.ps1"
 if (!( test-path "$transform")) {
 
 	# Test for running as a build process
-	$transform = "..\$automationHelper\Transform.ps1"
+	$transform = "..\$CDAF_CORE\Transform.ps1"
 	if ( test-path $transform ) {
 		$transform = (Get-Item $transform).FullName	
 	} else {
 
 		# Assume running as a package process
-		$transform = "$automationHelper\Transform.ps1"
+		$transform = "$CDAF_CORE\Transform.ps1"
 	}
 }
 
+# Process Task Execution
 if ( test-path -path "$TARGET" -pathtype leaf ) {
 	try {
 		& "$transform" "$propFile" | ForEach-Object { invoke-expression $_ }
