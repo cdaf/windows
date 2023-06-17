@@ -3,9 +3,7 @@ Param (
 	[string]$ENVIRONMENT,
 	[string]$RELEASE,
 	[string]$OPT_ARG,
-	[string]$WORK_DIR_DEFAULT,
-	[string]$SOLUTION,
-	[string]$BUILDNUMBER
+	[string]$WORK_DIR_DEFAULT
 )
 
 Import-Module Microsoft.PowerShell.Utility
@@ -185,10 +183,6 @@ if ( $WORK_DIR_DEFAULT ) {
 	$WORK_DIR_DEFAULT = 'TasksLocal'
 	Write-Host "[$scriptName]   WORK_DIR_DEFAULT : $WORK_DIR_DEFAULT (default)"
 }
-
-$CDAF_CORE = "$(pwd)\$WORK_DIR_DEFAULT"
-Write-Host "[$scriptName]   CDAF_CORE        : $CDAF_CORE"
-
 if ( Test-Path $WORK_DIR_DEFAULT ) {
 	$WORK_DIR_DEFAULT = (Get-Item $WORK_DIR_DEFAULT).FullName
 } else {
@@ -197,32 +191,27 @@ if ( Test-Path $WORK_DIR_DEFAULT ) {
     $host.SetShouldExit(52); exit
 }
 
-if ($SOLUTION) {
-	Write-Host "[$scriptName]   SOLUTION         : $SOLUTION"
+$CDAF_CORE = "$(pwd)\$WORK_DIR_DEFAULT"
+Write-Host "[$scriptName]   CDAF_CORE        : $CDAF_CORE"
+
+$propertiesFile = "$WORK_DIR_DEFAULT\manifest.txt"
+$SOLUTION = getProp 'SOLUTION'
+if ( $SOLUTION ) {
+	Write-Host "[$scriptName]   SOLUTION         : $SOLUTION (from manifest.txt)"
 } else {
-	$propertiesFile = "$WORK_DIR_DEFAULT\manifest.txt"
-	$SOLUTION = getProp 'SOLUTION'
-	if ($SOLUTION) {
-		Write-Host "[$scriptName]   SOLUTION         : $SOLUTION (from manifest.txt)"
-	} else {
-		Write-Host "[$scriptName] DELIVERY_SOLUTION_NOT_FOUND Solution not supplied and unable to derive from manifest.txt"
-	    write-host "[$scriptName]   `$host.SetShouldExit(54)" -ForegroundColor Red
-	    $host.SetShouldExit(54); exit
-	}
+	Write-Host "[$scriptName] DELIVERY_SOLUTION_NOT_FOUND Solution not supplied and unable to derive from manifest.txt"
+	write-host "[$scriptName]   `$host.SetShouldExit(54)" -ForegroundColor Red
+	$host.SetShouldExit(54); exit
 }
 
-if ($BUILDNUMBER) {
-	Write-Host "[$scriptName]   BUILDNUMBER      : $BUILDNUMBER"
+$propertiesFile = "$WORK_DIR_DEFAULT\manifest.txt"
+$BUILDNUMBER = getProp 'BUILDNUMBER'
+if ( $BUILDNUMBER ) {
+	Write-Host "[$scriptName]   BUILDNUMBER      : $BUILDNUMBER (from manifest.txt)"
 } else {
-	$propertiesFile = "$WORK_DIR_DEFAULT\manifest.txt"
-	$BUILDNUMBER = getProp 'BUILDNUMBER'
-	if ($BUILDNUMBER) {
-		Write-Host "[$scriptName]   BUILDNUMBER      : $BUILDNUMBER (from manifest.txt)"
-	} else {
-		Write-Host "[$scriptName] DELIVERY_BUILD_NUMBER_NOT_FOUND Build number not supplied and unable to derive from manifest.txt"
-	    write-host "[$scriptName]   `$host.SetShouldExit(55)" -ForegroundColor Red
-	    $host.SetShouldExit(55); exit
-	}
+	Write-Host "[$scriptName] DELIVERY_BUILD_NUMBER_NOT_FOUND Build number not supplied and unable to derive from manifest.txt"
+	write-host "[$scriptName]   `$host.SetShouldExit(55)" -ForegroundColor Red
+	$host.SetShouldExit(55); exit
 }
 
 # Load TargetlessCD environment variable
@@ -260,7 +249,7 @@ if ( $processSequence ) {
 foreach ($step in $processSequence.Split()) {
 	if ( $step ) {
 		Write-Host
-		executeExpression "& $WORK_DIR_DEFAULT\$step '$ENVIRONMENT' '$BUILDNUMBER' '$SOLUTION' '$WORK_DIR_DEFAULT' '$OPT_ARG'"
+		executeExpression "& '$WORK_DIR_DEFAULT\$step' '$ENVIRONMENT' '$BUILDNUMBER' '$SOLUTION' '$WORK_DIR_DEFAULT' '$OPT_ARG'"
 		Set-Location ${env:WORKSPACE}
 	}
 }
