@@ -8,6 +8,7 @@ jobs:
     runs-on: windows-latest
     env:
       DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+      DOCKERHUB_TOKEN_SHA: ${{ vars.DOCKERHUB_TOKEN_SHA }}
     steps:
       - name: Checkout
         uses: actions/checkout@v2
