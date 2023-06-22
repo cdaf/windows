@@ -272,7 +272,6 @@ if ( $REMOTE_WORK_DIR ) {
 	Write-Host "[$scriptName]   REMOTE_WORK_DIR : $REMOTE_WORK_DIR (default)"
 }
 
-Write-Host "[$scriptName]   AUTOMATIONROOT  : $AUTOMATIONROOT"
 Write-Host "[$scriptName]   AUTOMATIONROOT  : " -NoNewline
 if ( $AUTOMATIONROOT ) {
 	write-host "$AUTOMATIONROOT"

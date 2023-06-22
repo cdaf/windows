@@ -181,7 +181,9 @@ function MASKED ($value) {
 	(Get-FileHash -InputStream $([IO.MemoryStream]::new([byte[]][char[]]$value)) -Algorithm SHA256).Hash
 }
 
-if ( ! $env:CDAF_COMMAND_SHELL ) {
+if ( $env:CDAF_COMMAND_SHELL ) {
+	$env:CDAF_COMMAND_SHELL = ''
+} else {
 	Write-Host "`n[$scriptName] ----------------------------------"
 }
 
@@ -338,9 +340,6 @@ if ( Test-Path "$SOLUTIONROOT\buildPackage.ps1" ) {
 	write-host "$ciProcess (default)"
 }
 
-write-host "`n[   $scriptName    ] ============================================"
-write-host "[   $scriptName    ] Continuous Integration (CI) Process Starting"
-write-host "[   $scriptName    ] ============================================"
 & "$ciProcess" "$BUILDNUMBER" "$BRANCH" "$ACTION"
 if($LASTEXITCODE -ne 0){
 	write-host "[$scriptName] CI_NON_ZERO_EXIT $ciProcess $BUILDNUMBER $BRANCH $ACTION" -ForegroundColor Magenta
