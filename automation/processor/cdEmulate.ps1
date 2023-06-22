@@ -145,13 +145,11 @@ if ( $CDAF_DELIVERY ) {
 
 # Check for customised CI process
 Write-Host "[$scriptName]   ciProcess           : " -NoNewline
-if ( Test-Path "$SOLUTIONROOT\buildPackage.bat" ) {
-	$ciProcess="$SOLUTIONROOT\buildPackage.bat"
-	$ciInstruction="$SOLUTIONROOT/buildPackage.bat"
+if ( Test-Path "$SOLUTIONROOT\buildPackage.ps1" ) {
+	$ciProcess="$SOLUTIONROOT\buildPackage.ps1"
 	write-host "$ciProcess (override)"
 } else {
-	$ciProcess="$AUTOMATIONROOT\ci.bat"
-	$ciInstruction="$AUTOMATIONROOT\ci.bat"
+	$ciProcess="$AUTOMATIONROOT\processor\buildPackage.ps1"
 	write-host "$ciProcess (default)"
 }
 
@@ -179,25 +177,15 @@ if ( $ACTION ) { # Do not list configuration instructions when an action is pass
 if ( $ACTION -eq "cdonly" ) { # Case insensitive
 	Write-Host "[$scriptName] Action is $ACTION so skipping build and package (CI) process"
 } else {
-	if ( $ACTION ) { # $AUTOMATIONROOT can only be passed if $ACTION is also passed, don't try to pass when not set
-		& "$ciProcess" "$BUILDNUMBER" "$REVISION" "$ACTION"
-		if($LASTEXITCODE -ne 0){
-		    write-host "[$scriptName] CI_NON_ZERO_EXIT $ciProcess $BUILDNUMBER $REVISION $ACTION" -ForegroundColor Magenta
-		    write-host "[$scriptName]   `$host.SetShouldExit($LASTEXITCODE)" -ForegroundColor Red
-		    $host.SetShouldExit($LASTEXITCODE) # Returning exit code to DOS
-		    exit
-		}
-		if(!$?){ failureExit "$ciProcess $BUILDNUMBER $REVISION $ACTION" }
-	} else {
-		& $ciProcess $BUILDNUMBER $REVISION
-		if($LASTEXITCODE -ne 0){
-		    write-host "[$scriptName] CI_NON_ZERO_EXIT $ciProcess $BUILDNUMBER $REVISION" -ForegroundColor Magenta
-		    write-host "[$scriptName]   `$host.SetShouldExit($LASTEXITCODE)" -ForegroundColor Red
-		    $host.SetShouldExit($LASTEXITCODE) # Returning exit code to DOS
-		    exit
-		}
-		if(!$?){ failureExit "$ciProcess $BUILDNUMBER $REVISION" }
+
+	& "$ciProcess" "$BUILDNUMBER" "$REVISION" "$ACTION"
+	if($LASTEXITCODE -ne 0){
+	    write-host "[$scriptName] CI_NON_ZERO_EXIT $ciProcess $BUILDNUMBER $REVISION $ACTION" -ForegroundColor Magenta
+	    write-host "[$scriptName]   `$host.SetShouldExit($LASTEXITCODE)" -ForegroundColor Red
+	    $host.SetShouldExit($LASTEXITCODE) # Returning exit code to DOS
+	    exit
 	}
+	if(!$?){ failureExit "$ciProcess $BUILDNUMBER $REVISION $ACTION" }
 }
 	
 if ( $ACTION ) {

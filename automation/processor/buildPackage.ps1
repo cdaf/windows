@@ -207,6 +207,12 @@ function pvProperties {
 	}
 }
 
+if ( ! $env:CDAF_COMMAND_SHELL ) {
+	write-host "`n[$scriptName] ============================================"
+	write-host "[$scriptName] Continuous Integration (CI) Process Starting"
+	write-host "[$scriptName] ============================================"
+}
+
 if ( $BUILDNUMBER ) {
 	Write-Host "[$scriptName]   BUILDNUMBER     : $BUILDNUMBER"
 } else { 
@@ -266,25 +272,34 @@ if ( $REMOTE_WORK_DIR ) {
 	Write-Host "[$scriptName]   REMOTE_WORK_DIR : $REMOTE_WORK_DIR (default)"
 }
 
-$scriptPath = split-path -parent $MyInvocation.MyCommand.Definition
-$AUTOMATIONROOT = split-path -parent $scriptPath
 Write-Host "[$scriptName]   AUTOMATIONROOT  : $AUTOMATIONROOT"
-$CDAF_CORE = "${AUTOMATIONROOT}/remote"
-
+Write-Host "[$scriptName]   AUTOMATIONROOT  : " -NoNewline
+if ( $AUTOMATIONROOT ) {
+	write-host "$AUTOMATIONROOT"
+} else {
+	$scriptPath = split-path -parent $MyInvocation.MyCommand.Definition
+	$AUTOMATIONROOT = split-path -parent $scriptPath
+	Write-Host "$AUTOMATIONROOT (not supplied, derived from invocation)"
+	$CDAF_CORE = "${AUTOMATIONROOT}/remote"
+}
 # Check for user defined solution folder, i.e. outside of automation root, if found override solution root
 Write-Host "[$scriptName]   SOLUTIONROOT    : " -NoNewline
-foreach ($item in (Get-ChildItem -Path ".")) {
-	if (Test-Path $item -PathType "Container") {
-		if (Test-Path "$item\CDAF.solution") {
-			$SOLUTIONROOT = $item
+if ( $SOLUTIONROOT ) {
+	write-host "$SOLUTIONROOT"
+} else {
+	foreach ($item in (Get-ChildItem -Path ".")) {
+		if (Test-Path $item -PathType "Container") {
+			if (Test-Path "$item\CDAF.solution") {
+				$SOLUTIONROOT = $item
+			}
 		}
 	}
-}
-if ( $SOLUTIONROOT ) {
-	$SOLUTIONROOT = (Get-Item $SOLUTIONROOT).FullName
-	write-host "$SOLUTIONROOT (from CDAF.solution)"
-} else {
-	exitWithCode "No directory found containing CDAF.solution, please create a single occurance of this file." 7612
+	if ( $SOLUTIONROOT ) {
+		$SOLUTIONROOT = (Get-Item $SOLUTIONROOT).FullName
+		write-host "$SOLUTIONROOT (CDAF.solution found)"
+	} else {
+		exitWithCode "No directory found containing CDAF.solution, please create a single occurance of this file." 7612
+	}
 }
 if ($SOLUTION) {
 	Write-Host "[$scriptName]   SOLUTION        : $SOLUTION"

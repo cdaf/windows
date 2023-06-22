@@ -181,13 +181,13 @@ function MASKED ($value) {
 	(Get-FileHash -InputStream $([IO.MemoryStream]::new([byte[]][char[]]$value)) -Algorithm SHA256).Hash
 }
 
-if (!( $env:CDAF_COMMAND_SHELL )) {
+if ( ! $env:CDAF_COMMAND_SHELL ) {
 	Write-Host "`n[$scriptName] ----------------------------------"
 }
 
 Write-Host "[$scriptName]     Start PowerShell Execution"
 Write-Host "[$scriptName] ----------------------------------"
-if ($BUILDNUMBER) {
+if ( $BUILDNUMBER ) {
     Write-Host "[$scriptName]   BUILDNUMBER    : $BUILDNUMBER"
 } else {
 
@@ -206,7 +206,7 @@ if ($BUILDNUMBER) {
     Write-Host "[$scriptName]   BUILDNUMBER    : $BUILDNUMBER (not supplied, generated from local counter file)"
 }
 
-if ($BRANCH) {
+if ( $BRANCH ) {
 	if ( $BRANCH.contains('$')) {
 		$BRANCH = Invoke-Expression "Write-Output $BRANCH"
 	}
@@ -256,7 +256,7 @@ if ($BRANCH) {
 	}
 }
 
-if ($ACTION) {
+if ( $ACTION ) {
 	if ( $ACTION.contains('$')) {
 		$ACTION = Invoke-Expression "Write-Output $ACTION"
 	}
@@ -265,7 +265,7 @@ if ($ACTION) {
     Write-Host "[$scriptName]   ACTION         : (not passed)"
 }
 
-if ($AUTOMATIONROOT) {
+if ( $AUTOMATIONROOT ) {
     Write-Host "[$scriptName]   AUTOMATIONROOT : $AUTOMATIONROOT"
 } else {
 	$AUTOMATIONROOT = split-path -parent $MyInvocation.MyCommand.Definition
@@ -282,8 +282,8 @@ foreach ($item in (Get-ChildItem -Path ".")) {
 	}
 }
 
-if ($SOLUTIONROOT) {
-	write-host "$SOLUTIONROOT (override CDAF.solution found)"
+if ( $SOLUTIONROOT ) {
+	write-host "$SOLUTIONROOT (CDAF.solution found)"
 } else {
 	ERRMSG "[NO_SOLUTION_ROOT] No directory found containing CDAF.solution, please create a single occurrence of this file." 7610
 }
@@ -326,20 +326,21 @@ if ( ${solutionName} ) {
 $workspace = $(Get-Location)
 Write-Host "[$scriptName]   pwd            : $workspace"
 Write-Host "[$scriptName]   hostname       : $(hostname)" 
-Write-Host "[$scriptName]   whoami         : $(whoami)`n"
+Write-Host "[$scriptName]   whoami         : $(whoami)"
 
 # Check for customised CI process
 Write-Host "[$scriptName]   ciProcess      : " -NoNewline
-if ( Test-Path "$SOLUTIONROOT\buildPackage.bat" ) {
-	$ciProcess="$SOLUTIONROOT\buildPackage.bat"
-	$ciInstruction="$SOLUTIONROOT/buildPackage.bat"
+if ( Test-Path "$SOLUTIONROOT\buildPackage.ps1" ) {
+	$ciProcess="$SOLUTIONROOT\buildPackage.ps1"
 	write-host "$ciProcess (override)"
 } else {
-	$ciProcess="$AUTOMATIONROOT\ci.bat"
-	$ciInstruction="$AUTOMATIONROOT\ci.bat"
+	$ciProcess="$AUTOMATIONROOT\processor\buildPackage.ps1"
 	write-host "$ciProcess (default)"
 }
 
+write-host "`n[   $scriptName    ] ============================================"
+write-host "[   $scriptName    ] Continuous Integration (CI) Process Starting"
+write-host "[   $scriptName    ] ============================================"
 & "$ciProcess" "$BUILDNUMBER" "$BRANCH" "$ACTION"
 if($LASTEXITCODE -ne 0){
 	write-host "[$scriptName] CI_NON_ZERO_EXIT $ciProcess $BUILDNUMBER $BRANCH $ACTION" -ForegroundColor Magenta
