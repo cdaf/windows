@@ -853,12 +853,14 @@ if ( $ACTION -ne 'container_build' ) {
 		itemRemove "${compressedArtefact}"
 		itemRemove "${artifactID}"
 	}
+
+
+	if (( $ACTION -eq 'buildonly' ) -or ( $ACTION -eq 'clean' )) {
+		Write-Host "`n[$scriptName][$(Get-Date)] $ACTION complete." -ForegroundColor Green
+	} else {
+		Write-Host "`n[$scriptName][$(Get-Date)] Process complete, artefacts [${artefactList}] placed in $stageTarget" -ForegroundColor Green
+	}
 }
 
-if (( $ACTION -eq 'buildonly' ) -or ( $ACTION -eq 'clean' )) {
-	Write-Host "`n[$scriptName][$(Get-Date)] $ACTION complete." -ForegroundColor Green
-} else {
-	Write-Host "`n[$scriptName][$(Get-Date)] Process complete, artefacts [${artefactList}] placed in $stageTarget" -ForegroundColor Green
-}
 $error.clear()
 exit 0

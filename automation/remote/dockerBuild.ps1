@@ -118,7 +118,7 @@ if ( $baseImage ) {
 } else {	
 	if ( $env:CONTAINER_IMAGE ) {
 		$baseImage = "$env:CONTAINER_IMAGE"
-	    Write-Host "[$scriptName] baseImage                : $baseImage (loaded from environment variable CONTAINER_IMAGE)"
+	    Write-Host "[$scriptName] baseImage                : $baseImage (loaded from CONTAINER_IMAGE)"
 	} else {
 
 		# If an explicit image is not defined, perform implicit cascading load
