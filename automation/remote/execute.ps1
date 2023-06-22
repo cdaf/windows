@@ -537,19 +537,7 @@ Write-Host
 
 # Load the target properties (although these are global in powershell, load again as a diagnostic tool
 $propFile = "$TARGET"
-$transform = "$(pwd)\Transform.ps1"
-if (!( test-path "$transform")) {
-
-	# Test for running as a build process
-	$transform = "..\$CDAF_CORE\Transform.ps1"
-	if ( test-path $transform ) {
-		$transform = (Get-Item $transform).FullName	
-	} else {
-
-		# Assume running as a package process
-		$transform = "$CDAF_CORE\Transform.ps1"
-	}
-}
+$transform = "$CDAF_CORE\Transform.ps1"
 
 # Process Task Execution
 if ( test-path -path "$TARGET" -pathtype leaf ) {

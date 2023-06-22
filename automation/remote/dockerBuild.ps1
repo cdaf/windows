@@ -111,7 +111,7 @@ if ( ! ( Test-Path ${manifest} )) {
 
 if ( $baseImage ) {
 	if ( $env:CONTAINER_IMAGE ) {
-	    Write-Host "[$scriptName] baseImage                : $baseImage (override environment variable '${env:CONTAINER_IMAGE}')"
+	    Write-Host "[$scriptName] baseImage                : $baseImage (override environment variable CONTAINER_IMAGE)"
 	} else {
 	    Write-Host "[$scriptName] baseImage                : $baseImage"
 	}
