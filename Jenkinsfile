@@ -29,7 +29,7 @@ timeout(time: 4, unit: 'HOURS') {
 
             Write-Host "`nSample Regression Test on ${edition}`n"
             cd samples
-            .\executeSamples.ps1
+            ./executeSamples.ps1
             cd ..
           } else {
             Write-Host "`nSkipping Sample Regression Test as OS is ${edition}`n"
