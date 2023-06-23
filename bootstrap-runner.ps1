@@ -1,3 +1,16 @@
+# Usage examples
+
+# Windows 2016
+# [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]'Tls11,Tls12'
+
+# Install Agent, register to "Default" Pool and install docker
+# curl.exe -O https://raw.githubusercontent.com/cdaf/windows/master/bootstrap-runner.ps1
+# ./bootstrap-runner.ps1 https://dev.azure.com/<your-org> <pool-manage-PAT>
+
+# Install Agent, register to "windows-hosts" Pool and do not install docker
+# curl.exe -O https://raw.githubusercontent.com/cdaf/windows/master/bootstrap-runner.ps1
+# ./bootstrap-runner.ps1 https://dev.azure.com/<your-org> <pool-manage-PAT> -vstsPool "windows-hosts" -docker "no"
+
 Param (
 	[string]$runnerURL,
 	[string]$personalAccessToken,
@@ -57,7 +70,8 @@ if ($personalAccessToken) {
 if ($runnerSA) {
     Write-Host "[$scriptName] runnerSA            : $runnerSA"
 } else {
-    Write-Host "[$scriptName] runnerSA            : $runnerSA (not supplied, will install as inbuilt account)"
+	$runnerSA = '.\gitlab-runner'
+    Write-Host "[$scriptName] runnerSA            : $runnerSA (not supplied, set to default)"
 }
 
 if ($runnerTags) {
@@ -77,12 +91,8 @@ if ($runnerExecutor) {
 if ($runnerSAPassword) {
     Write-Host "[$scriptName] runnerSAPassword    : `$runnerSAPassword"
 } else {
-	if ($runnerSA) {
-		$runnerSAPassword = -join ((65..90) + (97..122) + (33) + (35) + (43) + (45..46) + (58..64) | Get-Random -Count 30 | ForEach-Object {[char]$_})
-	    Write-Host "[$scriptName] runnerSAPassword    : runnerSAPassword (not supplied but runnerSA set, so randomly generated)"
-	} else {
-	    Write-Host "[$scriptName] runnerSAPassword    : (not supplied and runnerSA not supplied, will install as inbuilt account)"
-	}
+	$runnerSAPassword = -join ((65..90) + (97..122) + (33) + (35) + (43) + (45..46) + (58..64) | Get-Random -Count 30 | ForEach-Object {[char]$_})
+    Write-Host "[$scriptName] runnerSAPassword    : runnerSAPassword (not supplied but runnerSA set, so randomly generated)"
 }
 
 if ($runnerName) {
@@ -163,14 +173,10 @@ if ( $git -eq 'yes' ) {
 	executeExpression "./automation/provisioning/base.ps1 'git'"
 }
 
-if ( $runnerSAPassword ) {
-	executeExpression "./automation/provisioning/newUser.ps1 $runnerSA `$runnerSAPassword -passwordExpires 'no'"
-	executeExpression "./automation/provisioning/addUserToLocalGroup.ps1 'Administrators' '$runnerSA'"
-	executeExpression "./automation/provisioning/setServiceLogon.ps1 '$runnerSA'"
-	executeExpression "./automation/provisioning/installRunner.ps1 '$runnerURL' `$personalAccessToken '$runnerName' '$runnerTags' '$runnerExecutor' '$runnerSA' `$runnerSAPassword"
-} else {
-	executeExpression "./automation/provisioning/installRunner.ps1 '$runnerURL' `$personalAccessToken '$runnerName' '$runnerTags' '$runnerExecutor'"
-}
+executeExpression "./automation/provisioning/newUser.ps1 $runnerSA `$runnerSAPassword -passwordExpires 'no'"
+executeExpression "./automation/provisioning/addUserToLocalGroup.ps1 'Administrators' '$runnerSA'"
+executeExpression "./automation/provisioning/setServiceLogon.ps1 '$runnerSA'"
+executeExpression "./automation/provisioning/installRunner.ps1 '$runnerURL' `$personalAccessToken '$runnerName' '$runnerTags' '$runnerExecutor' '$runnerSA' `$runnerSAPassword"
 
 if ( $docker -eq 'yes' ) { 
 	executeExpression "./automation/provisioning/InstallDocker.ps1 -restart '$restart'"
