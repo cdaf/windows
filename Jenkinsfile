@@ -27,17 +27,12 @@ timeout(time: 4, unit: 'HOURS') {
           $edition = foreach ($sProperty in Get-WmiObject -class Win32_OperatingSystem -computername ".") { $sProperty.Caption }
           if ( $edition -eq 'Microsoft Windows Server 2022 Standard' ) {
 
-            Write-Host "`nNodeJS Test`n"
-            cd samples/containerBuild-nodejs
-            ../../automation/ci.bat
-            cd ../..
-
-            Write-Host "`n.NET Test`n"
-            cd samples/containerBuild-dotnet
-            ../../automation/ci.bat
-            cd ../..
+            Write-Host "`nSample Regression Test on ${edition}`n"
+            cd samples
+            .\executeSamples.ps1
+            cd ..
           } else {
-            Write-Host "`nSkipping Container build as OS is ${edition}`n"
+            Write-Host "`nSkipping Sample Regression Test as OS is ${edition}`n"
           }
         '''
       }
