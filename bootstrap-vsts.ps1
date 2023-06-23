@@ -1,3 +1,16 @@
+# Usage examples
+
+# Windows 2016
+# [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]'Tls11,Tls12'
+
+# Install Agent, register to "Default" Pool and install docker
+# curl.exe -O https://raw.githubusercontent.com/cdaf/windows/master/bootstrap-vsts.ps1
+# ./bootstrap-vsts.ps1 https://dev.azure.com/<your-org> <pool-manage-PAT>
+
+# Install Agent, register to "windows-hosts" Pool and do not install docker
+# curl.exe -O https://raw.githubusercontent.com/cdaf/windows/master/bootstrap-vsts.ps1
+# ./bootstrap-vsts.ps1 https://dev.azure.com/<your-org> <pool-manage-PAT> -vstsPool "windows-hosts" -docker "no"
+
 Param (
 	[string]$vstsURL,
 	[string]$personalAccessToken,
