@@ -59,17 +59,20 @@ if ( $WORKSPACE ) {
     write-host "[$scriptName]   WORKSPACE : $WORKSPACE (pwd)"
 }
 
-if ($OPT_ARG ) {
+if ( $OPT_ARG ) {
     write-host "[$scriptName]   OPT_ARG   : $OPT_ARG"
 } else {
     write-host "[$scriptName]   OPT_ARG   : (not supplied)"
 }
 
+$CDAF_CORE = $(pwd)
+Write-Host "[$scriptName]   CDAF_CORE : $CDAF_CORE"
+
 write-host "[$scriptName]   hostname  : $(hostname)"
 write-host "[$scriptName]   whoami    : $(whoami)"
 
 write-host "`n[$scriptName] Load SOLUTION and BUILDNUMBER from manifest.txt"
-& .\Transform.ps1 ".\manifest.txt" | ForEach-Object { invoke-expression $_ }
+& "$CDAF_CORE\Transform.ps1" ".\manifest.txt" | ForEach-Object { invoke-expression $_ }
 
 $scriptOverride = getProp ("deployScriptOverride")
 if ($scriptOverride ) {
@@ -95,7 +98,7 @@ if ($scriptOverride ) {
 
 	foreach ( $taskItem in $taskList.Split() ) {
 	    write-host "`n[$scriptName] --- Executing $taskItem ---`n" -ForegroundColor Green
-	    & .\execute.ps1 $SOLUTION $BUILDNUMBER $TARGET $taskItem $OPT_ARG
+	    & "$CDAF_CORE\execute.ps1" $SOLUTION $BUILDNUMBER $TARGET $taskItem $OPT_ARG
 		if($LASTEXITCODE -ne 0){
 		    exitWithCode "OVERRIDE_EXECUTE_NON_ZERO_EXIT & .\execute.ps1 $SOLUTION $BUILDNUMBER $TARGET $taskItem $OPT_ARG" $LASTEXITCODE 
 		}
