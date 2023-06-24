@@ -160,7 +160,8 @@ executeRetry "Install-Module NuGet -Confirm:`$False $proxyParameter"
 
 executeRetry "Install-Module -Name $provider -Repository PSGallery -Confirm:`$False -Verbose -Force $proxyParameter"
 
-executeRetry "Get-PackageSource"
+Write-Host "`n[$scriptName] Get-PackageSource"
+$(Get-PackageSource)
 
 executeError "Install-Package -Name 'Docker' -ProviderName $provider -Confirm:`$False -Verbose -Force $versionParameter"
 
