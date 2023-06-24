@@ -54,7 +54,7 @@ function executeRetry ($expression) {
 			Invoke-Expression $expression
 		    if(!$?) { Write-Host "[$scriptName] `$? = $?"; $exitCode = 1 }
 		} catch { Write-Host "[$scriptName] $_"; $exitCode = 2 }
-	    if ( $error[0] ) { Write-Host "[$scriptName] Warning, message in `$error[0] = $error"; $error.clear() } # do not treat messages in error array as failure
+	    if ( $error ) { Write-Host "[$scriptName] Warning, message in `$error[0] = $error"; $error.clear() } # do not treat messages in error array as failure
 		if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) { $exitCode = $LASTEXITCODE; Write-Host "[$scriptName] `$LASTEXITCODE = $LASTEXITCODE " -ForegroundColor Red; cmd /c "exit 0" }
 	    if ($exitCode -ne 0) {
 			if ($retryCount -ge $retryMax ) {
@@ -70,59 +70,74 @@ function executeRetry ($expression) {
     }
 }
 
+# Fail on Message in Standard Error
+function executeError ($expression) {
+	$error.clear()
+	Write-Host "$expression"
+	try {
+		Invoke-Expression $expression
+	    if(!$?) { Write-Host "[$scriptName] `$? = $?"; exit 1 }
+	} catch { Write-Output $_.Exception|format-list -force; exit 2 }
+    if ( $error ) { 
+	    Write-Host "[$scriptName] Error during execution"
+	    Write-Output $error
+	    exit 3
+	}
+}
+
 # Only from Windows Server 2016 and above
 Write-Host "`n[$scriptName] ---------- start ----------"
 if ($enableTCP) {
-    Write-Host "[$scriptName]  enableTCP : $enableTCP"
+    Write-Host "[$scriptName]  enableTCP  : $enableTCP"
 } else {
-    Write-Host "[$scriptName]  enableTCP : (not set)"
+    Write-Host "[$scriptName]  enableTCP  : (not set)"
 }
 if ($restart) {
-    Write-Host "[$scriptName]  restart   : $restart"
+    Write-Host "[$scriptName]  restart    : $restart"
 } else {
 	$restart = 'yes'
-    Write-Host "[$scriptName]  restart   : $restart (set to default)"
+    Write-Host "[$scriptName]  restart    : $restart (set to default)"
 }
 if ($httpProxy) {
-    Write-Host "[$scriptName]  httpProxy : $httpProxy"
+    Write-Host "[$scriptName]  httpProxy  : $httpProxy"
 	$proxyParameter = "-Proxy '$httpProxy'"
 	[system.net.webrequest]::defaultwebproxy = new-object system.net.webproxy($httpProxy)
 } else {
-    Write-Host "[$scriptName]  httpProxy : (not set)"
+    Write-Host "[$scriptName]  httpProxy  : (not set)"
 	$proxyURI = $([system.net.webrequest]::defaultwebproxy.Address).AbsoluteUri
 	
 	if ( $proxyURI ) {
 		$proxyParameter = "-Proxy $proxyURI"
-	    Write-Host "[$scriptName]  proxyURI  : $proxyURI"
+	    Write-Host "[$scriptName]  proxyURI   : $proxyURI"
 	    [system.net.webrequest]::defaultwebproxy = new-object system.net.webproxy($env:HTTP_PROXY)
 	}
 }
 
 if ($version) {
-    Write-Host "[$scriptName]  version   : $version"
+    Write-Host "[$scriptName]  version    : $version"
 	$versionParameter = "-RequiredVersion '$version'"
 } else {
-    Write-Host "[$scriptName]  version   : (not set, allow package manager to decide)"
+    Write-Host "[$scriptName]  version    : (not set, allow package manager to decide)"
 }
 
 if ($provider) {
-    Write-Host "[$scriptName]  provider  : $provider (DockerMsftProviderInsider or DockerMsftProvider)"
+    Write-Host "[$scriptName]  provider   : $provider (DockerMsftProviderInsider or DockerMsftProvider)"
 } else {
 	$provider = 'DockerMsftProvider'
-    Write-Host "[$scriptName]  provider  : $provider (set to default, choices DockerMsftProviderInsider or DockerMsftProvider)"
+    Write-Host "[$scriptName]  provider   : $provider (set to default, choices DockerMsftProviderInsider or DockerMsftProvider)"
 }
 
 if ($dockerUser) {
-    Write-Host "[$scriptName]  dockerUser  : $dockerUser"
+    Write-Host "[$scriptName]  dockerUser : $dockerUser"
 } else {
-    Write-Host "[$scriptName]  dockerUser  : (not set)"
+    Write-Host "[$scriptName]  dockerUser : (not set)"
 }
 
 if (${compose}) {
-    Write-Host "[$scriptName]  compose     : ${compose}"
+    Write-Host "[$scriptName]  compose    : ${compose}"
 } else {
 	$compose = '1.27.4'
-    Write-Host "[$scriptName]  compose     : ${compose} (default)"
+    Write-Host "[$scriptName]  compose    : ${compose} (default)"
 }
 
 $AllProtocols = [System.Net.SecurityProtocolType]'Tls11,Tls12'
@@ -146,9 +161,9 @@ executeRetry "Install-Module NuGet -Confirm:`$False $proxyParameter"
 
 executeRetry "Install-Module -Name $provider -Repository PSGallery -Confirm:`$False -Verbose -Force $proxyParameter"
 
-executeRetry "Get-PackageSource | Format-Table Name, ProviderName, IsTrusted"
+executeRetry "Get-PackageSource"
 
-executeRetry "Install-Package -Name 'Docker' -ProviderName $provider -Confirm:`$False -Verbose -Force $versionParameter"
+executeError "Install-Package -Name 'Docker' -ProviderName $provider -Confirm:`$False -Verbose -Force $versionParameter"
 
 executeExpression "sc.exe config docker start= delayed-auto"
 
