@@ -7,15 +7,10 @@
 # curl.exe -O https://raw.githubusercontent.com/cdaf/windows/master/bootstrap-runner.ps1
 # ./bootstrap-runner.ps1 https://gitlab.com/<your-org> <pool-manage-PAT>
 
-# Install Agent, with "windows-hosts" tag and do not install docker
-# curl.exe -O https://raw.githubusercontent.com/cdaf/windows/master/bootstrap-runner.ps1
-# ./bootstrap-runner.ps1 https://gitlab.com/<your-org> <pool-manage-PAT> -tags "windows-hosts" -docker "no"
-
 Param (
 	[string]$runnerURL,
 	[string]$personalAccessToken,
 	[string]$runnerSA,
-	[string]$runnerTags,
 	[string]$runnerExecutor,
 	[string]$runnerSAPassword,
 	[string]$runnerName,
@@ -57,7 +52,7 @@ if ($runnerURL) {
     Write-Host "[$scriptName] runnerURL           : $runnerURL"
 } else {
 	Write-Host "[$scriptName] runnerURL not supplied! Exit with error 7241"
-	Write-Host "Usage example : .\bootstrap-runner.ps1 https://gitlab.com/ xxxxxxxxxxxxxxxxxxx .\gitlab-runner dotnet-tag -docker no"
+	Write-Host "Usage example : .\bootstrap-runner.ps1 https://gitlab.com/ xxxxxxxxxxxxxxxxxxx .\gitlab-runner -docker no"
 	exit 7241
 }
 
@@ -72,13 +67,6 @@ if ($runnerSA) {
 } else {
 	$runnerSA = '.\gitlab-runner'
     Write-Host "[$scriptName] runnerSA            : $runnerSA (not supplied, set to default)"
-}
-
-if ($runnerTags) {
-    Write-Host "[$scriptName] runnerTags          : $runnerTags"
-} else {
-	$runnerTags = 'Default'
-    Write-Host "[$scriptName] runnerTags          : $runnerTags (not supplied, set to default)"
 }
 
 if ($runnerExecutor) {
@@ -154,15 +142,8 @@ if ( Test-Path ".\automation\CDAF.windows") {
 		executeExpression '[System.IO.Compression.ZipFile]::ExtractToDirectory("$PWD\$zipfile", "$PWD")'
 	} else {
 		Write-Host "[$scriptName] Get latest CDAF from GitHub"
-		Write-Host "[$scriptName] `$zipFile = 'windows-master.zip'"
-		$zipFile = 'windows-master.zip'
-		Write-Host "[$scriptName] `$url = `"https://codeload.github.com/cdaf/windows/zip/master`""
-		$url = "https://codeload.github.com/cdaf/windows/zip/master"
 		executeExpression "[System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]'Tls11,Tls12'"
-		executeExpression "(New-Object System.Net.WebClient).DownloadFile('$url', '$PWD\$zipFile')"
-		executeExpression 'Add-Type -AssemblyName System.IO.Compression.FileSystem'
-		executeExpression '[System.IO.Compression.ZipFile]::ExtractToDirectory("$PWD\$zipfile", "$PWD")'
-		executeExpression 'mv windows-master\automation .'
+		executeExpression ". { iwr -useb https://raw.githubusercontent.com/cdaf/windows/master/install.ps1 } | iex"
 	}
 }
 
@@ -176,7 +157,7 @@ if ( $git -eq 'yes' ) {
 executeExpression "./automation/provisioning/newUser.ps1 $runnerSA `$runnerSAPassword -passwordExpires 'no'"
 executeExpression "./automation/provisioning/addUserToLocalGroup.ps1 'Administrators' '$runnerSA'"
 executeExpression "./automation/provisioning/setServiceLogon.ps1 '$runnerSA'"
-executeExpression "./automation/provisioning/installRunner.ps1 '$runnerURL' `$personalAccessToken '$runnerName' '$runnerTags' '$runnerExecutor' '$runnerSA' `$runnerSAPassword"
+executeExpression "./automation/provisioning/installRunner.ps1 '$runnerURL' `$personalAccessToken '$runnerName' '$runnerExecutor' '$runnerSA' `$runnerSAPassword"
 
 if ( $docker -eq 'yes' ) { 
 	executeExpression "./automation/provisioning/InstallDocker.ps1 -restart '$restart'"
