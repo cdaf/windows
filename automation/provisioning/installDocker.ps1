@@ -169,6 +169,7 @@ $job = Start-Job {
 	Get-PackageSource
 } | Wait-Job
 Receive-Job $job
+Write-Host
 
 executeError "Install-Package -Name 'Docker' -ProviderName $provider -Confirm:`$False -Verbose -Force $versionParameter"
 
