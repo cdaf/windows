@@ -133,10 +133,10 @@ if ($dockerUser) {
 }
 
 if (${compose}) {
-    Write-Host "[$scriptName]  compose    : ${compose}"
+    Write-Host "[$scriptName]  compose    : ${compose}`n"
 } else {
 	$compose = '1.27.4'
-    Write-Host "[$scriptName]  compose    : ${compose} (default)"
+    Write-Host "[$scriptName]  compose    : ${compose} (default)`n"
 }
 
 $AllProtocols = [System.Net.SecurityProtocolType]'Tls11,Tls12'
@@ -161,7 +161,8 @@ executeRetry "Install-Module NuGet -Confirm:`$False $proxyParameter"
 executeRetry "Install-Module -Name $provider -Repository PSGallery -Confirm:`$False -Verbose -Force $proxyParameter"
 
 Write-Host "`n[$scriptName] Get-PackageSource"
-$(Get-PackageSource)
+$packageSource = $(Get-PackageSource)
+$packageSource
 
 executeError "Install-Package -Name 'Docker' -ProviderName $provider -Confirm:`$False -Verbose -Force $versionParameter"
 
