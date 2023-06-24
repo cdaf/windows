@@ -2,7 +2,6 @@ Param (
   [string]$uri,
   [string]$token,
   [string]$name,
-  [string]$tags,
   [string]$executor,
   [string]$serviceAccount,
   [string]$saPassword,
@@ -57,13 +56,6 @@ if ( $name ) {
 } else {
 	$name = "$env:COMPUTERNAME"
 	Write-Host "[$scriptName] name           : $name (not supplied, set to default)"
-}
-
-if ( $tags ) {
-	Write-Host "[$scriptName] tags           : $tags"
-} else {
-	$tags = "default"
-	Write-Host "[$scriptName] tags           : $tags (not supplied, set to default)"
 }
 
 if ( $executor ) {
@@ -149,8 +141,8 @@ if (!($versionTest -like '*not recognized*')) {
 
 if ( $uri ) {
 	
-	$printList = "--debug register --non-interactive --url $uri --token `$token --name $name --tag-list '$tags' --executor $executor --locked=false --shell powershell"
-	$argList = "--debug register --non-interactive --url $uri --token $token --name $name --tag-list '$tags' --executor $executor --locked=false --shell powershell"
+	$printList = "--debug register --non-interactive --url $uri --token `$token --name $name --executor $executor --shell powershell"
+	$argList = "--debug register --non-interactive --url $uri --token $token --name $name --executor $executor --shell powershell"
 	
 	if ( $tlsCAFile ) {
 		$printList = $printList + " --tls-ca-file $tlsCAFile"
