@@ -79,8 +79,7 @@ function executeError ($expression) {
 	    if(!$?) { Write-Host "[$scriptName] `$? = $?"; exit 1 }
 	} catch { Write-Output $_.Exception|format-list -force; exit 2 }
     if ( $error ) { 
-	    Write-Host "[$scriptName] Error during execution"
-	    Write-Output $error
+	    Write-Host "[$scriptName] Error during execution : $error[0]" -ForegroundColor Red
 	    exit 3
 	}
 }
