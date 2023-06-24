@@ -1,5 +1,9 @@
 # Usage examples
 
+# Runner registration tokens deprecated, along with "tag" and "lock" support from CLI
+# Create a runner from UI, copy the token and run this script
+# https://docs.gitlab.com/ee/security/token_overview.html#runner-authentication-tokens-also-called-runner-tokens
+
 # Windows 2016
 # [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]'Tls11,Tls12'
 

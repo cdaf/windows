@@ -10,6 +10,10 @@ Param (
 )
 $scriptName = 'installRunner.ps1'
 
+# Runner registration tokens deprecated, along with "tag" and "lock" support from CLI
+# Create a runner from UI, copy the token and run this script
+# https://docs.gitlab.com/ee/security/token_overview.html#runner-authentication-tokens-also-called-runner-tokens
+
 # Common expression logging and error handling function, copied, not referenced to ensure atomic process
 function executeExpression ($expression) {
 	Write-Host "[$(Get-Date)] $expression"
