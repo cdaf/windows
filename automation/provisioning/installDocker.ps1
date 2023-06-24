@@ -20,6 +20,7 @@ function execute ($expression) {
 	    if(!$?) { Write-Host "[$scriptName] `$? = $?"; exit 1 }
 	} catch { Write-Output $_.Exception|format-list -force; exit 2 }
     if ( $error ) { Write-Host "[$scriptName] `$error[0] = $error"; exit 3 }
+    Write-Host
 }
 
 function executeExpression ($expression) {
@@ -163,6 +164,11 @@ executeRetry "Install-Module -Name $provider -Repository PSGallery -Confirm:`$Fa
 Write-Host "`n[$scriptName] Get-PackageSource"
 $packageSource = $(Get-PackageSource)
 $packageSource
+
+$job = Start-Job {
+	Get-PackageSource
+} | Wait-Job
+Receive-Job $job
 
 executeError "Install-Package -Name 'Docker' -ProviderName $provider -Confirm:`$False -Verbose -Force $versionParameter"
 
