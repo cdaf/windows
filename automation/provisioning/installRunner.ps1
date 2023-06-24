@@ -149,8 +149,8 @@ if (!($versionTest -like '*not recognized*')) {
 
 if ( $uri ) {
 	
-	$printList = "--debug register --non-interactive --url $uri --registration-token `$token --name $name --tag-list '$tags' --executor $executor --locked=false --shell powershell"
-	$argList = "--debug register --non-interactive --url $uri --registration-token $token --name $name --tag-list '$tags' --executor $executor --locked=false --shell powershell"
+	$printList = "--debug register --non-interactive --url $uri --token `$token --name $name --tag-list '$tags' --executor $executor --locked=false --shell powershell"
+	$argList = "--debug register --non-interactive --url $uri --token $token --name $name --tag-list '$tags' --executor $executor --locked=false --shell powershell"
 	
 	if ( $tlsCAFile ) {
 		$printList = $printList + " --tls-ca-file $tlsCAFile"

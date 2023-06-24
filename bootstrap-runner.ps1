@@ -5,11 +5,11 @@
 
 # Install Agent, register to "Default" Pool and install docker
 # curl.exe -O https://raw.githubusercontent.com/cdaf/windows/master/bootstrap-runner.ps1
-# ./bootstrap-runner.ps1 https://dev.azure.com/<your-org> <pool-manage-PAT>
+# ./bootstrap-runner.ps1 https://gitlab.com/<your-org> <pool-manage-PAT>
 
-# Install Agent, register to "windows-hosts" Pool and do not install docker
+# Install Agent, with "windows-hosts" tag and do not install docker
 # curl.exe -O https://raw.githubusercontent.com/cdaf/windows/master/bootstrap-runner.ps1
-# ./bootstrap-runner.ps1 https://dev.azure.com/<your-org> <pool-manage-PAT> -vstsPool "windows-hosts" -docker "no"
+# ./bootstrap-runner.ps1 https://gitlab.com/<your-org> <pool-manage-PAT> -tags "windows-hosts" -docker "no"
 
 Param (
 	[string]$runnerURL,
