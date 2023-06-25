@@ -88,7 +88,6 @@ function REPLAC ( $fileName, $tokenOrArray, $value ) {
 	}
 }
 
-
 # Only from Windows Server 2016 and above
 # May 23rd 2023, DockerMsftProvider deprecated https://github.com/OneGet/MicrosoftDockerProvider
 # 2.6.3 use Microsoft scripts for Docker Community Edition (CE) and Containerd
@@ -132,10 +131,8 @@ if ( $ecosystem -eq 'containerd' ) {
 	executeExpression "Invoke-WebRequest -UseBasicParsing `"https://raw.githubusercontent.com/microsoft/Windows-Containers/Main/helpful_tools/Install-ContainerdRuntime/install-containerd-runtime.ps1`" -o install-containerd-runtime.ps1"
 	REPLAC ".\install-containerd-runtime.ps1" "Restart-Computer -Force" "Write-Host 'Restart-Computer -Force'"
 	REPLAC ".\install-containerd-runtime.ps1" "Restart-Computer" "Write-Host 'Restart-Computer'"
-	REPLAC ".\install-containerd-runtime.ps1" "Set-ItemProperty -Path" "swap1`nswap2`nswap3`nSet-ItemProperty -Path"
-	REPLAC ".\install-containerd-runtime.ps1" "swap1" '$nerd = where.exe nerdctl'
-	REPLAC ".\install-containerd-runtime.ps1" "swap2" '$dock = $nerd.replace("nerdctl.exe","docker.exe")'
-	REPLAC ".\install-containerd-runtime.ps1" "swap3" 'cp "$nerd" "$dock"'
+	REPLAC ".\install-containerd-runtime.ps1" "Set-ItemProperty -Path" "swap1`nSet-ItemProperty -Path"
+	REPLAC ".\install-containerd-runtime.ps1" "swap1" 'cp "${NerdCTLPath}\nerdctl.exe" "${NerdCTLPath}\docker.exe"'
 	executeExpression ".\install-containerd-runtime.ps1"
 	
 } else {
