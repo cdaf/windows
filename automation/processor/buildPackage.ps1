@@ -544,9 +544,11 @@ if ( $ACTION -eq 'container_build' ) {
 		} else {
 			$array = $versionTest.split(" ")
 			$dockerVersion = $array[2].TrimEnd(',')
+			$dockerSystem = $array[0]
 
-			# Test Docker is running
-			if ( Get-Service Docker -ErrorAction SilentlyContinue ) {
+			if ( $dockerSystem -eq 'nerdctl' ) {
+				$loggingList += "[$scriptName]   Docker                    : $dockerVersion (containerd)"
+			} elseif ( Get-Service Docker -ErrorAction SilentlyContinue ) { # Check if Docker is running
 				$dockerStatus = (Get-Service Docker).Status
 				if ( $dockerStatus -eq 'Running' ) {
 					# docker-desktop test
