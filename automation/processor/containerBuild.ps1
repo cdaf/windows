@@ -16,6 +16,7 @@ cmd /c "exit 0"
 
 # Common expression logging and error handling function, copied, not referenced to ensure atomic process
 function executeExpression ($expression) {
+	cmd /c "exit 0"
 	Write-Host "[$(Get-Date)] $expression"
 	try {
 		Invoke-Expression $expression
@@ -120,7 +121,9 @@ if ( $buildImage ) {
 	}
 
 	if ( Test-Path Dockerfile ) {
+		Write-Host
 		executeExpression "cat Dockerfile"
+		Write-Host
 	}
 		
 	if ( $rebuildImage -eq 'yes') {
@@ -132,7 +135,7 @@ if ( $buildImage ) {
 	}
 
 	executeExpression "& '$AUTOMATIONROOT/remote/dockerBuild.ps1' ${buildImage} $($imageTag + 1) $otherOptions"
-	
+
 	# Remove any older images	
 	executeExpression "& '$AUTOMATIONROOT/remote/dockerClean.ps1' ${buildImage} $($imageTag + 1)"
 	

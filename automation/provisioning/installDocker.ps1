@@ -133,14 +133,14 @@ if ( $ecosystem -eq 'containerd' ) {
 	REPLAC ".\install-containerd-runtime.ps1" "Restart-Computer" "Write-Host 'Restart-Computer'"
 	REPLAC ".\install-containerd-runtime.ps1" "Set-ItemProperty -Path" "swap1`nSet-ItemProperty -Path"
 	REPLAC ".\install-containerd-runtime.ps1" "swap1" 'cp "${NerdCTLPath}\nerdctl.exe" "${NerdCTLPath}\docker.exe"'
-	executeExpression ".\install-containerd-runtime.ps1"
-	
+	executeExpression ".\install-containerd-runtime.ps1 -NerdCTLVersion '1.4.0'"
+
 } else {
 
 	executeExpression "Invoke-WebRequest -UseBasicParsing `"https://raw.githubusercontent.com/microsoft/Windows-Containers/Main/helpful_tools/Install-DockerCE/install-docker-ce.ps1`" -o install-docker-ce.ps1"
 	REPLAC ".\install-docker-ce.ps1" "Restart-Computer -Force" "Write-Host 'Restart-Computer -Force'"
 	REPLAC ".\install-docker-ce.ps1" "Restart-Computer" "Write-Host 'Restart-Computer'"
-	executeExpression ".\install-docker-ce.ps1"
+	executeExpression ".\install-docker-ce.ps1 -NerdCTLVersion '1.4.0'"
 
 }
 

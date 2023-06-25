@@ -192,20 +192,21 @@ if ( $env:CDAF_SKIP_PULL ) {
 	}
 }
 
+# https://github.com/containerd/nerdctl/blob/main/docs/command-reference.md
 Write-Host "`n[$scriptName] List existing images ...`n"
-$imagesBefore = docker images -f label=cdaf.${imageName}.image.version
+$imagesBefore = docker images --filter label=cdaf.${imageName}.image.version
 if ( $LASTEXITCODE -ne 0 ) {
 	cmd /c "exit 0"
 	Write-Host "`n[$scriptName] Attempting to start docker ...`n"
 	executeExpression 'Start-Service Docker'
-	executeExpression "docker images -f label=cdaf.${imageName}.image.version"
+	executeExpression "docker images --filter label=cdaf.${imageName}.image.version"
 } else {
-	Write-Host "docker images -f label=cdaf.${imageName}.image.version"
+	Write-Host "docker images --filter label=cdaf.${imageName}.image.version"
 	$imagesBefore
 }
 
 Write-Host "`n[$scriptName] As of 1.13.0 new prune commands, if using older version, suppress error"
-executeSuppress "docker system prune -f"
+executeSuppress "docker system prune --force"
 
 $buildCommand = 'docker build'
 
@@ -270,6 +271,6 @@ $env:PROGRESS_NO_TRUNC = '1'
 executeExpression "$buildCommand ."
 
 Write-Host "`n[$scriptName] List Resulting images...`n"
-executeExpression "docker images -f label=cdaf.${imageName}.image.version"
+executeExpression "docker images --filter label=cdaf.${imageName}.image.version"
 
 Write-Host "`n[$scriptName] --- end ---"
