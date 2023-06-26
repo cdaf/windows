@@ -28,6 +28,7 @@ timeout(time: 4, unit: 'HOURS') {
           if ( $edition -eq 'Microsoft Windows Server 2022 Standard' ) {
 
             Write-Host "`nSample Regression Test on ${edition}`n"
+            $env:CDAF_DELIVERY = 'WORKGROUP'
             cd samples
             ./executeSamples.ps1
             cd ..
