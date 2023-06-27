@@ -15,3 +15,6 @@ REPLAC example.yaml @secret@ $env:COMPUTERNAME
 
 echo "In a real pipeline, can rely on secret masking`n"
 cat example.yaml
+
+echo "Process a comma separated list as array`n"
+foreach ($item in $csv.Split(',')) { Write-Host "> $item" }
