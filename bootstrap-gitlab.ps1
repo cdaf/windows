@@ -47,7 +47,7 @@ function executeExpression ($expression) {
 	}
 }
 
-$scriptName = 'bootstrap-runner.ps1'
+$scriptName = 'bootstrap-gitlab.ps1'
 cmd /c "exit 0" # ensure LASTEXITCODE is 0
 $error.clear()
 
