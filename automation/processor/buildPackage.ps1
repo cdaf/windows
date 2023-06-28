@@ -163,7 +163,7 @@ function cmProperties {
 			} elseif ( $args[0] -eq 'container' ) {
 				$cdafPath="./propertiesForContainerTasks"
 			} else {
-				ERRMGS " Unknown CM context $($args[0]), supported contexts are rempote, local or container" 5922
+				ERRMGS " Unknown CM context $($args[0]), supported contexts are remote, local or container" 5922
 			}
 			if ( ! (Test-Path $cdafPath) ) {
 				Write-Host "[$scriptName]   mkdir $(mkdir $cdafPath)"
@@ -172,7 +172,9 @@ function cmProperties {
 			foreach ($field in $columns) {
 				if ( $columns.IndexOf($field) -gt 1 ) { # do not create entries for context and target
 					if ( $($args[$columns.IndexOf($field)]) ) { # Only write properties that are populated
-						Add-Content "${cdafPath}/$($args[1])" "${field}=$($args[$columns.IndexOf($field)])"
+						[String]$value = $args[$columns.IndexOf($field)]
+						$value = $value.Replace('•', ',')
+						Add-Content "${cdafPath}/$($args[1])" "${field}=${value}"
 					}
 				}
 			}
@@ -202,7 +204,9 @@ function pvProperties {
 			if ( ! ( Test-Path "${cdafPath}/$($script:pvtarget[$j])" )) {
 				Write-Host "[$scriptName]   Generating ${cdafPath}/$($script:pvtarget[$j])"
 			}
-			Add-Content "${cdafPath}/$($script:pvtarget[$j])" "$($args[0])=$($args[$j])"
+			[String]$value = $args[$j]
+			$value = $value.Replace('•', ',')
+			Add-Content "${cdafPath}/$($script:pvtarget[$j])" "$($args[0])=${value}"
 		}
 	}
 }
@@ -372,6 +376,7 @@ if ( $ACTION -ne 'container_build' ) {
 		$columns = ( -split (Get-Content $SOLUTIONROOT\$propertiesDriver -First 1 ))
 		foreach ( $line in (Get-Content $SOLUTIONROOT\$propertiesDriver )) {
 			$line = $line.Replace('$', '`$')
+			$line = $line.Replace(',', '•')
 			Invoke-Expression "cmProperties $line"
 		}
 	}
@@ -386,6 +391,7 @@ if ( $ACTION -ne 'container_build' ) {
 	    	$line = $pvRows[$i]
 	    	if ( $line ) {
 				$line = $line.Replace('$', '`$')
+				$line = $line.Replace(',', '•')
 				Invoke-Expression "pvProperties $line"
 			}
 		}

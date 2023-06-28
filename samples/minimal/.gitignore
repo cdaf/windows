@@ -3,3 +3,4 @@
 /minimal-package-*.tar.gz
 /bin.bat
 /release.ps1
+/minimal-package-*/

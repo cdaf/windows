@@ -17,4 +17,5 @@ echo "In a real pipeline, can rely on secret masking`n"
 cat example.yaml
 
 echo "Process a comma separated list as array`n"
-foreach ($item in $csv.Split(',')) { Write-Host "> $item" }
+Write-Host "`$csv = $csv"
+foreach ($item in $csv.Split(',')) { Write-Host "  [ $item ]" }
