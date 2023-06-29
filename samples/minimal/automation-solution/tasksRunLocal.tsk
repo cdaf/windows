@@ -24,7 +24,7 @@ $env:CDAF_OVERRIDE_TOKEN = '@'
 DETOKN example.yaml $TARGET resolve
 cat example.yaml
 
-Write-Host "Detokenise setting file using environment variable`n" -ForegroundColor Magenta
+Write-Host "Detokenise setting file, revealing resolved property list = $list`n" -ForegroundColor Magenta
 $env:CDAF_OVERRIDE_TOKEN = '!'
 DETOKN example.yaml $TARGET reveal
 cat example.yaml
