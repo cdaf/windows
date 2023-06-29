@@ -285,11 +285,11 @@ foreach ($item in (Get-ChildItem -Path ".")) {
 }
 
 if ( $SOLUTIONROOT ) {
+	$SOLUTIONROOT = (Get-Item $SOLUTIONROOT).FullName
 	write-host "$SOLUTIONROOT (CDAF.solution found)"
 } else {
 	ERRMSG "[NO_SOLUTION_ROOT] No directory found containing CDAF.solution, please create a single occurrence of this file." 7610
 }
-$SOLUTIONROOT = (Get-Item $SOLUTIONROOT).FullName
 
 $CDAF_CORE = "$AUTOMATIONROOT\remote"
 & "$CDAF_CORE\Transform.ps1" "$SOLUTIONROOT\CDAF.solution" | ForEach-Object { invoke-expression "$_" }

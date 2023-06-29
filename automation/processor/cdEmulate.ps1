@@ -100,6 +100,7 @@ foreach ($item in (Get-ChildItem -Path ".")) {
 	}
 }
 if ($SOLUTIONROOT) {
+	$SOLUTIONROOT = (Get-Item $SOLUTIONROOT).FullName
 	write-host "$SOLUTIONROOT (found $SOLUTIONROOT\CDAF.solution)"
 } else {
 	ERRMSG "[NO_SOLUTION_ROOT] No directory found containing CDAF.solution, please create a single occurrence of this file." 7611
