@@ -29,9 +29,6 @@ $env:CDAF_OVERRIDE_TOKEN = '!'
 DETOKN example.yaml $TARGET reveal
 cat example.yaml
 
-Write-Host "In a real pipeline, can rely on secret masking`n" -ForegroundColor Magenta
-cat example.yaml
-
 Write-Host "Process a comma separated list as array`n" -ForegroundColor Magenta
 Write-Host "`$csv = $csv"
 foreach ($item in $csv.Split(',')) { Write-Host "  [ $item ]" }
