@@ -1,4 +1,7 @@
 ---
   application:
     message: "%literal%"
-    secret: "@secret@"
+    ad_hoc: "@secret@"
+    resolved: "@var_load@"
+    list: "!csv!"
+    reveal: "!list!"

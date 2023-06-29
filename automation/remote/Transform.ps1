@@ -37,8 +37,7 @@ function MASKED ($value) {
 # 2.5.1 Expand variables within variables, literals are unaffected but will be stripped of whitespace
 function resolveContent ([String]$content) {
 	if ( $content ) {
-		$content = $content.trim()
-		return invoke-expression "Write-Output '$content'"
+		return ( $(invoke-expression ("Write-Output $(invoke-expression `"Write-Output $($value.Replace(',', '•').trim())`")").Replace(',', '•') ).Replace('•', ',') )
 	} else {
 		return
 	}
