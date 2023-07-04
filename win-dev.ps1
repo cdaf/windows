@@ -164,6 +164,9 @@ executeExpression ". { iwr -useb http://cdaf.io/static/app/downloads/cdaf.ps1 } 
 if (( $virtualisation -eq 'hyperv' ) -or ( $virtualisation -eq 'docker' )) {
 
     executeExpression "Dism /online /enable-feature /all /featurename:Microsoft-Hyper-V /NoRestart"
+
+    # ensure console is activated
+    executeExpression "Enable-WindowsOptionalFeature -Online -FeatureName Microsoft-Hyper-V -All"
     executeExpression "Enable-WindowsOptionalFeature -Online -FeatureName Containers -All -NoRestart"
 
     if ($vagrantPass) {
