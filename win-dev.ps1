@@ -1,13 +1,17 @@
 # Install base development tools
 #  . { iwr -useb https://raw.githubusercontent.com/cdaf/windows/master/win-dev.ps1 } | iex
 
-# Install Virtualisation choices
+# To perform custom steps
 # iwr -useb https://raw.githubusercontent.com/cdaf/windows/master/win-dev.ps1 -o win-dev.ps1
+
+# Install Virtualisation, include Vagrant client
 # .\win-dev.ps1 hyperv or .\win-dev.ps1 hyperv <smbpassword> or .\win-dev.ps1 hyperv <smbpassword> <smbusername>
 # .\win-dev.ps1 virtualbox
 
+# Install Docker Desktop, requires Hyper-V, so steps above are performed
+# .\win-dev.ps1 docker
+
 # Legacy Software Components
-# iwr -useb https://raw.githubusercontent.com/cdaf/windows/master/win-dev.ps1 -o win-dev.ps1
 # .\win-dev.ps1 legacy
 
 Param (
@@ -157,7 +161,7 @@ $error.clear()
 
 executeExpression ". { iwr -useb http://cdaf.io/static/app/downloads/cdaf.ps1 } | iex"
 
-if ( $virtualisation -eq 'hyperv' ) {
+if (( $virtualisation -eq 'hyperv' ) -or ( $virtualisation -eq 'docker' )) {
 
     executeExpression "Dism /online /enable-feature /all /featurename:Microsoft-Hyper-V /NoRestart"
     executeExpression "Enable-WindowsOptionalFeature -Online -FeatureName Containers -All -NoRestart"
@@ -173,9 +177,11 @@ if ( $virtualisation -eq 'hyperv' ) {
 		}
     }
 
-    executeExpression ".\automation\provisioning\base.ps1 docker-desktop"
-    executeExpression ".\automation\provisioning\base.ps1 wsl2"
-    executeExpression "wsl --install --distribution Ubuntu"
+    if ( $virtualisation -eq 'docker' ) {
+        executeExpression ".\automation\provisioning\base.ps1 docker-desktop"
+        executeExpression ".\automation\provisioning\base.ps1 wsl2"
+        executeExpression "wsl --install --distribution Ubuntu"
+    }
 
     $restart = 'yes'
 
