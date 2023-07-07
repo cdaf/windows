@@ -4,3 +4,6 @@ VECOPY manifest.txt $TMPDIR
 
 echo "List host capabilities"
 INVOKE capabilities
+
+#$key = Get-Content ./crypt/WINDOWS_PASSWORD
+#DECRYP ./crypt/properties.aes $key
