@@ -34,10 +34,15 @@ function MASKED ($value) {
 	(Get-FileHash -InputStream $([IO.MemoryStream]::new([byte[]][char[]]$value)) -Algorithm SHA256).Hash
 }
 
-# 2.5.1 Expand variables within variables, literals are unaffected but will be stripped of whitespace
-function resolveContent ([String]$content) {
-	if ( $content ) {
-		return ( $(invoke-expression ("Write-Output $(invoke-expression `"Write-Output $($value.Replace(',', '•').trim())`")").Replace(',', '•') ).Replace('•', ',') )
+# 2.5.1 Expand variables within variables, value not passed as argument or strings with commas are automatically coverted to arrays
+# 2.6.5 Support for strings containing commas
+# 2.6.7 Support for strings containing integers
+function resolveContent () {
+	if ( $value ) {
+		[String]$forceToString = invoke-expression "Write-Output $($value.Replace(',', '•').trim())"
+		$forceToString = invoke-expression "Write-Output $($forceToString.Replace(',', '•').trim())"
+		$forceToString = $forceToString.Replace('•', ',')
+		return $forceToString
 	} else {
 		return
 	}
@@ -106,9 +111,9 @@ Foreach ($line in $propertiesArray) {
                         } else {
 							if ( $env:propldAction -eq 'resolve' ) {
 								write-host "Found $token, replacing with $value"
-								$value = invoke-expression "resolveContent $value"
+								$value = invoke-expression "resolveContent"
 							} elseif ($env:propldAction -eq 'reveal') {
-								$value = invoke-expression "resolveContent $value"
+								$value = invoke-expression "resolveContent"
 								write-host "Found $token, replacing with $value"
 							} else {
 								write-host "Found $token, replacing with $value"
@@ -121,9 +126,9 @@ Foreach ($line in $propertiesArray) {
             } else { # If token file is not supplied, echo strings for instantiating as variables (cannot instantiate here as they will be out of scope)
 				if ( $env:propldAction -eq 'resolve' ) {
 					write-host "[$scriptName]   $name = $value"
-					$value = invoke-expression "resolveContent $value"
+					$value = invoke-expression "resolveContent"
 				} elseif ($env:propldAction -eq 'reveal') {
-					$value = invoke-expression "resolveContent $value"
+					$value = invoke-expression "resolveContent"
 					write-host "[$scriptName]   $name = $value"
 				} else {
 					write-host "[$scriptName]   $name = $value"

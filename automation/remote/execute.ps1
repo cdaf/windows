@@ -500,10 +500,14 @@ function VARCHK ($propertiesFile) {
 }
 
 # Expand variables within variables, literals are unaffected but will be stripped of whitespace
-function resolveContent ($content) {
-	if ( $content ) {
-		$content = $content.trim()
-		return invoke-expression "Write-Output $content"
+# 2.6.5 Support for strings containing commas
+# 2.6.7 Support for strings containing integers
+function resolveContent () {
+	if ( $value ) {
+		[String]$forceToString = invoke-expression "Write-Output $($value.Replace(',', '•').trim())"
+		$forceToString = invoke-expression "Write-Output $($forceToString.Replace(',', '•').trim())"
+		$forceToString = $forceToString.Replace('•', ',')
+		return $forceToString
 	} else {
 		return
 	}
@@ -599,7 +603,7 @@ Foreach ($line in get-content $TASK_LIST) {
 		            Write-Host "$expression ==> " -NoNewline
 					$name,$value = $arguments.Split('=')
 					if ( $value ) {
-						$expression = $name.trim() + " = '" + (invoke-expression "resolveContent $value") + "'"
+						$expression = $name.trim() + " = '" + (invoke-expression "resolveContent") + "'"
 					} else {
 						$expression = $name.trim() + " = ''"
 					}

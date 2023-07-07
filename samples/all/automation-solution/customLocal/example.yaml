@@ -1,7 +1,15 @@
 ---
   application:
     message: "%literal%"
+    zero: "%zero%"
+    integer: "%integer%"
     ad_hoc: "@secret@"
     resolved: "@var_load@"
-    list: "!csv!"
-    reveal: "!list!"
+    list_var_resolved: "@csv@"
+    list_resolved: "@list@"
+    zero_resolved: "@zero@"
+    integer_resolved: "@integer@"
+    list_var_revealed: "!csv!"
+    list_revealed: "!list!"
+    zero_revealed: "!zero!"
+    integer_revealed: "!integer!"

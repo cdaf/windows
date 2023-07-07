@@ -1,9 +1,9 @@
-echo "Perform example activity, file copy"
+Write-Host "Perform example activity, file copy`n" -ForegroundColor Magenta
 REMOVE $TMPDIR/manifest.txt
 VECOPY manifest.txt $TMPDIR
 
-echo "List host capabilities"
-INVOKE capabilities
+Write-Host "List host capabilities`n" -ForegroundColor Magenta
+& $CDAF_CORE\capabilities.ps1
 
 #$key = Get-Content ./crypt/WINDOWS_PASSWORD
 #DECRYP ./crypt/properties.aes $key

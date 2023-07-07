@@ -1,4 +1,4 @@
-Write-Host "12-factor approach uses environment variables, these would be set by the CI/CD tooling" -ForegroundColor Magenta
+Write-Host "12-factor approach uses environment variables, these would be set by the CI/CD tooling`n" -ForegroundColor Magenta
 $env:EXAMPLE_SECRET_1 = 'Shhh,Passw0Rd!'
 $env:EXAMPLE_SECRET_2 = 'Shhh,secret'
 
@@ -9,7 +9,8 @@ Write-Host "Load a property file to memory`n" -ForegroundColor Magenta
 PROPLD manifest.txt
 
 Write-Host "Display a resolved variable`n" -ForegroundColor Magenta
-ASSIGN $resolved = "$var_load"
+ASSIGN $resolvedVarInVar = "$var_load"
+ASSIGN $resolvedStringInVar = "$list"
 
 Write-Host "Detokenise a setting file`n" -ForegroundColor Magenta
 DETOKN example.yaml
