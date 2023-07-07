@@ -40,8 +40,8 @@ function MASKED ($value) {
 function resolveContent () {
 	if ( $value ) {
 		[String]$forceToString = invoke-expression "Write-Output $($value.Replace(',', '•').trim())"
-		$forceToString = invoke-expression "Write-Output $($forceToString.Replace(',', '•').trim())"
-		$forceToString = $forceToString.Replace('•', ',')
+		if ( $forceToString ) { $forceToString = invoke-expression "Write-Output $($forceToString.Replace(',', '•').trim())" }
+		if ( $forceToString ) { $forceToString = $forceToString.Replace('•', ',') }
 		return $forceToString
 	} else {
 		return
