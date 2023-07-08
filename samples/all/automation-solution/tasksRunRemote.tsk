@@ -1,6 +1,6 @@
 Write-Host "Perform example activity, file copy`n" -ForegroundColor Magenta
-REMOVE $TMPDIR/manifest.txt
-VECOPY manifest.txt $TMPDIR
+REMOVE ~/manifest.txt
+VECOPY manifest.txt ~
 
 Write-Host "List host capabilities`n" -ForegroundColor Magenta
 & $CDAF_CORE\capabilities.ps1
