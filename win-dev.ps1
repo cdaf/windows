@@ -183,7 +183,11 @@ if (( $virtualisation -eq 'hyperv' ) -or ( $virtualisation -eq 'docker' )) {
     if ( $virtualisation -eq 'docker' ) {
         executeExpression ".\automation\provisioning\base.ps1 docker-desktop"
         executeExpression ".\automation\provisioning\base.ps1 wsl2"
-        executeExpression "wsl --install --distribution Ubuntu"
+        executeExpression "curl.exe -L https://aka.ms/wsl2kernel -o wsl_update_x64.msi"
+        executeExpression ".\automation\provisioning\installMSI.ps1 wsl_update_x64.msi"
+        executeExpression "wsl --set-default-version 2"
+        executeExpression "curl.exe -L https://aka.ms/wslubuntu2004 -o wslubuntu2004.appx"
+        executeExpression "Add-AppxPackage .\wslubuntu2004.appx"
     }
 
     $restart = 'yes'
