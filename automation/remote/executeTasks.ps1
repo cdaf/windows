@@ -1,11 +1,3 @@
-# Entry Point for portable package deployment, child scripts inherit the functions of parent scripts, so these definitions are global
-function exitWithCode ($message, $exitCode) {
-    write-host "[$scriptName] $message" -ForegroundColor Red
-    write-host "[$scriptName]   Returning errorlevel $exitCode to DOS" -ForegroundColor Magenta
-    $host.SetShouldExit($exitCode)
-    exit $exitCode
-}
-
 function passExitCode ($message, $exitCode) {
     write-host "[$scriptName] $message" -ForegroundColor Red
     write-host "[$scriptName]   Exiting with `$LASTEXITCODE $exitCode" -ForegroundColor Magenta

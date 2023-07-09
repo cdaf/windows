@@ -92,15 +92,6 @@ function executeReturn ($expression) {
     return $output
 }
 
-# Entry Point for Build Process, child scripts inherit the functions of parent scripts, so these definitions are global for the CI process
-# Primary powershell, returns exitcode to DOS
-function exitWithCode ($message, $exitCode) {
-    write-host "[$scriptName] $message" -ForegroundColor Red
-    write-host "[$scriptName]   Returning errorlevel $exitCode to DOS" -ForegroundColor Magenta
-    $host.SetShouldExit($exitCode)
-    exit $exitCode
-}
-
 function passExitCode ($message, $exitCode) {
     write-host "[$scriptName] $message" -ForegroundColor Red
     write-host "[$scriptName]   Exiting with `$LASTEXITCODE $exitCode" -ForegroundColor Magenta
