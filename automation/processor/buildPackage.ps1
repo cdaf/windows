@@ -92,20 +92,6 @@ function executeReturn ($expression) {
     return $output
 }
 
-function passExitCode ($message, $exitCode) {
-    write-host "[$scriptName] $message" -ForegroundColor Red
-    write-host "[$scriptName]   Exiting with `$LASTEXITCODE $exitCode" -ForegroundColor Magenta
-    exit $exitCode
-}
-
-function exceptionExit ($exception) {
-    write-host "[$scriptName]   Exception details follow ..." -ForegroundColor Red
-    Write-Host $exception.Exception|format-list -force
-    write-host "[$scriptName] Returning errorlevel (20) to DOS" -ForegroundColor Magenta
-    $host.SetShouldExit(20)
-    exit
-}
-
 # Not used in this script because called from DOS, but defined here for all child scripts
 function taskFailure ($taskName) {
     write-host

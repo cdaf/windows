@@ -65,7 +65,7 @@ if ( $localEnvPreDeployTask) {
     Write-Host
     # Execute the Tasks Driver File
     & ${WORK_DIR_DEFAULT}\execute.ps1 $SOLUTION $BUILD $localEnvironmentPath\$ENVIRONMENT $localEnvPreDeployTask $OPT_ARG
-	if($LASTEXITCODE -ne 0){ passExitCode "LOCAL_TASKS_PRE_DEPLOY_NON_ZERO_EXIT ${WORK_DIR_DEFAULT}\execute.ps1 $SOLUTION $BUILD $localEnvironmentPath\$ENVIRONMENT $localEnvPreDeployTask" $LASTEXITCODE }
+	if($LASTEXITCODE -ne 0){ ERRMSG "LOCAL_TASKS_PRE_DEPLOY_NON_ZERO_EXIT ${WORK_DIR_DEFAULT}\execute.ps1 $SOLUTION $BUILD $localEnvironmentPath\$ENVIRONMENT $localEnvPreDeployTask" $LASTEXITCODE }
     if(!$?){ taskFailure "LOCAL_TASKS_PRE_DEPLOY_TRAP" }
 }
 
@@ -91,7 +91,7 @@ if (-not(Test-Path $propertiesFilter)) {
 
 		write-host "`n[$scriptName]   --- Process Target $propFilename --- " -ForegroundColor Green
 		& ${WORK_DIR_DEFAULT}\localTasksTarget.ps1 $ENVIRONMENT $SOLUTION $BUILD $propFilename $OPT_ARG
-		if($LASTEXITCODE -ne 0){ passExitCode "LOCAL_NON_ZERO_EXIT & ${WORK_DIR_DEFAULT}\localTasksTarget.ps1 $ENVIRONMENT $SOLUTION $BUILD $propFilename" $LASTEXITCODE }
+		if($LASTEXITCODE -ne 0){ ERRMSG "LOCAL_NON_ZERO_EXIT & ${WORK_DIR_DEFAULT}\localTasksTarget.ps1 $ENVIRONMENT $SOLUTION $BUILD $propFilename" $LASTEXITCODE }
 		if(!$?){ taskWarning }
 
 		write-host "`n[$scriptName]   --- Completed Target $propFilename --- " -ForegroundColor Green
@@ -103,7 +103,7 @@ if ( $localEnvPostDeployTask) {
     Write-Host
     # Execute the Tasks Driver File
     & ${WORK_DIR_DEFAULT}\execute.ps1 $SOLUTION $BUILD $localEnvironmentPath\$ENVIRONMENT $localEnvPostDeployTask $OPT_ARG
-	if($LASTEXITCODE -ne 0){ passExitCode "LOCAL_TASKS_POST_DEPLOY_NON_ZERO_EXIT ${WORK_DIR_DEFAULT}\execute.ps1 $SOLUTION $BUILD $localEnvironmentPath\$ENVIRONMENT $localEnvPostDeployTask" $LASTEXITCODE }
+	if($LASTEXITCODE -ne 0){ ERRMSG "LOCAL_TASKS_POST_DEPLOY_NON_ZERO_EXIT ${WORK_DIR_DEFAULT}\execute.ps1 $SOLUTION $BUILD $localEnvironmentPath\$ENVIRONMENT $localEnvPostDeployTask" $LASTEXITCODE }
     if(!$?){ taskFailure "LOCAL_TASKS_POST_DEPLOY_TRAP" }
 }
 

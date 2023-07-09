@@ -95,18 +95,6 @@ function exceptionExit ( $identifier, $exception, $exitCode ) {
 	}
 }
 
-function passExitCode ( $message, $exitCode ) {
-    write-host "[delivery.ps1] $message" -ForegroundColor Red
-    write-host "[delivery.ps1] CDAF_DELIVERY_FAILURE.EXIT : Exiting with `$LASTEXITCODE $exitCode" -ForegroundColor Magenta
-    if ( $exitCode ) {
-		$host.SetShouldExit($exitCode)
-		exit $exitCode
-    } else {
-		$host.SetShouldExit(2051)
-		exit 2051
-	}
-}
-
 function taskFailure ($taskName) {
     write-host "`n[delivery.ps1] $taskName" -ForegroundColor Red
 	write-host "[delivery.ps1] CDAF_DELIVERY_FAILURE.INTERNAL_TASK : `$host.SetShouldExit(2051)" -ForegroundColor Red

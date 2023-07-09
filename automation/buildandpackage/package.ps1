@@ -237,7 +237,7 @@ if (Test-Path $prepackageScript) {
 	Write-Host "`n[$scriptName] Process Pre-Package Script ...`n"
     try {
 	    & $prepackageScript $SOLUTION $BUILDNUMBER $ACTION
-		if($LASTEXITCODE -ne 0){ passExitCode "PACKAGE_SCRIPT_NON_ZERO .\$automationHelper\execute.ps1 $SOLUTION $BUILDNUMBER $ENVIRONMENT build.tsk $ACTION" $LASTEXITCODE }
+		if($LASTEXITCODE -ne 0){ ERRMSG "PACKAGE_SCRIPT_NON_ZERO .\$automationHelper\execute.ps1 $SOLUTION $BUILDNUMBER $ENVIRONMENT build.tsk $ACTION" $LASTEXITCODE }
 	    if(!$?){ taskFailure "SOLUTION_BUILD_${SOLUTION}_${BUILDNUMBER}_${ACTION}" }
     } catch {
 	    write-host "[$scriptName] CUSTOM_BUILD_EXCEPTION & $prepackageScript $SOLUTION $BUILDNUMBER $ACTION" -ForegroundColor Magenta

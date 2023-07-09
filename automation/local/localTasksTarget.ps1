@@ -46,7 +46,7 @@ if ($scriptOverride ) {
 	foreach ( $taskItem in $taskList.Split() ) {
 	    write-host "`n[$scriptName] --- Executing $taskItem ---`n" -ForegroundColor Green
 	    & .\execute.ps1 $SOLUTION $BUILD $TARGET $taskItem $OPT_ARG
-		if($LASTEXITCODE -ne 0){ passExitCode "LOCAL_TASKS_TARGET_EXECUTE_NON_ZERO_EXIT .\execute.ps1 $SOLUTION $BUILD $TARGET $taskItem" $LASTEXITCODE }
+		if($LASTEXITCODE -ne 0){ ERRMSG "LOCAL_TASKS_TARGET_EXECUTE_NON_ZERO_EXIT .\execute.ps1 $SOLUTION $BUILD $TARGET $taskItem" $LASTEXITCODE }
 	    if(!$?){ taskFailure "LOCAL_TASKS_TARGET_EXECUTE_TRAP" }
     }
 }

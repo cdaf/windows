@@ -15,23 +15,23 @@ Write-Host "[$scriptName] | Process BUILD all projects |"
 Write-Host "[$scriptName] +----------------------------+"
 
 $SOLUTION = $args[0]
-if (-not($SOLUTION)) { passExitCode "SOLUTION_NOT_PASSED" 100 }
+if (-not($SOLUTION)) { ERRMSG "SOLUTION_NOT_PASSED" 100 }
 Write-Host "[$scriptName]   SOLUTION          : $SOLUTION"
 
 $BUILDNUMBER = $args[1]
-if (-not($BUILDNUMBER)) { passExitCode "BUILDNUMBER_NOT_PASSED" 101 }
+if (-not($BUILDNUMBER)) { ERRMSG "BUILDNUMBER_NOT_PASSED" 101 }
 Write-Host "[$scriptName]   BUILDNUMBER       : $BUILDNUMBER"
 
 $REVISION = $args[2]
-if (-not($REVISION)) { passExitCode "REVISION_NOT_PASSED" 102 }
+if (-not($REVISION)) { ERRMSG "REVISION_NOT_PASSED" 102 }
 Write-Host "[$scriptName]   REVISION          : $REVISION"
 
 $AUTOMATIONROOT = $args[3]
-if (-not($AUTOMATIONROOT)) { passExitCode "AUTOMATIONROOT_NOT_PASSED" 103 }
+if (-not($AUTOMATIONROOT)) { ERRMSG "AUTOMATIONROOT_NOT_PASSED" 103 }
 Write-Host "[$scriptName]   AUTOMATIONROOT    : $AUTOMATIONROOT"
 
 $SOLUTIONROOT = $args[4]
-if (-not($SOLUTIONROOT)) { passExitCode "SOLUTIONROOT_NOT_PASSED" 104 }
+if (-not($SOLUTIONROOT)) { ERRMSG "SOLUTIONROOT_NOT_PASSED" 104 }
 Write-Host "[$scriptName]   SOLUTIONROOT      : $SOLUTIONROOT"
 
 $ACTION = $args[5]
@@ -76,7 +76,7 @@ if (Test-Path build.tsk) {
     # Because PowerShell variables are global, set the $WORKSPACE before invoking execution
     $WORKSPACE=$(pwd)
     & $automationHelper\execute.ps1 $SOLUTION $BUILDNUMBER $ENVIRONMENT "build.tsk" $ACTION
-	if($LASTEXITCODE -ne 0){ passExitCode "ROOT_EXECUTE_NON_ZERO_EXIT $automationHelper\execute.ps1 $SOLUTION $BUILDNUMBER $ENVIRONMENT build.tsk $ACTION" $LASTEXITCODE }
+	if($LASTEXITCODE -ne 0){ ERRMSG "ROOT_EXECUTE_NON_ZERO_EXIT $automationHelper\execute.ps1 $SOLUTION $BUILDNUMBER $ENVIRONMENT build.tsk $ACTION" $LASTEXITCODE }
     if(!$?){ taskFailure "SOLUTION_EXECUTE_${SOLUTION}_${BUILDNUMBER}_${ENVIRONMENT}_build.tsk_${ACTION}" }
 } 
 
@@ -86,7 +86,7 @@ if (Test-Path build.ps1) {
     # Legacy build method, note: a .BAT file may exist in the project folder for Dev testing, by is not used by the builder
     try {
 	    & .\build.ps1 $SOLUTION $BUILDNUMBER $REVISION ROOT $ENVIRONMENT $ACTION
-		if($LASTEXITCODE -ne 0){ passExitCode "ROOT_LEGACY_NON_ZERO_EXIT .\build.ps1 $SOLUTION $BUILDNUMBER $REVISION ROOT $ENVIRONMENT $ACTION" $LASTEXITCODE }
+		if($LASTEXITCODE -ne 0){ ERRMSG "ROOT_LEGACY_NON_ZERO_EXIT .\build.ps1 $SOLUTION $BUILDNUMBER $REVISION ROOT $ENVIRONMENT $ACTION" $LASTEXITCODE }
 	    if(!$?){ taskFailure "SOLUTION_BUILD_${SOLUTION}_${BUILDNUMBER}_${REVISION}_ROOT_${ENVIRONMENT}_${ACTION}" }
     } catch {
 	    write-host "[$scriptName] CUSTOM_BUILD_EXCEPTION & .\build.ps1 $SOLUTION $BUILDNUMBER $REVISION ROOT $ENVIRONMENT $ACTION" -ForegroundColor Magenta
@@ -132,13 +132,13 @@ if (-not($projectsToBuild)) {
             # Task driver support added in release 0.6.1
             $WORKSPACE=$(pwd)
 		    & $automationHelper\execute.ps1 $SOLUTION $BUILDNUMBER $ENVIRONMENT "build.tsk" $ACTION
-			if($LASTEXITCODE -ne 0){ passExitCode "PROJECT_EXECUTE_NON_ZERO_EXIT & $automationHelper\execute.ps1 $SOLUTION $BUILDNUMBER $ENVIRONMENT build.tsk $ACTION" $LASTEXITCODE }
+			if($LASTEXITCODE -ne 0){ ERRMSG "PROJECT_EXECUTE_NON_ZERO_EXIT & $automationHelper\execute.ps1 $SOLUTION $BUILDNUMBER $ENVIRONMENT build.tsk $ACTION" $LASTEXITCODE }
 		    if(!$?){ taskFailure "PROJECT_EXECUTE_${SOLUTION}_${BUILDNUMBER}_${ENVIRONMENT}_build.tsk_${ACTION}" }
 
         } else {
             # Legacy build method, note: a .BAT file may exist in the project folder for Dev testing, by is not used by the builder
 		    & .\build.ps1 $SOLUTION $BUILDNUMBER $REVISION ${PROJECT} $ENVIRONMENT $ACTION
-			if($LASTEXITCODE -ne 0){ passExitCode "PROJECT_EXECUTE_NON_ZERO_EXIT .\$automationHelper\execute.ps1 $SOLUTION $BUILDNUMBER $ENVIRONMENT build.tsk $ACTION" $LASTEXITCODE }
+			if($LASTEXITCODE -ne 0){ ERRMSG "PROJECT_EXECUTE_NON_ZERO_EXIT .\$automationHelper\execute.ps1 $SOLUTION $BUILDNUMBER $ENVIRONMENT build.tsk $ACTION" $LASTEXITCODE }
 		    if(!$?){ taskFailure "PROJECT_BUILD_${SOLUTION}_${BUILDNUMBER}_${REVISION}_${PROJECT}_${ENVIRONMENT}_${ACTION}" }
         }
 

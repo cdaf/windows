@@ -1,9 +1,3 @@
-function passExitCode ($message, $exitCode) {
-    write-host "[$scriptName] $message" -ForegroundColor Red
-    write-host "[$scriptName]   Exiting with `$LASTEXITCODE $exitCode" -ForegroundColor Magenta
-    exit $exitCode
-}
-
 function exceptionExit ($exception) {
     write-host "[$scriptName]   Exception details follow ..." -ForegroundColor Red
     Write-Output $exception.Exception|format-list -force
