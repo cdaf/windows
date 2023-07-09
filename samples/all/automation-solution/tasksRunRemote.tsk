@@ -1,6 +1,13 @@
-Write-Host "Perform example activity, file copy`n" -ForegroundColor Magenta
-REMOVE ~/manifest.txt
-VECOPY manifest.txt ~
+Write-Host "Create a temp directory & copy content to it, then add another file`n" -ForegroundColor Magenta
+REFRSH manifest.txt .cdaf-regression-temp-dir
+VECOPY example.yaml .cdaf-regression-temp-dir
+
+Write-Host "Create a zip file from the directory, then extract it to directory with the same name`n" -ForegroundColor Magenta
+CMPRSS zipPackage .cdaf-regression-temp-dir
+DCMPRS zipPackage
+
+Write-Host "Remove the temp directory`n" -ForegroundColor Magenta
+REMOVE .cdaf-regression-temp-dir
 
 Write-Host "List host capabilities`n" -ForegroundColor Magenta
 & $CDAF_CORE\capabilities.ps1
