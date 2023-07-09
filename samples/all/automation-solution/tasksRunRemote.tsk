@@ -12,5 +12,9 @@ REMOVE .cdaf-regression-temp-dir
 Write-Host "List host capabilities`n" -ForegroundColor Magenta
 & $CDAF_CORE\capabilities.ps1
 
-#$key = Get-Content ./crypt/WINDOWS_PASSWORD
-#DECRYP ./crypt/properties.aes $key
+Write-Host "Supply by pipeline as an environment variable, see provisioning/encrypt.ps1 to create file`n" -ForegroundColor Magenta
+$env:AES_KEY = '29-240-88-121-33-64-150-226-136-160-144-115-127-74-74-30'
+
+Write-Host "Capture output to file or it will simply be logged and discarded`n" -ForegroundColor Magenta
+DECRYP ./crypt/secrets.crypt $env:AES_KEY | Out-File secrets
+cat secrets
