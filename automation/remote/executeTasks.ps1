@@ -1,3 +1,32 @@
+
+# Consolidated Error processing function
+#  required : error message
+#  optional : exit code, if not supplied only error message is written
+function ERRMSG ($message, $exitcode) {
+	if ( $exitcode ) {
+		Write-Host "`n[$scriptName]$message" -ForegroundColor Red
+	} else {
+		Write-Warning "`n[$scriptName]$message"
+	}
+	if ( $error ) {
+		$i = 0
+		foreach ( $item in $Error )
+		{
+			Write-Host "`$Error[$i] $item"
+			$i++
+		}
+		$Error.clear()
+	}
+	if ( $exitcode ) {
+		if ( $env:CDAF_ERROR_DIAG ) {
+			Write-Host "`n[$scriptName] Invoke custom diag `$env:CDAF_ERROR_DIAG = $env:CDAF_ERROR_DIAG`n"
+			Invoke-Expression $env:CDAF_ERROR_DIAG
+		}
+		Write-Host "`n[$scriptName] Exit with LASTEXITCODE = $exitcode`n" -ForegroundColor Red
+		exit $exitcode
+	}
+}
+
 function exceptionExit ($exception) {
     write-host "[$scriptName]   Exception details follow ..." -ForegroundColor Red
     Write-Output $exception.Exception|format-list -force
