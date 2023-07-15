@@ -278,7 +278,7 @@ if ( $SOLUTIONROOT ) {
 		$SOLUTIONROOT = (Get-Item $SOLUTIONROOT).FullName
 		write-host "$SOLUTIONROOT (CDAF.solution found)"
 	} else {
-		exitWithCode "No directory found containing CDAF.solution, please create a single occurance of this file." 7612
+		ERRMSG "No directory found containing CDAF.solution, please create a single occurance of this file." 7612
 	}
 }
 if ($SOLUTION) {
@@ -288,7 +288,7 @@ if ($SOLUTION) {
 	if ($SOLUTION) {
 		Write-Host "[$scriptName]   SOLUTION        : $SOLUTION (found `$SOLUTIONROOT\CDAF.solution)"
 	} else {
-		exitWithCode "SOLUTION_NOT_FOUND Solution not supplied and unable to derive from $SOLUTIONROOT\CDAF.solution" 22
+		ERRMSG "SOLUTION_NOT_FOUND Solution not supplied and unable to derive from $SOLUTIONROOT\CDAF.solution" 22
 	}
 }
 

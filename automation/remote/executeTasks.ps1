@@ -68,7 +68,7 @@ if ($scriptOverride ) {
 	try {
 		Invoke-Expression $expression
 		if($LASTEXITCODE -ne 0){
-		    exitWithCode "OVERRIDE_EXECUTE_NON_ZERO_EXIT Invoke-Expression $expression" $LASTEXITCODE 
+		    ERRMSG "OVERRIDE_EXECUTE_NON_ZERO_EXIT Invoke-Expression $expression" $LASTEXITCODE 
 		}
 	    if(!$?){ taskFailure "REMOTE_OVERRIDESCRIPT_TRAP" }
     } catch { exceptionExit $_ }
@@ -86,7 +86,7 @@ if ($scriptOverride ) {
 	    write-host "`n[$scriptName] --- Executing $taskItem ---`n" -ForegroundColor Green
 	    & "$CDAF_CORE\execute.ps1" $SOLUTION $BUILDNUMBER $TARGET $taskItem $OPT_ARG
 		if($LASTEXITCODE -ne 0){
-		    exitWithCode "OVERRIDE_EXECUTE_NON_ZERO_EXIT & .\execute.ps1 $SOLUTION $BUILDNUMBER $TARGET $taskItem $OPT_ARG" $LASTEXITCODE 
+		    ERRMSG "OVERRIDE_EXECUTE_NON_ZERO_EXIT & .\execute.ps1 $SOLUTION $BUILDNUMBER $TARGET $taskItem $OPT_ARG" $LASTEXITCODE 
 		}
 	    if(!$?){ taskFailure "POWERSHELL_TRAP" }
     }
