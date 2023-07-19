@@ -7,36 +7,65 @@ Param (
 	[string]$imageDir
 )
 
+
+# Consolidated Error processing function
+#  required : error message
+#  optional : exit code, if not supplied only error message is written
+function ERRMSG ($message, $exitcode) {
+	if ( $exitcode ) {
+		Write-Host "`n[$scriptName]$message" -ForegroundColor Red
+	} else {
+		Write-Warning "`n[$scriptName]$message"
+	}
+	if ( $error ) {
+		$i = 0
+		foreach ( $item in $Error )
+		{
+			Write-Host "`$Error[$i] $item"
+			$i++
+		}
+		$Error.clear()
+	}
+	if ( $exitcode ) {
+		if ( $env:CDAF_ERROR_DIAG ) {
+			Write-Host "`n[$scriptName] Invoke custom diag `$env:CDAF_ERROR_DIAG = $env:CDAF_ERROR_DIAG`n"
+			Invoke-Expression $env:CDAF_ERROR_DIAG
+		}
+		Write-Host "`n[$scriptName] Exit with LASTEXITCODE = $exitcode`n" -ForegroundColor Red
+		exit $exitcode
+	}
+}
+
 # Common expression logging and error handling function, copied, not referenced to ensure atomic process
 function executeExpression ($expression) {
 	Write-Host "[$(Get-Date)] $expression"
 	try {
-		Invoke-Expression "$expression 2> `$null"
-	    if(!$?) { Write-Host "[$scriptName] `$? = $?"; $error ; exit 1111 }
+		Invoke-Expression $expression
+	    if(!$?) { ERRMSG "[TRAP] `$? = $?" 1211 }
 	} catch {
-		Write-Host "[$scriptName][EXCEPTION] List exception and error array (if populated) and exit with LASTEXITCODE 1112" -ForegroundColor Red
-		Write-Host $_.Exception|format-list -force
-		if ( $error ) { Write-Host "[$scriptName][ERROR] `$Error = $Error" ; $Error.clear() }
-		exit 1112
+		$message = $_.Exception.Message
+		$_.Exception | format-list -force
+		$_.Exception.StackTrace
+		if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) {
+			ERRMSG "[EXEC][EXCEPTION] $message" $LASTEXITCODE
+		} else {
+			ERRMSG "[EXEC][EXCEPTION] $message" 1212
+		}
 	}
     if ( $LASTEXITCODE ) {
     	if ( $LASTEXITCODE -ne 0 ) {
-			Write-Host "[$scriptName] `$LASTEXITCODE = $LASTEXITCODE " -ForegroundColor Red
-			if ( $error ) { Write-Host "[$scriptName][ERROR] `$Error = $Error" ; $Error.clear() }
-			exit $LASTEXITCODE
+			ERRMSG "[EXEC][EXIT] `$LASTEXITCODE is $LASTEXITCODE" $LASTEXITCODE
 		} else {
 			if ( $error ) {
-				Write-Host "[$scriptName][WARN] $Error array populated by `$LASTEXITCODE = $LASTEXITCODE error follows...`n" -ForegroundColor Yellow
-				Write-Host "[$scriptName][WARN] `$Error = $Error" ; $Error.clear()
+				ERRMSG "[EXEC][WARN] `$LASTEXITCODE is $LASTEXITCODE, but standard error populated"
 			}
 		} 
 	} else {
 	    if ( $error ) {
 	    	if ( $env:CDAF_IGNORE_WARNING -eq 'no' ) {
-				Write-Host "[$scriptName][ERROR] `$Error = $error"; $Error.clear()
-				Write-Host "[$scriptName][ERROR] `$env:CDAF_IGNORE_WARNING is 'no' so exiting with LASTEXITCODE 1113 ..."; exit 1113
+				ERRMSG "[EXEC][ERROR] `$env:CDAF_IGNORE_WARNING is 'no' so exiting" 1213
 	    	} else {
-		    	Write-Host "[$scriptName][WARN] `$Error = $error" ; $Error.clear()
+				ERRMSG "[EXEC][WARN] `$LASTEXITCODE not set, but standard error populated"
 	    	}
 		}
 	}
@@ -161,9 +190,9 @@ foreach ( $envVar in Get-ChildItem env:) {
 	}
 }
 
-if (( ! ${env:USERPROFILE} ) -or ( ${env:CDAF_HOME_MOUNT} -eq 'no' )) {
-	Write-Host "[$scriptName] `${env:CDAF_HOME_MOUNT} = ${env:CDAF_HOME_MOUNT}"
-	Write-Host "[$scriptName] `${env:USERPROFILE}     = ${env:USERPROFILE}"
+if (( ! $env:USERPROFILE ) -or ( $env:CDAF_HOME_MOUNT -eq 'no' )) {
+	Write-Host "[$scriptName] `$CDAF_HOME_MOUNT = ${env:CDAF_HOME_MOUNT} (environment variable)"
+	Write-Host "[$scriptName] `$USERPROFILE     = ${env:USERPROFILE} (environment variable)"
 	executeExpression "docker run ${buildCommand} --label cdaf.${id}.container.instance=${REVISION} --name ${id} ${id}:${BUILDNUMBER} deploy.bat ${TARGET}"
 } else {
 	executeExpression "docker run --volume '${env:USERPROFILE}:C:/solution/home' ${buildCommand} --label cdaf.${id}.container.instance=${REVISION} --name ${id} ${id}:${BUILDNUMBER} deploy.bat ${TARGET}"

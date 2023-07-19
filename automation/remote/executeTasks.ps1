@@ -18,10 +18,6 @@ function ERRMSG ($message, $exitcode) {
 		$Error.clear()
 	}
 	if ( $exitcode ) {
-		if ( $env:CDAF_ERROR_DIAG ) {
-			Write-Host "`n[$scriptName] Invoke custom diag `$env:CDAF_ERROR_DIAG = $env:CDAF_ERROR_DIAG`n"
-			Invoke-Expression $env:CDAF_ERROR_DIAG
-		}
 		Write-Host "`n[$scriptName] Exit with LASTEXITCODE = $exitcode`n" -ForegroundColor Red
 		exit $exitcode
 	}
@@ -74,10 +70,26 @@ if ( $WORKSPACE ) {
     write-host "[$scriptName]   WORKSPACE : $WORKSPACE (pwd)"
 }
 
+if ( $RELEASE ) {
+    write-host "[$scriptName]   RELEASE   : $RELEASE"
+} else {
+	if ( $env:RELEASE ) {
+		$RELEASE = $env:RELEASE
+	    write-host "[$scriptName]   RELEASE   : $RELEASE (from environment variable)"
+	} else {
+	    write-host "[$scriptName]   RELEASE   : (not supplied)"
+	}
+}
+
 if ( $OPT_ARG ) {
     write-host "[$scriptName]   OPT_ARG   : $OPT_ARG"
 } else {
-    write-host "[$scriptName]   OPT_ARG   : (not supplied)"
+	if ( $env:OPT_ARG ) {
+		$OPT_ARG = $env:OPT_ARG
+	    write-host "[$scriptName]   OPT_ARG   : $OPT_ARG (from environment variable)"
+	else
+	    write-host "[$scriptName]   OPT_ARG   : (not supplied)"
+	}
 }
 
 $CDAF_CORE = $(pwd)
