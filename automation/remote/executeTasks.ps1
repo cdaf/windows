@@ -55,20 +55,14 @@ function getProp ($propName) {
     return $propValue
 }
 
-$TARGET    = $args[0]
-$WORKSPACE = $args[1]
-$OPT_ARG   = $args[2]
+$TARGET  = $args[0]
+$RELEASE = $args[1]
+$OPT_ARG = $args[2]
 
 # $myInvocation.MyCommand.Name not working when processing DOS
 $scriptName = "executeTasks.ps1"
 
 write-host "[$scriptName]   TARGET    : $TARGET"
-if ( $WORKSPACE ) {
-    write-host "[$scriptName]   WORKSPACE : $WORKSPACE (passed as argument)"
-} else {
-    $WORKSPACE = $(Get-Location)
-    write-host "[$scriptName]   WORKSPACE : $WORKSPACE (pwd)"
-}
 
 if ( $RELEASE ) {
     write-host "[$scriptName]   RELEASE   : $RELEASE"
@@ -91,6 +85,9 @@ if ( $OPT_ARG ) {
 	    write-host "[$scriptName]   OPT_ARG   : (not supplied)"
 	}
 }
+
+$WORKSPACE = $(Get-Location)
+write-host "[$scriptName]   WORKSPACE : $WORKSPACE (pwd)"
 
 $CDAF_CORE = $(pwd)
 Write-Host "[$scriptName]   CDAF_CORE : $CDAF_CORE"
