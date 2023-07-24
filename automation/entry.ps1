@@ -326,7 +326,7 @@ if ( ${solutionName} ) {
 }
 
 $WORKSPACE_ROOT = $(Get-Location)
-Write-Host "[$scriptName]   pwd            : $WORKSPACE_ROOT"
+Write-Host "[$scriptName]   WORKSPACE_ROOT : $WORKSPACE_ROOT"
 Write-Host "[$scriptName]   hostname       : $(hostname)" 
 Write-Host "[$scriptName]   whoami         : $(whoami)"
 
