@@ -30,7 +30,6 @@ Write-Host "[$scriptName]   SOLUTION         : $SOLUTION"
 Write-Host "[$scriptName]   WORK_DIR_DEFAULT : $WORK_DIR_DEFAULT" 
 
 # Capture landing directory, then change to Default Working Directory and resolve to absolute path
-$CDAF_WORKSPACE = (Get-Location).Path
 Set-Location $WORK_DIR_DEFAULT
 $WORK_DIR_DEFAULT = (Get-Location).Path
 

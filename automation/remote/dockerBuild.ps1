@@ -100,11 +100,11 @@ if ( $optionalArgs ) {
 }
 
 # 2.6.0 Image from Private Registry
-$manifest = "${WORKSPACE_ROOT}\manifest.txt"
+$manifest = "${WORKSPACE}\manifest.txt"
 if ( ! ( Test-Path ${manifest} )) {
 	$manifest = "${SOLUTIONROOT}\CDAF.solution"
 	if ( ! ( Test-Path ${manifest} )) {
-		Write-Host "[$scriptName] Properties not found in ${WORKSPACE_ROOT}\manifest.txt or ${manifest}!"
+		Write-Host "[$scriptName] Properties not found in ${WORKSPACE}\manifest.txt or ${manifest}!"
 		exit 1114
 	}
 }
