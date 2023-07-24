@@ -262,6 +262,7 @@ if (( $virtualisation -eq 'hyperv' ) -or ( $virtualisation -eq 'docker' )) {
     executeExpression ".\automation\provisioning\base.ps1 putty"
     executeExpression ".\automation\provisioning\base.ps1 winscp"
     executeExpression ".\automation\provisioning\base.ps1 postman"
+    executeExpression ".\automation\provisioning\base.ps1 terraform"
 
     executeExpression ".\automation\provisioning\base.ps1 git"
     executeExpression "git config --global core.autocrlf false"
