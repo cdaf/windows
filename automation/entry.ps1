@@ -325,8 +325,8 @@ if ( ${solutionName} ) {
 	exit 7762 
 }
 
-$workspace = $(Get-Location)
-Write-Host "[$scriptName]   pwd            : $workspace"
+$WORKSPACE_ROOT = $(Get-Location)
+Write-Host "[$scriptName]   pwd            : $WORKSPACE_ROOT"
 Write-Host "[$scriptName]   hostname       : $(hostname)" 
 Write-Host "[$scriptName]   whoami         : $(whoami)"
 
@@ -508,7 +508,7 @@ if ( $skipBranchCleanup ) {
 				}
 
 				if ( $usingCache ) { # cache only required to build remoteArray
-					executeExpression "cd $workspace"
+					executeExpression "cd $WORKSPACE_ROOT"
 				}
 
 				if ( $headAttached ) {
