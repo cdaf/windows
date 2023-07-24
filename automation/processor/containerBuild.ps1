@@ -168,9 +168,9 @@ if ( $buildImage ) {
 		}
 
 		if ( $env:USERPROFILE ) {
-			executeExpression "docker run --volume '${env:USERPROFILE}\:C:/solution/home' --volume '${env:WORKSPACE}\:C:/solution/workspace' ${buildCommand} ${buildImage}:${imageTag} automation\ci.bat $buildNumber $revision container_build"
+			executeExpression "docker run --volume '${env:USERPROFILE}\:C:/solution/home' --volume '${WORKSPACE_ROOT}\:C:/solution/workspace' ${buildCommand} ${buildImage}:${imageTag} automation\ci.bat $buildNumber $revision container_build"
 		} else {
-			executeExpression "docker run --volume '${env:WORKSPACE}\:C:/solution/workspace' ${buildCommand} ${buildImage}:${imageTag} automation\ci.bat $buildNumber $revision container_build"
+			executeExpression "docker run --volume '${WORKSPACE_ROOT}\:C:/solution/workspace' ${buildCommand} ${buildImage}:${imageTag} automation\ci.bat $buildNumber $revision container_build"
 		}
 
 		Write-Host "`n[$scriptName] List and remove all stopped containers"

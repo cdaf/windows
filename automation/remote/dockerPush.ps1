@@ -53,11 +53,11 @@ $error.clear()
 Write-Host "`n[$scriptName] ---------- start ----------"
 
 # 2.6.0 Push Private Registry
-$manifest = "${env:WORKSPACE}\manifest.txt"
+$manifest = "${WORKSPACE_ROOT}\manifest.txt"
 if ( ! ( Test-Path ${manifest} )) {
 	$manifest = "${SOLUTIONROOT}\CDAF.solution"
 	if ( ! ( Test-Path ${manifest} )) {
-		Write-Host "[$scriptName] Properties not found in ${env:WORKSPACE}\manifest.txt or ${manifest}!"
+		Write-Host "[$scriptName] Properties not found in ${WORKSPACE_ROOT}\manifest.txt or ${manifest}!"
 		exit 5343
 	}
 }

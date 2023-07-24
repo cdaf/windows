@@ -293,8 +293,8 @@ if ($SOLUTION) {
 }
 
 # Runtime information
-$env:WORKSPACE = (Get-Location).Path
-Write-Host "[$scriptName]   pwd             : $env:WORKSPACE"
+$WORKSPACE_ROOT = (Get-Location).Path
+Write-Host "[$scriptName]   WORKSPACE_ROOT  : $WORKSPACE_ROOT"
 Write-Host "[$scriptName]   hostname        : $(hostname)" 
 Write-Host "[$scriptName]   whoami          : $(whoami)"
 

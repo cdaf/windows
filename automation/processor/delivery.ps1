@@ -211,7 +211,7 @@ if ( $BUILDNUMBER ) {
 
 # Load TargetlessCD environment variable
 $env:WORK_SPACE = (Get-Location).Path
-$env:WORKSPACE = (Get-Item $WORK_DIR_DEFAULT).FullName
+$WORKSPACE_ROOT = (Get-Item $WORK_DIR_DEFAULT).FullName
 Write-Host "[$scriptName]   pwd              : ${env:WORK_SPACE}"
 Write-Host "[$scriptName]   whoami           : $(whoami)"
 Write-Host "[$scriptName]   hostname         : $(hostname)" 
@@ -245,7 +245,7 @@ foreach ($step in $processSequence.Split()) {
 	if ( $step ) {
 		Write-Host
 		executeExpression "& '$WORK_DIR_DEFAULT\$step' '$ENVIRONMENT' '$BUILDNUMBER' '$SOLUTION' '$WORK_DIR_DEFAULT' '$OPT_ARG'"
-		Set-Location ${env:WORKSPACE}
+		Set-Location ${WORKSPACE_ROOT}
 	}
 }
 
