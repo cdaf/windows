@@ -120,7 +120,7 @@ if (!( $id )) {
 		if ( $constructor ) {
 			Write-Host "[$scriptName]   constructor         : $constructor"
 		} else {
-			Write-Host "[$scriptName]   constructor         : (not supplied, will process all directories)"
+			Write-Host "[$scriptName]   constructor         : (not supplied, will process all directories in buildroot)"
 		}
 
 		if ( $optionalArgs ) {
@@ -129,8 +129,8 @@ if (!( $id )) {
 			Write-Host "[$scriptName]   optionalArgs        : (not supplied, example '--memory 4g')"
 		}
 
-		Write-Host "[$scriptName]   WORKSPACE           : ${WORKSPACE}"
-		Write-Host "[$scriptName]   pwd                 : $(Get-Location)"
+		$buildroot = $(Get-Location)
+		Write-Host "[$scriptName]   buildroot           : $buildroot (pwd)"
 		Write-Host "[$scriptName]   hostname            : $(hostname)"
 		Write-Host "[$scriptName]   whoami              : $(whoami)`n"
 	}
@@ -229,7 +229,7 @@ if (!( $id )) {
 
 	} else {
 
-		$transient = "$env:TEMP\${SOLUTION}\${id}"
+		$transient = "${env:TEMP}\${SOLUTION}\${id}"
 
 		if ( Test-Path "${transient}" ) {
 			if (Test-Path "${transient}" -PathType "Leaf") {
@@ -306,7 +306,7 @@ if (!( $id )) {
 					executeExpression "& '${CDAF_CORE}\dockerBuild.ps1' ${id}_${image} $BUILDNUMBER"
 				}
 			}
-			executeExpression "cd '$workspace'"
+			executeExpression "cd '$buildroot'"
 		}
 
 		$pushFeatureBranch = & "${CDAF_CORE}\getProperty.ps1" "${manifest}" "pushFeatureBranch"
