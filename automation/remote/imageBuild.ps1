@@ -129,11 +129,10 @@ if (!( $id )) {
 			Write-Host "[$scriptName]   optionalArgs        : (not supplied, example '--memory 4g')"
 		}
 
+		Write-Host "[$scriptName]   WORKSPACE           : ${WORKSPACE}"
 		Write-Host "[$scriptName]   pwd                 : $(Get-Location)"
 		Write-Host "[$scriptName]   hostname            : $(hostname)"
-		Write-Host "[$scriptName]   whoami              : $(whoami)"
-		$workspace = $(Get-Location)
-		Write-Host "[$scriptName]   workspace           : ${workspace}`n"
+		Write-Host "[$scriptName]   whoami              : $(whoami)`n"
 	}
 }
 
