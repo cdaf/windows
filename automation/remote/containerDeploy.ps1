@@ -186,7 +186,7 @@ foreach ( $envVar in Get-ChildItem env:) {
 ${prefix} = (${SOLUTION}.ToUpper()).replace('-','_')
 foreach ( $envVar in Get-ChildItem env:) {
 	if ($envVar.Name.Contains("CDAF_${prefix}_CD_")) {
-		${buildCommand} += " --env $(${envVar}.Name.Replace("CDAF_${prefix}_CD_", ''))=$(${envVar}.Value)"
+		${buildCommand} += " --env $(${envVar}.Name.Replace(`"CDAF_${prefix}_CD_`", ''))=$(${envVar}.Value)"
 	}
 }
 

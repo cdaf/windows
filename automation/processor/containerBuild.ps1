@@ -156,14 +156,14 @@ if ( $buildImage ) {
 		
 		foreach ( $envVar in Get-ChildItem env:) {
 			if ($envVar.Name.Contains('CDAF_CB_')) {
-				${buildCommand} += " --env $(${envVar}.Name)=$(${envVar}.Value)"
+				${buildCommand} += " --env $(${envVar}.Name.Replace('CDAF_CB_', ''))=$(${envVar}.Value)"
 			}
 		}
 
 		${prefix} = (${SOLUTION}.ToUpper()).replace('-','_')
 		foreach ( $envVar in Get-ChildItem env:) {
 			if ($envVar.Name.Contains("CDAF_${prefix}_CB_")) {
-				${buildCommand} += " --env $(${envVar}.Name.Replace("CDAF_${prefix}_CB_", ''))=$(${envVar}.Value)"
+				${buildCommand} += " --env $(${envVar}.Name.Replace(`"CDAF_${prefix}_CB_`", ''))=$(${envVar}.Value)"
 			}
 		}
 
