@@ -106,7 +106,7 @@ if ( $registryToken ) {
 		if ( $registryToken ) {
 		    Write-Host "[$scriptName]   registryToken   : $(MASKED $registryToken) (loaded from manifest.txt)"
 		} else {	
-		    Write-Host "[$scriptName]   registryToken   : (not supplied, login and push will not be attempted)"
+		    Write-Host "[$scriptName]   registryToken   : (not supplied, login will not be attempted)"
 		}
 	}
 }
@@ -152,13 +152,11 @@ if ( $registryToken ) {
 	if ( $registryURL ) {
 		$registryContext = $registryURL + '/' + $registryContext
 	}
+}
 
-	foreach ( $tag in $registryTags.Split() ) {
-		EXECMD "docker tag ${imageTag} ${registryContext}:$tag"
-		EXECMD "docker push ${registryContext}:$tag"
-	}
-} else {
-	ERRMSG "registryToken not supplied, so push not attempted."
+foreach ( $tag in $registryTags.Split() ) {
+	EXECMD "docker tag ${imageTag} ${registryContext}:$tag"
+	EXECMD "docker push ${registryContext}:$tag"
 }
 
 Write-Host "`n[$scriptName] ---------- stop ----------"
