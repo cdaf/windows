@@ -106,7 +106,7 @@ if ( $mediaDirectory ) {
 if ( $version ) {
 	Write-Host "[$scriptName] version         : $version"
 } else {
-	$version = '2.211.0'
+	$version = '3.220.5'
 	Write-Host "[$scriptName] version         : $version"
 }
 
