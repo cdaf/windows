@@ -382,29 +382,29 @@ $loggingList = @()
 
 # 2.5.5 default error diagnostic command as solution property
 if ( $env:CDAF_ERROR_DIAG ) {
-	$loggingList += "[$scriptName]   CDAF_ERROR_DIAG     : $CDAF_ERROR_DIAG"
+	$loggingList += "[$scriptName]   CDAF_ERROR_DIAG     : $env:CDAF_ERROR_DIAG"
 } else {
 	$env:CDAF_ERROR_DIAG = getProp 'CDAF_ERROR_DIAG' "$SOLUTIONROOT\CDAF.solution"
 	if ( $env:CDAF_ERROR_DIAG ) {
-		$loggingList += "[$scriptName]   CDAF_ERROR_DIAG     : $CDAF_ERROR_DIAG (defined in $SOLUTIONROOT\CDAF.solution)"
+		$loggingList += "[$scriptName]   CDAF_ERROR_DIAG     : $env:CDAF_ERROR_DIAG (defined in $SOLUTIONROOT\CDAF.solution)"
 	}
 }
 
 if ( $env:CDAF_IGNORE_WARNING ) {
-	$loggingList += "[$scriptName]   CDAF_IGNORE_WARNING : $CDAF_IGNORE_WARNING"
+	$loggingList += "[$scriptName]   CDAF_IGNORE_WARNING : $env:CDAF_IGNORE_WARNING"
 } else {
 	$env:CDAF_IGNORE_WARNING = getProp 'CDAF_IGNORE_WARNING' "$SOLUTIONROOT\CDAF.solution"
 	if ( $env:CDAF_IGNORE_WARNING ) {
-		$loggingList += "[$scriptName]   CDAF_IGNORE_WARNING : $CDAF_IGNORE_WARNING (defined in $SOLUTIONROOT\CDAF.solution)"
+		$loggingList += "[$scriptName]   CDAF_IGNORE_WARNING : $env:CDAF_IGNORE_WARNING (defined in $SOLUTIONROOT\CDAF.solution)"
 	}
 }
 
 if ( $env:CDAF_OVERRIDE_TOKEN ) {
-	$loggingList += "[$scriptName]   CDAF_OVERRIDE_TOKEN : $CDAF_OVERRIDE_TOKEN"
+	$loggingList += "[$scriptName]   CDAF_OVERRIDE_TOKEN : $env:CDAF_OVERRIDE_TOKEN"
 } else {
 	$env:CDAF_OVERRIDE_TOKEN = getProp 'CDAF_OVERRIDE_TOKEN' "$SOLUTIONROOT\CDAF.solution"
 	if ( $env:CDAF_OVERRIDE_TOKEN ) {
-		$loggingList += "[$scriptName]   CDAF_OVERRIDE_TOKEN : $CDAF_OVERRIDE_TOKEN (defined in $SOLUTIONROOT\CDAF.solution)"
+		$loggingList += "[$scriptName]   CDAF_OVERRIDE_TOKEN : $env:CDAF_OVERRIDE_TOKEN (defined in $SOLUTIONROOT\CDAF.solution)"
 	}
 }
 
