@@ -292,8 +292,9 @@ if ($SOLUTION) {
 	}
 }
 
-# Runtime information
+# Set both workspace global variables on entry, the WORKSPACE will be overwridden by project scope scripts, but remains as the solution level variable
 $WORKSPACE_ROOT = (Get-Location).Path
+$WORKSPACE = $WORKSPACE_ROOT
 Write-Host "[$scriptName]   WORKSPACE_ROOT  : $WORKSPACE_ROOT"
 Write-Host "[$scriptName]   hostname        : $(hostname)" 
 Write-Host "[$scriptName]   whoami          : $(whoami)"

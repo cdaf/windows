@@ -209,9 +209,7 @@ if ( $BUILDNUMBER ) {
 	$host.SetShouldExit(55); exit
 }
 
-# Load TargetlessCD environment variable
-$env:WORK_SPACE = (Get-Location).Path
-$WORKSPACE_ROOT = $env:WORK_SPACE
+$WORKSPACE_ROOT = (Get-Location).Path
 Write-Host "[$scriptName]   WORKSPACE_ROOT   : ${WORKSPACE_ROOT}"
 Write-Host "[$scriptName]   whoami           : $(whoami)"
 Write-Host "[$scriptName]   hostname         : $(hostname)" 
