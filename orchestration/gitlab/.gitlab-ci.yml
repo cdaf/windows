@@ -34,7 +34,7 @@ cd:
   tags:
     - batch
   script: "./release.ps1 $env:CI_JOB_NAME $env:CI_PIPELINE_ID"
-  environment: automated
+  environment: "${CI_JOB_STAGE}"
   dependencies:
     - cdaf-ci
   only:
@@ -45,7 +45,7 @@ test:
   tags:
     - batch
   script: "./release.ps1 $env:CI_JOB_NAME $env:CI_PIPELINE_ID"
-  environment: manual
+  environment: "${CI_JOB_STAGE}"
   dependencies:
     - cdaf-ci
   only:
@@ -56,7 +56,7 @@ production:
   tags:
     - batch
   script: "./release.ps1 $env:CI_JOB_NAME $env:CI_PIPELINE_ID"
-  environment: live
+  environment: "${CI_JOB_STAGE}"
   dependencies:
     - cdaf-ci
   only:
