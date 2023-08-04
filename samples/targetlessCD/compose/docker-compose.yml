@@ -10,8 +10,3 @@ services:
           - target:target
         depends_on:
           - target
-
-networks:
-  default:
-    external:
-      name: nat
