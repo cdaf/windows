@@ -270,12 +270,11 @@ if ( $LASTEXITCODE -ne 0 ) {
 	Write-Host "  helmsman                : $($versionTest.Split('v')[2])"
 }
 
-$versionTest = cmd /c "azx --version 2`>`&1 2>nul"
+$versionTest = cmd /c "az version --output tsv 2`>`&1 2>nul"
 if ( $LASTEXITCODE -ne 0 ) {
 	Write-Host "  Azure CLI               : not installed"
 } else {
-	$array = $versionTest.split("v")
-	Write-Host "  Azure CLI               : $($versionTest[0].Split()[-2])"
+	Write-Host "  Azure CLI               : $($versionTest.Split()[0])"
 }
 
 try { 
