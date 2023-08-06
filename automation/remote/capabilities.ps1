@@ -1,3 +1,7 @@
+Param (
+	[string]$version
+)
+
 $scriptName = 'Capabilities.ps1'
 
 cmd /c "exit 0"
@@ -11,12 +15,20 @@ function webDeployVersion ( $absPath ) {
 	Write-Host "  Web Deploy              : ${versionTest} ($versionCheck)"
 }
 
-Write-Host "`n[$scriptName] ---------- start ----------"
+if ( $version -ne 'cdaf' ) {
+	Write-Host "`n[$scriptName] ---------- start ----------"
+}
 
 $scriptPath = split-path -parent $MyInvocation.MyCommand.Definition
 $AUTOMATIONROOT = split-path -parent $scriptPath
 if ( Test-Path "$AUTOMATIONROOT\CDAF.windows" ) {
-	Write-Host "[$scriptName]   CDAF      : $((Select-String -Path "$AUTOMATIONROOT\CDAF.windows" -Pattern 'productVersion=').ToString().Split('=')[-1])"
+	$cdaf_version = (Select-String -Path "$AUTOMATIONROOT\CDAF.windows" -Pattern 'productVersion=').ToString().Split('=')[-1]
+	if ( $version -eq 'cdaf' ) {
+		Write-Output "${cdaf_version}"
+		exit 0
+	} else {
+		Write-Host "[$scriptName]   CDAF      : ${cdaf_version}"
+	}
 }
 
 Write-Host "[$scriptName]   hostname  : $(hostname)"
