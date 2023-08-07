@@ -22,7 +22,22 @@ if ( $version -ne 'cdaf' ) {
 $scriptPath = split-path -parent $MyInvocation.MyCommand.Definition
 $AUTOMATIONROOT = split-path -parent $scriptPath
 if ( Test-Path "$AUTOMATIONROOT\CDAF.windows" ) {
-	$cdaf_version = (Select-String -Path "$AUTOMATIONROOT\CDAF.windows" -Pattern 'productVersion=').ToString().Split('=')[-1]
+	$check_file = "$AUTOMATIONROOT\CDAF.windows"
+} else {
+	if ( Test-Path "$CDAF_CORE/CDAF.properties" ) {
+		$check_file = "$CDAF_CORE/CDAF.properties"
+	} else {
+		if ( $version -eq 'cdaf' ) {
+			Write-Output 'cannot determine'
+			exit 0
+		} else {
+			Write-Host "[$scriptName]   CDAF      : (cannot determine)"
+		}
+	}
+}
+
+if ( $check_file ) {
+	$cdaf_version = (Select-String -Path $check_file -Pattern 'productVersion=').ToString().Split('=')[-1]
 	if ( $version -eq 'cdaf' ) {
 		Write-Output "${cdaf_version}"
 		exit 0
