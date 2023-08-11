@@ -115,6 +115,11 @@ if ( $LASTEXITCODE -ne 0 ) {
 	}
 }
 
+$versionTest = cmd /c livingdoc --version 2`>`&1
+if ( $LASTEXITCODE -eq 0 ) {
+	Write-Host "    livingdoc             : $($versionTest[-1])"
+}
+
 $versionTest = cmd /c choco --version 2`>`&1
 if ( $LASTEXITCODE -ne 0 ) {
 	Write-Host "  Chocolatey              : not installed"
