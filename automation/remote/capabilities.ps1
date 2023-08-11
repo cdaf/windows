@@ -350,6 +350,14 @@ if ( $LASTEXITCODE -ne 0 ) {
 	}
 }
 
+
+$chromePath = 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\chrome.exe'
+if ( Test-Path $chromePath ) {
+	$chromeVersionInfo = (Get-Item (Get-ItemProperty $chromePath).'(Default)').VersionInfo
+	Write-Host "  Chrome Browser          : $($chromeVersionInfo.ProductVersion)"
+}
+
+
 Write-Host "`n[$scriptName] List the .NET Versions"
 $job = Start-Job {
 	$dotnet = $(
