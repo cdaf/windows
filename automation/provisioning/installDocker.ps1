@@ -110,7 +110,7 @@ if ( $restart ) {
 if ( $compose ) {
     Write-Host "[$scriptName]  compose    : ${compose}`n"
 } else {
-	$compose = '2.19.0'
+	$compose = (curl.exe -L --silent https://github.com/docker/compose/releases/latest | findstr '<title>Release').Split()[3]
     Write-Host "[$scriptName]  compose    : ${compose} (default)`n"
 }
 
