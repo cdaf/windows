@@ -107,17 +107,17 @@ if ( $restart ) {
     Write-Host "[$scriptName]  restart    : $restart (set to default)"
 }
 
-if ( $compose ) {
-    Write-Host "[$scriptName]  compose    : ${compose}`n"
+if ( $compose_version ) {
+    Write-Host "[$scriptName]  compose    : ${compose_version}`n"
 } else {
-	$compose = (curl.exe -L --silent https://github.com/docker/compose/releases/latest | findstr '<title>Release').Split()[3]
-    Write-Host "[$scriptName]  compose    : ${compose} (default)`n"
+	$compose_version = (curl.exe -L --silent https://github.com/docker/compose/releases/latest | findstr '<title>Release').Split()[3]
+    Write-Host "[$scriptName]  compose    : ${compose_version} (default)`n"
 }
 
 Write-Host "`n[$scriptName] Install docker-compose as per https://docs.docker.com/compose/install/"
 executeExpression '[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12'
 
-executeExpression "Invoke-WebRequest `"https://github.com/docker/compose/releases/download/v${compose}/docker-compose-Windows-x86_64.exe`" -UseBasicParsing -OutFile `"`$env:windir\docker-compose.exe`""
+executeExpression "Invoke-WebRequest `"https://github.com/docker/compose/releases/download/${compose_version}/docker-compose-Windows-x86_64.exe`" -UseBasicParsing -OutFile `"`$env:windir\docker-compose.exe`""
 
 if ( $dockerUser ) {
 	Write-Host "`n[$scriptName] Add user to docker execution (without elevated admin session)"
