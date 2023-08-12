@@ -134,35 +134,35 @@ if ( $LASTEXITCODE -ne 0 ) {
 	$array = $versionTest.split(" ")
 	$array = $array[2].split('"')
 	Write-Host "  Java                    : $($array[1])"
-}
 
-$versionTest = cmd /c javac -version 2`>`&1
-if ( $LASTEXITCODE -ne 0 ) {
-	Write-Host "  Java Compiler           : not installed"
-} else {
-	$array = $versionTest.split(" ")
-	if ($array[2]) {
-		Write-Host "  Java Compiler           : $($array[2])"
+	$versionTest = cmd /c javac -version 2`>`&1
+	if ( $LASTEXITCODE -ne 0 ) {
+		Write-Host "    Java Compiler         : not installed"
 	} else {
-		Write-Host "  Java Compiler           : $($array[1])"
+		$array = $versionTest.split(" ")
+		if ($array[2]) {
+			Write-Host "    Java Compiler         : $($array[2])"
+		} else {
+			Write-Host "    Java Compiler         : $($array[1])"
+		}
 	}
-}
-
-$versionTest = @()
-$versionTest += cmd /c ant -version 2`>`&1
-if ( $LASTEXITCODE -ne 0 ) {
-	Write-Host "  Apache Ant              : not installed"
-} else {
-	$array = $versionTest[-1].split(" ")
-	Write-Host "  Apache Ant              : $($array[3])"
-}
-
-$versionTest = cmd /c mvn --version 2`>`&1
-if ( $LASTEXITCODE -ne 0 ) {
-	Write-Host "  Apache Maven            : not installed"
-} else {
-	$array = $versionTest.split(" ")
-	Write-Host "  Apache Maven            : $($array[2])"
+	
+	$versionTest = @()
+	$versionTest += cmd /c ant -version 2`>`&1
+	if ( $LASTEXITCODE -ne 0 ) {
+		Write-Host "    Apache Ant            : not installed"
+	} else {
+		$array = $versionTest[-1].split(" ")
+		Write-Host "    Apache Ant            : $($array[3])"
+	}
+	
+	$versionTest = cmd /c mvn --version 2`>`&1
+	if ( $LASTEXITCODE -ne 0 ) {
+		Write-Host "    Apache Maven          : not installed"
+	} else {
+		$array = $versionTest.split(" ")
+		Write-Host "    Apache Maven          : $($array[2])"
+	}
 }
 
 $versionTest = cmd /c NuGet.exe 2`>`&1
@@ -195,13 +195,13 @@ if ( $LASTEXITCODE -ne 0 ) {
 } else {
 	$array = $versionTest.split(" ")
 	Write-Host "  Docker                  : $($array[2].TrimEnd(','))"
-}
 
-$versionTest = cmd /c docker-compose --version 2`>`&1
-if ( $LASTEXITCODE -ne 0 ) {
-	Write-Host "  docker-compose          : not installed"
-} else {
-	Write-Host "  docker-compose          : $((($versionTest.Split(',')[0]).Split()[-1]).split('v')[-1])"
+	$versionTest = cmd /c docker-compose --version 2`>`&1
+	if ( $LASTEXITCODE -ne 0 ) {
+		Write-Host "    docker-compose        : not installed"
+	} else {
+		Write-Host "    docker-compose        : $((($versionTest.Split(',')[0]).Split()[-1]).split('v')[-1])"
+	}
 }
 
 $versionTest = cmd /c terraform --version 2`>`&1
@@ -226,14 +226,14 @@ if ( $LASTEXITCODE -ne 0 ) {
 } else {
 	$array = $versionTest.split(" ")
 	Write-Host "  Python                  : $($array[1])"
-}
 
-$versionTest = cmd /c pip.exe --version 2`>`&1
-if ( $LASTEXITCODE -ne 0 ) {
-	Write-Host "  PiP                     : not installed"
-} else {
-	$array = $versionTest.split(" ")
-	Write-Host "  PiP                     : $($array[1])"
+	$versionTest = cmd /c pip.exe --version 2`>`&1
+	if ( $LASTEXITCODE -ne 0 ) {
+		Write-Host "    PiP                   : not installed"
+	} else {
+		$array = $versionTest.split(" ")
+		Write-Host "    PiP                   : $($array[1])"
+	}
 }
 
 $versionTest = cmd /c node --version 2`>`&1
@@ -241,6 +241,13 @@ if ( $LASTEXITCODE -ne 0 ) {
 	Write-Host "  NodeJS                  : not installed"
 } else {
 	Write-Host "  NodeJS                  : $($versionTest.Split('v')[1])"
+
+	$versionTest = cmd /c npm --version 2`>`&1
+	if ( $LASTEXITCODE -ne 0 ) {
+		Write-Host "    NPM                   : not installed"
+	} else {
+		Write-Host "    NPM                   : $versionTest"
+	}
 
 	$versionTest = cmd /c wrangler -v 2`>`&1
 	if ( $LASTEXITCODE -eq 0 ){
@@ -251,13 +258,6 @@ if ( $LASTEXITCODE -ne 0 ) {
 	if ( $LASTEXITCODE -eq 0 ){
 		Write-Host "    newman                : $versionTest"
 	}
-}
-
-$versionTest = cmd /c npm --version 2`>`&1
-if ( $LASTEXITCODE -ne 0 ) {
-	Write-Host "  NPM                     : not installed"
-} else {
-	Write-Host "  NPM                     : $versionTest"
 }
 
 # Kubectl is required for Helm
@@ -275,22 +275,22 @@ if ( $LASTEXITCODE -ne 0 ) {
 		}
 	}	
 	Write-Host "  kubectl                 : $secondLine"
-}
 
-$versionTest = cmd /c helm version --short 2`>`&1
-if ( $LASTEXITCODE -ne 0 ) {
-	Write-Host "  helm                    : not installed"
-} else {
-	$array = $versionTest.split("v")
-	Write-Host "  helm                    : $($versionTest.Split('v')[1].Split('+')[0])"
-}
-
-$versionTest = cmd /c helmsman -v 2`>`&1
-if ( $LASTEXITCODE -ne 0 ) {
-	Write-Host "  helmsman                : not installed"
-} else {
-	$array = $versionTest.split("v")
-	Write-Host "  helmsman                : $($versionTest.Split('v')[2])"
+	$versionTest = cmd /c helm version --short 2`>`&1
+	if ( $LASTEXITCODE -ne 0 ) {
+		Write-Host "    helm                  : not installed"
+	} else {
+		$array = $versionTest.split("v")
+		Write-Host "    helm                  : $($versionTest.Split('v')[1].Split('+')[0])"
+	}
+	
+	$versionTest = cmd /c helmsman -v 2`>`&1
+	if ( $LASTEXITCODE -ne 0 ) {
+		Write-Host "    helmsman              : not installed"
+	} else {
+		$array = $versionTest.split("v")
+		Write-Host "    helmsman              : $($versionTest.Split('v')[2])"
+	}
 }
 
 $versionTest = cmd /c "az version --output tsv 2`>`&1 2>nul"
@@ -298,6 +298,11 @@ if ( $LASTEXITCODE -ne 0 ) {
 	Write-Host "  Azure CLI               : not installed"
 } else {
 	Write-Host "  Azure CLI               : $($versionTest.Split()[0])"
+
+	$versionTest = cmd /c "az extension show --name azure-devops --output tsv 2`>`&1 2>nul"
+	if ( $LASTEXITCODE -eq 0 ) {
+		Write-Host "    ADO CLI Extension     : $($versionTest.Split()[-1])"
+	}
 }
 
 try { 
