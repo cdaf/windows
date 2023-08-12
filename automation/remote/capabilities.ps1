@@ -113,11 +113,11 @@ if ( $LASTEXITCODE -ne 0 ) {
 	} else {
 		Write-Host "  dotnet core             : $versionTest"
 	}
-}
 
-$versionTest = cmd /c livingdoc --version 2`>`&1
-if ( $LASTEXITCODE -eq 0 ) {
-	Write-Host "    livingdoc             : $($versionTest[-1])"
+	$versionTest = cmd /c livingdoc --version 2`>`&1
+	if ( $LASTEXITCODE -eq 0 ) {
+		Write-Host "    livingdoc             : $($versionTest[-1])"
+	}
 }
 
 $versionTest = cmd /c choco --version 2`>`&1
@@ -241,6 +241,16 @@ if ( $LASTEXITCODE -ne 0 ) {
 	Write-Host "  NodeJS                  : not installed"
 } else {
 	Write-Host "  NodeJS                  : $($versionTest.Split('v')[1])"
+
+	$versionTest = cmd /c wrangler -v 2`>`&1
+	if ( $LASTEXITCODE -eq 0 ){
+		Write-Host "    wrangler              : $versionTest"
+	}
+	
+	$versionTest = cmd /c newman --version 2`>`&1
+	if ( $LASTEXITCODE -eq 0 ){
+		Write-Host "    newman                : $versionTest"
+	}
 }
 
 $versionTest = cmd /c npm --version 2`>`&1
@@ -248,13 +258,6 @@ if ( $LASTEXITCODE -ne 0 ) {
 	Write-Host "  NPM                     : not installed"
 } else {
 	Write-Host "  NPM                     : $versionTest"
-}
-
-$versionTest = cmd /c wrangler -v 2`>`&1
-if ( $LASTEXITCODE -ne 0 ){
-	Write-Host "  wrangler                : not installed"
-} else {
-	Write-Host "  wrangler                : $versionTest"
 }
 
 # Kubectl is required for Helm
@@ -350,13 +353,11 @@ if ( $LASTEXITCODE -ne 0 ) {
 	}
 }
 
-
 $chromePath = 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\chrome.exe'
 if ( Test-Path $chromePath ) {
 	$chromeVersionInfo = (Get-Item (Get-ItemProperty $chromePath).'(Default)').VersionInfo
 	Write-Host "  Chrome Browser          : $($chromeVersionInfo.ProductVersion)"
 }
-
 
 Write-Host "`n[$scriptName] List the .NET Versions"
 $job = Start-Job {
