@@ -1,18 +1,30 @@
-# Common expression logging and error handling function, copied, not referenced to ensure atomic process
-function executeExpression ($expression) {
-	$error.clear()
-	try {
-		$result = Invoke-Expression $expression
-	    if(!$?) { Write-Host "[$scriptName] `$? = $?"; exit 1 }
-	} catch { echo $_.Exception|format-list -force; exit 2 }
-    if ( $error ) { Write-Host "[$scriptName] `$error[0] = $error"; exit 3 }
-    return $result
-}
 
-function taskFailure ($taskName) {
-    write-host "`n[$scriptName] Failure executing :" -ForegroundColor Red
-    write-host "[$scriptName] $taskName :`n" -ForegroundColor Red
-    throw "$scriptName HALT"
+# Consolidated Error processing function
+#  required : error message
+#  optional : exit code, if not supplied only error message is written
+function ERRMSG ($message, $exitcode) {
+	if ( $exitcode ) {
+		Write-Host "`n[$scriptName]$message" -ForegroundColor Red
+	} else {
+		Write-Warning "`n[$scriptName]$message"
+	}
+	if ( $error ) {
+		$i = 0
+		foreach ( $item in $Error )
+		{
+			Write-Host "`$Error[$i] $item"
+			$i++
+		}
+		$Error.clear()
+	}
+	if ( $exitcode ) {
+		if ( $env:CDAF_ERROR_DIAG ) {
+			Write-Host "`n[$scriptName] Invoke custom diag `$env:CDAF_ERROR_DIAG = $env:CDAF_ERROR_DIAG`n"
+			Invoke-Expression $env:CDAF_ERROR_DIAG
+		}
+		Write-Host "`n[$scriptName] Exit with LASTEXITCODE = $exitcode`n" -ForegroundColor Red
+		exit $exitcode
+	}
 }
 
 # Copy the item, if recursive, treat from as a directory and process the contents.
@@ -33,7 +45,19 @@ function copyOpt ($manifestFile, $from, $first, $second) {
 		if ($second -ieq '-flat') { $flat = '-Flat' }
 	}
 
-	$nodes = executeExpression "Get-ChildItem -Path `"$from`" $recurse"
+	try {
+		$nodes = Invoke-Expression "Get-ChildItem -Path `"$from`" $recurse -ErrorAction SilentlyContinue"
+	    if(!$?) { ERRMSG "[TRAP] `$? = $?" 8821 }
+	} catch {
+		$message = $_.Exception.Message
+		$_.Exception | format-list -force
+		$_.Exception.StackTrace
+		if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) {
+			ERRMSG "[EXEC][EXCEPTION] $message" $LASTEXITCODE
+		} else {
+			ERRMSG "[EXEC][EXCEPTION] $message" 8822
+		}
+	}
 	if ( $nodes ) {
 		foreach ( $node in $nodes ) {
 			if  (Test-Path $node.FullName -pathType 'leaf' ) {
@@ -47,22 +71,22 @@ function copyOpt ($manifestFile, $from, $first, $second) {
 					Write-Host "[$scriptName]   $sourceRelative --> $flatTarget"
 					New-Item -ItemType File -Path $flatTarget -Force > $null 
 					Copy-Item $sourceRelative $flatTarget -Force
-					if(!$?){ taskFailure ("Copy-Item $sourceRelative $flatTarget -Force") }
+					if(!$?){ ERRMSG "Copy-Item $sourceRelative $flatTarget -Force" 8824 }
 					Set-ItemProperty $flatTarget -name IsReadOnly -value $false
-					if(!$?){ taskFailure ("Set-ItemProperty $flatTarget -name IsReadOnly -value $false") }
+					if(!$?){ ERRMSG "Set-ItemProperty $flatTarget -name IsReadOnly -value $false" 8825 }
 				} else {
 					Write-Host "[$scriptName]   $sourceRelative --> $WORK_DIR_DEFAULT\$sourceRelative"
 					New-Item -ItemType File -Path $WORK_DIR_DEFAULT\$sourceRelative -Force > $null # Creates file and directory path
 					Copy-Item $sourceRelative $WORK_DIR_DEFAULT\$sourceRelative -Force
-					if(!$?){ taskFailure ("Copy-Item $sourceRelative $WORK_DIR_DEFAULT\$sourceRelative -Force") }
+					if(!$?){ ERRMSG "Copy-Item $sourceRelative $WORK_DIR_DEFAULT\$sourceRelative -Force" 8826 }
 					Set-ItemProperty $WORK_DIR_DEFAULT\$sourceRelative -name IsReadOnly -value $false
-					if(!$?){ taskFailure ("Set-ItemProperty $itemPath -name IsReadOnly -value $false") }
+					if(!$?){ ERRMSG "Set-ItemProperty $itemPath -name IsReadOnly -value $false" 8827 }
 				}
 				Add-Content $manifestFile "$WORK_DIR_DEFAULT\$sourceRelative"
 			}
 		}
 	} else {
-		Write-Host "[$scriptName]   No items found for pattern $from $recurse"
+		Write-Host "[$scriptName][WARNING] No items found for pattern $from $recurse" -ForegroundColor Yellow
 	}
 }
 

@@ -1,9 +1,3 @@
-function taskFailure ($taskName) {
-    write-host "[$scriptName] Failure excuting $taskName :" -ForegroundColor Red
-    write-host "     Throwing exception : $scriptName HALT`n" -ForegroundColor Red
-    throw "$scriptName HALT"
-}
-
 $SOLUTION = $args[0]
 $BUILDNUMBER = $args[1]
 $REVISION = $args[2]
@@ -11,6 +5,34 @@ $LOCAL_WORK_DIR = $args[3]
 $WORK_DIR_DEFAULT = $args[4]
 $SOLUTIONROOT = $args[5]
 $AUTOMATIONROOT = $args[6]
+
+# Consolidated Error processing function
+#  required : error message
+#  optional : exit code, if not supplied only error message is written
+function ERRMSG ($message, $exitcode) {
+	if ( $exitcode ) {
+		Write-Host "`n[$scriptName]$message" -ForegroundColor Red
+	} else {
+		Write-Warning "`n[$scriptName]$message"
+	}
+	if ( $error ) {
+		$i = 0
+		foreach ( $item in $Error )
+		{
+			Write-Host "`$Error[$i] $item"
+			$i++
+		}
+		$Error.clear()
+	}
+	if ( $exitcode ) {
+		if ( $env:CDAF_ERROR_DIAG ) {
+			Write-Host "`n[$scriptName] Invoke custom diag `$env:CDAF_ERROR_DIAG = $env:CDAF_ERROR_DIAG`n"
+			Invoke-Expression $env:CDAF_ERROR_DIAG
+		}
+		Write-Host "`n[$scriptName] Exit with LASTEXITCODE = $exitcode`n" -ForegroundColor Red
+		exit $exitcode
+	}
+}
 
 $scriptName             = $MyInvocation.MyCommand.Name
 $remoteCustomDir        = "$SOLUTIONROOT\customRemote"
@@ -23,22 +45,22 @@ $genericArtifactList    = "$SOLUTIONROOT\storeFor"
 Write-Host "`n[$scriptName] ---------------------------------------------------------------" 
 Write-Host "[$scriptName]   WORK_DIR_DEFAULT             : $WORK_DIR_DEFAULT" 
 
-Write-Host –NoNewLine "[$scriptName]   Remote Artifact List         : " 
+Write-Host ï¿½NoNewLine "[$scriptName]   Remote Artifact List         : " 
 pathTest $remoteArtifactListFile
 
-Write-Host –NoNewLine "[$scriptName]   Generic Artifact List        : " 
+Write-Host ï¿½NoNewLine "[$scriptName]   Generic Artifact List        : " 
 pathTest $genericArtifactList
 
-Write-Host –NoNewLine "[$scriptName]   Remote Tasks Custom Scripts  : " 
+Write-Host ï¿½NoNewLine "[$scriptName]   Remote Tasks Custom Scripts  : " 
 pathTest $remoteCustomDir
 
-Write-Host –NoNewLine "[$scriptName]   Common Custom Scripts        : " 
+Write-Host ï¿½NoNewLine "[$scriptName]   Common Custom Scripts        : " 
 pathTest $commonCustomDir
 
-Write-Host –NoNewLine "[$scriptName]   Remote Tasks Encrypted Data  : " 
+Write-Host ï¿½NoNewLine "[$scriptName]   Remote Tasks Encrypted Data  : " 
 pathTest $remoteCryptDir
 
-Write-Host –NoNewLine "[$scriptName]   Common Encrypted Data        : " 
+Write-Host ï¿½NoNewLine "[$scriptName]   Common Encrypted Data        : " 
 pathTest $cryptDir
 
 # CDM-101 If Artefacts definition file is not found, do not perform any action, i.e. this solution is local tasks only
@@ -54,7 +76,7 @@ if ( (-not (Test-Path $remoteArtifactListFile)) -and  (-not (Test-Path $genericA
 	} else {
 		Write-Host "`n[$scriptName] mkdir $WORK_DIR_DEFAULT" 
 		New-Item $WORK_DIR_DEFAULT -type directory > $null
-		if(!$?){ taskFailure "mkdir $WORK_DIR_DEFAULT"  }
+		if(!$?){ ERRMSG "mkdir $WORK_DIR_DEFAULT" 8611 }
 	}
 
 	# Copy Manifest and CDAF Product Definition

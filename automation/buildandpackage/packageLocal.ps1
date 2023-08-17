@@ -7,14 +7,33 @@ Param (
 	[string]$AUTOMATIONROOT
 )
 
-function taskFailure ($taskName) {
-    write-host
-    write-host "[$scriptName] Failure excuting $taskName :" -ForegroundColor Red
-    write-host "     Exception Type: $($_.Exception.GetType().FullName)" -ForegroundColor Red
-    write-host "     Exception Message: $($_.Exception.Message)" -ForegroundColor Red
-    write-host "     Throwing exception : $scriptName HALT" -ForegroundColor Red
-	write-host
-    throw "$scriptName HALT"
+
+# Consolidated Error processing function
+#  required : error message
+#  optional : exit code, if not supplied only error message is written
+function ERRMSG ($message, $exitcode) {
+	if ( $exitcode ) {
+		Write-Host "`n[$scriptName]$message" -ForegroundColor Red
+	} else {
+		Write-Warning "`n[$scriptName]$message"
+	}
+	if ( $error ) {
+		$i = 0
+		foreach ( $item in $Error )
+		{
+			Write-Host "`$Error[$i] $item"
+			$i++
+		}
+		$Error.clear()
+	}
+	if ( $exitcode ) {
+		if ( $env:CDAF_ERROR_DIAG ) {
+			Write-Host "`n[$scriptName] Invoke custom diag `$env:CDAF_ERROR_DIAG = $env:CDAF_ERROR_DIAG`n"
+			Invoke-Expression $env:CDAF_ERROR_DIAG
+		}
+		Write-Host "`n[$scriptName] Exit with LASTEXITCODE = $exitcode`n" -ForegroundColor Red
+		exit $exitcode
+	}
 }
 
 # 1.7.8 Merge files into directory, i.e. don't replace any properties provided above
@@ -95,7 +114,7 @@ if ( Test-Path "$WORK_DIR_DEFAULT" ) {
 } else {
 	Write-Host "`n[$scriptName] Create $WORK_DIR_DEFAULT and seed with solution files" 
 	New-Item $WORK_DIR_DEFAULT -type directory > $null
-	if(!$?){ taskFailure ("mkdir $WORK_DIR_DEFAULT") }
+	if(!$?){ ERRMSG "mkdir $WORK_DIR_DEFAULT" 8711 }
 }
 
 # Copy Manifest and CDAF Product Definition
@@ -138,12 +157,16 @@ if ( $packageFeatures -eq 'minimal' ) {
 	copyDir "$AUTOMATIONROOT\remote" $WORK_DIR_DEFAULT $true
 }
 
-Write-Host "`n[$scriptName] Copy local and remote defintions`n"
+Write-Host "`n[$scriptName] Copy local and remote definitions`n"
 $listOfTaskFile = "tasksRunLocal.tsk", "tasksRunRemote.tsk"
 foreach ($file in $listOfTaskFile) {
 	if ( test-Path "$SOLUTIONROOT\$file" ) {
 		copySet "$file" "$SOLUTIONROOT" "$WORK_DIR_DEFAULT"
+		$customTasks = $True
 	}
+}
+if ( ! $customTasks ) {
+	Write-Host "[$scriptName]   No files found for $listOfTaskFile" -ForegroundColor Blue
 }
 
 # 1.7.8 Merge generic tasks into explicit tasks
@@ -210,16 +233,16 @@ if ( Test-Path $commonCustomDir ) {
 if ( Test-Path $localArtifactListFile ) {
 	try {
 		& $AUTOMATIONROOT\buildandpackage\packageCopyArtefacts.ps1 $localArtifactListFile $WORK_DIR_DEFAULT 
-		if(!$?){ taskFailure "& $AUTOMATIONROOT\buildandpackage\packageCopyArtefacts.ps1 $localArtifactListFile $WORK_DIR_DEFAULT" }
-	} catch { taskFailure "& $AUTOMATIONROOT\buildandpackage\packageCopyArtefacts.ps1 $localArtifactListFile $WORK_DIR_DEFAULT" }
+		if(!$?){ ERRMSG "& $AUTOMATIONROOT\buildandpackage\packageCopyArtefacts.ps1 $localArtifactListFile $WORK_DIR_DEFAULT" 8712 }
+	} catch { ERRMSG "& $AUTOMATIONROOT\buildandpackage\packageCopyArtefacts.ps1 $localArtifactListFile $WORK_DIR_DEFAULT" 8713 }
 }
 
 # 1.7.8 Copy generic artefacts if driver file exists
 if ( Test-Path $genericArtifactList ) {
 	try {
 		& $AUTOMATIONROOT\buildandpackage\packageCopyArtefacts.ps1 $genericArtifactList $WORK_DIR_DEFAULT 
-		if(!$?){ taskFailure "& $AUTOMATIONROOT\buildandpackage\packageCopyArtefacts.ps1 $genericArtifactList $WORK_DIR_DEFAULT" }
-	} catch { taskFailure "& $AUTOMATIONROOT\buildandpackage\packageCopyArtefacts.ps1 $genericArtifactList $WORK_DIR_DEFAULT" }
+		if(!$?){ ERRMSG "& $AUTOMATIONROOT\buildandpackage\packageCopyArtefacts.ps1 $genericArtifactList $WORK_DIR_DEFAULT" 8714 }
+	} catch { ERRMSG "& $AUTOMATIONROOT\buildandpackage\packageCopyArtefacts.ps1 $genericArtifactList $WORK_DIR_DEFAULT" 8715 }
 }
 
 # Zip the working directory to create the artefact Package, CDAF.solution and build time values
