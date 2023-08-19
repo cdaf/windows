@@ -362,6 +362,11 @@ $chromePath = 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\chrome.
 if ( Test-Path $chromePath ) {
 	$chromeVersionInfo = (Get-Item (Get-ItemProperty $chromePath).'(Default)').VersionInfo
 	Write-Host "  Chrome Browser          : $($chromeVersionInfo.ProductVersion)"
+
+	$versionTest = cmd /c "chromedriver -v 2`>`&1 2>nul"
+	if ( $LASTEXITCODE -eq 0 ) {
+		Write-Host "    Chrome Driver         : $($versionTest.Split()[1])"
+	}
 }
 
 Write-Host "`n[$scriptName] List the .NET Versions"
