@@ -369,6 +369,26 @@ if ( Test-Path $chromePath ) {
 	}
 }
 
+$edgePath = 'HKCU:\SOFTWARE\Microsoft\Edge\BLBeacon'
+if ( Test-Path $edgePath ) {
+	$edgeVersion = Get-ItemPropertyValue -Path $edgePath -Name "version"
+} else { # Check for container install
+	$edgeBinary = "${env:ProgramFiles(x86)}\Microsoft\Edge\Application\msedge.exe"
+	if ( Test-Path $edgeBinary ) {
+		$FileVersionRaw = (Get-Item $edgeBinary).VersionInfo.FileVersionRaw
+		$edgeVersion = "$($FileVersionRaw.Major).$($FileVersionRaw.Minor).$($FileVersionRaw.Build).$($FileVersionRaw.Revision)"
+	}
+}
+
+if ( $edgeVersion ) {
+	Write-Host "  Edge Browser            : $edgeVersion"
+
+	$versionTest = cmd /c "msedgedriver --version 2`>`&1 2>nul"
+	if ( $LASTEXITCODE -eq 0 ) {
+		Write-Host "    Chrome Driver         : $($versionTest.Split()[3])"
+	}
+}
+
 Write-Host "`n[$scriptName] List the .NET Versions"
 $job = Start-Job {
 	$dotnet = $(
