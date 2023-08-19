@@ -106,7 +106,8 @@ if ( $mediaDirectory ) {
 if ( $version ) {
 	Write-Host "[$scriptName] version         : $version"
 } else {
-	$version = '3.220.5'
+	# from https://github.com/microsoft/azure-pipelines-agent/issues/3522
+	$version = ((Invoke-RestMethod ((Invoke-RestMethod "https://api.github.com/repos/microsoft/azure-pipelines-agent/releases/latest").assets_url)).browser_download_url).split('/')[-2].TrimStart('v')
 	Write-Host "[$scriptName] version         : $version"
 }
 
