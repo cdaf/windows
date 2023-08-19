@@ -73,7 +73,7 @@ Write-Host "`n[$scriptName] ---------- start ----------`n"
 Write-Host "[$scriptName]   ACTION : $ACTION`n"
 
 if ( $ACTION -eq 'native' ) {
-	$list = @('custom', 'feature-branch-environments', 'minimal', 'pre-post-processes')
+	$list = @('all', 'custom', 'feature-branch-environments', 'minimal', 'pre-post-processes')
 	Write-Host "[$scriptName] ACTION = $ACTION, execute custom list:`n"
 } else {
 	$list = Get-ChildItem -Directory
