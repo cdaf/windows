@@ -371,8 +371,13 @@ if ( Test-Path $chromePath ) {
 
 $edgePath = 'HKCU:\SOFTWARE\Microsoft\Edge\BLBeacon'
 if ( Test-Path $edgePath ) {
+	$ErrorActionPreference="SilentlyContinue"
 	$edgeVersion = Get-ItemPropertyValue -Path $edgePath -Name "version"
-} else { # Check for container install
+	$ErrorActionPreference="Continue"
+}
+
+if ( ! $edgeVersion ) {
+	# Check for container install
 	$edgeBinary = "${env:ProgramFiles(x86)}\Microsoft\Edge\Application\msedge.exe"
 	if ( Test-Path $edgeBinary ) {
 		$FileVersionRaw = (Get-Item $edgeBinary).VersionInfo.FileVersionRaw
