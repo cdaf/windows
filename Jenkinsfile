@@ -32,13 +32,17 @@ timeout(time: 4, unit: 'HOURS') {
             cd samples
             ./executeSamples.ps1
             cd ..
+          } elseif ( $edition -eq 'Microsoft Windows Server 2019 Standard' ) {
+            cd samples
+            ./executeSamples.ps1 native
+            cd ..
           } else {
             Write-Host "`nSkipping Sample Regression Test as OS is ${edition}`n"
           }
         '''
       }
 
-      stage ('Test the CDAF sample on Windows Server 2019') {
+      stage ('Conditional Vagrant Testing') {
 
         powershell '''
           $edition = foreach ($sProperty in Get-WmiObject -class Win32_OperatingSystem -computername ".") { $sProperty.Caption }

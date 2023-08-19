@@ -72,7 +72,19 @@ function executeExpression ($expression) {
 Write-Host "`n[$scriptName] ---------- start ----------`n"
 Write-Host "[$scriptName]   ACTION : $ACTION`n"
 
-foreach ($dirName in Get-ChildItem -Directory) {
+if ( $ACTION -eq 'native' ) {
+	$list = @('custom', 'feature-branch-environments', 'minimal', 'pre-post-processes')
+	Write-Host "[$scriptName] ACTION = $ACTION, execute custom list:`n"
+} else {
+	$list = Get-ChildItem -Directory
+	Write-Host "[$scriptName] ACTION not set, execute default list:`n"
+}
+
+foreach ($dirName in $list) {
+	Write-Host "[$scriptName]   $dirName"
+}
+
+foreach ($dirName in $list) {
 	Write-Host "`n[$scriptName] ---------- begin $dirName ----------`n"
 	executeExpression "cd $dirName"
 	executeExpression "..\..\automation\cdEmulate.bat"
