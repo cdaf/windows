@@ -7,7 +7,7 @@ timeout(time: 4, unit: 'HOURS') {
           $class: 'BuildDiscarderProperty',
           strategy: [$class: 'LogRotator', numToKeepStr: '10']
         ],
-          pipelineTriggers([cron('25 23 * * *')]),
+          pipelineTriggers([cron('30 22 * * *')]),
       ]
     )
 
