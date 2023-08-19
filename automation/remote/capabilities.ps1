@@ -371,9 +371,8 @@ if ( Test-Path $chromePath ) {
 
 $edgePath = 'HKCU:\SOFTWARE\Microsoft\Edge\BLBeacon'
 if ( Test-Path $edgePath ) {
-	$ErrorActionPreference="SilentlyContinue"
-	$edgeVersion = Get-ItemPropertyValue -Path $edgePath -Name "version"
-	$ErrorActionPreference="Continue"
+	$properties = Get-ItemProperty -Path $edgePath
+	$edgeVersion = $properties.version
 }
 
 if ( ! $edgeVersion ) {
