@@ -75,45 +75,46 @@ function executeExpression ($expression) {
 
 # Expression execution with retry
 function executeRetry ($expression, $wait, $retryMax) {
-if ( ! $wait ) {
-	$wait = 10
-}
-if ( ! $retryMax ) {
-	$retryMax = 2
-}
+	if ( ! $wait ) {
+		$wait = 10
+	}
+	if ( ! $retryMax ) {
+		$retryMax = 2
+	}
 
-$exitCode = 1
-$retryCount = 0
-while (( $retryCount -le $retryMax ) -and ($exitCode -ne 0)) {
-	$exitCode = 0
-	$error.clear()
-	Write-Host "[$scriptName][$retryCount] $expression"
-	try {
-		Invoke-Expression $expression
-	    if(!$?) {
-			ERRMSG "[HALT] `$? = $?"
-			$exitCode = 1
+	$exitCode = 1
+	$retryCount = 0
+	while (( $retryCount -le $retryMax ) -and ($exitCode -ne 0)) {
+		$exitCode = 0
+		$error.clear()
+		Write-Host "[$scriptName][$retryCount] $expression"
+		try {
+			Invoke-Expression $expression
+		    if(!$?) {
+				ERRMSG "[HALT] `$? = $?"
+				$exitCode = 1
+			}
+		} catch {
+			ERRMSG "[EXCEPTION] $_.Exception.Message"
+			$_.Exception | format-list -force
+			$_.Exception.StackTrace
+			$exitCode = 2
 		}
-	} catch {
-		ERRMSG "[EXCEPTION] $_.Exception.Message"
-		$_.Exception | format-list -force
-		$_.Exception.StackTrace
-		$exitCode = 2
-	}
-	if ( $error ) {
-		ERRMSG "[WARN] `$LASTEXITCODE is $LASTEXITCODE, but standard error populated"
-	}
-    if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) {
-		ERRMSG "[EXIT] `$lastExitCode = $lastExitCode"
-		$exitCode = $lastExitCode
-	}
-    if ($exitCode -ne 0) {
-		if ($retryCount -ge $retryMax ) {
-			ERRMSG "[RETRY_EXCEEDED] Retry maximum ($retryCount) reached, exiting with `$LASTEXITCODE = $exitCode" $exitCode
-		} else {
-			$retryCount += 1
-			Write-Host "[$scriptName] Wait $wait seconds, then retry $retryCount of $retryMax"
-			Start-Sleep $wait
+		if ( $error ) {
+			ERRMSG "[WARN] `$LASTEXITCODE is $LASTEXITCODE, but standard error populated"
+		}
+	    if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) {
+			ERRMSG "[EXIT] `$lastExitCode = $lastExitCode"
+			$exitCode = $lastExitCode
+		}
+	    if ($exitCode -ne 0) {
+			if ($retryCount -ge $retryMax ) {
+				ERRMSG "[RETRY_EXCEEDED] Retry maximum ($retryCount) reached, exiting with `$LASTEXITCODE = $exitCode" $exitCode
+			} else {
+				$retryCount += 1
+				Write-Host "[$scriptName] Wait $wait seconds, then retry $retryCount of $retryMax"
+				Start-Sleep $wait
+			}
 		}
 	}
 }
