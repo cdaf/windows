@@ -396,7 +396,7 @@ if ( $edgeVersion ) {
 $browserPath = 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\firefox.exe'
 if ( Test-Path $browserPath ) {
 	$browserVersionInfo = (Get-Item (Get-ItemProperty $browserPath).'(Default)').VersionInfo
-	Write-Host "  FireFox Browser          : $($browserVersionInfo.ProductVersion)"
+	Write-Host "  FireFox Browser         : $($browserVersionInfo.ProductVersion)"
 
 	$versionTest = cmd /c "geckodriver --version 2`>`&1 2>nul"
 	if ( $LASTEXITCODE -eq 0 ) {
