@@ -358,10 +358,10 @@ if ( $LASTEXITCODE -ne 0 ) {
 	}
 }
 
-$chromePath = 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\chrome.exe'
-if ( Test-Path $chromePath ) {
-	$chromeVersionInfo = (Get-Item (Get-ItemProperty $chromePath).'(Default)').VersionInfo
-	Write-Host "  Chrome Browser          : $($chromeVersionInfo.ProductVersion)"
+$browserPath = 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\chrome.exe'
+if ( Test-Path $browserPath ) {
+	$browserVersionInfo = (Get-Item (Get-ItemProperty $browserPath).'(Default)').VersionInfo
+	Write-Host "  Chrome Browser          : $($browserVersionInfo.ProductVersion)"
 
 	$versionTest = cmd /c "chromedriver -v 2`>`&1 2>nul"
 	if ( $LASTEXITCODE -eq 0 ) {
@@ -369,9 +369,9 @@ if ( Test-Path $chromePath ) {
 	}
 }
 
-$edgePath = 'HKCU:\SOFTWARE\Microsoft\Edge\BLBeacon'
-if ( Test-Path $edgePath ) {
-	$properties = Get-ItemProperty -Path $edgePath
+$browserPath = 'HKCU:\SOFTWARE\Microsoft\Edge\BLBeacon'
+if ( Test-Path $browserPath ) {
+	$properties = Get-ItemProperty -Path $browserPath
 	$edgeVersion = $properties.version
 }
 
@@ -390,6 +390,17 @@ if ( $edgeVersion ) {
 	$versionTest = cmd /c "msedgedriver --version 2`>`&1 2>nul"
 	if ( $LASTEXITCODE -eq 0 ) {
 		Write-Host "    Chrome Driver         : $($versionTest.Split()[3])"
+	}
+}
+
+$browserPath = 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\firefox.exe'
+if ( Test-Path $browserPath ) {
+	$browserVersionInfo = (Get-Item (Get-ItemProperty $browserPath).'(Default)').VersionInfo
+	Write-Host "  FireFox Browser          : $($browserVersionInfo.ProductVersion)"
+
+	$versionTest = cmd /c "geckodriver --version 2`>`&1 2>nul"
+	if ( $LASTEXITCODE -eq 0 ) {
+		Write-Host "    Gecko Driver          : $($versionTest.Split()[1])"
 	}
 }
 
