@@ -74,7 +74,7 @@ function executeExpression ($expression) {
 }
 
 # Expression execution with retry
-function executeRetry ($expression, $wait, $retryMax) {
+function EXERTY ($expression, $wait, $retryMax) {
 	if ( ! $wait ) {
 		$wait = 10
 	}

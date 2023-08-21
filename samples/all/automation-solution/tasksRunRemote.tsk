@@ -20,3 +20,6 @@ $env:AES_KEY = '29-240-88-121-33-64-150-226-136-160-144-115-127-74-74-30'
 Write-Host "Capture output to file or it will simply be logged and discarded`n" -ForegroundColor Magenta
 DECRYP ./crypt/secrets.crypt $env:AES_KEY | Out-File secrets
 cat secrets
+
+Write-Host "Robust URL Check`n" -ForegroundColor Magenta
+EXERTY "curl.exe --silent -L -w '%{http_code}' google.com -o NUL"

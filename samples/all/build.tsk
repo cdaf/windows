@@ -16,3 +16,6 @@ Write-Host "Perform build in DOS Command`n" -ForegroundColor Magenta
 EXECMD "echo @echo off > bin.bat"
 EXECMD "echo echo Artefact symantic version : $productVersion >> bin.bat"
 .\bin.bat
+
+Write-Host "Robust URL Check`n" -ForegroundColor Magenta
+EXERTY "curl.exe --silent -L -w '%{http_code}' google.com -o NUL"
