@@ -1,5 +1,5 @@
 Param (
-	[string]$version
+	[string]$versionScript
 )
 
 $scriptName = 'Capabilities.ps1'
@@ -15,7 +15,7 @@ function webDeployVersion ( $absPath ) {
 	Write-Host "  Web Deploy              : ${versionTest} ($versionCheck)"
 }
 
-if ( $version -ne 'cdaf' ) {
+if ( ! $versionScript ) {
 	Write-Host "`n[$scriptName] ---------- start ----------"
 }
 
@@ -26,26 +26,38 @@ if ( Test-Path "$AUTOMATIONROOT\CDAF.windows" ) {
 } else {
 	if ( Test-Path "$CDAF_CORE/CDAF.properties" ) {
 		$check_file = "$CDAF_CORE/CDAF.properties"
-	} else {
-		if ( $version -eq 'cdaf' ) {
-			Write-Output 'cannot determine'
-			exit 0
-		} else {
-			Write-Host "[$scriptName]   CDAF      : (cannot determine)"
-		}
 	}
 }
-
 if ( $check_file ) {
 	$cdaf_version = (Select-String -Path $check_file -Pattern 'productVersion=').ToString().Split('=')[-1]
-	if ( $version -eq 'cdaf' ) {
-		Write-Output "${cdaf_version}"
+} else {
+	$cdaf_version = '(cannot determine)' 
+}
+
+$browserPath = 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\chrome.exe'
+if ( Test-Path $browserPath ) {
+	$chromeVersion = ((Get-Item (Get-ItemProperty $browserPath).'(Default)').VersionInfo).ProductVersion
+}
+
+if ( $versionScript ) {
+	if ( $versionScript -eq 'cdaf' ) {
+		Write-Output $cdaf_version
 		exit 0
+	} elseif ( $versionScript -eq 'chrome' ) {
+		if ( $chromeVersion ) {
+			Write-Output $chromeVersion
+			exit 0
+		} else {
+			Write-Output 'chrome not installed'
+			exit 6821
+		}
 	} else {
-		Write-Host "[$scriptName]   CDAF      : ${cdaf_version}"
+		Write-Output "Application check $versionScript not sdupported!"
+		exit 6820
 	}
 }
 
+Write-Host "[$scriptName]   CDAF      : ${cdaf_version}"
 Write-Host "[$scriptName]   hostname  : $(hostname)"
 Write-Host "[$scriptName]   pwd       : $(Get-Location)"
 Write-Host "[$scriptName]   whoami    : $(whoami)" 
@@ -358,10 +370,8 @@ if ( $LASTEXITCODE -ne 0 ) {
 	}
 }
 
-$browserPath = 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\chrome.exe'
-if ( Test-Path $browserPath ) {
-	$browserVersionInfo = (Get-Item (Get-ItemProperty $browserPath).'(Default)').VersionInfo
-	Write-Host "  Chrome Browser          : $($browserVersionInfo.ProductVersion)"
+if ( $chromeVersion ) {
+	Write-Host "  Chrome Browser          : $chromeVersion"
 
 	$versionTest = cmd /c "chromedriver -v 2`>`&1 2>nul"
 	if ( $LASTEXITCODE -eq 0 ) {
