@@ -37,6 +37,10 @@ if ( $check_file ) {
 $browserPath = 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\chrome.exe'
 if ( Test-Path $browserPath ) {
 	$chromeVersion = ((Get-Item (Get-ItemProperty $browserPath).'(Default)').VersionInfo).ProductVersion
+	$versionTest = cmd /c "chromedriver -v 2`>`&1 2>nul"
+	if ( $LASTEXITCODE -eq 0 ) {
+		$chromeDriverVersion = $versionTest.Split()[1]
+	}
 }
 
 if ( $versionScript ) {
@@ -45,8 +49,19 @@ if ( $versionScript ) {
 		exit 0
 	} elseif ( $versionScript -eq 'chrome' ) {
 		if ( $chromeVersion ) {
-			Write-Output $chromeVersion
-			exit 0
+			$chromeVersion = $chromeVersion.Split('.')[0]
+			if ( $chromeDriverVersion ) {
+				$chromeDriverVersion = $chromeDriverVersion.Split('.')[0] 
+			} else {
+				$chromeDriverVersion = '0'
+			}
+			if ( $chromeVersion -eq $chromeDriverVersion) {
+				Write-Output $chromeVersion
+				exit 0
+			} else {
+				Write-Output "Chrome version $chromeVersion mismatch Chrome Driver version $chromeDriverVersion"
+				exit 6822
+			}
 		} else {
 			Write-Output 'chrome not installed'
 			exit 6821
@@ -373,9 +388,8 @@ if ( $LASTEXITCODE -ne 0 ) {
 if ( $chromeVersion ) {
 	Write-Host "  Chrome Browser          : $chromeVersion"
 
-	$versionTest = cmd /c "chromedriver -v 2`>`&1 2>nul"
-	if ( $LASTEXITCODE -eq 0 ) {
-		Write-Host "    Chrome Driver         : $($versionTest.Split()[1])"
+	if ( $chromeDriverVersion ) {
+		Write-Host "    Chrome Driver         : $chromeDriverVersion"
 	}
 }
 
@@ -399,7 +413,7 @@ if ( $edgeVersion ) {
 
 	$versionTest = cmd /c "msedgedriver --version 2`>`&1 2>nul"
 	if ( $LASTEXITCODE -eq 0 ) {
-		Write-Host "    Chrome Driver         : $($versionTest.Split()[3])"
+		Write-Host "    Edge Driver           : $($versionTest.Split()[3])"
 	}
 }
 
