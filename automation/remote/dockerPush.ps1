@@ -155,6 +155,9 @@ if ( $registryToken ) {
 }
 
 foreach ( $tag in $registryTags.Split() ) {
+	if ( $registryURL ) {
+		$registryContext = $registryURL + '/' + $registryContext
+	}
 	EXECMD "docker tag ${imageTag} ${registryContext}:$tag"
 	EXECMD "docker push ${registryContext}:$tag"
 }
