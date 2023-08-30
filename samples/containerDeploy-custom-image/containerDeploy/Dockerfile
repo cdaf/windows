@@ -10,9 +10,10 @@ ENV CDAF_INSTALL_PATH 'c:\cdaf'
 # Provision Build Dependancies, configure Maven cache to use host user profile volume mount
 SHELL ["powershell", "-Command", "$ErrorActionPreference = 'Stop'; $ProgressPreference = 'Continue'; $verbosePreference='Continue';"]
 COPY bootstrapAgent.ps1 .
-RUN .\bootstrapAgent.ps1 anypoint-cli
+RUN .\bootstrapAgent.ps1 anypoint-cli-v4
 
 COPY properties/* /solution/deploy/
+COPY release.ps1 .
 COPY deploy.zip .
 RUN powershell -Command Expand-Archive deploy.zip
 

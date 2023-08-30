@@ -82,10 +82,9 @@ function EXECMD ($expression) {
 Write-Host "`n[$scriptName] ---------- start ----------"
 if ($npmPackages) {
     Write-Host "[$scriptName] npmPackages : $npmPackages"
+	EXECMD "npm install -g $npmPackages"
 } else {
-    Write-Host "[$scriptName] npmPackages : (not supplied, NodeJS and NPM will not be installed)"
+    Write-Host "[$scriptName] npmPackages : (not supplied, no action attempted)"
 }
-
-EXECMD "npm install -g $npmPackages"
 
 Write-Host "`n[$scriptName] ---------- stop ----------"
