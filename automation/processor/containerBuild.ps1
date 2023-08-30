@@ -134,10 +134,10 @@ if ( $buildImage ) {
 		$otherOptions += " -optionalArgs '$buildArgs'"
 	}
 
-	executeExpression "& '$AUTOMATIONROOT/remote/dockerBuild.ps1' ${buildImage} $($imageTag + 1) $otherOptions"
+	executeExpression "& '$AUTOMATIONROOT\remote\dockerBuild.ps1' ${buildImage} $($imageTag + 1) $otherOptions"
 
 	# Remove any older images	
-	executeExpression "& '$AUTOMATIONROOT/remote/dockerClean.ps1' ${buildImage} $($imageTag + 1)"
+	executeExpression "& '$AUTOMATIONROOT\remote\dockerClean.ps1' ${buildImage} $($imageTag + 1)"
 	
 	if ( $rebuildImage -ne 'imageonly') {
 		# Retrieve the latest image number

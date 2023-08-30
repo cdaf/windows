@@ -29,7 +29,7 @@ function executeSuppress ($expression) {
     if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) { Write-Host "[$scriptName] Suppress `$LASTEXITCODE ($LASTEXITCODE)"; cmd /c "exit 0" } # reset LASTEXITCODE
 }
 
-Write-Host "`n[$scriptName] Clean image from registry based on Product label. If a tag is passed, only images with a tag value less that the one supplied are removed."
+# Clean image from registry based on Product label. If a tag is passed, only images with a tag value less that the one supplied are removed.
 Write-Host "`n[$scriptName] --- start ---"
 if ($imageName) {
 	$imageName = $imageName.ToLower()

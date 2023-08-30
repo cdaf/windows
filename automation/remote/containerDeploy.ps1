@@ -86,7 +86,6 @@ $scriptName = 'containerDeploy.ps1'
 $Error.clear()
 cmd /c "exit 0"
 
-Write-Host "`n[$scriptName] Build docker image, resulting image BUILDNUMBER will be ${SOLUTION}:${BUILDNUMBER}"
 Write-Host "`n[$scriptName] ---------- start ----------"
 if ($TARGET) {
     Write-Host "[$scriptName] TARGET      : $TARGET"
@@ -127,14 +126,39 @@ if ($imageDir) {
     Write-Host "[$scriptName] imageDir    : $imageDir (not supplied, default set)"
 }
 
-$WORKSPACE = (Get-Location).Path
-Write-Host "[$scriptName] pwd         : ${WORKSPACE}`n"
+Write-Host "[$scriptName] pwd         : $CDAF_CORE`n"
+
+# 2.7.1 runtimeFiles support
+$manifest = "$CDAF_CORE\manifest.txt"
+if ( ! ( Test-Path ${manifest} )) {
+	$manifest = "${SOLUTIONROOT}\CDAF.solution"
+	if ( ! ( Test-Path ${manifest} )) {
+		Write-Host "[$scriptName] Properties not found in $CDAF_CORE\manifest.txt or ${manifest}!"
+		exit 5343
+	}
+}
+
+# 2.7.1 If runtime files declared, convert to a list
+$runtimeFiles = & "$CDAF_CORE\getProperty.ps1" "${manifest}" "runtimeFiles"
+if ( $runtimeFiles ) {
+	$runtimeFiles = $runtimeFiles.Split()
+}
 
 # 2.6.1 Prepare the image build directory and Dockerfile
 if ( Test-Path $imageDir ) {
-	Write-Host "`n[$scriptName] $imageDir exists, perform customer image build...`n"
+	Write-Host "`n[$scriptName] $imageDir exists, perform custom image build...`n"
+
+	# 2.7.1 Copy the declared list of files into build root
+	foreach ( $fileName in $runtimeFiles ) {
+		executeExpression "cp $fileName $imageDir"
+	}
 } else {
 	Write-Host "`n[$scriptName] $imageDir does not exist, creating $(mkdir $imageDir), with default Dockerfile...`n"
+
+	# 2.7.1 Copy the declared list of files into build root
+	foreach ( $fileName in $runtimeFiles ) {
+		executeExpression "cp $fileName $imageDir"
+	}
 
 	Set-Content "${imageDir}/Dockerfile" '# DOCKER-VERSION 1.2.0'
 	Add-Content "${imageDir}/Dockerfile" 'ARG CONTAINER_IMAGE'
@@ -144,6 +168,14 @@ if ( Test-Path $imageDir ) {
 	Add-Content "${imageDir}/Dockerfile" 'WORKDIR /solution'
 	Add-Content "${imageDir}/Dockerfile" ''
 	Add-Content "${imageDir}/Dockerfile" 'COPY properties/* /solution/deploy/'
+
+	# 2.7.1 Copy the declared list of files into the image
+	if ( $runtimeFiles ) {
+		foreach ( $fileName in $runtimeFiles ) {
+			Add-Content "${imageDir}/Dockerfile" "COPY $(Split-Path $fileName -leaf) /solution/deploy/"
+		}
+	}
+
 	Add-Content "${imageDir}/Dockerfile" 'COPY deploy.zip .'
 	Add-Content "${imageDir}/Dockerfile" 'RUN powershell -Command Expand-Archive deploy.zip'
 	Add-Content "${imageDir}/Dockerfile" ''
@@ -171,10 +203,9 @@ executeExpression "cd $imageDir"
 
 Write-Host "`n[$scriptName] Remove any remaining deploy containers from previous (failed) deployments"
 $id = "${SOLUTION}_${REVISION}_containerdeploy".ToLower()
-executeExpression "& '${WORKSPACE}/dockerRun.ps1' ${id}"
+executeExpression "& '$CDAF_CORE\dockerRun.ps1' ${id}"
 $env:CDAF_CD_ENVIRONMENT = $TARGET
-executeExpression "& '${WORKSPACE}/dockerBuild.ps1' ${id} ${BUILDNUMBER}"
-executeExpression "& '${WORKSPACE}/dockerClean.ps1' ${id} ${BUILDNUMBER}"
+executeExpression "& '$CDAF_CORE\dockerBuild.ps1' ${id} ${BUILDNUMBER}"
 
 Write-Host "[$scriptName] Perform Remote Deployment activity using image ${id}:${BUILDNUMBER}"
 foreach ( $envVar in Get-ChildItem env:) {
@@ -198,7 +229,15 @@ if (( ! $env:USERPROFILE ) -or ( $env:CDAF_HOME_MOUNT -eq 'no' )) {
 	executeExpression "docker run --volume '${env:USERPROFILE}:C:/solution/home' ${buildCommand} --label cdaf.${id}.container.instance=${REVISION} --name ${id} ${id}:${BUILDNUMBER} deploy.bat ${TARGET}"
 }
 
-Write-Host
-executeExpression "& '${WORKSPACE}/dockerRun.ps1' ${id}"
+Write-Host "`n[$scriptName] Shutdown containers based on '${id}'`n"
+executeExpression "& '$CDAF_CORE\dockerRun.ps1' ${id}"
 
-Write-Host "`n[$scriptName] --- end ---"
+$runtimeRetain = & "$CDAF_CORE\getProperty.ps1" "${manifest}" "runtimeRetain"
+if ( $runtimeRetain -eq 'yes' ) {
+	Write-Host "[$scriptName] runtimeRetain = '${runtimeRetain}', no image clean performed for '${id}:${BUILDNUMBER}'"
+} else {
+	Write-Host "[$scriptName] Clean images based on '${id}:${BUILDNUMBER}'`n"
+	executeExpression "& '$CDAF_CORE\dockerClean.ps1' ${id} ${BUILDNUMBER}"
+}
+
+Write-Host "`n[$scriptName] --- end ---`n"

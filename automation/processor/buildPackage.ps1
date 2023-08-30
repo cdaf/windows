@@ -465,7 +465,7 @@ if ( $ACTION -eq 'container_build' ) {
 
 		# 2.6.1 default containerBuild process
 		if (! ( $containerBuild )) {
-			$containerBuild = '& ${AUTOMATIONROOT}/processor/containerBuild.ps1 $SOLUTION $BUILDNUMBER $REVISION $ACTION'
+			$containerBuild = '& "${AUTOMATIONROOT}\processor\containerBuild.ps1" "$SOLUTION" "$BUILDNUMBER" "$REVISION" "$ACTION"'
 			$defaultCBProcess = '(default) '
 		}
 	}
@@ -483,7 +483,7 @@ if ( $ACTION -eq 'container_build' ) {
 		$loggingList += "[$scriptName]   buildImage                : $buildImage"
 		# 2.6.1 imageBuild mimimum configuration, with default process
 		if ( ! $imageBuild ) {
-			$imageBuild = '& $AUTOMATIONROOT/remote/imageBuild.ps1 ${SOLUTION}_${REVISION} ${BUILDNUMBER} ${buildImage} ${LOCAL_WORK_DIR}'
+			$imageBuild = '& "$AUTOMATIONROOT\remote\imageBuild.ps1" "${SOLUTION}_${REVISION}" "${BUILDNUMBER}" "${buildImage}" "${LOCAL_WORK_DIR}"'
 			$defaultIBProcess = '(default) '
 		}
 	}
