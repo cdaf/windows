@@ -4,7 +4,7 @@ solutionName=myproduct
 # Custom Diagnostics on error
 # CDAF_ERROR_DIAG=foreach ( $item in ( Get-WmiObject Win32_LogicalDisk )) { get-volume -DriveLetter ($item.DeviceID).split(":")[0] }
 
-# containerBuild minimum configuration
+# containerBuild minimum configuration, if a Dockerfile is not found, a default file will be used
 # containerImage=cdaf/windows
 
 # containerBuild default process
@@ -15,7 +15,7 @@ artifactPrefix=0.0
 # packageFeatures=minimal
 # packageMethod=tarball
 
-# imageBuild minimum configuration
+# imageBuild minimum configuration, if a Dockerfile is not found, a default file will be created
 # buildImage=cdaf/windows
 
 # imageBuild default process
@@ -38,7 +38,7 @@ artifactPrefix=0.0
 
 # processSequence=localTasks.ps1 remoteTasks.ps1 containerTasks.ps1
 
-# containerDeploy minimal config
+# containerDeploy minimal config, if directory containerDeploy is found, a customer image build will be attempted
 # runtimeImage=cdaf/windows
 
 # containerDeploy default process
