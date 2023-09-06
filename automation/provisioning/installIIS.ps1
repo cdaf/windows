@@ -70,8 +70,19 @@ executeExpression "Enable-WindowsOptionalFeature -Online -FeatureName IIS-Applic
 
 if ( $management ) {
 	executeExpression "Enable-WindowsOptionalFeature -Online -FeatureName IIS-WebServerManagementTools"
-	$serverWithGUI = foreach ($property in Get-ItemProperty 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Server\ServerLevels') { if ($property.PSobject.Properties.name -match 'Server-Gui-Shell') { $property } }
-	if ( $serverWithGUI ) {	
+
+	$computer = "."
+	$sOS =Get-WmiObject -class Win32_OperatingSystem -computername $computer
+	foreach($sProperty in $sOS) {
+		$caption = $sProperty.Caption
+	}
+	if (( $caption -match 'Windows 10' ) -or ( $caption -match 'Windows 11' )) {
+		$osWithGUI = $caption
+	} else {
+		$osWithGUI = foreach ($property in Get-ItemProperty 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Server\ServerLevels') { if ($property.PSobject.Properties.name -match 'Server-Gui-Shell') { $property } }
+	}
+
+	if ( $osWithGUI ) {	
 		executeExpression "Enable-WindowsOptionalFeature -Online -FeatureName IIS-ManagementConsole"
 	} else {
 		Write-Host "[$scriptName] Management tools selected, but operating system has no GUI so skipping IIS-ManagementConsole"
