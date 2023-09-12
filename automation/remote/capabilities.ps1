@@ -317,6 +317,7 @@ if ( $LASTEXITCODE -ne 0 ) {
 	}	
 	Write-Host "  kubectl                 : $secondLine"
 	$foundKubeCtl = 'yes'
+}
 
 if ( $foundKubeCtl ) {
 	$versionTest = cmd /c helm version --short 2`>`&1
