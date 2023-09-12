@@ -291,7 +291,21 @@ if ( $LASTEXITCODE -ne 0 ) {
 $versionTest = @()
 $versionTest = cmd /c kubectl version --short=true --client=true 2`>`&1
 if ( $LASTEXITCODE -ne 0 ) {
-	Write-Host "  kubectl                 : not installed"
+	$versionTest = cmd /c kubectl version --short=true --client=true 2`>`&1
+	if ( $LASTEXITCODE -ne 0 ) {
+		Write-Host "  kubectl                 : not installed"
+	} else {
+		try { $firstLine = $versionTest[0].Split()[0] } catch {
+			Write-Host "  kubectl                 : installed but unable to determine from $versionTest"
+		}
+		if ( $firstLine -ne 'Client' ) {
+			try { $secondLine = $versionTest[1].Split('v')[1] } catch {
+				Write-Host "  kubectl                 : installed but unable to determine from $versionTest"
+			}
+		}	
+		Write-Host "  kubectl                 : $secondLine"
+		$foundKubeCtl = 'yes'
+	}
 } else {
 	try { $firstLine = $versionTest[0].Split()[0] } catch {
 		Write-Host "  kubectl                 : installed but unable to determine from $versionTest"
@@ -302,7 +316,9 @@ if ( $LASTEXITCODE -ne 0 ) {
 		}
 	}	
 	Write-Host "  kubectl                 : $secondLine"
+	$foundKubeCtl = 'yes'
 
+if ( $foundKubeCtl ) {
 	$versionTest = cmd /c helm version --short 2`>`&1
 	if ( $LASTEXITCODE -ne 0 ) {
 		Write-Host "    helm                  : not installed"
