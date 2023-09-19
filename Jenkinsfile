@@ -66,7 +66,6 @@ timeout(time: 4, unit: 'HOURS') {
           }
 
           vagrant up
-          vagrant destroy -f
         '''
       }
 
