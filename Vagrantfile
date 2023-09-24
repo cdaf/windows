@@ -24,6 +24,7 @@ Vagrant.configure(2) do |allhosts|
       
       # Align with Docker for remaining provisioning
       windows.vm.provision 'shell', path: '.\automation\provisioning\mkdir.ps1', args: 'C:\deploy'
+      windows.vm.provision 'shell', path: '.\automation\provisioning\CDAF_Desktop_Certificate.ps1'
 
       # Vagrant specific for WinRM
       windows.vm.provision 'shell', path: '.\automation\provisioning\CredSSP.ps1', args: 'server'
@@ -58,6 +59,7 @@ Vagrant.configure(2) do |allhosts|
     build.vm.provision 'shell', path: '.\automation\provisioning\setenv.ps1', args: 'CDAF_DELIVERY VAGRANT Machine'
     build.vm.provision 'shell', path: '.\automation\provisioning\setenv.ps1', args: 'CDAF_PS_USERNAME vagrant'
     build.vm.provision 'shell', path: '.\automation\provisioning\setenv.ps1', args: 'CDAF_PS_USERPASS vagrant'
+    build.vm.provision 'shell', path: '.\automation\provisioning\CDAF_Desktop_Certificate.ps1'
     build.vm.provision 'shell', path: '.\automation\provisioning\setenv.ps1', args: 'CDAF_AUTOMATION_ROOT C:\vagrant\automation'
 
     # Oracle VirtualBox, relaxed configuration for Desktop environment
