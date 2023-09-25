@@ -1,5 +1,0 @@
-# Mandatory properties to land package on host
-deployHost=windows-1.mshome.net
-remoteUser=vagrant
-remoteCred=WINDOWS_PASSWORD
-decryptThb=1C5A22D1DA540F210122BB63EB8F38ABBBB9009A

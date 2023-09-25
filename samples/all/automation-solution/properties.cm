@@ -1,4 +1,5 @@
-context  target     literal        zero  integer  var_load               csv                   list  null_var  empty_var
-local    WINDOWS    "Hello World"    '0'       3  $env:EXAMPLE_SECRET_2  value1,value2,value3  $csv  $null
-local    WORKGROUP  "Hello World"    '0'       4  $env:EXAMPLE_SECRET_2  valueA,valueB,valueC  $csv  $null
-local    VAGRANT    "Hello World"    '0'       5  $env:EXAMPLE_SECRET_2  valueA,valueB,valueC  $csv  $null
+context  target                       literal        zero  integer  var_load               csv                   list  null_var  empty_var
+local    WINDOWS                      "Hello World"    '0'       3  $env:EXAMPLE_SECRET_2  value1,value2,value3  $csv  $null
+local    WORKGROUP                    "Hello World"    '0'       4  $env:EXAMPLE_SECRET_2  valueA,valueB,valueC  $csv  $null
+remote   VAGRANT_CERTIFICATE_DECRYPT  "Hello World"    '0'       5  $env:EXAMPLE_SECRET_2  valueA,valueB,valueC  $csv  $null
+local    VAGRANT_LOCAL                "Hello World"    '0'       6  $env:EXAMPLE_SECRET_2  valueA,valueB,valueC  $csv  $null
