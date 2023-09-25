@@ -74,7 +74,7 @@ Vagrant.configure(2) do |allhosts|
       override.vm.provision 'shell', path: '.\automation\provisioning\CDAF.ps1', args: '-workspace C:\vagrant\automation -action cionly'
       override.vm.provision 'shell', path: '.\automation\provisioning\CDAF.ps1', args: '-workspace C:\vagrant\automation -action cdonly'
       override.vm.provision 'shell', path: '.\automation\provisioning\CDAF.ps1', args: '-workspace C:\vagrant\automation -action cdonly'
-#      override.vm.provision 'shell', inline: 'cd C:\vagrant\samples ; .\executeSamples.ps1'
+      override.vm.provision 'shell', inline: 'cd C:\vagrant\samples\all ; C:\vagrant\automation\cdEmulate.bat'
     end
 
     # Set environment variable VAGRANT_DEFAULT_PROVIDER to 'hyperv'
@@ -87,7 +87,7 @@ Vagrant.configure(2) do |allhosts|
       override.vm.provision 'shell', path: '.\automation\provisioning\CDAF.ps1', args: '-workspace C:\vagrant\automation -action cionly'
       override.vm.provision 'shell', path: '.\automation\provisioning\CDAF.ps1', args: '-workspace C:\vagrant\automation -action cdonly'
       override.vm.provision 'shell', path: '.\automation\provisioning\CDAF.ps1', args: '-workspace C:\vagrant\automation'
-#      override.vm.provision 'shell', inline: 'cd C:\vagrant\samples ; .\executeSamples.ps1'
+      override.vm.provision 'shell', inline: 'cd C:\vagrant\samples\all ; C:\vagrant\automation\cdEmulate.bat'
     end
   end
 
