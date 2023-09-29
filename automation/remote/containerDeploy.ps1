@@ -95,6 +95,7 @@ if ($TARGET) {
 
 if ($RELEASE) {
     Write-Host "[$scriptName] RELEASE     : $RELEASE"
+    $env:RELEASE = $RELEASE
 } else {
     Write-Host "[$scriptName] RELEASE not supplied, exit with `$LASTEXITCODE = 8022"; exit 8022
 }
@@ -206,6 +207,8 @@ $id = "${SOLUTION}_${REVISION}_containerdeploy".ToLower()
 executeExpression "& '$CDAF_CORE\dockerRun.ps1' ${id}"
 $env:CDAF_CD_ENVIRONMENT = $TARGET
 executeExpression "& '$CDAF_CORE\dockerBuild.ps1' ${id} ${BUILDNUMBER}"
+
+${buildCommand} += "--env RELEASE"
 
 Write-Host "[$scriptName] Perform Remote Deployment activity using image ${id}:${BUILDNUMBER}"
 foreach ( $envVar in Get-ChildItem env:) {
