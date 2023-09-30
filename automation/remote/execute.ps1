@@ -626,9 +626,15 @@ Foreach ($line in get-content $TASK_LIST) {
 
 				# Exit (normally) if argument set
 	            if ( $feature -eq 'EXITIF' ) {
-		            $exitVar = $arguments
-		            Write-Host "$expression ==> if ( $exitVar ) then exit" -NoNewline
-		            $expression = "if ( $exitVar ) { Write-Host `"`n`n~~~~~ controlled exit due to criteria met ~~~~~~`"; exit 0}" }
+	            	$exitVar,[String]$exitValue = -split $arguments
+		            if ( $exitValue ) {
+			            Write-Host "$expression ==> if ( `"$exitVar`" -eq `"$exitValue`" ) { exit 0 } " -NoNewline
+			            $expression = "if ( `"$exitVar`" -eq `"$exitValue`" ) { Write-Host `"`n`n~~~~~ controlled exit due to criteria met ~~~~~~`"; exit 0}"
+		            } else {
+			            Write-Host "$expression ==> if ( `"$exitVar`" ) { exit 0 }" -NoNewline
+			            $expression = "if ( `"$exitVar`" ) { Write-Host `"`n`n~~~~~ controlled exit due to criteria met ~~~~~~`"; exit 0}"
+					}
+		        }
 					
 				# Load Properties from file as variables, cannot execute as a function or variables would go out of scope
 	            if ( $feature -eq 'PROPLD' ) {

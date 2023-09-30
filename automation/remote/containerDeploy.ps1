@@ -205,10 +205,8 @@ executeExpression "cd $imageDir"
 Write-Host "`n[$scriptName] Remove any remaining deploy containers from previous (failed) deployments"
 $id = "${SOLUTION}_${REVISION}_containerdeploy".ToLower()
 executeExpression "& '$CDAF_CORE\dockerRun.ps1' ${id}"
-$env:CDAF_CD_ENVIRONMENT = $TARGET
+$env:CDAF_CD_ENVIRONMENT = $ENVIRONMENT
 executeExpression "& '$CDAF_CORE\dockerBuild.ps1' ${id} ${BUILDNUMBER}"
-
-${buildCommand} += "--env RELEASE"
 
 Write-Host "[$scriptName] Perform Remote Deployment activity using image ${id}:${BUILDNUMBER}"
 foreach ( $envVar in Get-ChildItem env:) {
@@ -227,9 +225,9 @@ foreach ( $envVar in Get-ChildItem env:) {
 if (( ! $env:USERPROFILE ) -or ( $env:CDAF_HOME_MOUNT -eq 'no' )) {
 	Write-Host "[$scriptName] `$CDAF_HOME_MOUNT = ${env:CDAF_HOME_MOUNT} (environment variable)"
 	Write-Host "[$scriptName] `$USERPROFILE     = ${env:USERPROFILE} (environment variable)"
-	executeExpression "docker run ${buildCommand} --label cdaf.${id}.container.instance=${REVISION} --name ${id} ${id}:${BUILDNUMBER} deploy.bat ${TARGET}"
+	executeExpression "docker run ${buildCommand} --label cdaf.${id}.container.instance=${REVISION} --name ${id} ${id}:${BUILDNUMBER} deploy.bat ${TARGET} ${RELEASE} ${OPT_ARG}"
 } else {
-	executeExpression "docker run --volume '${env:USERPROFILE}:C:/solution/home' ${buildCommand} --label cdaf.${id}.container.instance=${REVISION} --name ${id} ${id}:${BUILDNUMBER} deploy.bat ${TARGET}"
+	executeExpression "docker run --volume '${env:USERPROFILE}:C:/solution/home' ${buildCommand} --label cdaf.${id}.container.instance=${REVISION} --name ${id} ${id}:${BUILDNUMBER} deploy.bat ${TARGET} ${RELEASE} ${OPT_ARG}"
 }
 
 Write-Host "`n[$scriptName] Shutdown containers based on '${id}'`n"

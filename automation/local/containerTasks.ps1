@@ -34,7 +34,6 @@ Set-Location $WORK_DIR_DEFAULT
 $WORK_DIR_DEFAULT = (Get-Location).Path
 
 Write-Host "[$scriptName]   OPT_ARG          : $OPT_ARG"
-$env:OPT_ARG = $OPT_ARG
  
 $propName = getProp "$WORK_DIR_DEFAULT\CDAF.properties" "productVersion"
 Write-Host "[$scriptName]   CDAF Version     : $cdafVersion"

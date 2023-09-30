@@ -1,10 +1,21 @@
 echo "Here we execute the CLI or REST deployment steps, or perhaps execute tests."
 echo "Note: the user home is mounted to deployment container."
 
-echo "RELEASE = $RELEASE"
+echo "`$RELEASE         = $RELEASE"
+echo "`$OPT_ARG         = $OPT_ARG"
+echo "`$env:ENVIRONMENT = $env:ENVIRONMENT"
 
 echo "Download an image"
 curl.exe -s -O "$uri"
 
 echo "Write image to Log"
 IMGTXT $filename
+
+echo "Do not exit as variable not set"
+EXITIF $NOT_SET
+
+echo "`nControlled Exit"
+EXITIF $RELEASE Release
+
+echo "THIS LINE SHOULD NOT EXECUTE"
+exit 666
