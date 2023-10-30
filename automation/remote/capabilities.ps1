@@ -291,7 +291,7 @@ if ( $LASTEXITCODE -ne 0 ) {
 $versionTest = @()
 $versionTest = cmd /c kubectl version --short=true --client=true 2`>`&1
 if ( $LASTEXITCODE -ne 0 ) {
-	$versionTest = cmd /c kubectl version --short=true --client=true 2`>`&1
+	$versionTest = cmd /c kubectl version --client=true 2`>`&1
 	if ( $LASTEXITCODE -ne 0 ) {
 		Write-Host "  kubectl                 : not installed"
 	} else {
@@ -334,6 +334,14 @@ if ( $foundKubeCtl ) {
 	} else {
 		$array = $versionTest.split("v")
 		Write-Host "    helmsman              : $($versionTest.Split('v')[2])"
+	}
+
+	$versionTest = cmd /c helmfile --version 2`>`&1
+	if ( $LASTEXITCODE -ne 0 ) {
+		Write-Host "    helmfile              : not installed"
+	} else {
+		$array = $versionTest.split("v")
+		Write-Host "    helmfile              : $($versionTest.Split('v')[2])"
 	}
 }
 
