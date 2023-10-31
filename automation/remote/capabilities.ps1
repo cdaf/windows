@@ -295,15 +295,17 @@ if ( $LASTEXITCODE -ne 0 ) {
 	if ( $LASTEXITCODE -ne 0 ) {
 		Write-Host "  kubectl                 : not installed"
 	} else {
-		try { $firstLine = $versionTest[0].Split()[0] } catch {
+		try { $firstLine = $versionTest[0].Split() } catch {
 			Write-Host "  kubectl                 : installed but unable to determine from $versionTest"
 		}
-		if ( $firstLine -ne 'Client' ) {
-			try { $secondLine = $versionTest[1].Split('v')[1] } catch {
+		if ( $firstLine[0] -eq 'Client' ) {
+			$versionTest = $firstLine[2].Replace('v', '')
+		} else {
+			try { $versionTest = $versionTest[1].Split('v')[1] } catch {
 				Write-Host "  kubectl                 : installed but unable to determine from $versionTest"
 			}
-		}	
-		Write-Host "  kubectl                 : $secondLine"
+		}
+		Write-Host "  kubectl                 : $versionTest"
 		$foundKubeCtl = 'yes'
 	}
 } else {
@@ -340,8 +342,7 @@ if ( $foundKubeCtl ) {
 	if ( $LASTEXITCODE -ne 0 ) {
 		Write-Host "    helmfile              : not installed"
 	} else {
-		$array = $versionTest.split("v")
-		Write-Host "    helmfile              : $($versionTest.Split('v')[2])"
+		Write-Host "    helmfile              : $($versionTest.Split()[2])"
 	}
 }
 
