@@ -230,7 +230,7 @@ if (( $virtualisation -eq 'hyperv' ) -or ( $virtualisation -eq 'docker' )) {
     executeExpression ".\automation\provisioning\base.ps1 nodejs-lts"
     executeExpression ".\automation\provisioning\base.ps1 python"
 
-    executeExpression ".\automation\provisioning\base.ps1 'nuget.commandline' -verion 5.8.1" # 5.9 is broken
+    executeExpression ".\automation\provisioning\base.ps1 'nuget.commandline'" # was fixed to -verion 5.8.1 as 5.9 was broken
 
 	 # Install explicitely to include Agent, VS workload will not include agent & choco does not support Web Deploy v4
     executeExpression ".\automation\provisioning\webdeploy.ps1"
