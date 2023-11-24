@@ -16,6 +16,7 @@ Write-Host "[$scriptName] Current `$env:DEV_ENV    : $env:DEV_ENV"
 $env:DEV_ENV = $nul
 Write-Host "[$scriptName] Current `$env:NUGET_PATH : $env:NUGET_PATH"
 $env:NUGET_PATH = $nul
+
 $versionTest = cmd /c vswhere 2`>`&1
 if ($versionTest -like '*not recognized*') {
 	Write-Host "[$scriptName] VSWhere                 : not installed"
@@ -24,12 +25,15 @@ if ($versionTest -like '*not recognized*') {
 		Write-Host "[$scriptName] VSWhere                 : $($versionTest[0].Replace('Visual Studio Locator version ', ''))"
 		$obj = vswhere -latest -products * -format json | ConvertFrom-Json
 		if ( $obj ) {
-			Write-Host "[$scriptName] Latest Visual Studio install is $($obj.displayName)"
+			$searchpath = $obj.installationPath
+			Write-Host "[$scriptName] Latest installed Visual Studio is $($obj.displayName)"
 			$env:DEV_ENV = $obj.productPath
 			
 			$env:MS_BUILD = vswhere -latest -requires Microsoft.Component.MSBuild -find MSBuild\**\Bin\MSBuild.exe
-			if (!( $env:MS_BUILD )) {
-				$tempObj = Get-ChildItem $obj.installationPath -Recurse -Filter 'msbuild.exe'
+			if ( $env:MS_BUILD ) {
+				Write-Host "[$scriptName] MSBuild found using VSWhere"
+			} else {
+				$tempObj = Get-ChildItem $searchpath -Recurse -Filter 'msbuild.exe'
 				if ( $tempObj ) {
 					$env:MS_BUILD = $tempObj[0].FullName
 				}
@@ -38,15 +42,19 @@ if ($versionTest -like '*not recognized*') {
 			if ( $testPath ) {
 				$env:VS_TEST = join-path $testPath 'Common7\IDE\CommonExtensions\Microsoft\TestWindow\vstest.console.exe'
 			}
-			if (!( $env:VS_TEST )) {
-				$tempObj = Get-ChildItem $obj.installationPath -Recurse -Filter 'vstest.console.exe'
+			if ( $env:VS_TEST ) {
+				Write-Host "[$scriptName] VSTest found using VSWhere"
+			} else {
+				$tempObj = Get-ChildItem $searchpath -Recurse -Filter 'vstest.console.exe'
 				if ( $tempObj ) {
 					$env:VS_TEST = $tempObj[0].FullName
+					Write-Host "[$scriptName] VSTest found using recusive search in $searchpath"
 				}
 			}
-			$tempObj = Get-ChildItem $obj.installationPath -Recurse -Filter 'mstest.exe'
+			$tempObj = Get-ChildItem $searchpath -Recurse -Filter 'mstest.exe'
 			if ( $tempObj ) {
 				$env:MS_TEST = $tempObj[0].FullName
+				Write-Host "[$scriptName] MSTest found using recusive search in $searchpath"
 			}
 		}
 	} else {
@@ -69,14 +77,6 @@ if (!( $env:MS_BUILD )) {
 			$env:VS_TEST = (($fileList -match 'vstest.exe')[0]).fullname
 			$env:DEV_ENV = (($fileList -match 'devenv.com')[0]).fullname
 		}
-	}
-}
-
-if (! ($env:VS_TEST) ) {
-	$versionTest = cmd /c vstest.console.exe --help 2`>`&1
-	if ( $LASTEXITCODE -eq 0 ) {
-		Write-Host "vstest.console.exe : $($versionTest[0])"
-		$env:VS_TEST = where.exe vstest.console.exe
 	}
 }
 

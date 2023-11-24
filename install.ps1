@@ -3,11 +3,9 @@
 # Windows 2016
 # [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]'Tls11,Tls12'
 
-# Install to current directory and do not change PATH
-# . { iwr -useb https://raw.githubusercontent.com/cdaf/windows/master/install.ps1 } | iex
-
-# Install to a specified location and add to PATH
+# Optional environment variables:
 # $env:CDAF_INSTALL_PATH = 'c:\cdaf'
+# $env:CDAF_INSTALL_VERSION = '2.7.3'
 # . { iwr -useb https://raw.githubusercontent.com/cdaf/windows/master/install.ps1 } | iex
 
 Param (
@@ -46,7 +44,12 @@ Write-Host "`n[$scriptName] --- start ---"
 if ( $version ) {
     Write-Host "[$scriptName]   version     : $version"
 } else {
-    Write-Host "[$scriptName]   version     : (not passed, use edge)"
+	if ( $env:CDAF_INSTALL_VERSION ) {
+		$version = $env:CDAF_INSTALL_VERSION
+	    Write-Host "[$scriptName]   version     : (from `$env:CDAF_INSTALL_VERSION)"
+	} else {
+	    Write-Host "[$scriptName]   version     : (not passed, use edge)"
+	}
 }
 
 if ( $env:CDAF_INSTALL_PATH ) {
