@@ -393,7 +393,6 @@ function IFADMN ($command) {
 	} else {
 		Write-Host "`n[WARN] $(whoami) is not an Administrator, or not elevated, command not attempted`n"
 	}
-
 }
 
 # Requires vswhere

@@ -5,17 +5,31 @@ Param (
 cmd /c "exit 0"
 $scriptName = 'msTools.ps1'
 
-Write-Host "`n[$scriptName] --- start ---`n"
-Write-Host "[$scriptName] Current `$env:MS_BUILD   : $env:MS_BUILD"
-$env:MS_BUILD = $nul
-Write-Host "[$scriptName] Current `$env:MS_TEST    : $env:MS_TEST"
-$env:MS_TEST = $nul
-Write-Host "[$scriptName] Current `$env:VS_TEST    : $env:VS_TEST"
-$env:VS_TEST = $nul
-Write-Host "[$scriptName] Current `$env:DEV_ENV    : $env:DEV_ENV"
-$env:DEV_ENV = $nul
-Write-Host "[$scriptName] Current `$env:NUGET_PATH : $env:NUGET_PATH"
-$env:NUGET_PATH = $nul
+Write-Host "`n[$scriptName] --- start ---"
+if ( $env:MS_BUILD ) {
+	Write-Host "[$scriptName] Current `$env:MS_BUILD   : $env:MS_BUILD"
+	$env:MS_BUILD = $nul
+}
+
+if ( $env:MS_TEST ) {
+	Write-Host "[$scriptName] Current `$env:MS_TEST    : $env:MS_TEST"
+	$env:MS_TEST = $nul
+}
+
+if ( $env:VS_TEST ) {
+	Write-Host "[$scriptName] Current `$env:VS_TEST    : $env:VS_TEST"
+	$env:VS_TEST = $nul
+}
+
+if ( $env:DEV_ENV ) {
+	Write-Host "[$scriptName] Current `$env:DEV_ENV    : $env:DEV_ENV"
+	$env:DEV_ENV = $nul
+}
+
+if ( $env:NUGET_PATH ) {
+	Write-Host "[$scriptName] Current `$env:NUGET_PATH : $env:NUGET_PATH"
+	$env:NUGET_PATH = $nul
+}
 
 $versionTest = cmd /c vswhere 2`>`&1
 if ($versionTest -like '*not recognized*') {
@@ -26,7 +40,7 @@ if ($versionTest -like '*not recognized*') {
 		$obj = vswhere -latest -products * -format json | ConvertFrom-Json
 		if ( $obj ) {
 			$searchpath = $obj.installationPath
-			Write-Host "[$scriptName] Latest installed Visual Studio is $($obj.displayName)"
+			Write-Host "`n[$scriptName] Latest installed Visual Studio is $($obj.displayName)"
 			$env:DEV_ENV = $obj.productPath
 			
 			$env:MS_BUILD = vswhere -latest -requires Microsoft.Component.MSBuild -find MSBuild\**\Bin\MSBuild.exe
@@ -44,21 +58,10 @@ if ($versionTest -like '*not recognized*') {
 			}
 			if ( $env:VS_TEST ) {
 				Write-Host "[$scriptName] VSTest found using VSWhere"
-			} else {
-				$tempObj = Get-ChildItem $searchpath -Recurse -Filter 'vstest.console.exe'
-				if ( $tempObj ) {
-					$env:VS_TEST = $tempObj[0].FullName
-					Write-Host "[$scriptName] VSTest found using recusive search in $searchpath"
-				}
-			}
-			$tempObj = Get-ChildItem $searchpath -Recurse -Filter 'mstest.exe'
-			if ( $tempObj ) {
-				$env:MS_TEST = $tempObj[0].FullName
-				Write-Host "[$scriptName] MSTest found using recusive search in $searchpath"
 			}
 		}
 	} else {
-		Write-Host "`n[$scriptName] VSWhere installed, but not returning an data, fall back to legacy detection..."
+		Write-Host "`n[$scriptName] VSWhere installed, but not returning any data, fall back to legacy detection..."
 	}
 }
 
@@ -80,14 +83,6 @@ if (!( $env:MS_BUILD )) {
 	}
 }
 
-if (! ($env:MS_BUILD) ) {
-	Write-Host "`n[$scriptName] MSBuild not found, search common Visual Studio paths ..."
-	$testlookup = Get-ChildItem -Recurse "C:\Program Files (x86)\Microsoft Visual Studio" -Filter "MSBuild.exe"
-	if ( $testlookup ) {
-		$env:MS_BUILD = $testlookup[-1].FullName
-	}
-}
-
 if (!( $env:MS_BUILD )) {
 	Write-Host "`n[$scriptName] ... MSBuild not found, try Visual Studio 2017 path ..."
 	$registryKey = 'HKLM:\SOFTWARE\Microsoft\MSBuild\ToolsVersions\14.0'
@@ -96,46 +91,8 @@ if (!( $env:MS_BUILD )) {
 	}
 }
 
-if (! ($env:MS_TEST) ) {
-	Write-Host "`n[$scriptName] MSTest not found, search for VSTS agent install ..."
-	$testlookup = Get-ChildItem -Recurse "C:\Program Files (x86)\Microsoft Visual Studio" -Filter "MSTest.exe"
-	if ( $testlookup ) {
-		$env:MS_TEST = $testlookup[0].FullName
-	}
-}
-
-if (! ($env:MS_TEST) ) {
-	Write-Host "`n[$scriptName] ... MSTest not found, try Visual Studio 2017 path ..."
-	$registryKey = 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Installer\UserData\S-1-5-18\Components\196D6C5077EC79D56863FE52B7080EF6'
-	if ( Test-Path $registryKey ) {
-		$env:MS_TEST = (Get-ItemProperty ((Get-Item $registryKey).pspath)).'06F460ED2256013369565B3E7EB86383'
-	}
-}
-
-if (! ($env:MS_TEST) ) {
-	Write-Host "`n[$scriptName] ... MSTest not found, try Visual Studio 2015 path ..."
-	$registryKey = 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Installer\UserData\S-1-5-18\Components\196D6C5077EC79D56863FE52B7080EF6'
-	if ( Test-Path $registryKey ) {
-		$env:MS_TEST = (Get-ItemProperty ((Get-Item $registryKey).pspath)).'4EEF88CE629328E30A83748F4CABD953'
-	}
-}
-
-if (! ($env:VS_TEST) ) {
-	Write-Host "`n[$scriptName] VS test console not found, search for VSTS agent install ..."
-	$testlookup = Get-ChildItem -Recurse "C:\Program Files (x86)\Microsoft Visual Studio" -Filter "vstest.console.exe"
-	if ( $testlookup ) {
-		$env:VS_TEST = $testlookup[0].FullName
-	}
-}
-
 $versionTest = cmd /c NuGet 2`>`&1
-if ( $LASTEXITCODE -ne 0 ) {
-	cmd /c "exit 0"
-	executeExpression "[System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]'Tls11,Tls12'"
-	executeExpression "(New-Object System.Net.WebClient).DownloadFile('https://dist.nuget.org/win-x86-commandline/latest/nuget.exe', '$PWD\nuget.exe')"
-	$versionTest = cmd /c .\nuget.exe 2`>`&1
-	$env:NUGET_PATH = '.\nuget.exe'
-} else {
+if ( $LASTEXITCODE -eq 0 ) {
 	$nugetPaths = (cmd /c "where.exe NuGet").Split([string[]]"`r`n",'None')
 	$env:NUGET_PATH = $nugetPaths[0]
 	if ( $nugetPaths.Count -gt 1 ) {
@@ -144,35 +101,35 @@ if ( $LASTEXITCODE -ne 0 ) {
 			Write-Host "   $($nugetPaths[$i])"
 		}
 	}
+	$array = $versionTest.split(" ")
+	Write-Host "`n`$env:NUGET_PATH = ${env:NUGET_PATH} (version $($array[2]))"
+} else {
+	Write-Host "`n`$env:NUGET_PATH (not found)"
 }
-$array = $versionTest.split(" ")
-Write-Host "`n`$env:NUGET_PATH = ${env:NUGET_PATH} (version $($array[2]))"
 
 if ( $env:MS_BUILD ) {
 	Write-Host "`$env:MS_BUILD = ${env:MS_BUILD}"
 } else {
-	Write-Host "MSBuild not found!`n"
-	exit 4700
+	Write-Host "`$env:MS_BUILD (MSBuild.exe not found)"
+}
+
+if ( $env:VS_TEST ) {
+	$env:MS_TEST = $env:VS_TEST
+	Write-Host "`$env:VS_TEST = ${env:VS_TEST}"
+} else {
+	Write-Host "`$env:VS_TEST (vstest.console.exe not found)"
 }
 
 if ( $env:MS_TEST ) {
 	Write-Host "`$env:MS_TEST = ${env:MS_TEST}"
 } else {
-	Write-Host "MSTest not found"
-}
-
-if ( $env:VS_TEST ) {
-	Write-Host "`$env:VS_TEST = ${env:VS_TEST}"
-} else {
-	Write-Host "VSTest not found, defaulting to `$env:MS_TEST"
-	$env:VS_TEST = $env:MS_TEST
-	Write-Host "`$env:VS_TEST = ${env:VS_TEST}"
+	Write-Host "`$env:MS_TEST (vstest.console.exe not found)"
 }
 
 if ( $env:DEV_ENV ) {
 	Write-Host "`$env:DEV_ENV = ${env:DEV_ENV}"
 } else {
-	Write-Host "Visual Studio devenv not found`n"
+	Write-Host "`$env:DEV_ENV (devenv.exe not found)"
 }
 
 Write-Host "`n[$scriptName] --- finish---"
