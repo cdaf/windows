@@ -90,20 +90,19 @@ function moveOrCopy ($expression) {
     } catch {
         ERRMSG "[moveOrCopy] Exception block move install of CDAF!"
     }
+    if ( $error ) {
+        Write-Host "[moveOrCopy][WARN] `$Error[] = $Error" -ForegroundColor Yellow
+        $Error.Clear()
+        try {
+            Write-Host "[$(Get-Date)] Copy-Item -Recurse $expression"
+            Invoke-Expression "Copy-Item -Recurse $expression"
+            if(!$?) { Write-Host "[moveOrCopy][COPY_HALT] `$? = $?"; $error ; exit 1111 }
+        } catch {
+            ERRMSG "[moveOrCopy] Exception blocked copy install of CDAF!"
+        }
         if ( $error ) {
-            Write-Host "[moveOrCopy][WARN] `$Error[] = $Error" -ForegroundColor Yellow
+            Write-Host "[moveOrCopy][ERROR] `$Error[] = $Error" -ForegroundColor Yellow
             $Error.Clear()
-            try {
-                Write-Host "[$(Get-Date)] Copy-Item -Recurse $expression"
-                Invoke-Expression "Copy-Item -Recurse $expression"
-                if(!$?) { Write-Host "[moveOrCopy][COPY_HALT] `$? = $?"; $error ; exit 1111 }
-            } catch {
-                ERRMSG "[moveOrCopy] Exception blocked copy install of CDAF!"
-            }
-            if ( $error ) {
-                Write-Host "[moveOrCopy][ERROR] `$Error[] = $Error" -ForegroundColor Yellow
-                $Error.Clear()
-	    }
         }
     }
 }
