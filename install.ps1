@@ -94,8 +94,8 @@ function moveOrCopy ($expression) {
         Write-Host "[moveOrCopy][WARN] `$Error[] = $Error" -ForegroundColor Yellow
         $Error.Clear()
         try {
-            Write-Host "[$(Get-Date)] Copy-Item -Recurse $expression 2>`$null"
-            Invoke-Expression "Copy-Item -Recurse $expression"
+            Write-Host "[$(Get-Date)] Copy-Item -Recurse $expression"
+            Invoke-Expression "Copy-Item -Recurse $expression 2>`$null"
             if(!$?) { Write-Host "[moveOrCopy][COPY_HALT] `$? = $?"; $error ; exit 1111 }
         } catch {
             ERRMSG "[moveOrCopy] Exception blocked copy install of CDAF!"
