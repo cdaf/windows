@@ -82,27 +82,28 @@ function executeExpression ($expression) {
 
 # Cater for "Access to the path is denied"
 function moveOrCopy ($expression) {
+    $Error.Clear()
     Write-Host "[$(Get-Date)] Move-Item $expression"
     try {
         Invoke-Expression "Move-Item $expression"
-Write-Host "[$(Get-Date)][DEBUG 1]"
-        if(!$?) { Write-Host "[$scriptName] `$? = $?"; $error ; exit 1111 }
-Write-Host "[$(Get-Date)][DEBUG 2]"
+        if(!$?) { Write-Host "[moveOrCopy][MOVE_HALT] `$? = $?"; $error ; exit 1111 }
     } catch {
-Write-Host "[$(Get-Date)][DEBUG 3]"
+        ERRMSG "[moveOrCopy] Exception block move install of CDAF!"
+    }
         if ( $error ) {
-            Write-Host "[$scriptName][WARN] `$Error[] = $Error" -ForegroundColor Yellow
+            Write-Host "[moveOrCopy][WARN] `$Error[] = $Error" -ForegroundColor Yellow
             $Error.Clear()
-        }
-Write-Host "[$(Get-Date)][DEBUG 4]"
-        try {
-Write-Host "[$(Get-Date)][DEBUG 5]"
-	    Write-Host "[$(Get-Date)] Copy-Item -Recurse $expression"
-            Invoke-Expression "Copy-Item -Recurse $expression"
-Write-Host "[$(Get-Date)][DEBUG 6]"
-        } catch {
-Write-Host "[$(Get-Date)][DEBUG 7]"
-            ERRMSG "[moveOrCopy] Unable to install CDAF!"
+            try {
+                Write-Host "[$(Get-Date)] Copy-Item -Recurse $expression"
+                Invoke-Expression "Copy-Item -Recurse $expression"
+                if(!$?) { Write-Host "[moveOrCopy][COPY_HALT] `$? = $?"; $error ; exit 1111 }
+            } catch {
+                ERRMSG "[moveOrCopy] Exception blocked copy install of CDAF!"
+            }
+            if ( $error ) {
+                Write-Host "[moveOrCopy][ERROR] `$Error[] = $Error" -ForegroundColor Yellow
+                $Error.Clear()
+	    }
         }
     }
 }
