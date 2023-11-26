@@ -16,28 +16,87 @@ $scriptName = 'install.ps1'
 cmd /c "exit 0"
 $Error.Clear()
 
+
+# Consolidated Error processing function
+#  required : error message
+#  optional : exit code, if not supplied only error message is written
+function ERRMSG ($message, $exitcode) {
+	if ( $exitcode ) {
+		Write-Host "`n[$scriptName]$message" -ForegroundColor Red
+	} else {
+		Write-Warning "`n[$scriptName]$message"
+	}
+	if ( $error ) {
+		$i = 0
+		foreach ( $item in $Error )
+		{
+			Write-Host "`$Error[$i] $item"
+			$i++
+		}
+		$Error.clear()
+	}
+	if ( $exitcode ) {
+		if ( $env:CDAF_ERROR_DIAG ) {
+			Write-Host "`n[$scriptName] Invoke custom diag `$env:CDAF_ERROR_DIAG = $env:CDAF_ERROR_DIAG`n"
+			Invoke-Expression $env:CDAF_ERROR_DIAG
+		}
+		Write-Host "`n[$scriptName] Exit with LASTEXITCODE = $exitcode`n" -ForegroundColor Red
+		exit $exitcode
+	}
+}
+
 # Common expression logging and error handling function, copied, not referenced to ensure atomic process
 function executeExpression ($expression) {
 	Write-Host "[$(Get-Date)] $expression"
 	try {
 		Invoke-Expression $expression
-	    if(!$?) { Write-Host "[$scriptName] `$? = $?"; $error ; exit 1111 }
-	} catch { Write-Output $_.Exception|format-list -force; $error ; exit 1112 }
+	    if(!$?) { ERRMSG "[TRAP] `$? = $?" 1211 }
+	} catch {
+		$message = $_.Exception.Message
+		$_.Exception | format-list -force
+		$_.Exception.StackTrace
+		if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) {
+			ERRMSG "[EXEC][EXCEPTION] $message" $LASTEXITCODE
+		} else {
+			ERRMSG "[EXEC][EXCEPTION] $message" 1212
+		}
+	}
     if ( $LASTEXITCODE ) {
     	if ( $LASTEXITCODE -ne 0 ) {
-			Write-Host "[$scriptName] `$LASTEXITCODE = $LASTEXITCODE " -ForegroundColor Red ; $error ; exit $LASTEXITCODE
+			ERRMSG "[EXEC][EXIT] `$LASTEXITCODE is $LASTEXITCODE" $LASTEXITCODE
 		} else {
 			if ( $error ) {
-				Write-Host "[$scriptName][WARN] `$Error[] populated but `$LASTEXITCODE = $LASTEXITCODE error follows... $Error`n" -ForegroundColor Yellow
-				$Error.Clear()
+				ERRMSG "[EXEC][WARN] `$LASTEXITCODE is $LASTEXITCODE, but standard error populated"
 			}
 		} 
 	} else {
 	    if ( $error ) {
+	    	if ( $env:CDAF_IGNORE_WARNING -eq 'no' ) {
+				ERRMSG "[EXEC][ERROR] `$env:CDAF_IGNORE_WARNING is 'no' so exiting" 1213
+	    	} else {
+				ERRMSG "[EXEC][WARN] `$LASTEXITCODE not set, but standard error populated"
+	    	}
+		}
+	}
+}
+
+# Cater for "Access to the path is denied"
+function moveOrCopy ($expression) {
+	Write-Host "[$(Get-Date)] Move-Item $expression"
+	try {
+		Invoke-Expression "Move-Item $expression"
+	    if(!$?) { Write-Host "[$scriptName] `$? = $?"; $error ; exit 1111 }
+	} catch {
+	    if ( $error ) {
 			Write-Host "[$scriptName][WARN] `$Error[] = $Error" -ForegroundColor Yellow
 			$Error.Clear()
 		}
-	}
+		try {
+			Invoke-Expression "Copy-Item -Recurse $expression"
+		} catch {
+			ERRMSG "[moveOrCopy] Unable to install CDAF!"			
+		}
+    }
 }
 
 Write-Host "`n[$scriptName] --- start ---"
@@ -72,7 +131,7 @@ if ( $version ) {
 	executeExpression "iwr -useb http://cdaf.io/static/app/downloads/WU-CDAF-${version}.zip -outfile WU-CDAF-${version}.zip"
 	executeExpression "Add-Type -AssemblyName System.IO.Compression.FileSystem"
 	executeExpression "[System.IO.Compression.ZipFile]::ExtractToDirectory('$(pwd)\WU-CDAF-${version}.zip', '$(pwd)')"
-	executeExpression "Move-Item '$(pwd)\automation' '${installPath}'"
+	moveOrCopy "'$(pwd)\automation' '${installPath}'"
 	executeExpression "Remove-Item '$(pwd)\WU-CDAF-${version}.zip'"
 
 } else {
@@ -83,7 +142,7 @@ if ( $version ) {
 	executeExpression "iwr -useb https://codeload.github.com/cdaf/windows/zip/refs/heads/master -outfile cdaf.zip"
 	executeExpression "Add-Type -AssemblyName System.IO.Compression.FileSystem"
 	executeExpression "[System.IO.Compression.ZipFile]::ExtractToDirectory('$(pwd)\cdaf.zip', '$(pwd)')"
-	executeExpression "Move-Item '.\windows-master\automation\' '${installPath}'"
+	moveOrCopy "'$(pwd)\windows-master\automation\' '${installPath}'"
 	executeExpression "Remove-Item -Recurse '$(pwd)\windows-master'"
 	executeExpression "Remove-Item '$(pwd)\cdaf.zip'"
 
