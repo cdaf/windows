@@ -31,6 +31,9 @@ if ( $env:NUGET_PATH ) {
 	$env:NUGET_PATH = $nul
 }
 
+$vstestContext = 'Common7\IDE\CommonExtensions\Microsoft\TestWindow\vstest.console.exe'
+$mstestContext = 'Common7\IDE\MSTest.exe'
+
 $versionTest = cmd /c vswhere 2`>`&1
 if ($versionTest -like '*not recognized*') {
 	Write-Host "[$scriptName] VSWhere                 : not installed`n"
@@ -49,11 +52,17 @@ if ($versionTest -like '*not recognized*') {
 			}
 
 			$testPath = vswhere -latest -products * -requires Microsoft.VisualStudio.Workload.ManagedDesktop Microsoft.VisualStudio.Workload.Web -requiresAny -property installationPath
-			if ( $testPath ) {
-				$env:VS_TEST = join-path $testPath 'Common7\IDE\CommonExtensions\Microsoft\TestWindow\vstest.console.exe'
-			}
-			if ( $env:VS_TEST ) {
+
+			$elementpath = "${testPath}\${vstestContext}"
+			if ( Test-Path $elementpath ) {
+				$env:VS_TEST = $elementpath
 				Write-Host "[$scriptName] VSTest found using Latest Product in VSWhere"
+			}
+
+			$elementpath = "${testPath}\${mstestContext}"
+			if ( Test-Path $elementpath ) {
+				$env:MS_TEST = $elementpath
+				Write-Host "[$scriptName] MSTest found using Latest Product in VSWhere"
 			}
 		}
 	} else {
@@ -61,20 +70,40 @@ if ($versionTest -like '*not recognized*') {
 	}
 }
 
-# vswhere does not support 
-# $toolsVersions = 'HKLM:\Software\WOW6432Node\Microsoft\VisualStudio*'
-# 'HKLM:\Software\Microsoft\MSBuild\ToolsVersions'
+$list = vswhere -products * -format json | ConvertFrom-Json
 
-# $list = vswhere -products * -format json | ConvertFrom-Json
+if (!( $env:MS_BUILD )) {
+	foreach ($element in $list) {
+		$elementpath = "$($element.installationPath)\MSBuild\Current\Bin\MSBuild.exe" 
+		if ( Test-Path $elementpath ) {
+			$env:MS_BUILD = $elementpath
+			Write-Host "[$scriptName] MSBuild found for $($element.displayName)"
+			break
+		}
+	}
+}
 
-# & where.exe /R "C:\" msbuild.exe
-# C:\Program Files\Microsoft Visual Studio\2022\Enterprise\MSBuild\Current\Bin\MSBuild.exe
+if (!( $env:VS_TEST )) {
+	foreach ($element in $list) {
+		$elementpath = "$($element.installationPath)\${vstestContext}"
+		if ( Test-Path $elementpath ) {
+			$env:VS_TEST = $elementpath
+			Write-Host "[$scriptName] vstest.console.exe found for $($element.displayName)"
+			break
+		}
+	}
+}
 
-#& where.exe /R "C:\" vstest.console.exe
-#C:\Program Files (x86)\Microsoft Visual Studio\2019\TestAgent\Common7\IDE\CommonExtensions\Microsoft\TestWindow\vstest.console.exe
-
-# & where.exe /R "C:\" mstest.exe
-# C:\Program Files (x86)\Microsoft Visual Studio\2019\TestAgent\Common7\IDE\MSTest.exe
+if (!( $env:MS_TEST )) {
+	foreach ($element in $list) {
+		$elementpath = "$($element.installationPath)\${mstestContext}"
+		if ( Test-Path $elementpath ) {
+			$env:MS_TEST = $elementpath
+			Write-Host "[$scriptName] MSTest found for $($element.displayName)"
+			break
+		}
+	}
+}
 
 if (!( $env:MS_BUILD )) {
 	$registryKey = 'HKLM:\SOFTWARE\Wow6432Node\Microsoft\VisualStudio\SxS\VS7'
@@ -87,9 +116,6 @@ if (!( $env:MS_BUILD )) {
 			Write-Host "[$scriptName][WARNING] Using MSBuild from Visual Studio 2015 or prior" -ForegroundColor Yellow
 			$fileList = @(Get-ChildItem $versionTest -Recurse)
 			$env:MS_BUILD = (($fileList -match 'msbuild.exe')[0]).fullname
-			$env:MS_TEST = (($fileList -match 'mstest.exe')[0]).fullname
-			$env:VS_TEST = (($fileList -match 'vstest.exe')[0]).fullname
-			$env:DEV_ENV = (($fileList -match 'devenv.com')[0]).fullname
 		}
 	}
 }
@@ -114,6 +140,13 @@ if (! ($env:VS_TEST) ) {
 	}
 }
 
+if (! ($env:MS_TEST) ) {
+	if ($env:VS_TEST) {
+		$env:MS_TEST = $env:VS_TEST
+		Write-Host "[$scriptName] MStest not found, defaulted to `$env:VS_TEST"
+	}
+}
+
 $versionTest = cmd /c NuGet 2`>`&1
 if ( $LASTEXITCODE -eq 0 ) {
 	$nugetPaths = (cmd /c "where.exe NuGet").Split([string[]]"`r`n",'None')
@@ -125,6 +158,21 @@ if ( $LASTEXITCODE -eq 0 ) {
 		}
 	}
 	$array = $versionTest.split(" ")
+}
+
+if (!( $env:DEV_ENV )) {
+	$registryKey = 'HKLM:\SOFTWARE\Wow6432Node\Microsoft\VisualStudio\SxS\VS7'
+	if ( Test-Path $registryKey ) {
+		$list = Get-ItemProperty $registryKey | Get-Member
+		$installs = @()
+		foreach ($element in $list) { if ($element -match '.0') { $installs += $element.Definition.Split('=')[1] }}
+		$versionTest = $installs[-1] # use latest version of Visual Studio
+		if ( $versionTest ) {
+			Write-Host "[$scriptName][WARNING] Using devenv from Visual Studio 2015 or prior" -ForegroundColor Yellow
+			$fileList = @(Get-ChildItem $versionTest -Recurse)
+			$env:DEV_ENV = (($fileList -match 'devenv.com')[0]).fullname
+		}
+	}
 }
 
 # Log results
@@ -141,7 +189,6 @@ if ( $env:MS_BUILD ) {
 }
 
 if ( $env:VS_TEST ) {
-	$env:MS_TEST = $env:VS_TEST
 	Write-Host "`$env:VS_TEST = ${env:VS_TEST}"
 } else {
 	Write-Host "`$env:VS_TEST (vstest.console.exe not found)"
@@ -150,7 +197,7 @@ if ( $env:VS_TEST ) {
 if ( $env:MS_TEST ) {
 	Write-Host "`$env:MS_TEST = ${env:MS_TEST}"
 } else {
-	Write-Host "`$env:MS_TEST (vstest.console.exe not found)"
+	Write-Host "`$env:MS_TEST (mstest.exe not found)"
 }
 
 if ( $env:DEV_ENV ) {
