@@ -33,14 +33,14 @@ if ( $env:NUGET_PATH ) {
 
 $versionTest = cmd /c vswhere 2`>`&1
 if ($versionTest -like '*not recognized*') {
-	Write-Host "[$scriptName] VSWhere                 : not installed"
+	Write-Host "[$scriptName] VSWhere                 : not installed`n"
 } else {
 	if ( $versionTest ) {
-		Write-Host "[$scriptName] VSWhere                 : $($versionTest[0].Replace('Visual Studio Locator version ', ''))"
+		Write-Host "[$scriptName] VSWhere                 : $($versionTest[0].Replace('Visual Studio Locator version ', ''))`n"
 		$obj = vswhere -latest -products * -format json | ConvertFrom-Json
 		if ( $obj ) {
 			$searchpath = $obj.installationPath
-			Write-Host "`n[$scriptName] Latest installed Visual Studio is $($obj.displayName)"
+			Write-Host "[$scriptName] Latest installed Visual Studio is $($obj.displayName)`n"
 			$env:DEV_ENV = $obj.productPath
 			
 			$env:MS_BUILD = vswhere -latest -requires Microsoft.Component.MSBuild -find MSBuild\**\Bin\MSBuild.exe
@@ -66,13 +66,12 @@ if ($versionTest -like '*not recognized*') {
 }
 
 if (!( $env:MS_BUILD )) {
-
 	$toolsVersions = 'HKLM:\Software\Microsoft\MSBuild\ToolsVersions'
 	$toolsVersions = "$toolsVersions\$((Get-Item -Path "$toolsVersions\*" -ErrorAction SilentlyContinue)[-1].Name.Split('\')[-1])"
 	$toolsVersions = "$((Get-ItemProperty $toolsVersions).MSBuildToolsPath)MSBuild.exe"
 	if ( $toolsVersions ) {
 		if ( Test-Path $toolsVersions ) {
-			Write-Host "`n[$scriptName] MSBuild found in .NET path"
+			Write-Host "[$scriptName] MSBuild found in .NET registry"
 			$env:MS_BUILD = $toolsVersions
 		}
 	}
@@ -81,18 +80,26 @@ if (!( $env:MS_BUILD )) {
 if (!( $env:MS_BUILD )) {
 	$registryKey = 'HKLM:\SOFTWARE\Wow6432Node\Microsoft\VisualStudio\SxS\VS7'
 	if ( Test-Path $registryKey ) {
-		Write-Host "`n[$scriptName] Search for tools in Visual Studio 2017 and above install first"
 		$list = Get-ItemProperty $registryKey | Get-Member
 		$installs = @()
 		foreach ($element in $list) { if ($element -match '.0') { $installs += $element.Definition.Split('=')[1] }}
 		$versionTest = $installs[-1] # use latest version of Visual Studio
 		if ( $versionTest ) {
+			Write-Host "[$scriptName] MSBuild found in $registryKey"
 			$fileList = @(Get-ChildItem $versionTest -Recurse)
 			$env:MS_BUILD = (($fileList -match 'msbuild.exe')[0]).fullname
 			$env:MS_TEST = (($fileList -match 'mstest.exe')[0]).fullname
 			$env:VS_TEST = (($fileList -match 'vstest.exe')[0]).fullname
 			$env:DEV_ENV = (($fileList -match 'devenv.com')[0]).fullname
 		}
+	}
+}
+
+if (! ($env:VS_TEST) ) {
+	$versionTest = cmd /c vstest.console.exe --help 2`>`&1
+	if ( $LASTEXITCODE -eq 0 ) {
+		Write-Host "[$scriptName] Found vstest.console.exe in PATH"
+		$env:VS_TEST = (where.exe vstest.console.exe)[0]
 	}
 }
 
@@ -107,6 +114,10 @@ if ( $LASTEXITCODE -eq 0 ) {
 		}
 	}
 	$array = $versionTest.split(" ")
+}
+
+# Log results
+if ( $env:NUGET_PATH ) {
 	Write-Host "`n`$env:NUGET_PATH = ${env:NUGET_PATH} (version $($array[2]))"
 } else {
 	Write-Host "`n`$env:NUGET_PATH (not found)"
@@ -116,13 +127,6 @@ if ( $env:MS_BUILD ) {
 	Write-Host "`$env:MS_BUILD = ${env:MS_BUILD}"
 } else {
 	Write-Host "`$env:MS_BUILD (MSBuild.exe not found)"
-}
-
-if (! ($env:VS_TEST) ) {
-	$versionTest = cmd /c vstest.console.exe --help 2`>`&1
-	if ( $LASTEXITCODE -eq 0 ) {
-		$env:VS_TEST = (where.exe vstest.console.exe)[0]
-	}
 }
 
 if ( $env:VS_TEST ) {
