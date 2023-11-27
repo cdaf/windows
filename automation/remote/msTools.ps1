@@ -66,6 +66,19 @@ if ($versionTest -like '*not recognized*') {
 }
 
 if (!( $env:MS_BUILD )) {
+
+	$toolsVersions = 'HKLM:\Software\Microsoft\MSBuild\ToolsVersions'
+	$toolsVersions = "$toolsVersions\$((Get-Item -Path "$toolsVersions\*" -ErrorAction SilentlyContinue)[-1].Name.Split('\')[-1])"
+	$toolsVersions = "$((Get-ItemProperty $toolsVersions).MSBuildToolsPath)MSBuild.exe"
+	if ( $toolsVersions ) {
+		if ( Test-Path $toolsVersions ) {
+			Write-Host "`n[$scriptName] MSBuild found in .NET path"
+			$env:MS_BUILD = $toolsVersions
+		}
+	}
+}
+
+if (!( $env:MS_BUILD )) {
 	$registryKey = 'HKLM:\SOFTWARE\Wow6432Node\Microsoft\VisualStudio\SxS\VS7'
 	if ( Test-Path $registryKey ) {
 		Write-Host "`n[$scriptName] Search for tools in Visual Studio 2017 and above install first"
@@ -83,20 +96,12 @@ if (!( $env:MS_BUILD )) {
 	}
 }
 
-if (!( $env:MS_BUILD )) {
-	Write-Host "`n[$scriptName] ... MSBuild not found, try Visual Studio 2017 path ..."
-	$registryKey = 'HKLM:\SOFTWARE\Microsoft\MSBuild\ToolsVersions\14.0'
-	if ( Test-Path $registryKey ) {
-		$env:MS_BUILD = ((Get-ItemProperty ((Get-Item $registryKey).pspath) -PSProperty MSBuildToolsPath).MSBuildToolsPath) + 'msbuild.exe'
-	}
-}
-
 $versionTest = cmd /c NuGet 2`>`&1
 if ( $LASTEXITCODE -eq 0 ) {
 	$nugetPaths = (cmd /c "where.exe NuGet").Split([string[]]"`r`n",'None')
 	$env:NUGET_PATH = $nugetPaths[0]
 	if ( $nugetPaths.Count -gt 1 ) {
-		Write-Host "Using first match only for NuGet path = ${env:NUGET_PATH}. Unused paths:"
+		Write-Host "`nUsing first match only for NuGet path = ${env:NUGET_PATH}. Unused paths:`n"
 		for ( $i = 1; $i -lt $nugetPaths.Count ; $i++ ) {
 			Write-Host "   $($nugetPaths[$i])"
 		}
@@ -111,6 +116,13 @@ if ( $env:MS_BUILD ) {
 	Write-Host "`$env:MS_BUILD = ${env:MS_BUILD}"
 } else {
 	Write-Host "`$env:MS_BUILD (MSBuild.exe not found)"
+}
+
+if (! ($env:VS_TEST) ) {
+	$versionTest = cmd /c vstest.console.exe --help 2`>`&1
+	if ( $LASTEXITCODE -eq 0 ) {
+		$env:VS_TEST = (where.exe vstest.console.exe)[0]
+	}
 }
 
 if ( $env:VS_TEST ) {
