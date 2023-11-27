@@ -45,19 +45,15 @@ if ($versionTest -like '*not recognized*') {
 			
 			$env:MS_BUILD = vswhere -latest -requires Microsoft.Component.MSBuild -find MSBuild\**\Bin\MSBuild.exe
 			if ( $env:MS_BUILD ) {
-				Write-Host "[$scriptName] MSBuild found using VSWhere"
-			} else {
-				$tempObj = Get-ChildItem $searchpath -Recurse -Filter 'msbuild.exe'
-				if ( $tempObj ) {
-					$env:MS_BUILD = $tempObj[0].FullName
-				}
+				Write-Host "[$scriptName] MSBuild found using Latest Product in VSWhere"
 			}
+
 			$testPath = vswhere -latest -products * -requires Microsoft.VisualStudio.Workload.ManagedDesktop Microsoft.VisualStudio.Workload.Web -requiresAny -property installationPath
 			if ( $testPath ) {
 				$env:VS_TEST = join-path $testPath 'Common7\IDE\CommonExtensions\Microsoft\TestWindow\vstest.console.exe'
 			}
 			if ( $env:VS_TEST ) {
-				Write-Host "[$scriptName] VSTest found using VSWhere"
+				Write-Host "[$scriptName] VSTest found using Latest Product in VSWhere"
 			}
 		}
 	} else {
@@ -65,17 +61,20 @@ if ($versionTest -like '*not recognized*') {
 	}
 }
 
-if (!( $env:MS_BUILD )) {
-	$toolsVersions = 'HKLM:\Software\Microsoft\MSBuild\ToolsVersions'
-	$toolsVersions = "$toolsVersions\$((Get-Item -Path "$toolsVersions\*" -ErrorAction SilentlyContinue)[-1].Name.Split('\')[-1])"
-	$toolsVersions = "$((Get-ItemProperty $toolsVersions).MSBuildToolsPath)MSBuild.exe"
-	if ( $toolsVersions ) {
-		if ( Test-Path $toolsVersions ) {
-			Write-Host "[$scriptName] MSBuild found in .NET registry"
-			$env:MS_BUILD = $toolsVersions
-		}
-	}
-}
+# vswhere does not support 
+# $toolsVersions = 'HKLM:\Software\WOW6432Node\Microsoft\VisualStudio*'
+# 'HKLM:\Software\Microsoft\MSBuild\ToolsVersions'
+
+# $list = vswhere -products * -format json | ConvertFrom-Json
+
+# & where.exe /R "C:\" msbuild.exe
+# C:\Program Files\Microsoft Visual Studio\2022\Enterprise\MSBuild\Current\Bin\MSBuild.exe
+
+#& where.exe /R "C:\" vstest.console.exe
+#C:\Program Files (x86)\Microsoft Visual Studio\2019\TestAgent\Common7\IDE\CommonExtensions\Microsoft\TestWindow\vstest.console.exe
+
+# & where.exe /R "C:\" mstest.exe
+# C:\Program Files (x86)\Microsoft Visual Studio\2019\TestAgent\Common7\IDE\MSTest.exe
 
 if (!( $env:MS_BUILD )) {
 	$registryKey = 'HKLM:\SOFTWARE\Wow6432Node\Microsoft\VisualStudio\SxS\VS7'
@@ -85,12 +84,24 @@ if (!( $env:MS_BUILD )) {
 		foreach ($element in $list) { if ($element -match '.0') { $installs += $element.Definition.Split('=')[1] }}
 		$versionTest = $installs[-1] # use latest version of Visual Studio
 		if ( $versionTest ) {
-			Write-Host "[$scriptName] MSBuild found in $registryKey"
+			Write-Host "[$scriptName][WARNING] Using MSBuild from Visual Studio 2015 or prior" -ForegroundColor Yellow
 			$fileList = @(Get-ChildItem $versionTest -Recurse)
 			$env:MS_BUILD = (($fileList -match 'msbuild.exe')[0]).fullname
 			$env:MS_TEST = (($fileList -match 'mstest.exe')[0]).fullname
 			$env:VS_TEST = (($fileList -match 'vstest.exe')[0]).fullname
 			$env:DEV_ENV = (($fileList -match 'devenv.com')[0]).fullname
+		}
+	}
+}
+
+if (!( $env:MS_BUILD )) {
+	$toolsVersions = 'HKLM:\Software\Microsoft\MSBuild\ToolsVersions'
+	$toolsVersions = "$toolsVersions\$((Get-Item -Path "$toolsVersions\*" -ErrorAction SilentlyContinue)[-1].Name.Split('\')[-1])"
+	$toolsVersions = "$((Get-ItemProperty $toolsVersions).MSBuildToolsPath)MSBuild.exe"
+	if ( $toolsVersions ) {
+		if ( Test-Path $toolsVersions ) {
+			Write-Host "[$scriptName][WARNING] Using MSBuild .NET legacy" -ForegroundColor Yellow
+			$env:MS_BUILD = $toolsVersions
 		}
 	}
 }
