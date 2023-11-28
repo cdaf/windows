@@ -140,13 +140,6 @@ if (! ($env:VS_TEST) ) {
 	}
 }
 
-if (! ($env:MS_TEST) ) {
-	if ($env:VS_TEST) {
-		$env:MS_TEST = $env:VS_TEST
-		Write-Host "[$scriptName] MStest not found, defaulted to `$env:VS_TEST"
-	}
-}
-
 $versionTest = cmd /c NuGet 2`>`&1
 if ( $LASTEXITCODE -eq 0 ) {
 	$nugetPaths = (cmd /c "where.exe NuGet").Split([string[]]"`r`n",'None')
