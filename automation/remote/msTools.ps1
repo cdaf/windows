@@ -64,44 +64,44 @@ if ($versionTest -like '*not recognized*') {
 				$env:MS_TEST = $elementpath
 				Write-Host "[$scriptName] MSTest found using Latest Product in VSWhere"
 			}
+
+			$list = vswhere -products * -format json | ConvertFrom-Json
+
+			if (!( $env:MS_BUILD )) {
+				foreach ($element in $list) {
+					$elementpath = "$($element.installationPath)\MSBuild\Current\Bin\MSBuild.exe" 
+					if ( Test-Path $elementpath ) {
+						$env:MS_BUILD = $elementpath
+						Write-Host "[$scriptName] MSBuild found for $($element.displayName)"
+						break
+					}
+				}
+			}
+
+			if (!( $env:VS_TEST )) {
+				foreach ($element in $list) {
+					$elementpath = "$($element.installationPath)\${vstestContext}"
+					if ( Test-Path $elementpath ) {
+						$env:VS_TEST = $elementpath
+						Write-Host "[$scriptName] vstest.console.exe found for $($element.displayName)"
+						break
+					}
+				}
+			}
+
+			if (!( $env:MS_TEST )) {
+				foreach ($element in $list) {
+					$elementpath = "$($element.installationPath)\${mstestContext}"
+					if ( Test-Path $elementpath ) {
+						$env:MS_TEST = $elementpath
+						Write-Host "[$scriptName] MSTest found for $($element.displayName)"
+						break
+					}
+				}
+			}
 		}
 	} else {
 		Write-Host "`n[$scriptName] VSWhere installed, but not returning any data, fall back to legacy detection..."
-	}
-}
-
-$list = vswhere -products * -format json | ConvertFrom-Json
-
-if (!( $env:MS_BUILD )) {
-	foreach ($element in $list) {
-		$elementpath = "$($element.installationPath)\MSBuild\Current\Bin\MSBuild.exe" 
-		if ( Test-Path $elementpath ) {
-			$env:MS_BUILD = $elementpath
-			Write-Host "[$scriptName] MSBuild found for $($element.displayName)"
-			break
-		}
-	}
-}
-
-if (!( $env:VS_TEST )) {
-	foreach ($element in $list) {
-		$elementpath = "$($element.installationPath)\${vstestContext}"
-		if ( Test-Path $elementpath ) {
-			$env:VS_TEST = $elementpath
-			Write-Host "[$scriptName] vstest.console.exe found for $($element.displayName)"
-			break
-		}
-	}
-}
-
-if (!( $env:MS_TEST )) {
-	foreach ($element in $list) {
-		$elementpath = "$($element.installationPath)\${mstestContext}"
-		if ( Test-Path $elementpath ) {
-			$env:MS_TEST = $elementpath
-			Write-Host "[$scriptName] MSTest found for $($element.displayName)"
-			break
-		}
 	}
 }
 
