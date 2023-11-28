@@ -1,0 +1,49 @@
+solutionName=myproduct
+# productName=My Product Name
+
+# Custom Diagnostics on error
+# CDAF_ERROR_DIAG=foreach ( $item in ( Get-WmiObject Win32_LogicalDisk )) { get-volume -DriveLetter ($item.DeviceID).split(":")[0] }
+
+# containerBuild minimum configuration, if a Dockerfile is not found, a default file will be used
+# containerImage=cdaf/windows
+
+# containerBuild default process
+# containerBuild=& "${AUTOMATIONROOT}\processor\containerBuild.ps1" "$SOLUTION" "$BUILDNUMBER" "$REVISION" "$ACTION"
+
+artifactPrefix=0.0
+# productVersion=0.0.0
+# packageFeatures=minimal
+# packageMethod=tarball
+
+# imageBuild minimum configuration, if a Dockerfile is not found, a default file will be created
+# buildImage=cdaf/windows
+
+# imageBuild default process
+# imageBuild=& "$AUTOMATIONROOT\remote\imageBuild.ps1" "${SOLUTION}_${REVISION}" "${BUILDNUMBER}" "${buildImage}" "${LOCAL_WORK_DIR}"
+# CDAF_DOCKER_REQUIRED=yes
+
+# imageBuild integrated push to registry
+# CDAF_REGISTRY_URL=${env:CI_REGISTRY}
+# CDAF_REGISTRY_TAG=latest ${env:CI_REGISTRY}/linux/${env:SOLUTION}:$BUILDNUMBER
+# CDAF_REGISTRY_USER=${env:CI_REGISTRY_USER}
+# CDAF_REGISTRY_TOKEN=${env:CI_JOB_TOKEN}
+
+# defaultBranch=master
+# defaultEnvironment=DESKTOP
+
+# gitRemoteURL=https://github.com/cdaf/${SOLUTION}.git
+# gitUserNameEnvVar=${env:GIT_USER}
+# gitUserPassEnvVar=${env:GIT_PASS}
+# gitCustomCleanup=& $AUTOMATIONROOT\buildandpackage\clean.ps1
+
+# processSequence=localTasks.ps1 remoteTasks.ps1 containerTasks.ps1
+
+# containerDeploy minimal config, if directory containerDeploy is found, a customer image build will be attempted
+# runtimeImage=cdaf/windows
+
+# containerDeploy default process
+# containerDeploy=& "$CDAF_CORE\containerDeploy.ps1" "${TARGET}" "${RELEASE}" "${SOLUTION}" "${BUILDNUMBER}" "${REVISION}"
+
+# containerDeploy including additional files in image, and retain the resulting image
+# runtimeFiles=$WORKSPACE_ROOT\release.ps1 $CDAF_CORE\embed.ps1
+# runtimeRetain=yes

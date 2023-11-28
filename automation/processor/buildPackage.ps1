@@ -836,8 +836,13 @@ if ( $ACTION -ne 'container_build' ) {
 	if ( $artifactPrefix ) {
 		itemRemove "$LOCAL_WORK_DIR"
 		itemRemove "${SOLUTION}-${BUILDNUMBER}.zip"
-		itemRemove "${compressedArtefact}"
-		itemRemove "${artifactID}"
+		# buildonly action wil not produce package
+		if ( ${compressedArtefact} ) {
+			itemRemove "${compressedArtefact}"
+		}
+		if ( ${artifactID} ) {
+			itemRemove "${artifactID}"
+		}
 	}
 
 
