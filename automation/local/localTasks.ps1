@@ -94,6 +94,7 @@ if (-not(Test-Path $propertiesFilter)) {
 		& ${WORK_DIR_DEFAULT}\localTasksTarget.ps1 $ENVIRONMENT $SOLUTION $BUILD $propFilename $OPT_ARG
 		if($LASTEXITCODE -ne 0){ ERRMSG "LOCAL_NON_ZERO_EXIT & ${WORK_DIR_DEFAULT}\localTasksTarget.ps1 $ENVIRONMENT $SOLUTION $BUILD $propFilename" $LASTEXITCODE }
 		if(!$?){ taskWarning }
+		cd $WORKSPACE
 
 		write-host "`n[$scriptName]   --- Completed Target $propFilename --- " -ForegroundColor Green
 	}

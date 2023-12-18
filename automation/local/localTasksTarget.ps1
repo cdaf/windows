@@ -1,7 +1,7 @@
 
 function getProp ($propName) {
 	try {
-		$propValue=$(& .\getProperty.ps1 $propertiesFile $propName)
+		$propValue=$(& ${CDAF_CORE}\getProperty.ps1 $propertiesFile $propName)
 		if(!$?){ taskWarning }
 	} catch { exceptionExit "LOCAL_TASKS_TARGET_getProp" $_ }
 	
@@ -45,8 +45,8 @@ if ($scriptOverride ) {
     Write-Host
 	foreach ( $taskItem in $taskList.Split() ) {
 	    write-host "`n[$scriptName] --- Executing $taskItem ---`n" -ForegroundColor Green
-	    & .\execute.ps1 $SOLUTION $BUILD $TARGET $taskItem $OPT_ARG
-		if($LASTEXITCODE -ne 0){ ERRMSG "LOCAL_TASKS_TARGET_EXECUTE_NON_ZERO_EXIT .\execute.ps1 $SOLUTION $BUILD $TARGET $taskItem" $LASTEXITCODE }
+	    & ${CDAF_CORE}\execute.ps1 $SOLUTION $BUILD $TARGET $taskItem $OPT_ARG
+		if($LASTEXITCODE -ne 0){ ERRMSG "LOCAL_TASKS_TARGET_EXECUTE_NON_ZERO_EXIT ${CDAF_CORE}\execute.ps1 $SOLUTION $BUILD $TARGET $taskItem" $LASTEXITCODE }
 	    if(!$?){ taskFailure "LOCAL_TASKS_TARGET_EXECUTE_TRAP" }
     }
 }

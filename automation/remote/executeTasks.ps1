@@ -48,7 +48,7 @@ function taskWarning {
 function getProp ($propName) {
 
 	try {
-		$propValue=$(& .\getProperty.ps1 .\$TARGET $propName)
+		$propValue=$(& ${CDAF_CORE}\getProperty.ps1 .\$TARGET $propName)
 		if(!$?){ taskWarning }
 	} catch { exceptionExit $_ }
 	
@@ -124,7 +124,7 @@ if ($scriptOverride ) {
 	    write-host "`n[$scriptName] --- Executing $taskItem ---`n" -ForegroundColor Green
 	    & "$CDAF_CORE\execute.ps1" $SOLUTION $BUILDNUMBER $TARGET $taskItem $OPT_ARG
 		if($LASTEXITCODE -ne 0){
-		    ERRMSG "OVERRIDE_EXECUTE_NON_ZERO_EXIT & .\execute.ps1 $SOLUTION $BUILDNUMBER $TARGET $taskItem $OPT_ARG" $LASTEXITCODE 
+		    ERRMSG "OVERRIDE_EXECUTE_NON_ZERO_EXIT & ${CDAF_CORE}\execute.ps1 $SOLUTION $BUILDNUMBER $TARGET $taskItem $OPT_ARG" $LASTEXITCODE 
 		}
 	    if(!$?){ taskFailure "POWERSHELL_TRAP" }
     }

@@ -326,7 +326,7 @@ function DETOKN ( $tokenFile, $properties, $aeskey ) {
 	        $expression = "& '$transform' '$properties' '$tokenFile'"
         }
     } else {
-		$expression = "& '$transform' '$TARGET' '$tokenFile'"
+		$expression = "& '$transform' '$WORKSPACE\$TARGET' '$tokenFile'"
 	}
 	executeExpression $expression
 	$env:propldAction = ''

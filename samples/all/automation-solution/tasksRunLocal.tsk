@@ -23,6 +23,10 @@ ASSIGN $resolvedEmptyInVar = $empty_var
 ASSIGN $resolvedNullInVar = $null_var
 ASSIGN $resolvedNullVar = $null
 
+Write-Host "Keep a copy of the tokenised file`n" -ForegroundColor Magenta
+MAKDIR check
+VECOPY example.yaml check
+
 Write-Host "Detokenise a setting file`n" -ForegroundColor Magenta
 DETOKN example.yaml
 
@@ -50,3 +54,7 @@ cat example.yaml
 Write-Host "Process a comma separated list as array`n" -ForegroundColor Magenta
 Write-Host "`$csv = $csv"
 foreach ($item in $csv.Split(',')) { Write-Host "  [ $item ]" }
+
+Write-Host "Detokenise file outside of workspace`n" -ForegroundColor Magenta
+cd check
+DETOKN example.yaml
