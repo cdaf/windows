@@ -20,7 +20,19 @@ function executeExpression ($expression) {
     return $output
 }
 
-Write-Host "`n[$scriptName] ---------- start ----------`n"
+function setACL ($objectName, $userName) {
+	Write-Host "[$scriptName] List ACL before changes"
+	Get-Acl $objectName | Format-List
+	$acl = Get-Acl $objectName
+	$permission = $userName,"FullControl","Allow"
+	$accessRule = New-Object System.Security.AccessControl.FileSystemAccessRule $permission
+	$acl.SetAccessRule($accessRule)
+	$acl | Set-Acl $objectName
+	Write-Host "[$scriptName] List ACL after changes"
+	Get-Acl $objectName | Format-List
+}
+
+Write-Host "`n[$scriptName] ---------- start ----------"
 if ($directoryName) {
     Write-Host "[$scriptName] directoryName : $directoryName"
 } else {
@@ -43,15 +55,10 @@ $newDir = executeExpression "New-Item -ItemType Directory -Force -Path `'$direct
 Write-Host "Created $($newDir.FullName)"
 
 if ($userName) {
-	Write-Host "`n[$scriptName] List ACL before changes"
-	Get-Acl $directoryName | Format-List
-	$acl = Get-Acl $directoryName
-	$permission = $userName,"FullControl","Allow"
-	$accessRule = New-Object System.Security.AccessControl.FileSystemAccessRule $permission
-	$acl.SetAccessRule($accessRule)
-	$acl | Set-Acl $directoryName
-	Write-Host "`n[$scriptName] List ACL after changes"
-	Get-Acl $directoryName | Format-List
+	Write-Host
+	foreach ($item in Get-ChildItem -Recurse $directoryName) {
+		setACL $item.FullName $userName
+	}
 }
 
 Write-Host "`n[$scriptName] ---------- stop -----------"
