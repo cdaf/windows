@@ -81,13 +81,13 @@ function executeExpression ($expression) {
 }
 
 function mask ($value) {
-	return (Get-FileHash -InputStream $([IO.MemoryStream]::new([byte[]][char[]]$value)) -Algorithm MD5).Hash
+	return (Get-FileHash -InputStream $([IO.MemoryStream]::new([byte[]][char[]]$value))).Hash
 }
 
-Write-Host "`n[$scriptName] Requires elevated privilages"
+# Requires elevated privilages
 Write-Host "`n[$scriptName] ---------- start ----------"
 if ($certPath) {
-	$certPath = Resolve-Path -Path $certPath
+	$certPath = executeReturn 'Resolve-Path -Path $certPath'
 	Write-Host "[$scriptName] certPath    : $certPath"
 } else {
 	Write-Host "[$scriptName] certPath not supplied!"; exit 8610
