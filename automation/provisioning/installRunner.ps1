@@ -8,7 +8,10 @@ Param (
   [string]$tlsCAFile,
   [string]$mediaDirectory
 )
+
 $scriptName = 'installRunner.ps1'
+cmd /c "exit 0"
+$error.clear()
 
 # Runner registration tokens deprecated, along with "tag" and "lock" support from CLI
 # Create a runner from UI, copy the token and run this script
@@ -38,9 +41,6 @@ function executeExpression ($expression) {
 	}
 }
 
-cmd /c "exit 0"
-$error.clear()
-
 Write-Host "`n[$scriptName] ---------- start ----------"
 $uri = $uri
 if ( $uri ) {
@@ -63,10 +63,10 @@ if ( $name ) {
 }
 
 if ( $executor ) {
-	Write-Host "[$scriptName] executor       : $executor"
+	Write-Host "[$scriptName] executor       : $executor (for docker, can supply with default image, e.g. 'docker>cdaf/linux:windows')"
 } else {
 	$executor = 'shell'
-	Write-Host "[$scriptName] executor       : $executor (not supplied, set to default)"
+	Write-Host "[$scriptName] executor       : $executor (default, for docker, can supply with default image, e.g. 'docker>cdaf/linux:windows')"
 }
 
 if ( $serviceAccount ) {
@@ -144,10 +144,20 @@ if (!($versionTest -like '*not recognized*')) {
 
 
 if ( $uri ) {
-	
-	$printList = "--debug register --non-interactive --url $uri --token `$token --name $name --executor $executor --shell powershell"
-	$argList = "--debug register --non-interactive --url $uri --token $token --name $name --executor $executor --shell powershell"
-	
+
+	$baseArgs = "--name $name --executor $executor --shell powershell"
+	$execprefix, $execsuffix = $executor.Split('>')
+	if ( $execprefix -eq 'docker' ) {
+		if ( $execsuffix ) {
+			$baseArgs = $baseArgs + ' --docker-image ' + $execsuffix
+		} else {
+			$baseArgs = $baseArgs + ' --docker-image cdaf/windows:latest'
+		}
+	}
+
+	$printList = "--debug register --non-interactive --url $uri --token `$token " + $baseArgs
+	$argList = "--debug register --non-interactive --url $uri --token $token " + $baseArgs
+
 	if ( $tlsCAFile ) {
 		$printList = $printList + " --tls-ca-file $tlsCAFile"
 		$argList = $argList + " --tls-ca-file $tlsCAFile"
@@ -182,7 +192,7 @@ if ( $uri ) {
 	} else {
 		executeExpression "gitlab-runner $arguments"
 	}
-	
+
 	Write-Host "[$scriptName] Start Service using commandlet as gitlab-runner start can fail silently"
 	executeExpression "Start-Service gitlab-runner"
 
