@@ -58,3 +58,7 @@ foreach ($item in $csv.Split(',')) { Write-Host "  [ $item ]" }
 Write-Host "Detokenise file outside of workspace`n" -ForegroundColor Magenta
 cd check
 DETOKN example.yaml
+
+Write-Host "Execute outside of WORKSPACE"
+cd $TMPDIR
+PROPLD $WORKSPACE\manifest.txt

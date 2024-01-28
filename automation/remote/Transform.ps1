@@ -50,7 +50,7 @@ function resolveContent () {
 
 $scriptName = $myInvocation.MyCommand.Name 
 write-host "`n[$scriptName] PROPFILE  : $PROPFILE"
-if (-Not (Test-Path $PROPFILE) ) {
+if ( -Not ( Test-Path $PROPFILE -pathtype leaf ) ) {
     ERRMSG "[PROPFILE_NOT_FOUND] PROPFILE ($PROPFILE) not found" 4456
 } else {
 	if ($aeskey) {

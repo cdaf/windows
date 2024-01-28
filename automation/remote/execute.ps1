@@ -576,7 +576,7 @@ Write-Host "[$scriptName]  ACTION      : $ACTION"
 $WORKSPACE = (Get-Location).Path
 Write-Host "[$scriptName]  WORKSPACE   : $WORKSPACE"
 
-$TMPDIR = [Environment]::GetEnvironmentVariable("TEMP","Machine")
+$TMPDIR = [Environment]::GetEnvironmentVariable("TEMP","User")
 Write-Host "[$scriptName]  TMPDIR      : $TMPDIR"
 
 if ( $PROJECT ) {
@@ -585,13 +585,13 @@ if ( $PROJECT ) {
 Write-Host
 
 # Load the target properties (although these are global in powershell, load again as a diagnostic tool
-$propFile = "$TARGET"
+$execPropFile = "$TARGET"
 $transform = "$CDAF_CORE\Transform.ps1"
 
 # Process Task Execution
 if ( test-path -path "$TARGET" -pathtype leaf ) {
 	try {
-		& "$transform" "$propFile" | ForEach-Object { invoke-expression $_ }
+		& "$transform" "$execPropFile" | ForEach-Object { invoke-expression $_ }
 	    if(!$?) { taskException "TARGET_LOAD_TRAP" }
 	} catch { taskException "TARGET_LOAD_EXCEPTION" $_ }
 	Write-Host
@@ -618,7 +618,7 @@ Foreach ($line in get-content $TASK_LIST) {
         if ($expression) {
 
 	        # Check for CDAF key words, only if the string is long enough
-	        if ($expression.length -gt 6) {
+	        if ($expression.length -ge 6) {
 
 				# Check for CDAF key words, by convention uppercase but either supported
 				$feature,[String]$arguments = -split $expression
@@ -634,17 +634,23 @@ Foreach ($line in get-content $TASK_LIST) {
 			            $expression = "if ( `"$exitVar`" ) { Write-Host `"`n`n~~~~~ controlled exit due to criteria met ~~~~~~`"; exit 0}"
 					}
 		        }
-					
+
 				# Load Properties from file as variables, cannot execute as a function or variables would go out of scope
 	            if ( $feature -eq 'PROPLD' ) {
 					Write-Host "[$(Get-Date)] $expression"
 					$argArray = -split $arguments
-					$propFile = $ExecutionContext.InvokeCommand.ExpandString($argArray[0])
+					$execPropFile = $ExecutionContext.InvokeCommand.ExpandString($argArray[0])
+					if ( ! $execPropFile ) {
+					    ERRMSG "[EXEC_PROPFILE_NOT_SET] PROPFILE not provided" 4454
+					} elseif ( -Not ( Test-Path $execPropFile -pathtype leaf ) ) {
+					    ERRMSG "[EXEC_PROPFILE_NOT_FOUND] PROPFILE ($execPropFile) not found" 4455
+				    }
+
 					$env:propldAction = $argArray[1]
 	
-					Write-Host "[$(Get-Date)] $transform $propFile $env:propldAction"
+					Write-Host "[$(Get-Date)] $transform $execPropFile $env:propldAction"
 					try {
-						& "$transform" "$propFile" | ForEach-Object { invoke-expression $_ }
+						& "$transform" "$execPropFile" | ForEach-Object { invoke-expression $_ }
 						if(!$?) { taskException "PROPLD_TRAP" }
 					} catch { taskException "PROPLD_EXCEPTION" $_ }
 	            }
@@ -719,7 +725,7 @@ Foreach ($line in get-content $TASK_LIST) {
 
 			# Perform no further processing if Feature is Property Loader
             if ( $feature -ne 'PROPLD' ) {
-            	
+
 			    # Do not echo line if it is an echo itself
 			    if (-not (($expression -match 'Write-Host') -or ($expression -match 'echo'))) {
 # This leaks secrets, but I have left it should someone need to temporarilty use it for debugging			    
