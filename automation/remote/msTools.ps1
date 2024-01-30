@@ -199,4 +199,5 @@ if ( $env:DEV_ENV ) {
 	Write-Host "`$env:DEV_ENV (devenv.exe not found)"
 }
 
+cmd /c "exit 0"
 Write-Host "`n[$scriptName] --- finish---"
