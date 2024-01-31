@@ -19,7 +19,7 @@ artifactPrefix=0.0
 # buildImage=cdaf/windows
 
 # imageBuild default process
-# imageBuild=& "$AUTOMATIONROOT\remote\imageBuild.ps1" "${SOLUTION}_${REVISION}" "${BUILDNUMBER}" "${buildImage}" "${LOCAL_WORK_DIR}"
+# imageBuild=& "$CDAF_CORE\imageBuild.ps1" "${SOLUTION}_${REVISION}" "${BUILDNUMBER}" "${buildImage}" "${LOCAL_WORK_DIR}"
 # CDAF_DOCKER_REQUIRED=yes
 
 # imageBuild integrated push to registry
