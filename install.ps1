@@ -118,7 +118,7 @@ if ( $version ) {
 		    Write-Host "[$scriptName]   version     : (using edge from GitHub based on `$env:CDAF_INSTALL_VERSION)"
 		} else {
 			$version = $env:CDAF_INSTALL_VERSION
-		    Write-Host "[$scriptName]   version     : (based on `$env:CDAF_INSTALL_VERSION)"
+		    Write-Host "[$scriptName]   version     : $version (based on `$env:CDAF_INSTALL_VERSION)"
 		}
 	} else {
 	    Write-Host "[$scriptName]   version     : (not passed, use edge from GitHub)"
