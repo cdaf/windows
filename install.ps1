@@ -3,8 +3,10 @@
 # Windows 2016
 # [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]'Tls11,Tls12'
 
-# Optional environment variables:
+# Download to named directory and add to path, without this, will simply download and extract in current directory
 # $env:CDAF_INSTALL_PATH = 'c:\cdaf'
+
+# Download specific published version, without this, or if set to Edge, will download latest from GitHub
 # $env:CDAF_INSTALL_VERSION = '2.7.3'
 # . { iwr -useb https://raw.githubusercontent.com/cdaf/windows/master/install.ps1 } | iex
 
@@ -112,10 +114,14 @@ if ( $version ) {
     Write-Host "[$scriptName]   version     : $version"
 } else {
 	if ( $env:CDAF_INSTALL_VERSION ) {
-		$version = $env:CDAF_INSTALL_VERSION
-	    Write-Host "[$scriptName]   version     : (from `$env:CDAF_INSTALL_VERSION)"
+		if ( $env:CDAF_INSTALL_VERSION -eq 'Edge' ) {
+		    Write-Host "[$scriptName]   version     : (using edge from GitHub based on `$env:CDAF_INSTALL_VERSION)"
+		} else {
+			$version = $env:CDAF_INSTALL_VERSION
+		    Write-Host "[$scriptName]   version     : (based on `$env:CDAF_INSTALL_VERSION)"
+		}
 	} else {
-	    Write-Host "[$scriptName]   version     : (not passed, use edge)"
+	    Write-Host "[$scriptName]   version     : (not passed, use edge from GitHub)"
 	}
 }
 
