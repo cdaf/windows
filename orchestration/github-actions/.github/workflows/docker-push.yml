@@ -11,7 +11,7 @@ jobs:
       DOCKERHUB_TOKEN_SHA: ${{ vars.DOCKERHUB_TOKEN_SHA }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: Fetch all history for all tags and branches
         run: |
