@@ -1,0 +1,32 @@
+jobs:
+  - deployment: Deploy
+    displayName: ${{ parameters.displayName }}
+    environment: ${{ parameters.environment }}
+    pool:
+      vmImage: windows-latest
+#    pool:
+#      name: Self-hosted Pool Name
+
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - task: DownloadBuildArtifacts@0
+            displayName: Download the build artifacts
+            inputs:
+              buildType: current
+              downloadType: single
+              artifactName: drop
+
+          - task: PowerShell@2
+            displayName: ${{ parameters.environment }} "${{ parameters.action }}"
+            env:
+              # Use for deploy (state management) only
+              TERRAFORM_TOKEN: $(TERRAFORM_TOKEN)
+            inputs:
+              workingDirectory: $(System.ArtifactsDirectory)/drop
+              targetType: 'inline' # Use latest published version
+              script: |
+                . { iwr -useb https://cdaf.io/static/app/downloads/cdaf.ps1 } | iex
+                .\automation\provisioning\base.ps1 terraform
+                ./release.ps1 ${{ parameters.environment }} $(Build.BuildNumber) "'${{ parameters.action }}'"
