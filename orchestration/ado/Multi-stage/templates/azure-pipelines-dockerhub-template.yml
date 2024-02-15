@@ -1,0 +1,28 @@
+jobs:
+  - deployment: Deploy
+    displayName: ${{ parameters.displayName }}
+    environment: ${{ parameters.environment }}
+    pool:
+      vmImage: windows-latest
+#    pool:
+#      name: Self-hosted Pool Name
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - task: DownloadBuildArtifacts@0
+            displayName: Download the build artifacts
+            inputs:
+              buildType: current
+              downloadType: single
+              artifactName: drop
+
+          - task: PowerShell@2
+            displayName: Execute Loosely Coupled Deployment
+            env: 
+              DOCKERHUB_TOKEN: $(DOCKERHUB_TOKEN)
+            inputs:
+              workingDirectory: $(System.ArtifactsDirectory)/drop
+              targetType: filePath
+              filePath: ./release.sh
+              arguments: ${{ parameters.environment }}

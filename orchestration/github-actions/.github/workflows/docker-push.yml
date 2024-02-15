@@ -22,9 +22,8 @@ jobs:
         shell: powershell # pwsh for PowerShell Core
         run: |
           cd ${env:GITHUB_WORKSPACE}
-          curl.exe -s https://codeload.github.com/cdaf/windows/zip/refs/heads/master -o windows.zip
-          Expand-Archive .\windows.zip .
-          .\windows-master\automation\entry.ps1 ${env:GITHUB_RUN_NUMBER} ${env:GITHUB_REF}
+          . { iwr -useb https://raw.githubusercontent.com/cdaf/windows/master/install.ps1 } | iex
+          .\automation\entry.ps1 ${env:GITHUB_RUN_NUMBER} ${env:GITHUB_REF}
 
       - name: Artifact Retention
         uses: actions/upload-artifact@v1
