@@ -104,13 +104,13 @@ if ($dockerExpose) {
 
 if ($dockerExpose) {
     # Use the image name and published port as the unique identifier on the host 
-    $dockerCommand = "docker run --detach --publish ${publishedPort}:${dockerExpose} --name ${imageName}_${publishedPort}" 
+    $dockerCommand = "docker run --detach --publish '${publishedPort}:${dockerExpose}' --name '${imageName}_${publishedPort}'" 
 
     # Include any optional arguments, e.g. --restart=always
     $dockerCommand += " $dockerOpt"
 
     # Apply container labels (additive to the build labels) for filter purposes, only unique ID above is important in run context
-    $dockerCommand += " --label cdaf.${imageName}.container.instance=$instance --label cdaf.${imageName}.container.environment=$environment"
+    $dockerCommand += " --label 'cdaf.${imageName}.container.instance=$instance' --label 'cdaf.${imageName}.container.environment=$environment'"
 
     # Finall determine if a registry is in use 
     if ( $registry ) {
