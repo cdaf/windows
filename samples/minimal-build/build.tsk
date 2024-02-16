@@ -1,0 +1,12 @@
+echo "REVISION       = $REVISION"
+echo "SOLUTIONROOT   = $SOLUTIONROOT"
+echo "AUTOMATIONROOT = $AUTOMATIONROOT"
+echo "CDAF_CORE      = $CDAF_CORE"
+
+echo "Solution Level Build"
+
+echo '---' > example.yaml
+echo '  application:' >> example.yaml
+echo '    message: "%literal%"' >> example.yaml
+echo '    secret: "@secret@"' >> example.yaml
+cat example.yaml

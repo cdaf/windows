@@ -1,0 +1,7 @@
+productName=Simple Build and Minimal Release Package Process
+solutionName=minimal-build
+
+artifactPrefix=0.0
+packageFeatures=minimal
+
+processSequence=localTasks.ps1

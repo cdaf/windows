@@ -1,0 +1,7 @@
+echo "REVISION       = $REVISION"
+echo "PROJECT        = $PROJECT"
+echo "SOLUTIONROOT   = $SOLUTIONROOT"
+echo "AUTOMATIONROOT = $AUTOMATIONROOT"
+echo "CDAF_CORE      = $CDAF_CORE"
+
+echo "Project Level Build"

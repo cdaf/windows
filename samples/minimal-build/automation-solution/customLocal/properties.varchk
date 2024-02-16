@@ -1,0 +1,4 @@
+NON_EXIST=optional
+
+# Verify variable is populated and log the checksum value
+HOME=secret
