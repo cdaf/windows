@@ -137,10 +137,11 @@ if ( $CDAF_DELIVERY ) {
 		# Set default depending on domain membership
 		if ((gwmi win32_computersystem).partofdomain -eq $true) {
 			$CDAF_DELIVERY = 'WINDOWS'
+			Write-Host "[$scriptName]   CDAF_DELIVERY       : $BUILDENV (derived from domain membership)"
 		} else {
 			$CDAF_DELIVERY = 'WORKGROUP'
+			Write-Host "[$scriptName]   CDAF_DELIVERY       : $CDAF_DELIVERY (default)"
 		}
-		Write-Host "[$scriptName]   CDAF_DELIVERY       : $CDAF_DELIVERY (default)"
 	}
 }
 

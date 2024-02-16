@@ -39,23 +39,14 @@ if ( $ACTION ) {
 	if ( $ACTION -eq "clean" ) { # Case insensitive
 		Write-Host "[$scriptName]   ACTION            : $ACTION (Environment will use default value)"
 	} else {
-		$ENVIRONMENT = $ACTION
 		Write-Host "[$scriptName]   ACTION            : $ACTION (Not `"clean`", so used for Environment)"
-		Write-Host "[$scriptName]   ENVIRONMENT       : $ENVIRONMENT (derived from action)" 
 	}
 } else {
 	Write-Host "[$scriptName]   ACTION            : $ACTION"
 }
-if (!( $ENVIRONMENT )) {
-# Build and Delivery Properties Lookup values
-	$ENVIRONMENT = $env:environmentBuild
-	if ($ENVIRONMENT ) {
-		Write-Host "[$scriptName]   ENVIRONMENT       : $ENVIRONMENT (from `$env:environmentBuild)"
-	} else {
-		$ENVIRONMENT = 'BUILDER'
-		Write-Host "[$scriptName]   ENVIRONMENT       : $ENVIRONMENT (default)"
-	}
-} 
+
+# BUILDENV determined by buildPackage, no longer ambiguous "ENVIRONMENT" variable
+Write-Host "[$scriptName]   BUILDENV          : $BUILDENV"
 
 $automationHelper="$AUTOMATIONROOT\remote"
 
@@ -75,8 +66,8 @@ if (Test-Path build.tsk) {
 	Write-Host "`n[$scriptName] build.tsk found in solution root, executing in $(pwd)`n" 
     # Because PowerShell variables are global, set the $WORKSPACE before invoking execution
     $WORKSPACE=$(pwd)
-    & $automationHelper\execute.ps1 $SOLUTION $BUILDNUMBER $ENVIRONMENT "build.tsk" $ACTION
-	if($LASTEXITCODE -ne 0){ ERRMSG "ROOT_EXECUTE_NON_ZERO_EXIT $automationHelper\execute.ps1 $SOLUTION $BUILDNUMBER $ENVIRONMENT build.tsk $ACTION" $LASTEXITCODE }
+    & $automationHelper\execute.ps1 $SOLUTION $BUILDNUMBER $BUILDENV "build.tsk" $ACTION
+	if($LASTEXITCODE -ne 0){ ERRMSG "ROOT_EXECUTE_NON_ZERO_EXIT $automationHelper\execute.ps1 $SOLUTION $BUILDNUMBER $BUILDENV build.tsk $ACTION" $LASTEXITCODE }
     if(!$?){ taskFailure "SOLUTION_EXECUTE_${SOLUTION}_${BUILDNUMBER}_${ENVIRONMENT}_build.tsk_${ACTION}" }
 } 
 
@@ -85,11 +76,11 @@ if (Test-Path build.ps1) {
 	Write-Host "`n[$scriptName] build.ps1 found in solution root, executing in $(pwd)`n" 
     # Legacy build method, note: a .BAT file may exist in the project folder for Dev testing, by is not used by the builder
     try {
-	    & .\build.ps1 $SOLUTION $BUILDNUMBER $REVISION ROOT $ENVIRONMENT $ACTION
-		if($LASTEXITCODE -ne 0){ ERRMSG "ROOT_LEGACY_NON_ZERO_EXIT .\build.ps1 $SOLUTION $BUILDNUMBER $REVISION ROOT $ENVIRONMENT $ACTION" $LASTEXITCODE }
+	    & .\build.ps1 $SOLUTION $BUILDNUMBER $REVISION ROOT $BUILDENV $ACTION
+		if($LASTEXITCODE -ne 0){ ERRMSG "ROOT_LEGACY_NON_ZERO_EXIT .\build.ps1 $SOLUTION $BUILDNUMBER $REVISION ROOT $BUILDENV $ACTION" $LASTEXITCODE }
 	    if(!$?){ taskFailure "SOLUTION_BUILD_${SOLUTION}_${BUILDNUMBER}_${REVISION}_ROOT_${ENVIRONMENT}_${ACTION}" }
     } catch {
-	    write-host "[$scriptName] CUSTOM_BUILD_EXCEPTION & .\build.ps1 $SOLUTION $BUILDNUMBER $REVISION ROOT $ENVIRONMENT $ACTION" -ForegroundColor Magenta
+	    write-host "[$scriptName] CUSTOM_BUILD_EXCEPTION & .\build.ps1 $SOLUTION $BUILDNUMBER $REVISION ROOT $BUILDENV $ACTION" -ForegroundColor Magenta
     	exceptionExit $_
     }
 }
@@ -131,14 +122,14 @@ if (-not($projectsToBuild)) {
         if (Test-Path build.tsk) {
             # Task driver support added in release 0.6.1
             $WORKSPACE=$(pwd)
-		    & $automationHelper\execute.ps1 $SOLUTION $BUILDNUMBER $ENVIRONMENT "build.tsk" $ACTION
-			if($LASTEXITCODE -ne 0){ ERRMSG "PROJECT_EXECUTE_NON_ZERO_EXIT & $automationHelper\execute.ps1 $SOLUTION $BUILDNUMBER $ENVIRONMENT build.tsk $ACTION" $LASTEXITCODE }
+		    & $automationHelper\execute.ps1 $SOLUTION $BUILDNUMBER $BUILDENV "build.tsk" $ACTION
+			if($LASTEXITCODE -ne 0){ ERRMSG "PROJECT_EXECUTE_NON_ZERO_EXIT & $automationHelper\execute.ps1 $SOLUTION $BUILDNUMBER $BUILDENV build.tsk $ACTION" $LASTEXITCODE }
 		    if(!$?){ taskFailure "PROJECT_EXECUTE_${SOLUTION}_${BUILDNUMBER}_${ENVIRONMENT}_build.tsk_${ACTION}" }
 
         } else {
             # Legacy build method, note: a .BAT file may exist in the project folder for Dev testing, by is not used by the builder
-		    & .\build.ps1 $SOLUTION $BUILDNUMBER $REVISION ${PROJECT} $ENVIRONMENT $ACTION
-			if($LASTEXITCODE -ne 0){ ERRMSG "PROJECT_EXECUTE_NON_ZERO_EXIT .\$automationHelper\execute.ps1 $SOLUTION $BUILDNUMBER $ENVIRONMENT build.tsk $ACTION" $LASTEXITCODE }
+		    & .\build.ps1 $SOLUTION $BUILDNUMBER $REVISION ${PROJECT} $BUILDENV $ACTION
+			if($LASTEXITCODE -ne 0){ ERRMSG "PROJECT_EXECUTE_NON_ZERO_EXIT .\$automationHelper\execute.ps1 $SOLUTION $BUILDNUMBER $BUILDENV build.tsk $ACTION" $LASTEXITCODE }
 		    if(!$?){ taskFailure "PROJECT_BUILD_${SOLUTION}_${BUILDNUMBER}_${REVISION}_${PROJECT}_${ENVIRONMENT}_${ACTION}" }
         }
 

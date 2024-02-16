@@ -292,6 +292,20 @@ if ($SOLUTION) {
 	}
 }
 
+# 2.7.6 Derive Build Environment, no longer implicit from ACTION
+if ( ! $env:CDAF_BUILD_ENV ) {
+	if ((gwmi win32_computersystem).partofdomain -eq $true) {
+		$BUILDENV = 'WINDOWS'
+		Write-Host "[$scriptName]   BUILDENV        : $BUILDENV (derived from domain membership)"
+	} else {
+		$BUILDENV = 'WORKGROUP'
+		Write-Host "[$scriptName]   BUILDENV        : $BUILDENV (default)"
+	}
+} else {
+	$BUILDENV = $env:CDAF_BUILD_ENV
+	Write-Host "[$scriptName]   BUILDENV        : $BUILDENV (from environment variable CDAF_BUILD_ENV)"
+}
+
 # Set both workspace global variables on entry, the WORKSPACE will be overwridden by project scope scripts, but remains as the solution level variable
 $WORKSPACE_ROOT = (Get-Location).Path
 $WORKSPACE = $WORKSPACE_ROOT
