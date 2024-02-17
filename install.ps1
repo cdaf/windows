@@ -4,11 +4,11 @@
 # [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]'Tls11,Tls12'
 
 # Download to named directory and add to path, without this, will simply download and extract in current directory
-# $env:CDAF_INSTALL_PATH = 'c:\cdaf'
-
-# Download specific published version, without this, or if set to Edge, will download latest from GitHub
-# $env:CDAF_INSTALL_VERSION = '2.7.3'
 # . { iwr -useb https://raw.githubusercontent.com/cdaf/windows/master/install.ps1 } | iex
+
+# Optional environment variables, alternative to downloading and passing arguments.
+# $env:CDAF_INSTALL_PATH = 'c:\cdaf'
+# $env:CDAF_INSTALL_VERSION = '2.7.3'
 
 Param (
 	[string]$version
