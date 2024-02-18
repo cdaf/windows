@@ -561,7 +561,7 @@ function resolveContent () {
 $SOLUTION    = $args[0]
 $BUILDNUMBER = $args[1]
 $TARGET      = $args[2]
-$TASK_LIST   = $args[3]
+$TASK_NAME   = $args[3]
 $ACTION      = $args[4]
 
 $scriptName = $myInvocation.MyCommand.Name 
@@ -570,7 +570,7 @@ Write-Host "~~~~~ Starting Execution Engine ~~~~~~`n"
 Write-Host "[$scriptName]  SOLUTION    : $SOLUTION"
 Write-Host "[$scriptName]  BUILDNUMBER : $BUILDNUMBER"
 Write-Host "[$scriptName]  TARGET      : $TARGET"
-Write-Host "[$scriptName]  TASK_LIST   : $TASK_LIST"
+Write-Host "[$scriptName]  TASK_NAME   : $TASK_NAME"
 Write-Host "[$scriptName]  ACTION      : $ACTION"
 
 $WORKSPACE = (Get-Location).Path
@@ -597,11 +597,11 @@ if ( test-path -path "$TARGET" -pathtype leaf ) {
 	Write-Host
 }
 
-if (!( Test-Path $TASK_LIST )) {
-    Write-Host "`n[$scriptName] Task Execution file ($TASK_LIST) not found! `$LASTEXITCODE 9998" -ForegroundColor Red
+if (!( Test-Path $TASK_NAME )) {
+    Write-Host "`n[$scriptName] Task Execution file ($TASK_NAME) not found! `$LASTEXITCODE 9998" -ForegroundColor Red
     exit 9998
 }
-Foreach ($line in get-content $TASK_LIST) {
+Foreach ($line in get-content $TASK_NAME) {
 
     # If the task line is empty, simply log an empty line
     if (-not ($line)) {
