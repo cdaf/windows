@@ -261,6 +261,13 @@ if ( $LASTEXITCODE -ne 0 ) {
 		$array = $versionTest.split(" ")
 		Write-Host "    PiP                   : $($array[1])"
 	}
+
+	$versionTest = cmd /c checkov --version 2`>`&1
+	if ( $LASTEXITCODE -ne 0 ) {
+		Write-Host "    Checkov               : not installed"
+	} else {
+		Write-Host "    Checkov               : ${versionTest}"
+	}
 }
 
 $versionTest = cmd /c node --version 2`>`&1
