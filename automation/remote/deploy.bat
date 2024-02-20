@@ -9,7 +9,7 @@ echo [%~nx0] ------------------------------------
 rem Launcher script that overides execution policy
 rem cannot elevate powershell
 
-call powershell -NoProfile -NonInteractive -ExecutionPolicy ByPass -command "& '%cd%\%WORK_DIR_DEFAULT%\executeTasks.ps1'" "%1" "%2" "%3"
+call powershell -NoProfile -NonInteractive -ExecutionPolicy ByPass -command "& '%cd%\%WORK_DIR_DEFAULT%\executeTasks.ps1'" "'%1'" "'%2'" "'%3'"
 set result=%errorlevel%
 if %result% NEQ 0 (
 	echo.
