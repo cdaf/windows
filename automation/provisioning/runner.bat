@@ -12,7 +12,7 @@ set "command=%cd%%back%%1"
 
 echo %command% %2 %3 %4 %5 %6 %7 %8 %9
 
-call powershell -NoProfile -NonInteractive -ExecutionPolicy ByPass -command "& '%command%'" %2 %3 %4 %5 %6 %7 %8 %9 
+call powershell -NoProfile -NonInteractive -ExecutionPolicy ByPass -command "& '%command%'" "%2" "%3" "%4" "%5" "%6" "%7" "%8" "%9" 
 set result=%errorlevel%
 if %result% NEQ 0 (
 	echo.
