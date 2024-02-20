@@ -9,12 +9,12 @@ jobs:
 #      name: Self-hosted Pool Name
 
     steps:
-      # - task: PowerShell@2
-      #   displayName: Diag
-      #   inputs:
-      #     workingDirectory: $(System.ArtifactsDirectory)/drop
-      #     targetType: inline
-      #     script: dir ; systeminfo
+#       - task: PowerShell@2
+#         displayName: Diag
+#         inputs:
+#           workingDirectory: $(System.ArtifactsDirectory)/drop
+#           targetType: inline
+#           script: dir ; systeminfo
 
       - task: PowerShell@2
         displayName: CI Process
@@ -43,5 +43,18 @@ jobs:
 #          targetType: filePath
 #          filePath: ./automation/entry.ps1
 #          arguments: $(Build.BuildNumber) $(Build.SourceBranch) staging@$(Build.ArtifactStagingDirectory)
+
+#       - task: PublishTestResults@2
+#         condition: succeededOrFailed()
+#         inputs:
+#           testResultsFormat: 'JUnit' # Options: JUnit, NUnit, VSTest, xUnit, cTest
+#           testResultsFiles: '**/test-results/*.xml' 
+#           searchFolder: '$(System.DefaultWorkingDirectory)' # Optional
+#           mergeTestResults: true # Optional
+#           failTaskOnFailedTests: true # Optional
+#           testRunTitle: Checkov Results # Optional
+#           buildPlatform: # Optional
+#           buildConfiguration: # Optional
+#           publishRunAttachments: true # Optional
 
       - task: PublishBuildArtifacts@1
