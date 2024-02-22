@@ -153,6 +153,10 @@ if ( $buildImage ) {
 		}
 	
 		Write-Host "[$scriptName] `$imageTag  : $imageTag"
+
+		if ( $CDAF_BUILD_ENV ) {
+			${buildCommand} += " --env 'CDAF_BUILD_ENV=$CDAF_BUILD_ENV'"
+		}
 		
 		foreach ( $envVar in Get-ChildItem env:) {
 			if ($envVar.Name.Contains('CDAF_CB_')) {
