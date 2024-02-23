@@ -62,9 +62,15 @@ $OPT_ARG = $args[2]
 # $myInvocation.MyCommand.Name not working when processing DOS
 $scriptName = "executeTasks.ps1"
 
-write-host "[$scriptName]   TARGET    : $TARGET"
+if ( $TARGET ) {
+	$TARGET = Invoke-Expression "Write-Output $TARGET"
+	write-host "[$scriptName]   TARGET    : $TARGET"
+} else {
+	ERRMSG "TARGET not supplied." 4401
+}
 
 if ( $RELEASE ) {
+	$RELEASE = Invoke-Expression "Write-Output $RELEASE"
     write-host "[$scriptName]   RELEASE   : $RELEASE"
 } else {
 	if ( $env:RELEASE ) {
@@ -76,6 +82,7 @@ if ( $RELEASE ) {
 }
 
 if ( $OPT_ARG ) {
+	$OPT_ARG = Invoke-Expression "Write-Output $OPT_ARG"
     write-host "[$scriptName]   OPT_ARG   : $OPT_ARG"
 } else {
 	if ( $env:OPT_ARG ) {
