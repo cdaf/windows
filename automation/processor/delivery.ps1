@@ -150,6 +150,7 @@ function getFilename ($FullPathName) {
 
 if ( $ENVIRONMENT ) {
 	Write-Host "[$scriptName]   ENVIRONMENT      : $ENVIRONMENT"
+	$ENVIRONMENT = Invoke-Expression "Write-Output $ENVIRONMENT"
 	$env:CDAF_CD_ENVIRONMENT = $ENVIRONMENT
 } else { 
 	Write-Host "[$scriptName] ENVIRONMENT_NOT_SUPPLIED Environment not supplied!" -ForegroundColor Red
@@ -159,6 +160,7 @@ if ( $ENVIRONMENT ) {
 
 if ( $RELEASE ) {
 	Write-Host "[$scriptName]   RELEASE          : $RELEASE"
+	$RELEASE = Invoke-Expression "Write-Output $RELEASE"
 } else {
 	$RELEASE = 'Release'
 	Write-Host "[$scriptName]   RELEASE          : $RELEASE (default)"
@@ -167,6 +169,7 @@ $env:CDAF_CD_RELEASE = $RELEASE
 
 if ( $OPT_ARG ) {
 	Write-Host "[$scriptName]   OPT_ARG          : $OPT_ARG"
+	$OPT_ARG = Invoke-Expression "Write-Output $OPT_ARG"
 	$env:CDAF_CD_OPT_ARG = $OPT_ARG
 } else {
 	Write-Host "[$scriptName]   OPT_ARG          : (not supplied)"
