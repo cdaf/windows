@@ -29,4 +29,4 @@ jobs:
               script: |
                 . { iwr -useb https://cdaf.io/static/app/downloads/cdaf.ps1 } | iex
                 .\automation\provisioning\base.ps1 terraform
-                ./release.ps1 ${{ parameters.environment }} $(Build.BuildNumber) "'${{ parameters.action }}'"
+                ./release.ps1 ${{ parameters.environment }} $(Build.BuildNumber) "${{ parameters.action }}"
