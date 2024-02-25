@@ -1,33 +1,94 @@
-# executeExpression and ERRMSG inherited from delivery.ps1
-
-function exceptionExit ($exception) {
-    write-host "[$scriptName]   Exception details follow ..." -ForegroundColor Red
-    Write-Output $exception.Exception|format-list -force
-    write-host "[$scriptName] Returning errorlevel (500) to DOS" -ForegroundColor Magenta
-    $host.SetShouldExit(500); exit
+# Consolidated Error processing function
+#  required : error message
+#  optional : exit code, if not supplied only error message is written
+function ERRMSG ($message, $exitcode) {
+	if ( $exitcode ) {
+		if ( $exitcode ) {
+			Write-Host "`n[$scriptName]$message" -ForegroundColor Red
+		} else {
+			Write-Host "`n[$scriptName] ERRMSG triggered without message parameter." -ForegroundColor Red
+		}
+	} else {
+		if ( $exitcode ) {
+			Write-Warning "`n[$scriptName]$message"
+		} else {
+			Write-Warning "`n[$scriptName] ERRMSG triggered without message parameter."
+		}
+	}
+	if ( $error ) {
+		$i = 0
+		foreach ( $item in $Error )
+		{
+			Write-Host "`$Error[$i] $item"
+			$i++
+		}
+		$Error.clear()
+	}
+	if ( $exitcode ) {
+		if ( $env:CDAF_ERROR_DIAG ) {
+			Write-Host "`n[$scriptName] Invoke custom diag `$env:CDAF_ERROR_DIAG = $env:CDAF_ERROR_DIAG`n"
+			try {
+				Invoke-Expression $env:CDAF_ERROR_DIAG
+			    if(!$?) { Write-Host "[CDAF_ERROR_DIAG] `$? = $?" }
+			} catch {
+				$message = $_.Exception.Message
+				$_.Exception | format-list -force
+			}
+		    if ( $LASTEXITCODE ) {
+		    	if ( $LASTEXITCODE -ne 0 ) {
+					Write-Host "[CDAF_ERROR_DIAG][EXIT] `$LASTEXITCODE is $LASTEXITCODE"
+				}
+			}
+		}
+		Write-Host "`n[$scriptName] Exit with LASTEXITCODE = $exitcode`n" -ForegroundColor Red
+		exit $exitcode
+	}
 }
 
-# Not used in this script because called from DOS, but defined here for all child scripts
-function taskFailure ($taskName, $exitCode) {
-    if (!( $exitCode )) {
-        $exitCode = 510
-    }
-    write-host "`n[$scriptName] Failure occured! Code returned ... $taskName" -ForegroundColor Red
-    write-host "[$scriptName] Returning errorlevel ($exitCode) to DOS" -ForegroundColor Magenta
-    $host.SetShouldExit($exitCode)
-	exit $exitCode
+# Common expression logging and error handling function, copied, not referenced to ensure atomic process
+function executeExpression ($expression) {
+	Write-Host "[$(Get-Date)] $expression"
+	try {
+		Invoke-Expression $expression
+	    if(!$?) { ERRMSG "[TRAP] `$? = $?" 1211 }
+	} catch {
+		$message = $_.Exception.Message
+		$_.Exception | format-list -force
+		$_.Exception.StackTrace
+		if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) {
+			ERRMSG "[EXEC][EXCEPTION] $message" $LASTEXITCODE
+		} else {
+			ERRMSG "[EXEC][EXCEPTION] $message" 1212
+		}
+	}
+    if ( $LASTEXITCODE ) {
+    	if ( $LASTEXITCODE -ne 0 ) {
+			ERRMSG "[EXEC][EXIT] `$LASTEXITCODE is $LASTEXITCODE" $LASTEXITCODE
+		} else {
+			if ( $error ) {
+				ERRMSG "[EXEC][WARN] `$LASTEXITCODE is $LASTEXITCODE, but standard error populated"
+			}
+		} 
+	} else {
+	    if ( $error ) {
+	    	if ( $env:CDAF_IGNORE_WARNING -eq 'no' ) {
+				ERRMSG "[EXEC][ERROR] `$env:CDAF_IGNORE_WARNING is 'no' so exiting" 1213
+	    	} else {
+				ERRMSG "[EXEC][WARN] `$LASTEXITCODE not set, but standard error populated"
+	    	}
+		}
+	}
 }
 
-function taskWarning { 
-    write-host "[$scriptName] Warning, $taskName encountered an error that was allowed to proceed." -ForegroundColor Yellow
-}
-
+# Return named property from TARGET
 function getProp ($propName) {
 
 	try {
 		$propValue=$(& ${CDAF_CORE}\getProperty.ps1 .\$TARGET $propName)
-		if(!$?){ taskWarning }
-	} catch { exceptionExit $_ }
+		if(!$?){ ERRMSG "getProp halted" }
+	} catch {
+		ERRMSG "getProp threw execption retrieving $propName from .\$TARGET " 4402
+	}
 	
     return $propValue
 }
@@ -85,15 +146,7 @@ write-host "`n[$scriptName] Load SOLUTION and BUILDNUMBER from manifest.txt"
 $scriptOverride = getProp ("deployScriptOverride")
 if ($scriptOverride ) {
 	write-host "[$scriptName]   deployScriptOverride : $scriptOverride`n"
-    $expression=".\$scriptOverride $SOLUTION $BUILDNUMBER $TARGET $OPT_ARG"
-    write-host $expression
-	try {
-		Invoke-Expression $expression
-		if($LASTEXITCODE -ne 0){
-		    ERRMSG "OVERRIDE_EXECUTE_NON_ZERO_EXIT Invoke-Expression $expression" $LASTEXITCODE 
-		}
-	    if(!$?){ taskFailure "REMOTE_OVERRIDESCRIPT_TRAP" }
-    } catch { exceptionExit $_ }
+    executeExpression "& '.\$scriptOverride' '$SOLUTION' '$BUILDNUMBER' '$TARGET' '$OPT_ARG'"
 
 } else {
 
@@ -106,10 +159,6 @@ if ($scriptOverride ) {
 
 	foreach ( $taskItem in $taskList.Split() ) {
 	    write-host "`n[$scriptName] --- Executing $taskItem ---`n" -ForegroundColor Green
-	    & "$CDAF_CORE\execute.ps1" $SOLUTION $BUILDNUMBER $TARGET $taskItem $OPT_ARG
-		if($LASTEXITCODE -ne 0){
-		    ERRMSG "OVERRIDE_EXECUTE_NON_ZERO_EXIT & ${CDAF_CORE}\execute.ps1 $SOLUTION $BUILDNUMBER $TARGET $taskItem $OPT_ARG" $LASTEXITCODE 
-		}
-	    if(!$?){ taskFailure "POWERSHELL_TRAP" }
+	    executeExpression "& '$CDAF_CORE\execute.ps1' '$SOLUTION' '$BUILDNUMBER' '$TARGET' '$taskItem' '$OPT_ARG'"
     }
 }
