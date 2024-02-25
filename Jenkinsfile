@@ -34,7 +34,6 @@ timeout(time: 4, unit: 'HOURS') {
             cd ..
           } elseif ( $edition -eq 'Microsoft Windows Server 2019 Standard' ) {
             cd samples
-            $env:CDAF_DELIVERY = 'WORKGROUP'
             ./executeSamples.ps1 native
             cd ..
           } else {

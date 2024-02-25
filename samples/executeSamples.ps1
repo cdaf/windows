@@ -89,7 +89,12 @@ foreach ($dirName in $list) {
 	executeExpression "cd $dirName"
 	executeExpression "..\..\automation\cdEmulate.bat"
 	executeExpression "cd .."
-	Write-Host "`n[$scriptName] ---------- end $dirName ----------`n"
+	Write-Host "`n[$scriptName] ---------- end $dirName ----------"
+}
+
+Write-Host "`n[$scriptName] Sample test complete for:"
+foreach ($dirName in $list) {
+	Write-Host "  $dirName"
 }
 
 Write-Host "`n[$scriptName] ---------- stop ----------"
