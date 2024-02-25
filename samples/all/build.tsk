@@ -10,11 +10,11 @@ Write-Host "If ACTION (emulation only) is clean, do not perform any further acti
 EXITIF $terminate = $ACTION
 
 Write-Host "artifactPrefix is automatically loaded from CDAF.solution, combine with build number to create symantic (http://semver.org/) version`n" -ForegroundColor Magenta
-ASSIGN $productVersion = "${artifactPrefix}.${BUILDNUMBER}"
+ASSIGN $symver = "${artifactPrefix}.${BUILDNUMBER}"
 
 Write-Host "Perform build in DOS Command`n" -ForegroundColor Magenta
 EXECMD "echo @echo off > bin.bat"
-EXECMD "echo echo Artefact symantic version : $productVersion >> bin.bat"
+EXECMD "echo echo Artefact symantic version : $symver >> bin.bat"
 .\bin.bat
 
 Write-Host "Robust URL Check`n" -ForegroundColor Magenta

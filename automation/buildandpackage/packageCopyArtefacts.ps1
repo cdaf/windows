@@ -1,32 +1,4 @@
 
-# Consolidated Error processing function
-#  required : error message
-#  optional : exit code, if not supplied only error message is written
-function ERRMSG ($message, $exitcode) {
-	if ( $exitcode ) {
-		Write-Host "`n[$scriptName]$message" -ForegroundColor Red
-	} else {
-		Write-Warning "`n[$scriptName]$message"
-	}
-	if ( $error ) {
-		$i = 0
-		foreach ( $item in $Error )
-		{
-			Write-Host "`$Error[$i] $item"
-			$i++
-		}
-		$Error.clear()
-	}
-	if ( $exitcode ) {
-		if ( $env:CDAF_ERROR_DIAG ) {
-			Write-Host "`n[$scriptName] Invoke custom diag `$env:CDAF_ERROR_DIAG = $env:CDAF_ERROR_DIAG`n"
-			Invoke-Expression $env:CDAF_ERROR_DIAG
-		}
-		Write-Host "`n[$scriptName] Exit with LASTEXITCODE = $exitcode`n" -ForegroundColor Red
-		exit $exitcode
-	}
-}
-
 # Copy the item, if recursive, treat from as a directory and process the contents.
 # If flat, then copy the contents to the root of the working directory
 function copyOpt ($manifestFile, $from, $first, $second) {

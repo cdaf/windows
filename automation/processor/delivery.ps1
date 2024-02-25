@@ -15,19 +15,24 @@ cmd /c "exit 0"
 $Error.clear()
 $scriptName = 'delivery.ps1'
 
+
 # Consolidated Error processing function
+#  required : error message
+#  optional : exit code, if not supplied only error message is written
 function ERRMSG ($message, $exitcode) {
 	if ( $exitcode ) {
-		Write-Host "`n[$scriptName]$message" -ForegroundColor Red
+		if ( $exitcode ) {
+			Write-Host "`n[$scriptName]$message" -ForegroundColor Red
+		} else {
+			Write-Host "`n[$scriptName] ERRMSG triggered without message parameter." -ForegroundColor Red
+		}
 	} else {
-		Write-Host "`n[$scriptName]$message" -ForegroundColor Yellow
+		if ( $exitcode ) {
+			Write-Warning "`n[$scriptName]$message"
+		} else {
+			Write-Warning "`n[$scriptName] ERRMSG triggered without message parameter."
+		}
 	}
-
-	if ( $env:CDAF_DEBUG_LOGGING ) {
-		Write-Host "`n[$scriptName] Print Debug Logging `$env:CDAF_DEBUG_LOGGING`n"
-		Write-HOst $env:CDAF_DEBUG_LOGGING
-	}
-
 	if ( $error ) {
 		$i = 0
 		foreach ( $item in $Error )
@@ -37,11 +42,22 @@ function ERRMSG ($message, $exitcode) {
 		}
 		$Error.clear()
 	}
-	if ( $env:CDAF_ERROR_DIAG ) {
-		Write-Host "`n[$scriptName] Invoke custom diag `$env:CDAF_ERROR_DIAG = $env:CDAF_ERROR_DIAG`n"
-		Invoke-Expression $env:CDAF_ERROR_DIAG
-	}
 	if ( $exitcode ) {
+		if ( $env:CDAF_ERROR_DIAG ) {
+			Write-Host "`n[$scriptName] Invoke custom diag `$env:CDAF_ERROR_DIAG = $env:CDAF_ERROR_DIAG`n"
+			try {
+				Invoke-Expression $env:CDAF_ERROR_DIAG
+			    if(!$?) { Write-Host "[CDAF_ERROR_DIAG] `$? = $?" }
+			} catch {
+				$message = $_.Exception.Message
+				$_.Exception | format-list -force
+			}
+		    if ( $LASTEXITCODE ) {
+		    	if ( $LASTEXITCODE -ne 0 ) {
+					Write-Host "[CDAF_ERROR_DIAG][EXIT] `$LASTEXITCODE is $LASTEXITCODE"
+				}
+			}
+		}
 		Write-Host "`n[$scriptName] Exit with LASTEXITCODE = $exitcode`n" -ForegroundColor Red
 		exit $exitcode
 	}
@@ -51,32 +67,32 @@ function ERRMSG ($message, $exitcode) {
 function executeExpression ($expression) {
 	Write-Host "[$(Get-Date)] $expression"
 	try {
-		Invoke-Expression "$expression 2> `$null"
-	    if(!$?) { Write-Host "`n[$scriptName][CDAF_DELIVERY_FAILURE][TRAP] `$? = $?"; $error ; exit 1311 }
+		Invoke-Expression $expression
+	    if(!$?) { ERRMSG "[TRAP] `$? = $?" 1211 }
 	} catch {
-		Write-Host "`n[$scriptName][CDAF_DELIVERY_FAILURE][EXCEPTION] List exception and error array (if populated) and exit with LASTEXITCODE 1312" -ForegroundColor Red
-		Write-Host $_.Exception|format-list -force
-		if ( $error ) { Write-Host "[$scriptName][CDAF_DELIVERY_FAILURE][ERROR]   `$Error = $Error" ; $Error.clear() }
-		exit 1312
+		$message = $_.Exception.Message
+		$_.Exception | format-list -force
+		$_.Exception.StackTrace
+		if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) {
+			ERRMSG "[EXEC][EXCEPTION] $message" $LASTEXITCODE
+		} else {
+			ERRMSG "[EXEC][EXCEPTION] $message" 1212
+		}
 	}
     if ( $LASTEXITCODE ) {
     	if ( $LASTEXITCODE -ne 0 ) {
-			Write-Host "`n[$scriptName][CDAF_DELIVERY_FAILURE][EXIT] `$LASTEXITCODE = $LASTEXITCODE " -ForegroundColor Red
-			if ( $error ) { Write-Host "[$scriptName][CDAF_DELIVERY_FAILURE][EXIT]   `$Error = $Error" ; $Error.clear() }
-			exit $LASTEXITCODE
+			ERRMSG "[EXEC][EXIT] `$LASTEXITCODE is $LASTEXITCODE" $LASTEXITCODE
 		} else {
 			if ( $error ) {
-				Write-Host "[$scriptName][WARN] $Error array populated by `$LASTEXITCODE = $LASTEXITCODE error follows...`n" -ForegroundColor Yellow
-				Write-Host "[$scriptName][WARN]   `$Error = $Error" ; $Error.clear()
+				ERRMSG "[EXEC][WARN] `$LASTEXITCODE is $LASTEXITCODE, but standard error populated"
 			}
 		} 
 	} else {
 	    if ( $error ) {
 	    	if ( $env:CDAF_IGNORE_WARNING -eq 'no' ) {
-				Write-Host "`n[$scriptName][CDAF_DELIVERY_FAILURE][ERROR] `$Error = $error"; $Error.clear()
-				Write-Host "[$scriptName][CDAF_DELIVERY_FAILURE][ERROR]   `$env:CDAF_IGNORE_WARNING is 'no' so exiting with LASTEXITCODE 1313 ..."; exit 1313
+				ERRMSG "[EXEC][ERROR] `$env:CDAF_IGNORE_WARNING is 'no' so exiting" 1213
 	    	} else {
-		    	Write-Host "[$scriptName][WARN] `$Error = $error" ; $Error.clear()
+				ERRMSG "[EXEC][WARN] `$LASTEXITCODE not set, but standard error populated"
 	    	}
 		}
 	}

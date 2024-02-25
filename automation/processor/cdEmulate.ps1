@@ -2,19 +2,24 @@ Import-Module Microsoft.PowerShell.Utility
 Import-Module Microsoft.PowerShell.Management
 Import-Module Microsoft.PowerShell.Security
 
+
 # Consolidated Error processing function
+#  required : error message
+#  optional : exit code, if not supplied only error message is written
 function ERRMSG ($message, $exitcode) {
 	if ( $exitcode ) {
-		Write-Host "`n[$scriptName]$message" -ForegroundColor Red
+		if ( $exitcode ) {
+			Write-Host "`n[$scriptName]$message" -ForegroundColor Red
+		} else {
+			Write-Host "`n[$scriptName] ERRMSG triggered without message parameter." -ForegroundColor Red
+		}
 	} else {
-		Write-Host "`n[$scriptName]$message" -ForegroundColor Yellow
+		if ( $exitcode ) {
+			Write-Warning "`n[$scriptName]$message"
+		} else {
+			Write-Warning "`n[$scriptName] ERRMSG triggered without message parameter."
+		}
 	}
-
-	if ( $env:CDAF_DEBUG_LOGGING ) {
-		Write-Host "`n[$scriptName] Print Debug Logging `$env:CDAF_DEBUG_LOGGING`n"
-		Write-HOst $env:CDAF_DEBUG_LOGGING
-	}
-
 	if ( $error ) {
 		$i = 0
 		foreach ( $item in $Error )
@@ -24,11 +29,22 @@ function ERRMSG ($message, $exitcode) {
 		}
 		$Error.clear()
 	}
-	if ( $env:CDAF_ERROR_DIAG ) {
-		Write-Host "`n[$scriptName] Invoke custom diag `$env:CDAF_ERROR_DIAG = $env:CDAF_ERROR_DIAG`n"
-		Invoke-Expression $env:CDAF_ERROR_DIAG
-	}
 	if ( $exitcode ) {
+		if ( $env:CDAF_ERROR_DIAG ) {
+			Write-Host "`n[$scriptName] Invoke custom diag `$env:CDAF_ERROR_DIAG = $env:CDAF_ERROR_DIAG`n"
+			try {
+				Invoke-Expression $env:CDAF_ERROR_DIAG
+			    if(!$?) { Write-Host "[CDAF_ERROR_DIAG] `$? = $?" }
+			} catch {
+				$message = $_.Exception.Message
+				$_.Exception | format-list -force
+			}
+		    if ( $LASTEXITCODE ) {
+		    	if ( $LASTEXITCODE -ne 0 ) {
+					Write-Host "[CDAF_ERROR_DIAG][EXIT] `$LASTEXITCODE is $LASTEXITCODE"
+				}
+			}
+		}
 		Write-Host "`n[$scriptName] Exit with LASTEXITCODE = $exitcode`n" -ForegroundColor Red
 		exit $exitcode
 	}
@@ -137,7 +153,7 @@ if ( $CDAF_DELIVERY ) {
 		# Set default depending on domain membership
 		if ((gwmi win32_computersystem).partofdomain -eq $true) {
 			$CDAF_DELIVERY = 'WINDOWS'
-			Write-Host "[$scriptName]   CDAF_DELIVERY       : $BUILDENV (derived from domain membership)"
+			Write-Host "[$scriptName]   CDAF_DELIVERY       : $CDAF_DELIVERY (derived from domain membership)"
 		} else {
 			$CDAF_DELIVERY = 'WORKGROUP'
 			Write-Host "[$scriptName]   CDAF_DELIVERY       : $CDAF_DELIVERY (default)"

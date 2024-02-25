@@ -6,34 +6,6 @@ $WORK_DIR_DEFAULT = $args[4]
 $SOLUTIONROOT = $args[5]
 $AUTOMATIONROOT = $args[6]
 
-# Consolidated Error processing function
-#  required : error message
-#  optional : exit code, if not supplied only error message is written
-function ERRMSG ($message, $exitcode) {
-	if ( $exitcode ) {
-		Write-Host "`n[$scriptName]$message" -ForegroundColor Red
-	} else {
-		Write-Warning "`n[$scriptName]$message"
-	}
-	if ( $error ) {
-		$i = 0
-		foreach ( $item in $Error )
-		{
-			Write-Host "`$Error[$i] $item"
-			$i++
-		}
-		$Error.clear()
-	}
-	if ( $exitcode ) {
-		if ( $env:CDAF_ERROR_DIAG ) {
-			Write-Host "`n[$scriptName] Invoke custom diag `$env:CDAF_ERROR_DIAG = $env:CDAF_ERROR_DIAG`n"
-			Invoke-Expression $env:CDAF_ERROR_DIAG
-		}
-		Write-Host "`n[$scriptName] Exit with LASTEXITCODE = $exitcode`n" -ForegroundColor Red
-		exit $exitcode
-	}
-}
-
 $scriptName             = $MyInvocation.MyCommand.Name
 $remoteCustomDir        = "$SOLUTIONROOT\customRemote"
 $commonCustomDir        = "$SOLUTIONROOT\custom"

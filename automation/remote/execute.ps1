@@ -15,9 +15,17 @@ function taskException ($taskName, $exception) {
 #  optional : exit code, if not supplied only error message is written
 function ERRMSG ($message, $exitcode) {
 	if ( $exitcode ) {
-		Write-Host "`n[$scriptName]$message" -ForegroundColor Red
+		if ( $exitcode ) {
+			Write-Host "`n[$scriptName]$message" -ForegroundColor Red
+		} else {
+			Write-Host "`n[$scriptName] ERRMSG triggered without message parameter." -ForegroundColor Red
+		}
 	} else {
-		Write-Warning "`n[$scriptName]$message"
+		if ( $exitcode ) {
+			Write-Warning "`n[$scriptName]$message"
+		} else {
+			Write-Warning "`n[$scriptName] ERRMSG triggered without message parameter."
+		}
 	}
 	if ( $error ) {
 		$i = 0
@@ -31,7 +39,18 @@ function ERRMSG ($message, $exitcode) {
 	if ( $exitcode ) {
 		if ( $env:CDAF_ERROR_DIAG ) {
 			Write-Host "`n[$scriptName] Invoke custom diag `$env:CDAF_ERROR_DIAG = $env:CDAF_ERROR_DIAG`n"
-			Invoke-Expression $env:CDAF_ERROR_DIAG
+			try {
+				Invoke-Expression $env:CDAF_ERROR_DIAG
+			    if(!$?) { Write-Host "[CDAF_ERROR_DIAG] `$? = $?" }
+			} catch {
+				$message = $_.Exception.Message
+				$_.Exception | format-list -force
+			}
+		    if ( $LASTEXITCODE ) {
+		    	if ( $LASTEXITCODE -ne 0 ) {
+					Write-Host "[CDAF_ERROR_DIAG][EXIT] `$LASTEXITCODE is $LASTEXITCODE"
+				}
+			}
 		}
 		Write-Host "`n[$scriptName] Exit with LASTEXITCODE = $exitcode`n" -ForegroundColor Red
 		exit $exitcode

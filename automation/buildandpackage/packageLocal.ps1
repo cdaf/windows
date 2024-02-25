@@ -7,35 +7,6 @@ Param (
 	[string]$AUTOMATIONROOT
 )
 
-
-# Consolidated Error processing function
-#  required : error message
-#  optional : exit code, if not supplied only error message is written
-function ERRMSG ($message, $exitcode) {
-	if ( $exitcode ) {
-		Write-Host "`n[$scriptName]$message" -ForegroundColor Red
-	} else {
-		Write-Warning "`n[$scriptName]$message"
-	}
-	if ( $error ) {
-		$i = 0
-		foreach ( $item in $Error )
-		{
-			Write-Host "`$Error[$i] $item"
-			$i++
-		}
-		$Error.clear()
-	}
-	if ( $exitcode ) {
-		if ( $env:CDAF_ERROR_DIAG ) {
-			Write-Host "`n[$scriptName] Invoke custom diag `$env:CDAF_ERROR_DIAG = $env:CDAF_ERROR_DIAG`n"
-			Invoke-Expression $env:CDAF_ERROR_DIAG
-		}
-		Write-Host "`n[$scriptName] Exit with LASTEXITCODE = $exitcode`n" -ForegroundColor Red
-		exit $exitcode
-	}
-}
-
 # 1.7.8 Merge files into directory, i.e. don't replace any properties provided above
 function propMerge ($generatedPropDir, $generatedPropertyFile) {
 	Write-Host "`n[$scriptName] Processing generated properties directory (${generatedPropDir}):`n"
