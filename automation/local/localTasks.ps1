@@ -1,3 +1,4 @@
+# executeExpression and ERRMSG inherited from delivery.ps1
 
 $scriptName = $myInvocation.MyCommand.Name
 
@@ -65,9 +66,7 @@ $exitStatus = 0
 if ( $localEnvPreDeployTask) {
     Write-Host
     # Execute the Tasks Driver File
-    & ${WORK_DIR_DEFAULT}\execute.ps1 $SOLUTION $BUILD $localEnvironmentPath\$ENVIRONMENT $localEnvPreDeployTask $OPT_ARG
-	if($LASTEXITCODE -ne 0){ ERRMSG "LOCAL_TASKS_PRE_DEPLOY_NON_ZERO_EXIT ${WORK_DIR_DEFAULT}\execute.ps1 $SOLUTION $BUILD $localEnvironmentPath\$ENVIRONMENT $localEnvPreDeployTask" $LASTEXITCODE }
-    if(!$?){ taskFailure "LOCAL_TASKS_PRE_DEPLOY_TRAP" }
+	executeExpression "& '${WORK_DIR_DEFAULT}\execute.ps1' '$SOLUTION' '$BUILD' '$localEnvironmentPath\$ENVIRONMENT' '$localEnvPreDeployTask' '$OPT_ARG'"
 }
 
 # Perform Local Tasks for each target definition file for this environment
@@ -91,23 +90,30 @@ if (-not(Test-Path $propertiesFilter)) {
 		$propFilename = getFilename($propFile.ToString())
 
 		write-host "`n[$scriptName]   --- Process Target $propFilename --- " -ForegroundColor Green
-		& ${WORK_DIR_DEFAULT}\localTasksTarget.ps1 $ENVIRONMENT $SOLUTION $BUILD $propFilename $OPT_ARG
-		if($LASTEXITCODE -ne 0){ ERRMSG "LOCAL_NON_ZERO_EXIT & ${WORK_DIR_DEFAULT}\localTasksTarget.ps1 $ENVIRONMENT $SOLUTION $BUILD $propFilename" $LASTEXITCODE }
-		if(!$?){ taskWarning }
-		cd $WORKSPACE
+		executeExpression "& '${WORK_DIR_DEFAULT}\localTasksTarget.ps1' '$ENVIRONMENT' '$SOLUTION' '$BUILD' '$propFilename' '$OPT_ARG'"
+	    if ( "$(pwd)" -ne $WORKSPACE ){
+			Write-Host "`n[$scriptName] Return to WORKSPACE" 
+		    executeExpression "  cd $WORKSPACE"
+	    }
 
-		write-host "`n[$scriptName]   --- Completed Target $propFilename --- " -ForegroundColor Green
+		write-host "`n[$scriptName]   --- Completed Target $propFilename ---`n" -ForegroundColor Green
 	}
 }
 
 # Perform Local Post Deploy Tasks for this Environment 
-if ( $localEnvPostDeployTask) {
+if ( $localEnvPostDeployTask ) {
     Write-Host
     # Execute the Tasks Driver File
-    & ${WORK_DIR_DEFAULT}\execute.ps1 $SOLUTION $BUILD $localEnvironmentPath\$ENVIRONMENT $localEnvPostDeployTask $OPT_ARG
-	if($LASTEXITCODE -ne 0){ ERRMSG "LOCAL_TASKS_POST_DEPLOY_NON_ZERO_EXIT ${WORK_DIR_DEFAULT}\execute.ps1 $SOLUTION $BUILD $localEnvironmentPath\$ENVIRONMENT $localEnvPostDeployTask" $LASTEXITCODE }
-    if(!$?){ taskFailure "LOCAL_TASKS_POST_DEPLOY_TRAP" }
+	executeExpression "& '${WORK_DIR_DEFAULT}\execute.ps1' '$SOLUTION' '$BUILD' '$localEnvironmentPath\$ENVIRONMENT' '$localEnvPostDeployTask' '$OPT_ARG'"
+
+	if ( "$(pwd)" -ne $WORKSPACE ){
+		Write-Host "`n[$scriptName] Return to WORKSPACE" 
+	    executeExpression "  cd $WORKSPACE"
+	}
 }
 
-# Return to root
-cd ..
+if ( Test-Path $propertiesFilter ) {
+	Write-Host "[$scriptName] +----------------------------------+"
+	Write-Host "[$scriptName] | Completed Locally Executed Tasks |"
+	Write-Host "[$scriptName] +----------------------------------+"
+}

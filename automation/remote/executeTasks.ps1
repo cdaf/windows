@@ -1,27 +1,4 @@
-
-# Consolidated Error processing function
-#  required : error message
-#  optional : exit code, if not supplied only error message is written
-function ERRMSG ($message, $exitcode) {
-	if ( $exitcode ) {
-		Write-Host "`n[$scriptName]$message" -ForegroundColor Red
-	} else {
-		Write-Warning "`n[$scriptName]$message"
-	}
-	if ( $error ) {
-		$i = 0
-		foreach ( $item in $Error )
-		{
-			Write-Host "`$Error[$i] $item"
-			$i++
-		}
-		$Error.clear()
-	}
-	if ( $exitcode ) {
-		Write-Host "`n[$scriptName] Exit with LASTEXITCODE = $exitcode`n" -ForegroundColor Red
-		exit $exitcode
-	}
-}
+# executeExpression and ERRMSG inherited from delivery.ps1
 
 function exceptionExit ($exception) {
     write-host "[$scriptName]   Exception details follow ..." -ForegroundColor Red

@@ -1,3 +1,4 @@
+# executeExpression and ERRMSG inherited from delivery.ps1
 
 function removeTempFiles {
 	$itemList = @("*.zip", "*.tar.gz", "*.nupkg")

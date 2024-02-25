@@ -1,3 +1,4 @@
+# executeExpression and ERRMSG inherited from delivery.ps1
 
 $scriptName = $myInvocation.MyCommand.Name 
 
@@ -25,6 +26,8 @@ try {
 
 Write-Host "[$scriptName]   CDAF Version     : $cdafVersion"
 
+$WORKSPACE = (Get-Location).Path
+Write-Host "[$scriptName]   WORKSPACE              : $WORKSPACE"
 # list system info
 Write-Host "[$scriptName]   Hostname         : $(hostname)" 
 Write-Host "[$scriptName]   Whoami           : $(whoami)" 
@@ -52,10 +55,23 @@ if (-not(Test-Path $WORK_DIR_DEFAULT\$propertiesFilter)) {
 		$propFilename = getFilename($propFile.ToString())
 
 		write-host "`n[$scriptName]   --- Process Target $propFilename ---`n" -ForegroundColor Green
-		& $WORK_DIR_DEFAULT\remoteTasksTarget.ps1 $ENVIRONMENT $SOLUTION $BUILDNUMBER $propFilename $WORK_DIR_DEFAULT $OPT_ARG
-		if($LASTEXITCODE -ne 0){ ERRMSG "REMOTE_NON_ZERO_EXIT & $WORK_DIR_DEFAULT\localTasks.ps1 $ENVIRONMENT $BUILDNUMBER $SOLUTION $WORK_DIR_DEFAULT $OPT_ARG" $LASTEXITCODE }
-		if(!$?){ taskWarning }
+		executeExpression "& '$WORK_DIR_DEFAULT\remoteTasksTarget.ps1' '$ENVIRONMENT' '$SOLUTION' '$BUILDNUMBER' '$propFilename' '$WORK_DIR_DEFAULT' '$OPT_ARG'"
+	    if ( "$(pwd)" -ne $WORKSPACE ){
+			Write-Host "`n[$scriptName] Return to WORKSPACE" 
+		    executeExpression "  cd $WORKSPACE"
+	    }
 
 		write-host "`n[$scriptName]   --- Completed Target $propFilename ---`n" -ForegroundColor Green
 	}
+
+	if ( "$(pwd)" -ne $WORKSPACE ){
+		Write-Host "`n[$scriptName] Return to WORKSPACE" 
+	    executeExpression "  cd $WORKSPACE"
+	}
+	
+	Write-Host "[$scriptName] +----------------------------------+"
+	Write-Host "[$scriptName] | Competed Remotely Executed Tasks |"
+	Write-Host "[$scriptName] +----------------------------------+"
 }
+
+exit 0

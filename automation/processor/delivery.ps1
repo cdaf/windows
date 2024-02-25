@@ -15,7 +15,6 @@ cmd /c "exit 0"
 $Error.clear()
 $scriptName = 'delivery.ps1'
 
-
 # Consolidated Error processing function
 #  required : error message
 #  optional : exit code, if not supplied only error message is written
