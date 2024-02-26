@@ -14,13 +14,6 @@ $error.clear()
 $scriptName = 'entry.ps1'
 $env:CDAF_DEBUG_LOGGING = "[$(Get-Date)] Debug Logging Started`n"
 
-function taskException ($taskName, $exception) {
-    write-host "[$scriptName (taskException)] Caught an exception excuting $taskName :" -ForegroundColor Red
-    write-host "     Exception Type: $($exception.Exception.GetType().FullName)" -ForegroundColor Red
-    write-host "     Exception Message: $($exception.Exception.Message)" -ForegroundColor Red
-	exit 9991
-}
-
 # Consolidated Error processing function
 function errorClear ($message, $exitcode) {
 	if ( $exitcode ) {
@@ -288,7 +281,7 @@ if ( $SOLUTIONROOT ) {
 	$SOLUTIONROOT = (Get-Item $SOLUTIONROOT).FullName
 	write-host "$SOLUTIONROOT (CDAF.solution found)"
 } else {
-	ERRMSG "[NO_SOLUTION_ROOT] No directory found containing CDAF.solution, please create a single occurrence of this file." 7610
+	ERRMSG "[NO_SOLUTION_ROOT] No directory found containing CDAF.solution, please create a single occurrence of this file." 6920
 }
 
 $CDAF_CORE = "$AUTOMATIONROOT\remote"
@@ -321,8 +314,7 @@ if ( ${solutionName} ) {
 	$SOLUTION = $solutionName
 	Write-Host "[$scriptName]   SOLUTION       : $SOLUTION"
 } else {
-	Write-Host "[$scriptName]   solutionName not defined!"
-	exit 7762 
+	ERRMSG "[$scriptName]   solutionName not defined!" 6921
 }
 
 $WORKSPACE_ROOT = $(Get-Location)
@@ -371,8 +363,8 @@ if ( $BRANCH -eq $defaultBranch ) {
 					Write-Host "  Skip feature branch prefix '$featurePrefix'"
 				}
 			}
-			if(!$?) { taskException "FEATURE_BRANCH_PROPLD_TRAP" }
-		} catch { taskException "FEATURE_BRANCH_PROPLD_EXCEPTION" $_ }
+			if(!$?) { ERRMSG "FEATURE_BRANCH_PROPLD_TRAP" 6922 }
+		} catch { ERRMSG "FEATURE_BRANCH_PROPLD_EXCEPTION" 6923 }
 
 		if ( ! $featureBranchProcess ) {
 			if ( $defaultEnvironment ) {
@@ -421,7 +413,7 @@ if ( $skipBranchCleanup ) {
 					Write-Host "[$scriptName]   $gitUserNameEnvVar contains no value, relying on current workspace being up to date"
 				} else {
 					$userName = $userName.replace("@","%40")
-					if (!( $gitUserPassEnvVar )) { Write-Error "[$scriptName]   gitUserNameEnvVar defined, but gitUserPassEnvVar not defined in $SOLUTIONROOT/CDAF.solution!"; exit 6921 }
+					if (!( $gitUserPassEnvVar )) { ERRMSG "[$scriptName]   gitUserNameEnvVar defined, but gitUserPassEnvVar not defined in $SOLUTIONROOT/CDAF.solution!" 6924 }
 					$env:CDAF_DEBUG_LOGGING += "[PASS_VAR] gitUserPassEnvVar = $gitUserPassEnvVar`n"
 					$userPass = Invoke-Expression "Write-Output ${gitUserPassEnvVar}"
 					$env:CDAF_DEBUG_LOGGING += "[PASS_LOADED] userPass = $userPass`n"
@@ -477,7 +469,7 @@ if ( $skipBranchCleanup ) {
 					}
 					executeExpression "git fetch --prune '${urlWithCreds}'"
 					$usingCache = executeReturn 'git log -n 1 --pretty=%d HEAD 2>$null'
-					if ( $LASTEXITCODE -ne 0 ) { Write-Error "[$scriptName] Git cache update failed!"; exit 6924 }			
+					if ( $LASTEXITCODE -ne 0 ) { ERRMSG "[$scriptName] Git cache update failed!" 6925 }			
 					$lsRemote = executeReturn "git ls-remote --heads '${urlWithCreds}'"
 				}
 
@@ -502,7 +494,7 @@ if ( $skipBranchCleanup ) {
 						$remoteArray += $remoteBranch.Split('/')[-1]
 					}
 				}
-				if (!( $remoteArray )) { Write-Error "[$scriptName] git ls-remote --heads provided no branches!"; exit 6925 }
+				if (!( $remoteArray )) { ERRMSG "[$scriptName] git ls-remote --heads provided no branches!" 6926 }
 				foreach ($remoteBranch in $remoteArray) { # verify array contents
 					Write-Host "  $remoteBranch"
 				}
