@@ -25,9 +25,9 @@ function copyOpt ($manifestFile, $from, $first, $second) {
 		$_.Exception | format-list -force
 		$_.Exception.StackTrace
 		if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) {
-			ERRMSG "[EXEC][EXCEPTION] $message" $LASTEXITCODE
+			ERRMSG "[COPYOPT] $message" $LASTEXITCODE
 		} else {
-			ERRMSG "[EXEC][EXCEPTION] $message" 8822
+			ERRMSG "[COPYOPT] $message" 8822
 		}
 	}
 	if ( $nodes ) {

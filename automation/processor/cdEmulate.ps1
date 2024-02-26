@@ -119,7 +119,7 @@ if ($SOLUTIONROOT) {
 	$SOLUTIONROOT = (Get-Item $SOLUTIONROOT).FullName
 	write-host "$SOLUTIONROOT (found $SOLUTIONROOT\CDAF.solution)"
 } else {
-	ERRMSG "[NO_SOLUTION_ROOT] No directory found containing CDAF.solution, please create a single occurrence of this file." 7611
+	ERRMSG "[NO_SOLUTION_ROOT] No directory found containing CDAF.solution, please create a single occurrence of this file." 7710
 }
 
 # Attempt solution name loading, error if not found
@@ -130,10 +130,7 @@ try {
 if ( $SOLUTION ) {
 	Write-Host "[$scriptName]   SOLUTION            : $SOLUTION (from ${SOLUTIONROOT}\CDAF.solution)"
 } else {
-	write-host "[$scriptName] Solution name (SOLUTION) not defined in ${SOLUTIONROOT}\CDAF.solution!" -ForegroundColor Red
-    write-host "[$scriptName]   Exit with `$LASTEXITCODE 1" -ForegroundColor Magenta
-    $host.SetShouldExit(1) # Returning exit code to DOS
-    exit
+	ERRMSG "[$scriptName] Solution name (SOLUTION) not defined in ${SOLUTIONROOT}\CDAF.solution!" 7711
 }
 
 # If environment variable over-rides all other determinations

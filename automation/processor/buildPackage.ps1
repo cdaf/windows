@@ -75,25 +75,25 @@ function executeExpression ($expression) {
 		$_.Exception | format-list -force
 		$_.Exception.StackTrace
 		if (( $LASTEXITCODE ) -and ( $LASTEXITCODE -ne 0 )) {
-			ERRMSG "[EXEC][EXCEPTION] $message" $LASTEXITCODE
+			ERRMSG "[CI][EXCEPTION] $message" $LASTEXITCODE
 		} else {
-			ERRMSG "[EXEC][EXCEPTION] $message" 1212
+			ERRMSG "[CI][EXCEPTION] $message" 1212
 		}
 	}
     if ( $LASTEXITCODE ) {
     	if ( $LASTEXITCODE -ne 0 ) {
-			ERRMSG "[EXEC][EXIT] `$LASTEXITCODE is $LASTEXITCODE" $LASTEXITCODE
+			ERRMSG "[CI][EXIT] `$LASTEXITCODE is $LASTEXITCODE" $LASTEXITCODE
 		} else {
 			if ( $error ) {
-				ERRMSG "[EXEC][WARN] `$LASTEXITCODE is $LASTEXITCODE, but standard error populated"
+				ERRMSG "[CI][WARN] `$LASTEXITCODE is $LASTEXITCODE, but standard error populated"
 			}
 		} 
 	} else {
 	    if ( $error ) {
 	    	if ( $env:CDAF_IGNORE_WARNING -eq 'no' ) {
-				ERRMSG "[EXEC][ERROR] `$env:CDAF_IGNORE_WARNING is 'no' so exiting" 1213
+				ERRMSG "[CI][ERROR] `$env:CDAF_IGNORE_WARNING is 'no' so exiting" 1213
 	    	} else {
-				ERRMSG "[EXEC][WARN] `$LASTEXITCODE not set, but standard error populated"
+				ERRMSG "[CI][WARN] `$LASTEXITCODE not set, but standard error populated"
 	    	}
 		}
 	}
