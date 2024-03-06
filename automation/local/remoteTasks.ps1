@@ -27,7 +27,7 @@ try {
 Write-Host "[$scriptName]   CDAF Version     : $cdafVersion"
 
 $WORKSPACE = (Get-Location).Path
-Write-Host "[$scriptName]   WORKSPACE              : $WORKSPACE"
+Write-Host "[$scriptName]   WORKSPACE        : $WORKSPACE"
 # list system info
 Write-Host "[$scriptName]   Hostname         : $(hostname)" 
 Write-Host "[$scriptName]   Whoami           : $(whoami)" 
