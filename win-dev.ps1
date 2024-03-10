@@ -235,7 +235,7 @@ if (( $virtualisation -eq 'hyperv' ) -or ( $virtualisation -eq 'docker' )) {
 	 # Install explicitely to include Agent, VS workload will not include agent & choco does not support Web Deploy v4
     executeExpression ".\automation\provisioning\webdeploy.ps1"
 
-    executeExpression ".\automation\provisioning\base.ps1 visualstudio2022enterprise"
+    executeExpression ".\automation\provisioning\base.ps1 visualstudio2022professional"
     executeExpression "curl.exe -fSL $env:CURL_OPT -O https://aka.ms/vs/17/release/vs_enterprise.exe"
     executeCMD "start /w vs_enterprise.exe --quiet --wait --norestart --nocache --noUpdateInstaller --noWeb --add Microsoft.VisualStudio.Workload.Azure --locale en-US"
     executeCMD "start /w vs_enterprise.exe --quiet --wait --norestart --nocache --noUpdateInstaller --noWeb --add Microsoft.VisualStudio.Workload.NetWeb --locale en-US"
@@ -245,9 +245,9 @@ if (( $virtualisation -eq 'hyperv' ) -or ( $virtualisation -eq 'docker' )) {
     executeCMD "start /w vs_enterprise.exe --quiet --wait --norestart --nocache --noUpdateInstaller --noWeb --add Microsoft.VisualStudio.Workload.Python --locale en-US"
     executeCMD "start /w vs_enterprise.exe --quiet --wait --norestart --nocache --noUpdateInstaller --noWeb --add Microsoft.Component.PythonTools.Web --locale en-US"
 
-	Write-Host "Install .NET SDKs"
+	Write-Host "Install Latest .NET SDKs"
     executeExpression ".\automation\provisioning\base.ps1 netfx-4.8-devpack" # 4.8
-    executeExpression ".\automation\provisioning\base.ps1 dotnet-6.0-sdk"
+    executeExpression ".\automation\provisioning\base.ps1 dotnet-sdk"
 
     executeExpression ".\automation\provisioning\base.ps1 azure-cli"
     executeExpression "az config set extension.use_dynamic_install=yes_without_prompt"
