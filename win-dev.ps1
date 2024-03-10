@@ -236,14 +236,14 @@ if (( $virtualisation -eq 'hyperv' ) -or ( $virtualisation -eq 'docker' )) {
     executeExpression ".\automation\provisioning\webdeploy.ps1"
 
     executeExpression ".\automation\provisioning\base.ps1 visualstudio2022professional"
-    executeExpression "curl.exe -fSL $env:CURL_OPT -O https://aka.ms/vs/17/release/vs_enterprise.exe"
-    executeCMD "start /w vs_enterprise.exe --quiet --wait --norestart --nocache --noUpdateInstaller --noWeb --add Microsoft.VisualStudio.Workload.Azure --locale en-US"
-    executeCMD "start /w vs_enterprise.exe --quiet --wait --norestart --nocache --noUpdateInstaller --noWeb --add Microsoft.VisualStudio.Workload.NetWeb --locale en-US"
-    executeCMD "start /w vs_enterprise.exe --quiet --wait --norestart --nocache --noUpdateInstaller --noWeb --add Microsoft.VisualStudio.Workload.WebBuildTools --locale en-US"
-    executeCMD "start /w vs_enterprise.exe --quiet --wait --norestart --nocache --noUpdateInstaller --noWeb --add Microsoft.VisualStudio.Workload.ManagedDesktop --locale en-US"
-    executeCMD "start /w vs_enterprise.exe --quiet --wait --norestart --nocache --noUpdateInstaller --noWeb --add Microsoft.VisualStudio.Workload.Node --locale en-US"
-    executeCMD "start /w vs_enterprise.exe --quiet --wait --norestart --nocache --noUpdateInstaller --noWeb --add Microsoft.VisualStudio.Workload.Python --locale en-US"
-    executeCMD "start /w vs_enterprise.exe --quiet --wait --norestart --nocache --noUpdateInstaller --noWeb --add Microsoft.Component.PythonTools.Web --locale en-US"
+    executeExpression "curl.exe -fSL $env:CURL_OPT -O https://aka.ms/vs/17/release/vs_professional.exe"
+    executeCMD "start /w vs_professional.exe --quiet --wait --norestart --nocache --noUpdateInstaller --noWeb --add Microsoft.VisualStudio.Workload.Azure --locale en-US"
+    executeCMD "start /w vs_professional.exe --quiet --wait --norestart --nocache --noUpdateInstaller --noWeb --add Microsoft.VisualStudio.Workload.NetWeb --locale en-US"
+    executeCMD "start /w vs_professional.exe --quiet --wait --norestart --nocache --noUpdateInstaller --noWeb --add Microsoft.VisualStudio.Workload.WebBuildTools --locale en-US"
+    executeCMD "start /w vs_professional.exe --quiet --wait --norestart --nocache --noUpdateInstaller --noWeb --add Microsoft.VisualStudio.Workload.ManagedDesktop --locale en-US"
+    executeCMD "start /w vs_professional.exe --quiet --wait --norestart --nocache --noUpdateInstaller --noWeb --add Microsoft.VisualStudio.Workload.Node --locale en-US"
+    executeCMD "start /w vs_professional.exe --quiet --wait --norestart --nocache --noUpdateInstaller --noWeb --add Microsoft.VisualStudio.Workload.Python --locale en-US"
+    executeCMD "start /w vs_professional.exe --quiet --wait --norestart --nocache --noUpdateInstaller --noWeb --add Microsoft.Component.PythonTools.Web --locale en-US"
 
 	Write-Host "Install Latest .NET SDKs"
     executeExpression ".\automation\provisioning\base.ps1 netfx-4.8-devpack" # 4.8
