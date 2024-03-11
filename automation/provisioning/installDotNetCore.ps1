@@ -44,7 +44,7 @@ if ( $sdk ) {
 if ( $version ) {
 	Write-Host "[$scriptName] version  : $version"
 } else {
-	$version = '7'
+	$version = '8'
 	Write-Host "[$scriptName] version  : $version (default)"
 }
 
@@ -95,19 +95,20 @@ if ( $version -eq '2' ) {
 	} 
 } elseif ( $version -eq '6' ) {
 	if ( $sdk -eq 'yes' ) {
-		$version = '6.0.403'
+		$version = '6.0.419'
 		$file = "dotnet-sdk-${version}-win-x64.exe"
-		$url = "https://download.visualstudio.microsoft.com/download/pr/08ada4db-1e64-4829-b36d-5beb71f67bff/b77050cf7e0c71d3b95418651db1a9b8/${file}"
+		$url = "https://download.visualstudio.microsoft.com/download/pr/37d12f81-b83d-43d8-91be-7c547a2abfe2/4f6bed6c672458dafd805b007509d9ad/${file}"
 	} else {
-		$version = '6.0.11'
+		$version = '6.0.27'
 		if ( $sdk -eq 'asp' ) {
 			$file = "dotnet-hosting-${version}-win.exe"
-			$url = "https://download.visualstudio.microsoft.com/download/pr/db07eed5-297a-45b8-bea2-1e93c623a88c/6e5a8d3432e6213f071be3751ae53a08/${file}"
+			/aspnetcore-runtime-6.0.27-win-x64.exe
+			$url = "https://download.visualstudio.microsoft.com/download/pr/856b04b7-f893-4fb1-9205-052413fde70f/09996e15acebe136113a3aa77b28fe5e/${file}"
 		} else {
 			$file = "aspnetcore-runtime-${version}-win-x64.exe"
-			$url = "https://download.visualstudio.microsoft.com/download/pr/e874914f-d43d-4b61-8479-f6a5536e44b1/7043adfe896aa9f980ce23e884aae37d/${file}"
+			$url = "https://download.visualstudio.microsoft.com/download/pr/856b04b7-f893-4fb1-9205-052413fde70f/09996e15acebe136113a3aa77b28fe5e/${file}"
 		}
-	} 
+	}
 } elseif ( $version -eq '7' ) {
 	if ( $sdk -eq 'yes' ) {
 		$version = '7.0.406'
@@ -117,10 +118,25 @@ if ( $version -eq '2' ) {
 		$version = '7.0.16'
 		if ( $sdk -eq 'asp' ) {
 			$file = "dotnet-hosting-${version}-win.exe"
-			$url = "https://download.visualstudio.microsoft.com/download/pr/1419ee9f-72b4-435f-a1e0-14c1ab7200b4/8d9a7366d093d4afd31c43456da4a2e4/${file}"
+			$url = "https://download.visualstudio.microsoft.com/download/pr/04389c24-12a9-4e0e-8498-31989f30bb22/141aef28265938153eefad0f2398a73b/${file}"
 		} else {
 			$file = "aspnetcore-runtime-${version}-win-x64.exe"
 			$url = "https://download.visualstudio.microsoft.com/download/pr/7c7c13e7-e0eb-439c-b17e-0508b15ddb25/dcdb52f1752782bd1e38cc8bcb80556e/${file}"
+		}
+	} 
+} elseif ( $version -eq '8' ) {
+	if ( $sdk -eq 'yes' ) {
+		$version = '8.0.201'
+		$file = "dotnet-sdk-${version}-win-x64.exe"
+		$url = "https://download.visualstudio.microsoft.com/download/pr/ab5e947d-3bfc-4948-94a1-847576d949d4/bb11039b70476a33d2023df6f8201ae2/${file}"
+	} else {
+		$version = '8.0.2'
+		if ( $sdk -eq 'asp' ) {
+			$file = "dotnet-hosting-${version}-win.exe"
+			$url = "https://download.visualstudio.microsoft.com/download/pr/98ff0a08-a283-428f-8e54-19841d97154c/8c7d5f9600eadf264f04c82c813b7aab/${file}"
+		} else {
+			$file = "aspnetcore-runtime-${version}-win-x64.exe"
+			$url = "https://download.visualstudio.microsoft.com/download/pr/84ba33d4-4407-4572-9bfa-414d26e7c67c/bb81f8c9e6c9ee1ca547396f6e71b65f/${file}"
 		}
 	} 
 } else {

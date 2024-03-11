@@ -10,3 +10,9 @@ services:
           - target:target
         depends_on:
           - target
+
+# For binding to existing networks by name, without this a default NAT will be created
+#networks:
+#  default:
+#    name: nat
+#    external: true
