@@ -149,15 +149,14 @@ if ( $registryURL ) {
 if ( $registryToken ) {
 	# Log the password, rely on the toolchain mask
 	EXECMD "docker login --username $registryUser --password $registryToken $registryURL"
-	if ( $registryURL ) {
-		$registryContext = $registryURL + '/' + $registryContext
-	}
+}
+
+if ( $registryURL ) {
+	$registryContext = $registryURL + '/' + $registryContext
+	Write-Host "[$scriptName]   `$registryContext = $registryContext`n"
 }
 
 foreach ( $tag in $registryTags.Split() ) {
-	if ( $registryURL ) {
-		$registryContext = $registryURL + '/' + $registryContext
-	}
 	EXECMD "docker tag ${imageTag} ${registryContext}:$tag"
 	EXECMD "docker push ${registryContext}:$tag"
 }
