@@ -498,7 +498,6 @@ if ( $skipBranchCleanup ) {
 
 			if (!( $skipRemoteBranchCheck )) {
 				$remoteArray = @()
-				$orphanBranches = @()
 				foreach ( $remoteBranch in $lsRemote ) {
 					if ( $remoteBranch.Contains('/')) {
 						$remoteArray += $remoteBranch.Split('/')[-1]
@@ -511,29 +510,25 @@ if ( $skipBranchCleanup ) {
 
 				if ( $headAttached ) {
 					Write-Host "`n[$scriptName] Process Local branches (git branch --format='%(refname:short)')`n"
-				} else {
-					Write-Host "`n[$scriptName] Process Local branches (git branch --format='%(refname:short)'), orphan branches will not be deleted for detached head.`n"
-				}
-				foreach ( $localBranch in $(git branch --format='%(refname:short)') ) {
-					if ( $remoteArray.Contains($localBranch) ) {
-						Write-Host "  keep branch '${localBranch}'"
-					} else {
-						# $orphanBranches += $localBranch
-						if ( $headAttached ) {
-							executeSuppress "  git branch -D '${localBranch}'"
+					foreach ( $localBranch in $(git branch --format='%(refname:short)') ) {
+						if ( $remoteArray.Contains($localBranch) ) {
+							Write-Host "  keep branch ${localBranch}"
 						} else {
-							Write-Host "  orphan brench '${localBranch}' not deleted"
+							executeSuppress "  git branch -D '${localBranch}'"
 						}
+					}
+				} else {
+					Write-Host "`n[$scriptName] Detached head, branches not processed:"
+					foreach ($remoteBranch in $remoteArray) { # verify array contents
+						Write-Host "  $remoteBranch"
 					}
 				}
 
-				if (!( $gitCustomCleanup )) {
-					Write-Host "`n[$scriptName] gitCustomCleanup not defined in $SOLUTIONROOT/CDAF.solution, skipping ..."
+				if ( $gitCustomCleanup ) {
+					Write-Host "`n[$scriptName] Perform $gitCustomCleanup, comparing for $remoteArray"
+					executeExpression "$gitCustomCleanup $SOLUTION `$remoteArray"
 				} else {
-					if ( $orphanBranches ) {
-					Write-Host "`n[$scriptName] Perform $gitCustomCleanup for $orphanBranches"
-					executeExpression "$gitCustomCleanup $SOLUTION `$orphanBranches"
-					}
+					Write-Host "`n[$scriptName] gitCustomCleanup not defined in $SOLUTIONROOT/CDAF.solution, skipping ..."
 				}
 			}
 		}
