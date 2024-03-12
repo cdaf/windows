@@ -505,22 +505,20 @@ if ( $skipBranchCleanup ) {
 					}
 				}
 				if (!( $remoteArray )) { ERRMSG "[$scriptName] git ls-remote --heads provided no branches!" 6926 }
-				foreach ($remoteBranch in $remoteArray) { # verify array contents
-					Write-Host "  $remoteBranch"
-				}
-
 				if ( $usingCache ) { # cache only required to build remoteArray
 					executeExpression "cd $WORKSPACE_ROOT"
 				}
 
-				if ( $headAttached ) {
-					Write-Host "`n[$scriptName] Process Local branches (git branch --format='%(refname:short)')`n"
-					foreach ( $localBranch in $(git branch --format='%(refname:short)') ) {
-						if ( $remoteArray.Contains($localBranch) ) {
-							Write-Host "  keep branch ${localBranch}"
-						} else {
+				Write-Host "`n[$scriptName] Process Local branches (git branch --format='%(refname:short)')`n"
+				foreach ( $localBranch in $(git branch --format='%(refname:short)') ) {
+					if ( $remoteArray.Contains($localBranch) ) {
+						Write-Host "  keep branch '${localBranch}'"
+					} else {
+						$orphanBranches += $localBranch
+						if ( $headAttached ) {
 							executeSuppress "  git branch -D '${localBranch}'"
-							$orphanBranches += $localBranch
+						} else {
+							Write-Host "  '${localBranch}' is orphan"
 						}
 					}
 				}
