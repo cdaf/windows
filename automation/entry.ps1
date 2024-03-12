@@ -509,17 +509,20 @@ if ( $skipBranchCleanup ) {
 					executeExpression "cd $WORKSPACE_ROOT"
 				}
 
-				Write-Host "`n[$scriptName] Process Local branches (git branch --format='%(refname:short)')`n"
-				foreach ( $localBranch in $(git branch --format='%(refname:short)') ) {
-					if ( $remoteArray.Contains($localBranch) ) {
-						Write-Host "  keep branch '${localBranch}'"
-					} else {
-						$orphanBranches += $localBranch
-						if ( $headAttached ) {
-							executeSuppress "  git branch -D '${localBranch}'"
+				if ( $headAttached ) {
+					Write-Host "`n[$scriptName] Process Local branches (git branch --format='%(refname:short)')`n"
+					foreach ( $localBranch in $(git branch --format='%(refname:short)') ) {
+						if ( $remoteArray.Contains($localBranch) ) {
+							Write-Host "  keep branch ${localBranch}"
 						} else {
-							Write-Host "  '${localBranch}' is orphan"
+							executeSuppress "  git branch -D '${localBranch}'"
+							$orphanBranches += $localBranch
 						}
+					}
+				} else {
+					Write-Host "`n[$scriptName] Detached head, branches not processed:"
+					foreach ($remoteBranch in $remoteArray) { # verify array contents
+						Write-Host "  $remoteBranch"
 					}
 				}
 
