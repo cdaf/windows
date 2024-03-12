@@ -452,7 +452,7 @@ if ( $skipBranchCleanup ) {
 					} else {
 						$cacheDir = "$env:TEMP\.cdaf-cache"
 					}
-					$gitRemoteURL = $gitRemoteURL.Trim('/') # remove trailing /                                          # remove trailing /
+					$gitRemoteURL = $gitRemoteURL.Trim('/')                                              # remove trailing /
 					$env:CDAF_DEBUG_LOGGING += "[DETACHED_HEAD_URL] gitRemoteURL = $gitRemoteURL`n"
 					$tempParent = (Split-Path -Path $gitRemoteURL -Parent).Replace('https:\', $cacheDir) # retain parent directory for create if required
 					$repoName = $gitRemoteURL.Split('/')[-1].Split('.')[0]                               # retrieve basename and remove extension
@@ -511,18 +511,19 @@ if ( $skipBranchCleanup ) {
 
 				if ( $headAttached ) {
 					Write-Host "`n[$scriptName] Process Local branches (git branch --format='%(refname:short)')`n"
-					foreach ( $localBranch in $(git branch --format='%(refname:short)') ) {
-						if ( $remoteArray.Contains($localBranch) ) {
-							Write-Host "  keep branch ${localBranch}"
-						} else {
-							executeSuppress "  git branch -D '${localBranch}'"
-							$orphanBranches += $localBranch
-						}
-					}
 				} else {
-					Write-Host "`n[$scriptName] Detached head, branches not processed:"
-					foreach ($remoteBranch in $remoteArray) { # verify array contents
-						Write-Host "  $remoteBranch"
+					Write-Host "`n[$scriptName] Process Local branches (git branch --format='%(refname:short)'), orphan branches will not be deleted for detached head.`n"
+				}
+				foreach ( $localBranch in $(git branch --format='%(refname:short)') ) {
+					if ( $remoteArray.Contains($localBranch) ) {
+						Write-Host "  keep branch '${localBranch}'"
+					} else {
+						# $orphanBranches += $localBranch
+						if ( $headAttached ) {
+							executeSuppress "  git branch -D '${localBranch}'"
+						} else {
+							Write-Host "  orphan brench '${localBranch}' not deleted"
+						}
 					}
 				}
 
