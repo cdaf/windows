@@ -498,6 +498,7 @@ if ( $skipBranchCleanup ) {
 
 			if (!( $skipRemoteBranchCheck )) {
 				$remoteArray = @()
+				$orphanBranches = @()
 				foreach ( $remoteBranch in $lsRemote ) {
 					if ( $remoteBranch.Contains('/')) {
 						$remoteArray += $remoteBranch.Split('/')[-1]
@@ -519,6 +520,7 @@ if ( $skipBranchCleanup ) {
 							Write-Host "  keep branch ${localBranch}"
 						} else {
 							executeSuppress "  git branch -D '${localBranch}'"
+							$orphanBranches += $localBranch
 						}
 					}
 				}
@@ -526,8 +528,10 @@ if ( $skipBranchCleanup ) {
 				if (!( $gitCustomCleanup )) {
 					Write-Host "`n[$scriptName] gitCustomCleanup not defined in $SOLUTIONROOT/CDAF.solution, skipping ..."
 				} else {
-					Write-Host
-					executeExpression "$gitCustomCleanup $SOLUTION `$remoteArray"
+					if ( $orphanBranches ) {
+					Write-Host "`n[$scriptName] Perform $gitCustomCleanup for $orphanBranches"
+					executeExpression "$gitCustomCleanup $SOLUTION `$orphanBranches"
+					}
 				}
 			}
 		}
