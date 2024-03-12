@@ -70,12 +70,14 @@ if ($passedArray)
 	{
 		# verify array contents
 		$i++
-		Write-Host "[$scriptName]   remoteBranch${i} : $remoteBranch"
 		if ( $remoteBranch -match '/' )
 		{
 			$remoteBranch = $remoteBranch.Split('/')[-1]
 		}
-		$aphaNumArray += ($remoteBranch -replace '[^a-zA-Z0-9]', '').ToLower()
+		$remoteBranch = ($remoteBranch -replace '[^a-zA-Z0-9]', '').ToLower()
+		Write-Host "[$scriptName]   remoteBranch${i} : $remoteBranch"
+		$aphaNumArray += $remoteBranch
+#		Write-Host "[DEBUG] `$aphaNumArray = $aphaNumArray"
 	}
 }
 else
@@ -99,9 +101,9 @@ foreach ( $image in $(docker images "${SOLUTION}*" --format "{{.Repository}}:{{.
 			Write-Host "`n[$scriptName] $imageBranch length is $length, skipping...`"`n"
 		}
 		else {
-			# Write-Host "[DEBUG] `$imageBranch, `$id, `$offset, `$length = $imageBranch, $id, $offset, $length"
+#			Write-Host "[DEBUG] `$imageBranch, `$id, `$offset, `$length = $imageBranch, $id, $offset, $length"
 			$imageCompare = ($imageBranch.Substring($offset, $length).ToLower())
-			# Write-Host "[DEBUG] `$imageCompare = $imageCompare"
+#			Write-Host "[DEBUG] `$imageCompare = $imageCompare"
 			if ( $aphaNumArray.Contains($imageCompare) ) {
 				Write-Host "  keep $imageBranch"
 			}
