@@ -248,6 +248,7 @@ $buildCommand += " --label=cdaf.${imageName}.image.version=${version}"
 
 # 2.6.1 Default Dockerfile for containerBuild
 if (!( Test-Path '.\Dockerfile' )) {
+	$temp_dockerfile = 'yes'
 	Write-Host "`n[$scriptName] .\Dockerfile not found, creating default`n"
 
 	Set-Content '.\Dockerfile' '# DOCKER-VERSION 1.2.0'
@@ -269,6 +270,11 @@ if (!( Test-Path '.\Dockerfile' )) {
 # Execute the constucted build command using dockerfile from current directory (.)
 $env:PROGRESS_NO_TRUNC = '1'
 executeExpression "$buildCommand ."
+
+if ( $temp_dockerfile ) {
+	Write-Host "`n[$scriptName] Clean-up default dockerfile`n"
+	executeExpression "Remove-Item -Force ./Dockerfile"
+}
 
 Write-Host "`n[$scriptName] List Resulting images...`n"
 executeExpression "docker images --filter label=cdaf.${imageName}.image.version"
