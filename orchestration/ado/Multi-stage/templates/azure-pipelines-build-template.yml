@@ -5,8 +5,9 @@ jobs:
       vmImage: windows-latest
 #      vmImage: windows-2019
 
-#    pool:
-#      name: Self-hosted Pool Name
+#    pool: # Self-hosted Pool Name
+#      name: Default
+#      demands: Agent.OS -equals Windows_NT
 
     steps:
 #       - task: PowerShell@2
