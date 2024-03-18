@@ -234,6 +234,12 @@ Get-Content manifest.txt
 write-host "`n[$scriptName] Always create local working artefacts, even if all tasks are remote" -ForegroundColor Blue
 executeExpression "& '$AUTOMATIONROOT\buildandpackage\packageLocal.ps1' '$SOLUTION' '$BUILDNUMBER' '$REVISION' '$LOCAL_WORK_DIR' '$SOLUTIONROOT' '$AUTOMATIONROOT'"
 
+# Process optional post-packaging tasks (wrap.tsk added in release 0.8.2)
+if (Test-Path "$postpackageTasks") {
+	Write-Host "`n[$scriptName] Process Post-Package Tasks ...`n"
+	executeExpression "& '$AUTOMATIONROOT\remote\execute.ps1' '$SOLUTION' '$BUILDNUMBER' 'package' '$postpackageTasks' '$ACTION'"
+}
+
 # 1.7.8 Only create the remote package if there is a remote target folder or a artefact definition list, if folder exists
 # create the remote package (even if there are no target files within it)
 # 2.4.0 create remote package for use in container deployment
@@ -243,12 +249,6 @@ if (( Test-Path "$containerPropertiesDir" -pathtype container) -or ( Test-Path "
 
 } else {
 	write-host "`n[$scriptName] Remote Properties directory ($remotePropertiesDir) or storeForRemote file do not exist, no action performed for remote task packaging" -ForegroundColor Yellow
-}
-
-# Process optional post-packaging tasks (wrap.tsk added in release 0.8.2)
-if (Test-Path "$postpackageTasks") {
-	Write-Host "`n[$scriptName] Process Post-Package Tasks ...`n"
-	executeExpression "& '$AUTOMATIONROOT\remote\execute.ps1' '$SOLUTION' '$BUILDNUMBER' 'package' '$postpackageTasks' '$ACTION'"
 }
 
 write-host "`n[$scriptName]   --- Package Complete ---" -ForegroundColor Green
