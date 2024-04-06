@@ -1,3 +1,4 @@
+# CDAF Working Files
 /TasksLocal/
 /TasksRemote/
 /projectDirectories.txt
@@ -12,3 +13,7 @@
 /release.ps1
 /*.zip
 /*.tar.gz
+/bin/
+
+# Exclude CDAF Copy for containerBuild process
+# /automation/
