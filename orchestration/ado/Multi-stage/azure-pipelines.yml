@@ -7,7 +7,7 @@ trigger:
 
 stages:
 - stage: DEV
-  displayName: Build and Package
+  displayName: CI
 #  variables:
 #  - group: Git Reader
   jobs:
@@ -22,7 +22,7 @@ stages:
   jobs:
   - template: templates/azure-pipelines-deployment-template.yml
     parameters:
-      displayName: Deployment Group
+      displayName: CD
       environment: TEST
 
 - stage: PROD
@@ -34,5 +34,5 @@ stages:
   jobs:
   - template: templates/azure-pipelines-deployment-template.yml
     parameters:
-      displayName: Deployment Group
+      displayName: CD
       environment: PROD

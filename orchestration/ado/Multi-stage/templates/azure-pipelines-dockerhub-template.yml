@@ -18,7 +18,7 @@ jobs:
               artifactName: drop
 
           - task: PowerShell@2
-            displayName: Execute Loosely Coupled Deployment
+            displayName: CDAF Release Package
             env: 
               DOCKERHUB_TOKEN: $(DOCKERHUB_TOKEN)
             inputs:

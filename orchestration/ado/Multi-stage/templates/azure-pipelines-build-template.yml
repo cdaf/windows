@@ -18,7 +18,7 @@ jobs:
 #           script: dir ; systeminfo
 
       - task: PowerShell@2
-        displayName: CI Process
+        displayName: CDAF Release Build
 #        env: 
 #          GIT_USER: $(GIT_USER)
 #          GIT_PASS: $(GIT_PASS)

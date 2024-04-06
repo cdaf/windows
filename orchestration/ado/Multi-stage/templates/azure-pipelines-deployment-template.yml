@@ -34,7 +34,7 @@ jobs:
           #     script: dir ; systeminfo
 
           - task: PowerShell@2
-            displayName: CD Process
+            displayName: CDAF Release Package
 #            env: 
 #              CONNECTION_STRING: $(CONNECTION_STRING)
 #              DATABASE_PASSWORD: $(DATABASE_PASSWORD)
