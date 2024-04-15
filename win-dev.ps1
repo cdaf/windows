@@ -123,6 +123,32 @@ function executeCMD ($expression, $ignore) {
 	}
 }
 
+# Execute expression, log errors but ignore and proceed
+function IGNORE ($expression) {
+	if ( $expression ) {
+		Write-Host "[$(Get-Date)] $expression"
+		try {
+			Invoke-Expression "$expression"
+			if(!$?) {
+				ERRMSG "[IGNORE][ERROR] `$? = $?"
+			}
+		} catch {
+			$_.Exception | format-list -force
+			$_.Exception.StackTrace
+			ERRMSG "[IGNORE][EXCEPTION] $_.Exception"
+		}
+		if ( $LASTEXITCODE ) {
+			if ( $LASTEXITCODE -ne 0 ) {
+				ERRMSG "[IGNORE][LASTEXITCODE] `$LASTEXITCODE = $LASTEXITCODE`n"
+				cmd /c "exit 0"
+			}
+		}
+		if ( $error ) {
+			ERRMSG "[IGNORE][WARN] `$Error[] = $Error"
+		}
+	}
+}
+
 function MD5MSK ($value) {
 	(Get-FileHash -InputStream $([IO.MemoryStream]::new([byte[]][char[]]$value)) -Algorithm MD5).Hash
 }
@@ -295,7 +321,7 @@ if (( $virtualisation -eq 'hyperv' ) -or ( $virtualisation -eq 'docker' )) {
     $extensions += "vscoss.vscode-ansible"
 
     foreach ($extension in $extensions) {
-        executeExpression "code --install-extension $extension --force"
+        IGNORE "code --install-extension $extension --force"
     }
 
     Write-Host "Google does not provide a static download for Chrome, so checksum can briefly fail on new releases, if install fails, this script will not error."
