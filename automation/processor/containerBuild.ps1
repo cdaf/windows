@@ -171,14 +171,14 @@ if ( $buildImage ) {
 		${prefix} = (${SOLUTION}.ToUpper()).replace('-','_')
 		foreach ( $envVar in Get-ChildItem env:) {
 			if ($envVar.Name.Contains("CDAF_${prefix}_CB_")) {
-				${buildCommand} += " --env '$(${envVar}.Name.Replace(`"CDAF_${prefix}_CB_`", ''))=$(${envVar}.Value)'"
+				${buildCommand} += " $env:CDAF_CB_ARGS --env '$(${envVar}.Name.Replace(`"CDAF_${prefix}_CB_`", ''))=$(${envVar}.Value)'"
 			}
 		}
 
 		if ( $env:USERPROFILE ) {
-			executeExpression "docker run --volume '${env:USERPROFILE}\:C:/solution/home' --volume '${WORKSPACE_ROOT}\:C:/solution/workspace' $env:CDAF_CB_ARGS ${buildCommand} ${buildImage}:${imageTag} automation\ci.bat $buildNumber $revision container_build"
+			executeExpression "docker run --volume '${env:USERPROFILE}\:C:/solution/home' --volume '${WORKSPACE_ROOT}\:C:/solution/workspace' ${buildCommand} ${buildImage}:${imageTag} automation\ci.bat $buildNumber $revision container_build"
 		} else {
-			executeExpression "docker run --volume '${WORKSPACE_ROOT}\:C:/solution/workspace' $env:CDAF_CB_ARGS ${buildCommand} ${buildImage}:${imageTag} automation\ci.bat $buildNumber $revision container_build"
+			executeExpression "docker run --volume '${WORKSPACE_ROOT}\:C:/solution/workspace' ${buildCommand} ${buildImage}:${imageTag} automation\ci.bat $buildNumber $revision container_build"
 		}
 
 		Write-Host "`n[$scriptName] List and remove all stopped containers"
