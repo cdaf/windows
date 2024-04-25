@@ -74,6 +74,10 @@ if ( $imageName ) {
 	} else {
 		Write-Host "[$scriptName]   buildArgs      : (not supplied)"
 	}
+
+	if ( $env:CDAF_CB_ARGS ) {
+		Write-Host "[$scriptName]   CDAF_CB_ARGS   : $env:CDAF_CB_ARGS"
+	}
 	
 	$buildImage = "${imageName}_$($revision.ToLower())_containerbuild"
 	Write-Host "[$scriptName]   buildImage     : $buildImage"
@@ -172,9 +176,9 @@ if ( $buildImage ) {
 		}
 
 		if ( $env:USERPROFILE ) {
-			executeExpression "docker run --volume '${env:USERPROFILE}\:C:/solution/home' --volume '${WORKSPACE_ROOT}\:C:/solution/workspace' ${buildCommand} ${buildImage}:${imageTag} automation\ci.bat $buildNumber $revision container_build"
+			executeExpression "docker run --volume '${env:USERPROFILE}\:C:/solution/home' --volume '${WORKSPACE_ROOT}\:C:/solution/workspace' $env:CDAF_CB_ARGS ${buildCommand} ${buildImage}:${imageTag} automation\ci.bat $buildNumber $revision container_build"
 		} else {
-			executeExpression "docker run --volume '${WORKSPACE_ROOT}\:C:/solution/workspace' ${buildCommand} ${buildImage}:${imageTag} automation\ci.bat $buildNumber $revision container_build"
+			executeExpression "docker run --volume '${WORKSPACE_ROOT}\:C:/solution/workspace' $env:CDAF_CB_ARGS ${buildCommand} ${buildImage}:${imageTag} automation\ci.bat $buildNumber $revision container_build"
 		}
 
 		Write-Host "`n[$scriptName] List and remove all stopped containers"
