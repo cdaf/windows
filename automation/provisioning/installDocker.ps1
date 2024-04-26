@@ -117,7 +117,7 @@ if ( $compose_version ) {
 Write-Host "`n[$scriptName] Install docker-compose as per https://docs.docker.com/compose/install/"
 executeExpression '[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12'
 
-executeExpression "Invoke-WebRequest `"https://github.com/docker/compose/releases/download/${compose_version}/docker-compose-Windows-x86_64.exe`" -UseBasicParsing -OutFile `"`$env:windir\docker-compose.exe`""
+executeExpression "curl.exe -L --silent https://github.com/docker/compose/releases/download/${compose_version}/docker-compose-Windows-x86_64.exe -o $env:windir\docker-compose.exe"
 
 if ( $dockerUser ) {
 	Write-Host "`n[$scriptName] Add user to docker execution (without elevated admin session)"
@@ -128,7 +128,7 @@ if ( $dockerUser ) {
 
 if ( $ecosystem -eq 'containerd' ) {
 
-	executeExpression "Invoke-WebRequest -UseBasicParsing `"https://raw.githubusercontent.com/microsoft/Windows-Containers/Main/helpful_tools/Install-ContainerdRuntime/install-containerd-runtime.ps1`" -o install-containerd-runtime.ps1"
+	executeExpression "curl.exe -L --silent https://raw.githubusercontent.com/microsoft/Windows-Containers/Main/helpful_tools/Install-ContainerdRuntime/install-containerd-runtime.ps1 -o install-containerd-runtime.ps1"
 	REPLAC ".\install-containerd-runtime.ps1" "Restart-Computer -Force" "Write-Host 'Restart-Computer -Force'"
 	REPLAC ".\install-containerd-runtime.ps1" "Restart-Computer" "Write-Host 'Restart-Computer'"
 	REPLAC ".\install-containerd-runtime.ps1" "Set-ItemProperty -Path" "swap1`nSet-ItemProperty -Path"
@@ -137,7 +137,7 @@ if ( $ecosystem -eq 'containerd' ) {
 
 } else {
 
-	executeExpression "Invoke-WebRequest -UseBasicParsing `"https://raw.githubusercontent.com/microsoft/Windows-Containers/Main/helpful_tools/Install-DockerCE/install-docker-ce.ps1`" -o install-docker-ce.ps1"
+	executeExpression "curl.exe -L --silent https://raw.githubusercontent.com/microsoft/Windows-Containers/Main/helpful_tools/Install-DockerCE/install-docker-ce.ps1 -o install-docker-ce.ps1"
 	REPLAC ".\install-docker-ce.ps1" "Restart-Computer -Force" "Write-Host 'Restart-Computer -Force'"
 	REPLAC ".\install-docker-ce.ps1" "Restart-Computer" "Write-Host 'Restart-Computer'"
 	executeExpression ".\install-docker-ce.ps1"
