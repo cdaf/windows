@@ -137,6 +137,11 @@ if ( $restart ) {
     Write-Host "[$scriptName]  restart    : $restart (set to default)"
 }
 
+$CurrentBuild = (Get-ItemProperty -Path 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion' -Name 'CurrentBuild').CurrentBuild
+if ( $CurrentBuild -lt 17763 ) {
+	ERRMSG "[UNSUPPORTED] Docker Supported for Windows Server 2019 and above. Build must be after 17763, this build is $CurrentBuild" 1215
+}
+
 if ( $compose_version ) {
     Write-Host "[$scriptName]  compose    : ${compose_version}"
 } else {
@@ -144,8 +149,7 @@ if ( $compose_version ) {
     Write-Host "[$scriptName]  compose    : ${compose_version} (default)"
 }
 
-$CurrentBuild = (Get-ItemProperty -Path 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion' -Name 'CurrentBuild').CurrentBuild
-write-host "[$scriptName]  Win build  : $CurrentBuild"
+write-host "[$scriptName]  Win build  : ${CurrentBuild}`n"
 
 if ( $dockerUser ) {
 	Write-Host "`n[$scriptName] Add user to docker execution (without elevated admin session)"
@@ -154,75 +158,28 @@ if ( $dockerUser ) {
 	executeExpression "Add-AccountToDockerAccess '$dockerUser'"
 }
 
-# Use old method for Windows Server 2016, else service will not start
-# fatal: failed to start daemon: this version of Windows does not support the docker daemon (Windows build 17763 or higher is required)
-if ( $CurrentBuild -lt 17763 ) {
-	$AllProtocols = [System.Net.SecurityProtocolType]'Tls11,Tls12'
-	executeExpression '[System.Net.ServicePointManager]::SecurityProtocol = $AllProtocols'
-	executeExpression "Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.201 -Verbose -Force $proxyParameter"
-	
-	# Found these repositories unreliable so included retry logic
-	$galleryAvailable = Get-PSRepository -Name PSGallery*
-	if ($galleryAvailable) {
-		Write-Host "[$scriptName] $((Get-PSRepository -Name PSGallery).Name) is already available"
-	} else {
-		executeRetry "Register-PSRepository -Default"
-	}
-	
-	# Avoid "You are installing the modules from an untrusted repository" message
-	executeRetry "Set-PSRepository -Name PSGallery -InstallationPolicy Trusted"
-	
-	executeRetry "Find-PackageProvider $proxyParameter *docker* | Format-Table Name, Version, Source"
-	
-	executeRetry "Install-Module NuGet -Confirm:`$False $proxyParameter"
-	
-	executeRetry "Install-Module -Name $provider -Repository PSGallery -Confirm:`$False -Verbose -Force $proxyParameter"
-	
-	executeRetry "Get-PackageSource | Format-Table Name, ProviderName, IsTrusted"
-	
-	executeRetry "Install-Package -Name 'Docker' -ProviderName $provider -Confirm:`$False -Verbose -Force $versionParameter"
-	
-	executeExpression "sc.exe config docker start= delayed-auto"
-	
-	if ( $env:ENABLE_TCP ) {
-		if (!( Test-Path C:\ProgramData\docker\config\ )) {
-			executeExpression "mkdir C:\ProgramData\docker\config\"
-		}
-		try {
-			Add-Content C:\ProgramData\docker\config\daemon.json '{ "hosts": ["tcp://0.0.0.0:2375","npipe://"] }'
-			Write-Host "`n[$scriptName] Enable TCP in config, will be applied after restart`n"
-			executeExpression "Get-Content C:\ProgramData\docker\config\daemon.json" 
-		} catch { Write-Output $_.Exception|format-list -force; exit 478 }
-	}
-	
-	Write-Host "`n[$scriptName] Install docker-compose as per https://docs.docker.com/compose/install/"
-	
-	executeExpression '[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12'
-	executeExpression "Invoke-WebRequest 'https://github.com/docker/compose/releases/download/${compose_version}/docker-compose-Windows-x86_64.exe' -UseBasicParsing -OutFile `$Env:ProgramFiles\docker\docker-compose.exe"
+if ( $ecosystem -eq 'containerd' ) {
+	Write-Host "`n[$scriptName] Install Server containerd docker`n"
+
+	executeExpression "curl.exe -L --silent https://raw.githubusercontent.com/microsoft/Windows-Containers/Main/helpful_tools/Install-ContainerdRuntime/install-containerd-runtime.ps1 -o install-containerd-runtime.ps1"
+	REPLAC ".\install-containerd-runtime.ps1" "Restart-Computer -Force" "Write-Host 'Restart-Computer -Force'"
+	REPLAC ".\install-containerd-runtime.ps1" "Restart-Computer" "Write-Host 'Restart-Computer'"
+	REPLAC ".\install-containerd-runtime.ps1" "Set-ItemProperty -Path" "swap1`nSet-ItemProperty -Path"
+	REPLAC ".\install-containerd-runtime.ps1" "swap1" 'cp "${NerdCTLPath}\nerdctl.exe" "${NerdCTLPath}\docker.exe"'
+	executeExpression ".\install-containerd-runtime.ps1 -NerdCTLVersion '1.1.0'"
 
 } else {
 
-	if ( $ecosystem -eq 'containerd' ) {
-	
-		executeExpression "curl.exe -L --silent https://raw.githubusercontent.com/microsoft/Windows-Containers/Main/helpful_tools/Install-ContainerdRuntime/install-containerd-runtime.ps1 -o install-containerd-runtime.ps1"
-		REPLAC ".\install-containerd-runtime.ps1" "Restart-Computer -Force" "Write-Host 'Restart-Computer -Force'"
-		REPLAC ".\install-containerd-runtime.ps1" "Restart-Computer" "Write-Host 'Restart-Computer'"
-		REPLAC ".\install-containerd-runtime.ps1" "Set-ItemProperty -Path" "swap1`nSet-ItemProperty -Path"
-		REPLAC ".\install-containerd-runtime.ps1" "swap1" 'cp "${NerdCTLPath}\nerdctl.exe" "${NerdCTLPath}\docker.exe"'
-		executeExpression ".\install-containerd-runtime.ps1 -NerdCTLVersion '1.1.0'"
-	
-	} else {
-	
-		executeExpression "curl.exe -L --silent https://raw.githubusercontent.com/microsoft/Windows-Containers/Main/helpful_tools/Install-DockerCE/install-docker-ce.ps1 -o install-docker-ce.ps1"
-		REPLAC ".\install-docker-ce.ps1" "Restart-Computer -Force" "Write-Host 'Restart-Computer -Force'"
-		REPLAC ".\install-docker-ce.ps1" "Restart-Computer" "Write-Host 'Restart-Computer'"
-		executeExpression ".\install-docker-ce.ps1"
-	
-	}
-	
-	Write-Host "`n[$scriptName] Install docker-compose as per https://docs.docker.com/compose/install/"
-	executeExpression "curl.exe -L --silent https://github.com/docker/compose/releases/download/${compose_version}/docker-compose-Windows-x86_64.exe -o $env:windir\docker-compose.exe"
+	Write-Host "`n[$scriptName] Install Docker CE"
+	executeExpression "curl.exe -L --silent https://raw.githubusercontent.com/microsoft/Windows-Containers/Main/helpful_tools/Install-DockerCE/install-docker-ce.ps1 -o install-docker-ce.ps1"
+	REPLAC ".\install-docker-ce.ps1" "Restart-Computer -Force" "Write-Host 'Restart-Computer -Force'"
+	REPLAC ".\install-docker-ce.ps1" "Restart-Computer" "Write-Host 'Restart-Computer'"
+	executeExpression ".\install-docker-ce.ps1"
+
 }
+
+Write-Host "`n[$scriptName] Install docker-compose as per https://docs.docker.com/compose/install/"
+executeExpression "curl.exe -L --silent https://github.com/docker/compose/releases/download/${compose_version}/docker-compose-Windows-x86_64.exe -o $env:windir\docker-compose.exe"
 
 if ($restart -eq 'yes') {
 	executeExpression "shutdown /r /t 10"
