@@ -365,6 +365,25 @@ if ( $LASTEXITCODE -ne 0 ) {
 	}
 }
 
+$versionTest = cmd /c "aws --version 2`>`&1 2>nul"
+if ( $LASTEXITCODE -ne 0 ) {
+	Write-Host "  AWS CLI                 : not installed"
+} else {
+	Write-Host "  AWS CLI                 : $(($versionTest.Split()[0]).Split('/')[-1])"
+}
+
+# SAM does not depend on AWS CLI
+$versionTest = cmd /c "sam --version 2`>`&1 2>nul"
+if ( $LASTEXITCODE -eq 0 ) {
+	Write-Host "    AWS SAM               : $($versionTest.Split()[-1])"
+}
+
+$env:JSII_SILENCE_WARNING_UNTESTED_NODE_VERSION = 'yes'
+$versionTest = cmd /c "cdk --version 2`>`&1 2>nul"
+if ( $LASTEXITCODE -eq 0 ) {
+	Write-Host "    AWS CDK               : $($versionTest.Split()[0])"
+}
+
 try { 
 	$msPath = Get-Item -Path 'HKLM:\Software\Microsoft\MSBuild\ToolsVersions\*' -ErrorAction SilentlyContinue
 	foreach ( $msbuild in $msPath ) {
