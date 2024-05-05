@@ -40,54 +40,54 @@ function executeExpression ($expression) {
 
 Write-Host "`n[$scriptName] ---------- start ----------"
 if ( $imageName ) {
-	Write-Host "[$scriptName]   imageName      : ${imageName} (passed, to be used in docker)"
+	Write-Host "[$scriptName]   imageName            : ${imageName} (passed, to be used in docker)"
 
 	if ( $buildNumber ) { 
-		Write-Host "[$scriptName]   buildNumber    : $buildNumber"
+		Write-Host "[$scriptName]   buildNumber          : $buildNumber"
 	} else {
-		Write-Host "[$scriptName]   buildNumber    : (not supplied)"
+		Write-Host "[$scriptName]   buildNumber          : (not supplied)"
 	}
 	
 	if ( $revision ) { 
-		Write-Host "[$scriptName]   revision       : $revision"
+		Write-Host "[$scriptName]   revision             : $revision"
 	} else {
 		$revision = 'container_build'
-		Write-Host "[$scriptName]   revision       : $revision (not supplied, set to default)"
+		Write-Host "[$scriptName]   revision             : $revision (not supplied, set to default)"
 	}
 	
 	if ( $action ) { 
-		Write-Host "[$scriptName]   action         : $action"
+		Write-Host "[$scriptName]   action               : $action"
 	} else {
 		$action = 'container_build'
-		Write-Host "[$scriptName]   action         : $action (not supplied, set to default)"
+		Write-Host "[$scriptName]   action               : $action (not supplied, set to default)"
 	}
 	
 	if ( $rebuildImage ) {
-		Write-Host "[$scriptName]   rebuildImage   : $rebuildImage (choices are yes, no or imageonly)"
+		Write-Host "[$scriptName]   rebuildImage         : $rebuildImage (choices are yes, no or imageonly)"
 	} else {
 		$rebuildImage = 'no'
-		Write-Host "[$scriptName]   rebuildImage   : $rebuildImage (not supplied, so set to default)"
+		Write-Host "[$scriptName]   rebuildImage         : $rebuildImage (not supplied, so set to default)"
 	}
 	
 	if ( $buildArgs ) {
-		Write-Host "[$scriptName]   buildArgs      : $buildArgs"
+		Write-Host "[$scriptName]   buildArgs            : $buildArgs"
 	} else {
-		Write-Host "[$scriptName]   buildArgs      : (not supplied)"
+		Write-Host "[$scriptName]   buildArgs            : (not supplied)"
 	}
 
-	if ( $env:CDAF_CB_ARGS ) {
-		Write-Host "[$scriptName]   CDAF_CB_ARGS   : $env:CDAF_CB_ARGS"
+	if ( $env:CDAF_DOCKER_RUN_ARGS ) {
+		Write-Host "[$scriptName]   CDAF_DOCKER_RUN_ARGS : $env:CDAF_DOCKER_RUN_ARGS"
 	}
 	
 	$buildImage = "${imageName}_$($revision.ToLower())_containerbuild"
-	Write-Host "[$scriptName]   buildImage     : $buildImage"
-	Write-Host "[$scriptName]   DOCKER_HOST    : $env:DOCKER_HOST"
-	Write-Host "[$scriptName]   pwd            : $(Get-Location)"
-	Write-Host "[$scriptName]   hostname       : $(hostname)"
-	Write-Host "[$scriptName]   whoami         : $(whoami)"
+	Write-Host "[$scriptName]   buildImage           : $buildImage"
+	Write-Host "[$scriptName]   DOCKER_HOST          : $env:DOCKER_HOST"
+	Write-Host "[$scriptName]   pwd                  : $(Get-Location)"
+	Write-Host "[$scriptName]   hostname             : $(hostname)"
+	Write-Host "[$scriptName]   whoami               : $(whoami)"
 
 } else {
-	Write-Host "[$scriptName]   imageName      : (not supplied, only process CDAF automation load)"
+	Write-Host "[$scriptName]   imageName            : (not supplied, only process CDAF automation load)"
 }
 
 if ( Test-Path ".\automation" ) {
@@ -171,7 +171,7 @@ if ( $buildImage ) {
 		${prefix} = (${SOLUTION}.ToUpper()).replace('-','_')
 		foreach ( $envVar in Get-ChildItem env:) {
 			if ($envVar.Name.Contains("CDAF_${prefix}_CB_")) {
-				${buildCommand} += " $env:CDAF_CB_ARGS --env '$(${envVar}.Name.Replace(`"CDAF_${prefix}_CB_`", ''))=$(${envVar}.Value)'"
+				${buildCommand} += " $env:CDAF_DOCKER_RUN_ARGS --env '$(${envVar}.Name.Replace(`"CDAF_${prefix}_CB_`", ''))=$(${envVar}.Value)'"
 			}
 		}
 
