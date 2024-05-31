@@ -1,10 +1,12 @@
-stages:
-  - build
-  - automated
-  - manual
-  - live
+# If stages is not defined in the .gitlab-ci.yml file, the default pipeline stages are:
+#stages:
+#  - .pre
+#  - build
+#  - test
+#  - deploy
+#  - .post
 
-cdaf-ci:
+CI:
   stage: build
 
   # To use native container runner with CDAF pre-installed
@@ -29,36 +31,25 @@ cdaf-ci:
     paths:
     - release.ps1
 
-cd:
-  stage: automated
+TEST:
+  stage: test
   tags:
     - batch
   script: "./release.ps1 $env:CI_JOB_NAME $env:CI_PIPELINE_ID"
   environment: "${CI_JOB_STAGE}"
   dependencies:
-    - cdaf-ci
+    - CI
   only:
     - master
 
-test:
-  stage: manual
+PRDO:
+  stage: deploy
   tags:
     - batch
   script: "./release.ps1 $env:CI_JOB_NAME $env:CI_PIPELINE_ID"
   environment: "${CI_JOB_STAGE}"
   dependencies:
-    - cdaf-ci
-  only:
-    - master
-
-production:
-  stage: live
-  tags:
-    - batch
-  script: "./release.ps1 $env:CI_JOB_NAME $env:CI_PIPELINE_ID"
-  environment: "${CI_JOB_STAGE}"
-  dependencies:
-    - cdaf-ci
+    - TEST
   only:
     - master
   when: manual
