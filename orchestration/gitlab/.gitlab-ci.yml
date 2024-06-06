@@ -42,7 +42,7 @@ TEST:
   only:
     - master
 
-PRDO:
+PROD:
   stage: deploy
   tags:
     - batch
@@ -53,3 +53,18 @@ PRDO:
   only:
     - master
   when: manual
+
+# To apply a hard-dependency on the manual gate, use "needs"
+#VERIFY:
+#  stage: publish
+#  image: cdaf/linux
+#  script: |
+#    ./release.sh ${CI_JOB_NAME} ${CI_PIPELINE_ID}
+#  dependencies:
+#    - CI
+#    - PROD
+#  needs:
+#    - CI
+#    - PROD
+#  only:
+#    - main
