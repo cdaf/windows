@@ -1,0 +1,3 @@
+echo "Child Project build verification"
+
+Get-ChildItem env:
