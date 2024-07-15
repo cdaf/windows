@@ -1,5 +1,0 @@
-echo "List Agent/Runner capabilities"
-& $AUTOMATIONROOT\remote\capabilities.ps1
-
-echo "Load Development Tool Paths"
-MSTOOL
