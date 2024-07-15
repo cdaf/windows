@@ -234,31 +234,29 @@ if ($tag) {
 # Apply required label for CDAF image management
 $buildCommand += " --label=cdaf.${imageName}.image.version=${tag}"
 
-# 2.6.1 Default Dockerfile for containerBuild
+# 2.6.1 Default Dockerfile
 if ( Test-Path '.\Dockerfile' ) {
 	$dockerfile_name = 'Dockerfile'
-	Write-Host
-	executeExpression "cat Dockerfile"
-	Write-Host
 } else {
 	$dockerfile_name = 'Dockerfile-db-temp'
 	Write-Host "`n[$scriptName] .\Dockerfile not found, creating default`n"
 
-	Set-Content '.\Dockerfile' '# DOCKER-VERSION 1.2.0'
-	Add-Content '.\Dockerfile' 'ARG CONTAINER_IMAGE'
-	Add-Content '.\Dockerfile' 'FROM ${CONTAINER_IMAGE}'
-	Add-Content '.\Dockerfile' ''
-	Add-Content '.\Dockerfile' 'WORKDIR /solution/workspace'
-	Add-Content '.\Dockerfile' ''
+	Set-Content $dockerfile_name '# DOCKER-VERSION 1.2.0'
+	Add-Content $dockerfile_name 'ARG CONTAINER_IMAGE'
+	Add-Content $dockerfile_name 'FROM ${CONTAINER_IMAGE}'
+	Add-Content $dockerfile_name ''
+	Add-Content $dockerfile_name 'WORKDIR /solution/workspace'
+	Add-Content $dockerfile_name ''
 	
 	$stringWithQuotes = 'SHELL ["powershell", "-Command", "$ErrorActionPreference = ' + "'Stop'" + '; $ProgressPreference = ' + "'Continue'" + '; $verbosePreference = ' + "'Continue'" + ';"]'
-	Add-Content '.\Dockerfile' $stringWithQuotes
-	Add-Content '.\Dockerfile' ''
-	Add-Content '.\Dockerfile' 'CMD ["Wait-Event"]'
-
-	Get-Content '.\Dockerfile'
-	Write-Host
+	Add-Content $dockerfile_name $stringWithQuotes
+	Add-Content $dockerfile_name ''
+	Add-Content $dockerfile_name 'CMD ["Wait-Event"]'
 }
+
+Write-Host
+Get-Content $dockerfile_name
+Write-Host
 
 # Execute the constructed build command using dockerfile from current directory (.), disable output truncation (windows only)
 $env:PROGRESS_NO_TRUNC = '1'
