@@ -47,28 +47,28 @@ if ( $imageName ) {
 	} else {
 		Write-Host "[$scriptName]   buildNumber          : (not supplied)"
 	}
-	
+
 	if ( $revision ) { 
 		Write-Host "[$scriptName]   revision             : $revision"
 	} else {
 		$revision = 'container_build'
 		Write-Host "[$scriptName]   revision             : $revision (not supplied, set to default)"
 	}
-	
+
 	if ( $action ) { 
 		Write-Host "[$scriptName]   action               : $action"
 	} else {
 		$action = 'container_build'
 		Write-Host "[$scriptName]   action               : $action (not supplied, set to default)"
 	}
-	
+
 	if ( $rebuildImage ) {
 		Write-Host "[$scriptName]   rebuildImage         : $rebuildImage (choices are yes, no or imageonly)"
 	} else {
 		$rebuildImage = 'no'
 		Write-Host "[$scriptName]   rebuildImage         : $rebuildImage (not supplied, so set to default)"
 	}
-	
+
 	if ( $buildArgs ) {
 		Write-Host "[$scriptName]   buildArgs            : $buildArgs"
 	} else {
@@ -78,7 +78,7 @@ if ( $imageName ) {
 	if ( $env:CDAF_DOCKER_RUN_ARGS ) {
 		Write-Host "[$scriptName]   CDAF_DOCKER_RUN_ARGS : $env:CDAF_DOCKER_RUN_ARGS"
 	}
-	
+
 	$buildImage = "${imageName}_$($revision.ToLower())_containerbuild"
 	Write-Host "[$scriptName]   buildImage           : $buildImage"
 	Write-Host "[$scriptName]   DOCKER_HOST          : $env:DOCKER_HOST"
@@ -117,17 +117,13 @@ if ( $buildImage ) {
 			$Error.Clear()
 		}
 	}
+	$newTag = $imageTag + 1
+
 	if ( $imageTag ) {
-		Write-Host "`n[$scriptName] Last image tag is $imageTag, new image will be $($imageTag + 1)"
+		Write-Host "`n[$scriptName] Last image tag is $imageTag, new image will be ${newTag}"
 	} else {
 		$imageTag = 0
-		Write-Host "`n[$scriptName] No existing images, new image will be $($imageTag + 1)"
-	}
-
-	if ( Test-Path Dockerfile ) {
-		Write-Host
-		executeExpression "cat Dockerfile"
-		Write-Host
+		Write-Host "`n[$scriptName] No existing images, new image will be ${newTag}"
 	}
 		
 	if ( $rebuildImage -eq 'yes') {
@@ -138,11 +134,10 @@ if ( $buildImage ) {
 		$otherOptions += " -optionalArgs '$buildArgs'"
 	}
 
-	executeExpression "& '$AUTOMATIONROOT\remote\dockerBuild.ps1' ${buildImage} $($imageTag + 1) $otherOptions"
+	executeExpression "& '$AUTOMATIONROOT\remote\dockerBuild.ps1' ${buildImage} ${newTag} $otherOptions"
 
 	# Remove any older images	
-	executeExpression "& '$AUTOMATIONROOT\remote\dockerClean.ps1' ${buildImage} $($imageTag + 1)"
-	
+	executeExpression "& '$AUTOMATIONROOT\remote\dockerClean.ps1' ${buildImage} ${newTag}"
 	if ( $rebuildImage -ne 'imageonly') {
 		# Retrieve the latest image number
 		$imageTag = 0

@@ -1,7 +1,6 @@
 Param (
 	[string]$imageName,
 	[string]$tag,
-	[string]$version,
 	[string]$rebuild,
 	[string]$optionalArgs,
 	[string]$baseImage
@@ -74,17 +73,6 @@ if ( $tag ) {
     Write-Host "[$scriptName] tag                      : $tag"
 } else {
     Write-Host "[$scriptName] tag                      : not supplied"
-}
-
-if ( $version ) {
-    Write-Host "[$scriptName] version                  : $version"
-} else {
-	if ( $tag ) {
-		$version = $tag
-	} else {
-		$version = '0.0.0'
-	}
-    Write-Host "[$scriptName] version                  : $version (not supplied, defaulted to tag if passed, else set to 0.0.0)"
 }
 
 if ( $rebuild ) {
@@ -244,11 +232,16 @@ if ($tag) {
 }
 
 # Apply required label for CDAF image management
-$buildCommand += " --label=cdaf.${imageName}.image.version=${version}"
+$buildCommand += " --label=cdaf.${imageName}.image.version=${tag}"
 
 # 2.6.1 Default Dockerfile for containerBuild
-if (!( Test-Path '.\Dockerfile' )) {
-	$temp_dockerfile = 'yes'
+if ( Test-Path '.\Dockerfile' ) {
+	$dockerfile_name = 'Dockerfile'
+	Write-Host
+	executeExpression "cat Dockerfile"
+	Write-Host
+} else {
+	$dockerfile_name = 'Dockerfile-db-temp'
 	Write-Host "`n[$scriptName] .\Dockerfile not found, creating default`n"
 
 	Set-Content '.\Dockerfile' '# DOCKER-VERSION 1.2.0'
@@ -267,13 +260,13 @@ if (!( Test-Path '.\Dockerfile' )) {
 	Write-Host
 }
 
-# Execute the constucted build command using dockerfile from current directory (.)
+# Execute the constructed build command using dockerfile from current directory (.), disable output truncation (windows only)
 $env:PROGRESS_NO_TRUNC = '1'
-executeExpression "$buildCommand ."
+executeExpression "$buildCommand --file ${dockerfile_name} ."
 
-if ( $temp_dockerfile ) {
+if ( $dockerfile_name -eq 'Dockerfile-db-temp' ) {
 	Write-Host "`n[$scriptName] Clean-up default dockerfile`n"
-	executeExpression "Remove-Item -Force ./Dockerfile"
+	executeExpression "Remove-Item -Force $dockerfile_name"
 }
 
 Write-Host "`n[$scriptName] List Resulting images...`n"

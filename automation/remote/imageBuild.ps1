@@ -265,34 +265,6 @@ if (!( $id )) {
 
 			executeExpression "cd ${transient}\${image}"
 
-			# 2.6.1 Default Dockerfile for imageBuild
-			if ( ! ( Test-Path '.\Dockerfile' )) {
-				Write-Host "`n[$scriptName] .\Dockerfile not found, creating default`n"
-			
-				Set-Content '.\Dockerfile' '# DOCKER-VERSION 1.2.0'
-				Add-Content '.\Dockerfile' 'ARG CONTAINER_IMAGE'
-				Add-Content '.\Dockerfile' 'FROM ${CONTAINER_IMAGE}'
-				Add-Content '.\Dockerfile' ''
-				Add-Content '.\Dockerfile' 'WORKDIR /solution'
-				
-				$stringWithQuotes = 'SHELL ["powershell", "-Command", "$ErrorActionPreference = ' + "'Stop'" + '; $ProgressPreference = ' + "'Continue'" + '; $verbosePreference = ' + "'Continue'" + ';"]'
-				Add-Content '.\Dockerfile' $stringWithQuotes
-				Add-Content '.\Dockerfile' 'COPY ./ ./TasksLocal/'
-				if ( Test-Path "delivery.ps1" ) {
-					Add-Content '.\Dockerfile' 'RUN ./TasksLocal/delivery.ps1 IMMUTABLE'
-				}
-				Add-Content '.\Dockerfile' ''
-				Add-Content '.\Dockerfile' 'WORKDIR /solution/workspace'
-				Add-Content '.\Dockerfile' ''
-				if ( Test-Path "keepAlive.ps1" ) {
-					Add-Content '.\Dockerfile' 'CMD ["../keepAlive.ps1"]'
-				}
-			}
-
-			Write-Host "--- Dockerfile ---`n"    
-			Get-Content '.\Dockerfile'
-			Write-Host "`n--- Dockerfile ---`n"    
-
 			if ( $optionalArgs ) {
 				if ( $baseImage ) {
 					executeExpression "& '${CDAF_CORE}\dockerBuild.ps1' ${id}_${image} $BUILDNUMBER -optionalArgs '${optionalArgs}' -baseImage '$baseImage'"
