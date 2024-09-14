@@ -88,5 +88,8 @@ pipeline {
         changed {
             echo 'Things were different before...'
         }
+        always {
+            junit '**/target/surefire-reports/*.xml'
+        }        
     }	
 }
