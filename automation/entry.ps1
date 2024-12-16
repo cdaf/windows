@@ -408,7 +408,7 @@ if ( $skipBranchCleanup ) {
 		$env:CDAF_DEBUG_LOGGING += "[URL_LOADED] gitRemoteURL = $gitRemoteURL`n"
 
 		if (!( $gitRemoteURL )) {
-			Write-Host "[$scriptName] gitRemoteURL defined in $SOLUTIONROOT/CDAF.solution but not unresolved, skipping clean-up ..."
+			Write-Host "[$scriptName] gitRemoteURL defined in $SOLUTIONROOT/CDAF.solution but not resolved, skipping clean-up ..."
 		} else {
 
 			Write-Host "[$scriptName] gitRemoteURL = ${gitRemoteURL}, perform branch cleanup ..."
