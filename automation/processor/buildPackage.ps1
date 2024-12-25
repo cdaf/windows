@@ -805,6 +805,8 @@ if ( $ACTION -ne 'container_build' ) {
 			Add-Content "release.ps1" '  [string]$RELEASE,'
 			Add-Content "release.ps1" '  [string]$OPT_ARG'
 			Add-Content "release.ps1" ')'
+			Add-Content "release.ps1" 'cmd /c "exit 0"'
+			Add-Content "release.ps1" '$error.clear()'
 			Add-Content "release.ps1" 'Import-Module Microsoft.PowerShell.Utility'
 			Add-Content "release.ps1" 'Import-Module Microsoft.PowerShell.Management'
 			Add-Content "release.ps1" 'Import-Module Microsoft.PowerShell.Security'
