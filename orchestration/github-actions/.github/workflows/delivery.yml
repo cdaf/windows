@@ -50,11 +50,28 @@ jobs:
           cd ${env:GITHUB_WORKSPACE}\deploy
           .\release.ps1 DOCKER
 
-  # As at Jul 2021 there is no gating capability in GitHub Actions
-  prod:
+#  # As at Jul 2021 there is no gating capability in GitHub Actions
+#  prod:
+#    if: github.ref == 'refs/heads/master'
+#    name: Continuous Deploy
+#    needs: [build, test]
+#    runs-on: windows-latest
+#    steps:
+#      - name: Download Artifacts
+#        uses: actions/download-artifact@v4
+#        with:
+#          name: deploy
+#    
+#      - name: PROD
+#        shell: powershell # pwsh for PowerShell Core
+#        run: |
+#          cd ${env:GITHUB_WORKSPACE}\deploy
+#          .\release.ps1 PROD
+
+  push:
     if: github.ref == 'refs/heads/master'
-    name: Continuous Deploy
-    needs: build
+    name: Publish Image
+    needs: [build, test]
     runs-on: windows-latest
     steps:
       - name: Download Artifacts
@@ -62,8 +79,10 @@ jobs:
         with:
           name: deploy
     
-      - name: PROD
+      - name: PUSH
         shell: powershell # pwsh for PowerShell Core
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           cd ${env:GITHUB_WORKSPACE}\deploy
-          .\release.ps1 PROD
+          .\release.ps1 PUSH
