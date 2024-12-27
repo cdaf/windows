@@ -28,7 +28,7 @@ jobs:
           # .\automation\entry.ps1 ${env:GITHUB_RUN_NUMBER} ${env:GITHUB_REF}
 
       - name: Artifact Retention
-        uses: actions/upload-artifact@v1
+        uses: actions/upload-artifact@v4
         with:
           name: deploy
           path: release.ps1
@@ -40,7 +40,7 @@ jobs:
     runs-on: windows-latest
     steps:
       - name: Download Artifacts
-        uses: actions/download-artifact@v1
+        uses: actions/download-artifact@v4
         with:
           name: deploy
     
@@ -58,7 +58,7 @@ jobs:
     runs-on: windows-latest
     steps:
       - name: Download Artifacts
-        uses: actions/download-artifact@v1
+        uses: actions/download-artifact@v4
         with:
           name: deploy
     
