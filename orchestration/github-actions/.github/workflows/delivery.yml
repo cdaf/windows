@@ -43,11 +43,12 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: deploy
+          path: drop
     
       - name: DOCKER
         shell: powershell # pwsh for PowerShell Core
         run: |
-          cd ${env:GITHUB_WORKSPACE}\deploy
+          cd ${env:GITHUB_WORKSPACE}\drop
           .\release.ps1 DOCKER
 
 #  # As at Jul 2021 there is no gating capability in GitHub Actions
@@ -61,11 +62,12 @@ jobs:
 #        uses: actions/download-artifact@v4
 #        with:
 #          name: deploy
+#          path: drop
 #    
 #      - name: PROD
 #        shell: powershell # pwsh for PowerShell Core
 #        run: |
-#          cd ${env:GITHUB_WORKSPACE}\deploy
+#          cd ${env:GITHUB_WORKSPACE}\drop
 #          .\release.ps1 PROD
 
   push:
@@ -78,11 +80,12 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: deploy
+          path: drop
     
       - name: PUSH
         shell: powershell # pwsh for PowerShell Core
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          cd ${env:GITHUB_WORKSPACE}\deploy
+          cd ${env:GITHUB_WORKSPACE}\drop
           .\release.ps1 PUSH
