@@ -141,7 +141,7 @@ if ( $registryURL ) {
 		if ( $registryURL ) {
 		    Write-Host "[$scriptName]   registryURL     : $registryURL (loaded from manifest.txt)"
 		} else {
-		    Write-Host "[$scriptName]   registryURL     : (not supplied, do not set when pushing to Dockerhub)"
+		    Write-Host "[$scriptName]   registryURL     : (not supplied, do not set when pushing to Dockerhub, do not include HTTPS:// prefix)"
 		}
 	}
 }
