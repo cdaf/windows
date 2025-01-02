@@ -87,7 +87,9 @@ jobs:
       - name: PUSH
         shell: powershell # pwsh for PowerShell Core
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}      # Available for GitHub Container Registry
+          CI_REGISTRY_USER: ${{ vars.CI_REGISTRY_USER }} # any value when using Personal Access Token, e.g. '.'
+          CI_REGISTRY: ${{ vars.CI_REGISTRY }}           # for GitHub Container Registry use ghcr.io
         run: |
           cd ${env:GITHUB_WORKSPACE}\drop
           .\release.ps1 PUSH
