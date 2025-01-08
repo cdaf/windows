@@ -10,4 +10,6 @@ processSequence=containerTasks.ps1
 
 # Use non-default image build location, compose/test instead of containerDeploy, note when using a custom directory, this must be included in the storeFor or storeForLocal definition
 # containerDeploy=& ${WORK_DIR_DEFAULT}/containerDeploy.ps1 "${TARGET}" "${RELEASE}" "${SOLUTION}" "${BUILDNUMBER}" "${REVISION}" -imageDir compose/test
+
+# containerDeploy files, can be space separated list
 # runtimeFiles=$WORKSPACE_ROOT\release.ps1
