@@ -70,7 +70,7 @@ if (!($dockerExpose)) {
     if ($dockerOpt) {
         Write-Host "[$scriptName] dockerOpt     : $dockerOpt"
     } else {
-        Write-Host "[$scriptName] dockerOpt     : not passed"
+        Write-Host "[$scriptName] dockerOpt     : not passed, e.g. --restart unless-stopped"
     }
 }
 
