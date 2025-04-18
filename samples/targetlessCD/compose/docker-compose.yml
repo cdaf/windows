@@ -1,15 +1,18 @@
 version: "3"
 services:
-    target:
-        image: "${TARGET_TAG}"
-    test:
-        image: "${TEST_TAG}"
-        volumes:
-          - ${WORK_SPACE}:c:/solution/workspace
-        links:
-          - target:target
-        depends_on:
-          - target
+  target:
+    image: "${TARGET_TAG}"
+    environment:
+      - MICRO_LISTEN_PORT=${MICRO_LISTEN_PORT}
+
+  test:
+    image: "${TEST_TAG}"
+    volumes:
+      - ${WORK_SPACE}:c:/solution/workspace
+    links:
+      - target:target
+    depends_on:
+      - target
 
 # For binding to existing networks by name, without this a default NAT will be created
 #networks:
