@@ -9,8 +9,6 @@ services:
     image: "${TEST_TAG}"
     volumes:
       - ${WORK_SPACE}:c:/solution/workspace
-    links:
-      - target:target
     depends_on:
       - target
 
