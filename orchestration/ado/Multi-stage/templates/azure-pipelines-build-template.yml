@@ -1,6 +1,6 @@
 jobs:
   - job: Build
-    displayName: Build and Package
+    displayName: ${{ parameters.displayName }}
     pool:
       vmImage: windows-latest
 #      vmImage: windows-2019
