@@ -12,6 +12,8 @@ stages:
 #  - group: Git Reader
   jobs:
   - template: templates/azure-pipelines-build-template.yml
+    parameters:
+      displayName: CI
 
 - stage: TEST
   displayName: User Acceptence Test

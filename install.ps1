@@ -142,7 +142,7 @@ if ( $version ) {
 	if ( Test-Path "$(pwd)\automation" ) {
 		executeExpression "Remove-Item -Recurse '$(pwd)\automation'"
 	}
-	executeExpression "iwr -useb http://cdaf.io/static/app/downloads/WU-CDAF-${version}.zip -outfile WU-CDAF-${version}.zip"
+	executeExpression "iwr -useb https://cdaf.io/static/app/downloads/WU-CDAF-${version}.zip -outfile WU-CDAF-${version}.zip"
 	executeExpression "Add-Type -AssemblyName System.IO.Compression.FileSystem"
 	executeExpression "[System.IO.Compression.ZipFile]::ExtractToDirectory('$(pwd)\WU-CDAF-${version}.zip', '$(pwd)')"
 	moveOrCopy "'$(pwd)\automation' '${installPath}'"

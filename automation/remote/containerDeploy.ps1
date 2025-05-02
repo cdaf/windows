@@ -211,23 +211,30 @@ executeExpression "& '$CDAF_CORE\dockerBuild.ps1' ${id} ${BUILDNUMBER}"
 Write-Host "[$scriptName] Perform Remote Deployment activity using image ${id}:${BUILDNUMBER}"
 foreach ( $envVar in Get-ChildItem env:) {
 	if ($envVar.Name.Contains('CDAF_CD_')) {
-		${buildCommand} += " --env '$(${envVar}.Name.Replace('CDAF_CD_', ''))=$(${envVar}.Value)'"
+		$buildCommand += " --env '$(${envVar}.Name.Replace('CDAF_CD_', ''))=$(${envVar}.Value)'"
 	}
 }
 
 ${prefix} = (${SOLUTION}.ToUpper()).replace('-','_')
 foreach ( $envVar in Get-ChildItem env:) {
 	if ($envVar.Name.Contains("CDAF_${prefix}_CD_")) {
-		${buildCommand} += " --env '$(${envVar}.Name.Replace(`"CDAF_${prefix}_CD_`", ''))=$(${envVar}.Value)'"
+		$buildCommand += " --env '$(${envVar}.Name.Replace(`"CDAF_${prefix}_CD_`", ''))=$(${envVar}.Value)'"
+	}
+}
+
+# 2.8.2 Use the complete contents of run options environment variables without manipulation
+foreach ( $envVar in Get-ChildItem env:) {
+	if ($envVar.Name.Contains('CDAF_OPT_')) {
+		$buildCommand += ' ' + $envVar.Value
 	}
 }
 
 if (( ! $env:USERPROFILE ) -or ( $env:CDAF_HOME_MOUNT -eq 'no' )) {
 	Write-Host "[$scriptName] `$CDAF_HOME_MOUNT = ${env:CDAF_HOME_MOUNT} (environment variable)"
 	Write-Host "[$scriptName] `$USERPROFILE     = ${env:USERPROFILE} (environment variable)"
-	executeExpression "docker run ${buildCommand} --label cdaf.${id}.container.instance=${REVISION} --name ${id} ${id}:${BUILDNUMBER} deploy.bat `"${TARGET}`" `"${RELEASE}`" `"${OPT_ARG}`""
+	executeExpression "docker run $buildCommand --label cdaf.${id}.container.instance=${REVISION} --name ${id} ${id}:${BUILDNUMBER} deploy.bat `"${TARGET}`" `"${RELEASE}`" `"${OPT_ARG}`""
 } else {
-	executeExpression "docker run --volume '${env:USERPROFILE}:C:/solution/home' ${buildCommand} --label 'cdaf.${id}.container.instance=${REVISION}' --name ${id} ${id}:${BUILDNUMBER} deploy.bat `"${TARGET}`" `"${RELEASE}`" `"${OPT_ARG}`""
+	executeExpression "docker run --volume '${env:USERPROFILE}:C:/solution/home' $buildCommand --label 'cdaf.${id}.container.instance=${REVISION}' --name ${id} ${id}:${BUILDNUMBER} deploy.bat `"${TARGET}`" `"${RELEASE}`" `"${OPT_ARG}`""
 }
 
 Write-Host "`n[$scriptName] Shutdown containers based on '${id}'`n"

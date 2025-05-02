@@ -359,7 +359,9 @@ if ( $BRANCH -eq $defaultBranch ) {
 			$propList = & $AUTOMATIONROOT\remote\Transform.ps1 "$SOLUTIONROOT\feature-branch.properties"
 			foreach ( $featureProp in $propList ) {
 				$featurePrefix, $featureEnv = $featureProp -split '=', 2
-				$featurePrefix = $featurePrefix.substring(1) # trim off the $ prefix applied by Transform.ps1
+				$featurePrefix = $featurePrefix.substring(1)                    # trim off the $ prefix applied by Transform.ps1
+				$featureEnv = $featureEnv.substring(1)                          # trim off the opening ' applied by Transform.ps1
+				$featureEnv = $featureEnv.Substring(0, $featureEnv.Length - 1)  # trim off the closing ' applied by Transform.ps1
 				if ( $BRANCH -match ${featurePrefix} ) {
 					Write-Host "  Deploy feature branch containing '$featurePrefix'"
 					$featureBranchProcess = 'yes'
