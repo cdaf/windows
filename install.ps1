@@ -6,12 +6,16 @@
 # Download to named directory and add to path, without this, will simply download and extract in current directory
 # . { iwr -useb https://raw.githubusercontent.com/cdaf/windows/master/install.ps1 } | iex
 
+# Download specific version and add install directory (/opt/cdaf) to path 
+# . { iwr -useb https://raw.githubusercontent.com/cdaf/windows/master/install.ps1 } | iex -- '2.7.3' '/opt/cdaf'
+
 # Optional environment variables, alternative to downloading and passing arguments.
 # $env:CDAF_INSTALL_PATH = 'c:\cdaf'
 # $env:CDAF_INSTALL_VERSION = '2.7.3'
 
 Param (
-	[string]$version
+	[string]$version,
+	[string]$installPath
 )
 
 $scriptName = 'install.ps1'
@@ -125,15 +129,20 @@ if ( $version ) {
 	}
 }
 
-if ( $env:CDAF_INSTALL_PATH ) {
-	$installPath = $env:CDAF_INSTALL_PATH
-    Write-Host "[$scriptName]   installPath : $installPath (from `$env:CDAF_INSTALL_PATH)"
+if ( $installPath ) {
+	if ( $env:CDAF_INSTALL_PATH ) {
+		$installPath = $env:CDAF_INSTALL_PATH
+	    Write-Host "[$scriptName]   installPath : $installPath (from `$env:CDAF_INSTALL_PATH)"
+	} else {
+		$installPath = "$(pwd)\automation"
+	    Write-Host "[$scriptName]   installPath : $installPath (default)"
+	}
 } else {
-	$installPath = "$(pwd)\automation"
-    Write-Host "[$scriptName]   installPath : $installPath (default)"
+    Write-Host "[$scriptName]   installPath : $installPath"
 }
 
 if ( Test-Path $installPath ) {
+	$env:CDAF_INSTALL_PATH = "$installPath"
 	executeExpression "Remove-Item -Recurse '$installPath'"
 }
 
@@ -163,9 +172,8 @@ if ( $version ) {
 }
 
 if ( $env:CDAF_INSTALL_PATH ) {
-	executeExpression "${installPath}\provisioning\addPath.ps1 '${installPath}\provisioning'"
-	executeExpression "${installPath}\provisioning\addPath.ps1 '${installPath}\remote'"
-	executeExpression "${installPath}\provisioning\addPath.ps1 '${installPath}'"
+    . { iwr -useb https://raw.githubusercontent.com/cdaf/windows/refs/heads/master/provisioning/addPath.ps1 } | iex -- "${installPath}\remote"
+    . { iwr -useb https://raw.githubusercontent.com/cdaf/windows/refs/heads/master/provisioning/addPath.ps1 } | iex -- "${installPath}"
 }
 
 executeExpression "${installPath}\remote\capabilities.ps1"
