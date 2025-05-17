@@ -7,7 +7,7 @@
 # . { iwr -useb https://raw.githubusercontent.com/cdaf/windows/master/install.ps1 } | iex
 
 # Download specific version and add install directory (/opt/cdaf) to path 
-# . { iwr -useb https://raw.githubusercontent.com/cdaf/windows/master/install.ps1 } | iex -- '2.7.3' '/opt/cdaf'
+# Invoke-Expression "& { $(Invoke-WebRequest -useb https://raw.githubusercontent.com/cdaf/windows/refs/heads/master/provisioning/addPath.ps1) } '2.7.3' '/opt/cdaf'"
 
 # Optional environment variables, alternative to downloading and passing arguments.
 # $env:CDAF_INSTALL_PATH = 'c:\cdaf'
@@ -172,8 +172,8 @@ if ( $version ) {
 }
 
 if ( $env:CDAF_INSTALL_PATH ) {
-    curl -s https://raw.githubusercontent.com/cdaf/windows/refs/heads/master/provisioning/addPath.ps1 | powershell -Command "$input ${installPath}\remote"
-    curl -s https://raw.githubusercontent.com/cdaf/windows/refs/heads/master/provisioning/addPath.ps1 | powershell -Command "$input ${installPath}"
+    Invoke-Expression "& { $(Invoke-WebRequest -useb https://raw.githubusercontent.com/cdaf/windows/refs/heads/master/provisioning/addPath.ps1) } ${installPath}\remote"
+    Invoke-Expression "& { $(Invoke-WebRequest -useb https://raw.githubusercontent.com/cdaf/windows/refs/heads/master/provisioning/addPath.ps1) } ${installPath}"
 }
 
 executeExpression "${installPath}\remote\capabilities.ps1"
