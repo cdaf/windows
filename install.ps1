@@ -130,6 +130,8 @@ if ( $version ) {
 }
 
 if ( $installPath ) {
+    Write-Host "[$scriptName]   installPath : $installPath"
+} else {
 	if ( $env:CDAF_INSTALL_PATH ) {
 		$installPath = $env:CDAF_INSTALL_PATH
 	    Write-Host "[$scriptName]   installPath : $installPath (from `$env:CDAF_INSTALL_PATH)"
@@ -137,8 +139,6 @@ if ( $installPath ) {
 		$installPath = "$(pwd)\automation"
 	    Write-Host "[$scriptName]   installPath : $installPath (default)"
 	}
-} else {
-    Write-Host "[$scriptName]   installPath : $installPath"
 }
 
 if ( Test-Path $installPath ) {
