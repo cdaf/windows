@@ -172,8 +172,8 @@ if ( $version ) {
 }
 
 if ( $env:CDAF_INSTALL_PATH ) {
-    . { iwr -useb https://raw.githubusercontent.com/cdaf/windows/refs/heads/master/provisioning/addPath.ps1 } | iex -- "${installPath}\remote"
-    . { iwr -useb https://raw.githubusercontent.com/cdaf/windows/refs/heads/master/provisioning/addPath.ps1 } | iex -- "${installPath}"
+    curl -s https://raw.githubusercontent.com/cdaf/windows/refs/heads/master/provisioning/addPath.ps1 | powershell -Command "$input ${installPath}\remote"
+    curl -s https://raw.githubusercontent.com/cdaf/windows/refs/heads/master/provisioning/addPath.ps1 | powershell -Command "$input ${installPath}"
 }
 
 executeExpression "${installPath}\remote\capabilities.ps1"
