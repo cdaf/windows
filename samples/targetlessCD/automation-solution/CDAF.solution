@@ -2,4 +2,4 @@ solutionName=targetless-cd
 artifactPrefix=0.0
 
 buildImage=cdaf/iis
-runtimeImage=mcr.microsoft.com/windows/server:ltsc2022
+runtimeImage=cdaf/windows

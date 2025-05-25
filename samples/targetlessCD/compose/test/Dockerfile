@@ -2,18 +2,8 @@
 ARG CONTAINER_IMAGE
 FROM ${CONTAINER_IMAGE}
 
-ARG proxy
-ENV http_proxy=$proxy
-
 # Create root, i.e. C:\solution
 WORKDIR /solution
-
-# Copy entire directory (rely on storeForLocal to limit to only required scripts, unlike containerBuild)
-COPY automation automation
-
-# Shared bootstrap between Docker and Vagrant
-COPY bootstrapTest.ps1 .
-RUN automation\provisioning\runner.bat bootstrapTest.ps1
 
 # Place entry script
 COPY executeTest.ps1 .

@@ -3,12 +3,6 @@ PROPLD manifest.txt
 
 ASSIGN $id = $("${SOLUTION}_${REVISION}").ToLower()
 
-# Copy any artefacts needed into specific images here, example brings in remoteTasks package
-# VECOPY ..\${SOLUTION}-${BUILDNUMBER}.zip compose/target/deploy.zip
-
-Write-Host "Reinstate CDAF scripts to default directory name"
-mv cdaf automation
-
 cd compose
 ..\imageBuild.ps1 ${id} ${BUILDNUMBER} ${containerImage}
 cd ..
