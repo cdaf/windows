@@ -23,11 +23,11 @@ Vagrant.configure(2) do |allhosts|
       windows.vm.provision 'shell', inline: 'Get-ScheduledTask -TaskName ServerManager | Disable-ScheduledTask -Verbose'
       
       # Align with Docker for remaining provisioning
-      windows.vm.provision 'shell', path: '.\automation\provisioning\mkdir.ps1', args: 'C:\deploy'
-      windows.vm.provision 'shell', path: '.\automation\provisioning\CDAF_Desktop_Certificate.ps1'
+      windows.vm.provision 'shell', path: '.\provisioning\mkdir.ps1', args: 'C:\deploy'
+      windows.vm.provision 'shell', path: '.\provisioning\CDAF_Desktop_Certificate.ps1'
 
       # Vagrant specific for WinRM
-      windows.vm.provision 'shell', path: '.\automation\provisioning\CredSSP.ps1', args: 'server'
+      windows.vm.provision 'shell', path: '.\provisioning\CredSSP.ps1', args: 'server'
       windows.vm.provider 'virtualbox' do |virtualbox, override|
         override.vm.network 'private_network', ip: "172.16.17.10#{i}"
 		    override.vm.synced_folder ".", "/vagrant", disabled: true
@@ -53,27 +53,27 @@ Vagrant.configure(2) do |allhosts|
     build.vm.provision 'shell', path: '.\automation\remote\capabilities.ps1'
 
     # Vagrant specific for WinRM
-    build.vm.provision 'shell', path: '.\automation\provisioning\CredSSP.ps1', args: 'client'
-    build.vm.provision 'shell', path: '.\automation\provisioning\trustedHosts.ps1', args: '*'
-    build.vm.provision 'shell', path: '.\automation\provisioning\setenv.ps1', args: 'interactive yes User'
-    build.vm.provision 'shell', path: '.\automation\provisioning\setenv.ps1', args: 'CDAF_DELIVERY VAGRANT Machine'
-    build.vm.provision 'shell', path: '.\automation\provisioning\setenv.ps1', args: 'CDAF_PS_USERNAME vagrant'
-    build.vm.provision 'shell', path: '.\automation\provisioning\setenv.ps1', args: 'CDAF_PS_USERPASS vagrant'
-    build.vm.provision 'shell', path: '.\automation\provisioning\CDAF_Desktop_Certificate.ps1'
-    build.vm.provision 'shell', path: '.\automation\provisioning\setenv.ps1', args: 'CDAF_AUTOMATION_ROOT C:\vagrant\automation'
+    build.vm.provision 'shell', path: '.\provisioning\CredSSP.ps1', args: 'client'
+    build.vm.provision 'shell', path: '.\provisioning\trustedHosts.ps1', args: '*'
+    build.vm.provision 'shell', path: '.\provisioning\setenv.ps1', args: 'interactive yes User'
+    build.vm.provision 'shell', path: '.\provisioning\setenv.ps1', args: 'CDAF_DELIVERY VAGRANT Machine'
+    build.vm.provision 'shell', path: '.\provisioning\setenv.ps1', args: 'CDAF_PS_USERNAME vagrant'
+    build.vm.provision 'shell', path: '.\provisioning\setenv.ps1', args: 'CDAF_PS_USERPASS vagrant'
+    build.vm.provision 'shell', path: '.\provisioning\CDAF_Desktop_Certificate.ps1'
+    build.vm.provision 'shell', path: '.\provisioning\setenv.ps1', args: 'CDAF_AUTOMATION_ROOT C:\vagrant\automation'
 
     # Oracle VirtualBox, relaxed configuration for Desktop environment
     build.vm.provider 'virtualbox' do |virtualbox, override|
       override.vm.network 'private_network', ip: '172.16.17.100'
       (1..MAX_SERVER_TARGETS).each do |s|
-        override.vm.provision 'shell', path: '.\automation\provisioning\addHOSTS.ps1', args: "172.16.17.10#{s} windows-#{s}.mshome.net"
+        override.vm.provision 'shell', path: '.\provisioning\addHOSTS.ps1', args: "172.16.17.10#{s} windows-#{s}.mshome.net"
       end
-      override.vm.provision 'shell', path: '.\automation\provisioning\CDAF.ps1', args: '-workspace C:\vagrant\automation'
-      override.vm.provision 'shell', path: '.\automation\provisioning\CDAF.ps1', args: '-workspace C:\vagrant\automation -action buildonly'
-      override.vm.provision 'shell', path: '.\automation\provisioning\CDAF.ps1', args: '-workspace C:\vagrant\automation -action packageonly'
-      override.vm.provision 'shell', path: '.\automation\provisioning\CDAF.ps1', args: '-workspace C:\vagrant\automation -action cionly'
-      override.vm.provision 'shell', path: '.\automation\provisioning\CDAF.ps1', args: '-workspace C:\vagrant\automation -action cdonly'
-      override.vm.provision 'shell', path: '.\automation\provisioning\CDAF.ps1', args: '-workspace C:\vagrant\automation -action cdonly'
+      override.vm.provision 'shell', path: '.\provisioning\CDAF.ps1', args: '-workspace C:\vagrant\automation'
+      override.vm.provision 'shell', path: '.\provisioning\CDAF.ps1', args: '-workspace C:\vagrant\automation -action buildonly'
+      override.vm.provision 'shell', path: '.\provisioning\CDAF.ps1', args: '-workspace C:\vagrant\automation -action packageonly'
+      override.vm.provision 'shell', path: '.\provisioning\CDAF.ps1', args: '-workspace C:\vagrant\automation -action cionly'
+      override.vm.provision 'shell', path: '.\provisioning\CDAF.ps1', args: '-workspace C:\vagrant\automation -action cdonly'
+      override.vm.provision 'shell', path: '.\provisioning\CDAF.ps1', args: '-workspace C:\vagrant\automation -action cdonly'
       override.vm.provision 'shell', inline: 'cd C:\vagrant\samples\all ; C:\vagrant\automation\cdEmulate.bat'
     end
 
@@ -81,12 +81,12 @@ Vagrant.configure(2) do |allhosts|
     build.vm.provider 'hyperv' do |hyperv, override|
       override.vm.hostname = 'build'
       override.vm.synced_folder ".", "/vagrant", type: "smb", smb_username: "#{ENV['VAGRANT_SMB_USER']}", smb_password: "#{ENV['VAGRANT_SMB_PASS']}", mount_options: ["vers=2.1"]
-      override.vm.provision 'shell', path: '.\automation\provisioning\CDAF.ps1', args: '-workspace C:\vagrant\automation'
-      override.vm.provision 'shell', path: '.\automation\provisioning\CDAF.ps1', args: '-workspace C:\vagrant\automation -action buildonly'
-      override.vm.provision 'shell', path: '.\automation\provisioning\CDAF.ps1', args: '-workspace C:\vagrant\automation -action packageonly'
-      override.vm.provision 'shell', path: '.\automation\provisioning\CDAF.ps1', args: '-workspace C:\vagrant\automation -action cionly'
-      override.vm.provision 'shell', path: '.\automation\provisioning\CDAF.ps1', args: '-workspace C:\vagrant\automation -action cdonly'
-      override.vm.provision 'shell', path: '.\automation\provisioning\CDAF.ps1', args: '-workspace C:\vagrant\automation'
+      override.vm.provision 'shell', path: '.\provisioning\CDAF.ps1', args: '-workspace C:\vagrant\automation'
+      override.vm.provision 'shell', path: '.\provisioning\CDAF.ps1', args: '-workspace C:\vagrant\automation -action buildonly'
+      override.vm.provision 'shell', path: '.\provisioning\CDAF.ps1', args: '-workspace C:\vagrant\automation -action packageonly'
+      override.vm.provision 'shell', path: '.\provisioning\CDAF.ps1', args: '-workspace C:\vagrant\automation -action cionly'
+      override.vm.provision 'shell', path: '.\provisioning\CDAF.ps1', args: '-workspace C:\vagrant\automation -action cdonly'
+      override.vm.provision 'shell', path: '.\provisioning\CDAF.ps1', args: '-workspace C:\vagrant\automation'
       override.vm.provision 'shell', inline: 'cd C:\vagrant\samples\all ; C:\vagrant\automation\cdEmulate.bat'
     end
   end
