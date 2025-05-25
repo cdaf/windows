@@ -1,3 +1,6 @@
+# To test 
+# . { iwr -useb https://raw.githubusercontent.com/cdaf/windows/refs/heads/master/automation/remote/capabilities.ps1 } | iex
+
 Param (
 	[string]$versionScript
 )
