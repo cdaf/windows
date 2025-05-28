@@ -1,5 +1,5 @@
-# To test 
-# . { iwr -useb https://raw.githubusercontent.com/cdaf/windows/refs/heads/master/automation/remote/capabilities.ps1 } | iex
+# execute in subprocess to avoid closing the current session
+# powershell -NoProfile -Command "iex (iwr -useb https://raw.githubusercontent.com/cdaf/windows/refs/heads/master/automation/remote/capabilities.ps1)"
 
 Param (
 	[string]$versionScript
