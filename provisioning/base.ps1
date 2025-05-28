@@ -1,5 +1,5 @@
 # Download to named directory and add to path, without this, will simply download and extract in current directory
-# . { https://raw.githubusercontent.com/cdaf/windows/refs/heads/master/provisioning/base.ps1 } | iex
+# . { iwr -useb https://raw.githubusercontent.com/cdaf/windows/refs/heads/master/provisioning/base.ps1 } | iex
 
 # Download specific version and add install directory (/opt/cdaf) to path 
 # Invoke-Expression "& { $(iwr -useb https://raw.githubusercontent.com/cdaf/windows/refs/heads/master/provisioning/base.ps1) } 'googlechrome' '-checksum' ' ignore'"
@@ -91,7 +91,8 @@ Write-Host "[$scriptName] ---------- start ----------"
 if ($install) {
     Write-Host "[$scriptName] install    : $install (can be space separated list)"
 } else {
-    Write-Host "[$scriptName] Package to install not supplied, exiting with LASTEXITCODE 4"; exit 4 
+    $install = 'unzip'
+    Write-Host "[$scriptName] install    : $install (default)"
 }
 
 if ($mediaDir) {
