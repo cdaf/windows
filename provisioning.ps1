@@ -130,15 +130,16 @@ executeExpression "Add-Type -AssemblyName System.IO.Compression.FileSystem"
 executeExpression "[System.IO.Compression.ZipFile]::ExtractToDirectory('$(pwd)\cdaf.zip', '$(pwd)')"
 
 Write-Host "[$scriptName] Place in install path"
-executeExpression "Remove-Item -Recurse '$installPath'"
+if ( Test-Path "$installPath" ) {
+	executeExpression "Remove-Item -Recurse '$installPath'"
+}
 moveOrCopy "'$(pwd)\windows-master\provisioning\' '${installPath}'"
 executeExpression "Remove-Item -Recurse '$(pwd)\windows-master'"
 executeExpression "Remove-Item '$(pwd)\cdaf.zip'"
 
-
 if ( $add_to_path ) {
-    Invoke-Expression "& ${installPath}/addPath.ps1) '${installPath}\remote'"
-    Invoke-Expression "& ${installPath}/addPath.ps1) '${installPath}'"
+    Invoke-Expression "& ${installPath}/addPath.ps1 '${installPath}\remote'"
+    Invoke-Expression "& ${installPath}/addPath.ps1 '${installPath}'"
 }
 
 Write-Host "`n[$scriptName] --- end ---"
