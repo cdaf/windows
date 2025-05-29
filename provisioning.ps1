@@ -21,7 +21,6 @@ $scriptName = 'provisioning.ps1'
 cmd /c "exit 0"
 $Error.Clear()
 
-
 # Consolidated Error processing function
 #  required : error message
 #  optional : exit code, if not supplied only error message is written
@@ -138,7 +137,6 @@ executeExpression "Remove-Item -Recurse '$(pwd)\windows-master'"
 executeExpression "Remove-Item '$(pwd)\cdaf.zip'"
 
 if ( $add_to_path ) {
-    Invoke-Expression "& ${installPath}/addPath.ps1 '${installPath}\remote'"
     Invoke-Expression "& ${installPath}/addPath.ps1 '${installPath}'"
 }
 
