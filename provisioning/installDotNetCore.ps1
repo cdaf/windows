@@ -45,7 +45,7 @@ if ( $version ) {
 	Write-Host "[$scriptName] version  : $version"
 } else {
 	$version = '8'
-	Write-Host "[$scriptName] version  : $version (default)"
+	Write-Host "[$scriptName] version  : $version (default, LTS)"
 }
 
 if ( $version -eq '2' ) {
@@ -123,20 +123,35 @@ if ( $version -eq '2' ) {
 			$file = "aspnetcore-runtime-${version}-win-x64.exe"
 			$url = "https://download.visualstudio.microsoft.com/download/pr/7c7c13e7-e0eb-439c-b17e-0508b15ddb25/dcdb52f1752782bd1e38cc8bcb80556e/${file}"
 		}
-	} 
+	}
 } elseif ( $version -eq '8' ) {
 	if ( $sdk -eq 'yes' ) {
-		$version = '8.0.201'
+		$version = '8.0.411'
 		$file = "dotnet-sdk-${version}-win-x64.exe"
-		$url = "https://download.visualstudio.microsoft.com/download/pr/ab5e947d-3bfc-4948-94a1-847576d949d4/bb11039b70476a33d2023df6f8201ae2/${file}"
+		$url = "https://builds.dotnet.microsoft.com/dotnet/Sdk/${version}/${file}"
 	} else {
-		$version = '8.0.2'
+		$version = '8.0.17'
 		if ( $sdk -eq 'asp' ) {
 			$file = "dotnet-hosting-${version}-win.exe"
-			$url = "https://download.visualstudio.microsoft.com/download/pr/98ff0a08-a283-428f-8e54-19841d97154c/8c7d5f9600eadf264f04c82c813b7aab/${file}"
+			$url = "https://builds.dotnet.microsoft.com/dotnet/aspnetcore/Runtime/${version}/${file}"
 		} else {
 			$file = "aspnetcore-runtime-${version}-win-x64.exe"
-			$url = "https://download.visualstudio.microsoft.com/download/pr/84ba33d4-4407-4572-9bfa-414d26e7c67c/bb81f8c9e6c9ee1ca547396f6e71b65f/${file}"
+			$url = "https://builds.dotnet.microsoft.com/dotnet/aspnetcore/Runtime/${version}/${file}"
+		}
+	} 
+} elseif ( $version -eq '9' ) {
+	if ( $sdk -eq 'yes' ) {
+		$version = '9.0.301'
+		$file = "dotnet-sdk-${version}-win-x64.exe"
+		$url = "https://builds.dotnet.microsoft.com/dotnet/Sdk/${version}/${file}"
+	} else {
+		$version = '9.0.6'
+		if ( $sdk -eq 'asp' ) {
+			$file = "dotnet-hosting-${version}-win.exe"
+			$url = "https://builds.dotnet.microsoft.com/dotnet/aspnetcore/Runtime/${version}/${file}"
+		} else {
+			$file = "aspnetcore-runtime-${version}-win-x64.exe"
+			$url = "https://builds.dotnet.microsoft.com/dotnet/aspnetcore/Runtime/${version}/${file}"
 		}
 	} 
 } else {
