@@ -116,8 +116,8 @@ if ( $installPath ) {
     Write-Host "[$scriptName]   installPath : $installPath"
     $add_to_path = $true
 } else {
-	$installPath = "$(pwd)\automation"
-    Write-Host "[$scriptName]   installPath : (default)"
+	$installPath = "$(pwd)\provisioning"
+    Write-Host "[$scriptName]   installPath : $installPath (default)"
 }
 
 Write-Host "[$scriptName] Download and extract"
