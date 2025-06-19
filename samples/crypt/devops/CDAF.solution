@@ -1,5 +1,5 @@
-solutionName=myproduct
-# productName=My Product Name
+solutionName=crypt
+# productName=Cryptography Solution
 
 # Custom Diagnostics on error
 # CDAF_ERROR_DIAG=foreach ( $item in ( Get-WmiObject Win32_LogicalDisk )) { get-volume -DriveLetter ($item.DeviceID).split(":")[0] }
