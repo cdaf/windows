@@ -7,11 +7,11 @@
 # . { iwr -useb https://raw.githubusercontent.com/cdaf/windows/master/provisioning.ps1 } | iex
 
 # Download specific version and add install directory (/opt/cdaf) to path 
-# Invoke-Expression "& { $(iwr -useb https://raw.githubusercontent.com/cdaf/windows/master/provisioning.ps1) } 'C:\cdaf'"
+# Invoke-Expression "& { $(iwr -useb https://raw.githubusercontent.com/cdaf/windows/master/provisioning.ps1) } 'C:\provisioning'"
 
 # For using in a script
 # curl.exe -f -sS -O https://raw.githubusercontent.com/cdaf/windows/master/provisioning.ps1
-# .\provisioning.ps1 'C:\cdaf'
+# .\provisioning.ps1 'C:\provisioning'
 
 Param (
 	[string]$installPath
