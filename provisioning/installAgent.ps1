@@ -132,7 +132,7 @@ if (Test-Path "${mediaDirectory}\${mediaFileName}") {
 	} else {
 		executeExpression "Write-Host `$(mkdir $mediaDirectory)"
 	}
-	executeExpression "curl -fsSL https://download.agent.dev.azure.com/agent/${version}/${mediaFileName} -o '${mediaDirectory}\${mediaFileName}'"
+	executeExpression "curl.exe -fsSL https://download.agent.dev.azure.com/agent/${version}/${mediaFileName} -o '${mediaDirectory}\${mediaFileName}'"
 }
 
 Write-Host "`nExtract using default instructions from Microsoft"
