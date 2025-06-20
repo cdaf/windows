@@ -19,7 +19,9 @@ jobs:
 
       - task: PowerShell@2
         displayName: CDAF Release Build
-#        env: 
+#        URL and user are not likely to be set as secret, so an explicit mapping is not required, but included for reference
+#        env:
+#          GIT_URL:  $(GIT_URL)
 #          GIT_USER: $(GIT_USER)
 #          GIT_PASS: $(GIT_PASS)
         inputs:
