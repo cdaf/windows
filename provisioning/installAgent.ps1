@@ -1,3 +1,9 @@
+# Doadload and extract the agent software, do not install the agent
+# . { iwr -useb https://raw.githubusercontent.com/cdaf/windows/refs/heads/master/provisioning/installAgent.ps1 } | iex
+
+# Download and install to the default agent pool
+# iex "& { $(iwr -useb https://raw.githubusercontent.com/cdaf/windows/refs/heads/master/provisioning/installAgent.ps1) } 'https://dev.azure.com' 'XXXXXXXX'"
+
 Param (
 	[string]$url,
 	[string]$pat,
@@ -126,11 +132,7 @@ if (Test-Path "${mediaDirectory}\${mediaFileName}") {
 	} else {
 		executeExpression "Write-Host `$(mkdir $mediaDirectory)"
 	}
-	
-	# As per guidance here https://stackoverflow.com/questions/36265534/invoke-webrequest-ssl-fails
-	executeExpression "[System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]'Tls11,Tls12'"
-	$mediaURL = "https://vstsagentpackage.azureedge.net/agent/${version}/${mediaFileName}"
-	executeExpression "(New-Object System.Net.WebClient).DownloadFile('$mediaURL', '${mediaDirectory}\${mediaFileName}')"
+	executeExpression "curl -fsSL https://download.agent.dev.azure.com/agent/${version}/${mediaFileName} -o '$mediaURL', '${mediaDirectory}\${mediaFileName}'"
 }
 
 Write-Host "`nExtract using default instructions from Microsoft"
