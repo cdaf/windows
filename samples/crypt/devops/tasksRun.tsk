@@ -1,6 +1,3 @@
-echo "List available software"
-./capabilities.ps1
-
 echo "Some basic functions"
 REFRSH . $TMPDIR/workspacecopy
 REMOVE TMPDIR/workspacecopy
