@@ -1,3 +1,6 @@
+Windows Server 2016
+# [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]'Tls11,Tls12'
+
 # Install Chocolatey and use to install unzip
 # . { iwr -useb https://raw.githubusercontent.com/cdaf/windows/refs/heads/master/provisioning/base.ps1 } | iex
 
