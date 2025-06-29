@@ -1,4 +1,4 @@
-Windows Server 2016
+# Windows Server 2016
 # [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]'Tls11,Tls12'
 
 # Install Chocolatey and use to install unzip
@@ -6,6 +6,9 @@ Windows Server 2016
 
 # Install Chocolatey and use to install googlechrome
 # iex "& { $(iwr -useb https://raw.githubusercontent.com/cdaf/windows/refs/heads/master/provisioning/base.ps1) } 'googlechrome' '-checksum' ' ignore'"
+
+# Or to download for reuse
+# iwr -useb https://raw.githubusercontent.com/cdaf/windows/refs/heads/master/provisioning/base.ps1 -o base.ps1
 
 Param (
 	[string]$install,
