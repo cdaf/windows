@@ -1,7 +1,7 @@
-context  target     deployHost         zero  integer  dbreaderwriter  dbuserpassword  remoteUser  remoteCred        decryptThb
-remote   VAGRANT    target.mshome.net  '0'         1  databaseuser    $env:USERNAME   vagrant     WINDOWS_PASSWORD  1C5A22D1DA540F210122BB63EB8F38ABBBB9009A
-local    VAGRANT    $env:COMPUTERNAME  '0'         2  databaseuser    $env:USERNAME
-local    WINDOWS    $env:COMPUTERNAME  '0'         3  databaseuser    $env:USERNAME
-local    WORKGROUP  $env:COMPUTERNAME  '0'         4  databaseuser    $env:USERNAME
-local    TEST       test.mshome.net    '0'         5  databaseuser    $env:USERNAME
-local    PROD       prod.mshome.net    '0'         6  databaseuser    $env:USERNAME
+context  target     deployHost            zero  integer  dbreaderwriter  dbuserpassword  remoteUser             remotePass
+remote   VAGRANT    windows-1.mshome.net    '0'       1  databaseuser    $env:USERNAME   $env:CDAF_PS_USERNAME  $env:CDAF_PS_USERPASS
+local    VAGRANT    $env:COMPUTERNAME       '0'       2  databaseuser    $env:USERNAME
+local    WINDOWS    $env:COMPUTERNAME       '0'       3  databaseuser    $env:USERNAME
+local    WORKGROUP  $env:COMPUTERNAME       '0'       4  databaseuser    $env:USERNAME
+local    TEST       test.mshome.net         '0'       5  databaseuser    $env:USERNAME
+local    PROD       prod.mshome.net         '0'       6  databaseuser    $env:USERNAME
