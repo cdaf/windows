@@ -245,7 +245,7 @@ if (( $virtualisation -eq 'hyperv' ) -or ( $virtualisation -eq 'docker' )) {
     executeExpression "(Get-WmiObject -Class 'Win32_TSGeneralSetting' -Namespace root\cimv2\TerminalServices -Filter `"TerminalName='RDP-tcp'`").SetUserAuthenticationRequired(0) | Out-Null"
     executeExpression "Get-NetFirewallRule -DisplayName `"Remote Desktop*`" | Set-NetFirewallRule -enabled true"
 
-    executeExpression ".\provisioning\base.ps1 'microsoft-openjdk11 maven eclipse'"
+    executeExpression ".\provisioning\base.ps1 'microsoft-openjdk17 maven eclipse'"
 
     executeExpression ".\provisioning\base.ps1 nodejs-lts"
     executeExpression ".\provisioning\base.ps1 python"
@@ -342,4 +342,5 @@ if ( $restart ) {
 }
 
 Write-Host "`n[$scriptName] ---------- stop ----------"
+
 
