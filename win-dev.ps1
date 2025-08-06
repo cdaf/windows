@@ -334,7 +334,7 @@ Write-Host "`n[$scriptName] List installed Chocolatey packages..."
 executeExpression "choco list --localonly  --limit-output"
 
 Write-Host "`n[$scriptName] Clean-up"
-executeExpression  "Remove-Item -Recurse -Force automation"
+executeExpression  "Remove-Item -Recurse -Force .\provisioning\"
 
 if ( $restart ) {
 	Write-Host "`n[$scriptName] Restart = $restart"
@@ -342,5 +342,6 @@ if ( $restart ) {
 }
 
 Write-Host "`n[$scriptName] ---------- stop ----------"
+
 
 
