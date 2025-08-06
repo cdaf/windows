@@ -185,7 +185,7 @@ Write-Host "set-executionpolicy unrestricted -Force`n"
 try { set-executionpolicy unrestricted -Force } catch { Write-Warning "Unable to alter powershell execution policy, continuing ..." }
 $error.clear()
 
-executeExpression ". { iwr -useb http://cdaf.io/static/app/downloads/cdaf.ps1 } | iex"
+executeExpression ". { iwr -useb https://raw.githubusercontent.com/cdaf/windows/master/provisioning.ps1 } | iex"
 
 if (( $virtualisation -eq 'hyperv' ) -or ( $virtualisation -eq 'docker' )) {
 
@@ -196,18 +196,18 @@ if (( $virtualisation -eq 'hyperv' ) -or ( $virtualisation -eq 'docker' )) {
     executeExpression "Enable-WindowsOptionalFeature -Online -FeatureName Containers -All -NoRestart"
 
     if ($vagrantPass) {
-        executeExpression ".\automation\provisioning\base.ps1 'vagrant' -autoReboot no"
-        executeExpression ".\automation\provisioning\setenv.ps1 VAGRANT_DEFAULT_PROVIDER hyperv"
-        executeExpression ".\automation\provisioning\setenv.ps1 VAGRANT_SMB_PASS $vagrantPass"
+        executeExpression ".\provisioning\base.ps1 'vagrant' -autoReboot no"
+        executeExpression ".\provisioning\setenv.ps1 VAGRANT_DEFAULT_PROVIDER hyperv"
+        executeExpression ".\provisioning\setenv.ps1 VAGRANT_SMB_PASS $vagrantPass"
         if ($vagrantUser) {
-		    executeExpression ".\automation\provisioning\setenv.ps1 VAGRANT_SMB_USER $vagrantUser"
+		    executeExpression ".\provisioning\setenv.ps1 VAGRANT_SMB_USER $vagrantUser"
 	    } else {
-		    executeExpression ".\automation\provisioning\setenv.ps1 VAGRANT_SMB_USER $env:USERNAME"
+		    executeExpression ".\provisioning\setenv.ps1 VAGRANT_SMB_USER $env:USERNAME"
 		}
     }
 
     if ( $virtualisation -eq 'docker' ) {
-        executeExpression ".\automation\provisioning\base.ps1 docker-desktop"
+        executeExpression ".\provisioning\base.ps1 docker-desktop"
     }
 
     $restart = 'yes'
@@ -224,16 +224,16 @@ if (( $virtualisation -eq 'hyperv' ) -or ( $virtualisation -eq 'docker' )) {
     executeExpression "addHOSTS.ps1 172.16.17.101 windows-1.mshome.net"
     executeExpression "addHOSTS.ps1 172.16.17.102 windows-2.mshome.net"
     executeExpression "addHOSTS.ps1 172.16.17.103 app.mshome.net"
-    executeExpression ".\automation\provisioning\base.ps1 'virtualbox'"
+    executeExpression ".\provisioning\base.ps1 'virtualbox'"
 
     $restart = 'yes'
 
 } elseif ( $virtualisation -eq 'legacy' ) {
 
-    executeExpression ".\automation\provisioning\base.ps1 svn"
-    executeExpression ".\automation\provisioning\base.ps1 vnc-viewer"
-    executeExpression ".\automation\provisioning\base.ps1 dotnet3.5"
-    executeExpression ".\automation\provisioning\base.ps1 vagrant"
+    executeExpression ".\provisioning\base.ps1 svn"
+    executeExpression ".\provisioning\base.ps1 vnc-viewer"
+    executeExpression ".\provisioning\base.ps1 dotnet3.5"
+    executeExpression ".\provisioning\base.ps1 vagrant"
 
     $restart = 'yes'
 
@@ -245,17 +245,17 @@ if (( $virtualisation -eq 'hyperv' ) -or ( $virtualisation -eq 'docker' )) {
     executeExpression "(Get-WmiObject -Class 'Win32_TSGeneralSetting' -Namespace root\cimv2\TerminalServices -Filter `"TerminalName='RDP-tcp'`").SetUserAuthenticationRequired(0) | Out-Null"
     executeExpression "Get-NetFirewallRule -DisplayName `"Remote Desktop*`" | Set-NetFirewallRule -enabled true"
 
-    executeExpression ".\automation\provisioning\base.ps1 'microsoft-openjdk11 maven eclipse'"
+    executeExpression ".\provisioning\base.ps1 'microsoft-openjdk11 maven eclipse'"
 
-    executeExpression ".\automation\provisioning\base.ps1 nodejs-lts"
-    executeExpression ".\automation\provisioning\base.ps1 python"
+    executeExpression ".\provisioning\base.ps1 nodejs-lts"
+    executeExpression ".\provisioning\base.ps1 python"
 
-    executeExpression ".\automation\provisioning\base.ps1 'nuget.commandline'" # was fixed to -verion 5.8.1 as 5.9 was broken
+    executeExpression ".\provisioning\base.ps1 'nuget.commandline'" # was fixed to -verion 5.8.1 as 5.9 was broken
 
 	 # Install explicitely to include Agent, VS workload will not include agent & choco does not support Web Deploy v4
-    executeExpression ".\automation\provisioning\webdeploy.ps1"
+    executeExpression ".\provisioning\webdeploy.ps1"
 
-    executeExpression ".\automation\provisioning\base.ps1 visualstudio2022professional"
+    executeExpression ".\provisioning\base.ps1 visualstudio2022professional"
     executeExpression "curl.exe -fSL $env:CURL_OPT -O https://aka.ms/vs/17/release/vs_professional.exe"
     executeCMD "start /w vs_professional.exe --quiet --wait --norestart --nocache --noUpdateInstaller --noWeb --add Microsoft.VisualStudio.Workload.Azure --locale en-US"
     executeCMD "start /w vs_professional.exe --quiet --wait --norestart --nocache --noUpdateInstaller --noWeb --add Microsoft.VisualStudio.Workload.NetWeb --locale en-US"
@@ -266,28 +266,28 @@ if (( $virtualisation -eq 'hyperv' ) -or ( $virtualisation -eq 'docker' )) {
     executeCMD "start /w vs_professional.exe --quiet --wait --norestart --nocache --noUpdateInstaller --noWeb --add Microsoft.Component.PythonTools.Web --locale en-US"
 
 	Write-Host "Install Latest .NET SDKs"
-    executeExpression ".\automation\provisioning\base.ps1 netfx-4.8-devpack" # 4.8
-    executeExpression ".\automation\provisioning\base.ps1 dotnet-sdk"
+    executeExpression ".\provisioning\base.ps1 netfx-4.8-devpack" # 4.8
+    executeExpression ".\provisioning\base.ps1 dotnet-sdk"
 
-    executeExpression ".\automation\provisioning\base.ps1 azure-cli"
+    executeExpression ".\provisioning\base.ps1 azure-cli"
     executeExpression "az config set extension.use_dynamic_install=yes_without_prompt"
 
     # Ensure NuGet is a source, by default it is not (ignore if already added)
     Write-Host "nuget sources add -Name NuGet.org -Source https://api.nuget.org/v3/index.json"
     nuget sources add -Name NuGet.org -Source https://api.nuget.org/v3/index.json
     
-    executeExpression ".\automation\provisioning\base.ps1 'vswhere'" # Install this now that VS is installed
+    executeExpression ".\provisioning\base.ps1 'vswhere'" # Install this now that VS is installed
 
-    executeExpression ".\automation\provisioning\base.ps1 nano"
-    executeExpression ".\automation\provisioning\base.ps1 putty"
-    executeExpression ".\automation\provisioning\base.ps1 winscp"
-    executeExpression ".\automation\provisioning\base.ps1 postman"
-    executeExpression ".\automation\provisioning\base.ps1 terraform"
+    executeExpression ".\provisioning\base.ps1 nano"
+    executeExpression ".\provisioning\base.ps1 putty"
+    executeExpression ".\provisioning\base.ps1 winscp"
+    executeExpression ".\provisioning\base.ps1 postman"
+    executeExpression ".\provisioning\base.ps1 terraform"
 
-    executeExpression ".\automation\provisioning\base.ps1 git"
+    executeExpression ".\provisioning\base.ps1 git"
     executeExpression "git config --global core.autocrlf false"
 
-    executeExpression ".\automation\provisioning\base.ps1 vscode"
+    executeExpression ".\provisioning\base.ps1 vscode"
     $extensions = @()
     $extensions += "42crunch.vscode-openapi"
     $extensions += "bierner.markdown-mermaid"
@@ -325,8 +325,8 @@ if (( $virtualisation -eq 'hyperv' ) -or ( $virtualisation -eq 'docker' )) {
     }
 
     Write-Host "Google does not provide a static download for Chrome, so checksum can briefly fail on new releases, if install fails, this script will not error."
-    Write-Host ".\automation\provisioning\base.ps1 'googlechrome' -checksum ignore"
-    .\automation\provisioning\base.ps1 'googlechrome' -checksum ignore
+    Write-Host ".\provisioning\base.ps1 'googlechrome' -checksum ignore"
+    .\provisioning\base.ps1 'googlechrome' -checksum ignore
 
 }
 
@@ -342,3 +342,4 @@ if ( $restart ) {
 }
 
 Write-Host "`n[$scriptName] ---------- stop ----------"
+
