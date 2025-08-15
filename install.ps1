@@ -176,6 +176,5 @@ if ( $env:CDAF_INSTALL_PATH ) {
     Invoke-Expression "& { $(Invoke-WebRequest -useb https://raw.githubusercontent.com/cdaf/windows/refs/heads/master/provisioning/addPath.ps1) } ${installPath}"
 }
 
-executeExpression "${installPath}\remote\capabilities.ps1"
-
 Write-Host "`n[$scriptName] --- end ---"
+
