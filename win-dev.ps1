@@ -328,6 +328,9 @@ if (( $virtualisation -eq 'hyperv' ) -or ( $virtualisation -eq 'docker' )) {
     Write-Host ".\provisioning\base.ps1 'googlechrome' -checksum ignore"
     .\provisioning\base.ps1 'googlechrome' -checksum ignore
 
+	Write-Host "Google Drive for KeePass database synch"
+    executeExpression ".\provisioning\base.ps1 'googledrive keepassxc"
+
 }
 
 Write-Host "`n[$scriptName] List installed Chocolatey packages..."
@@ -342,6 +345,7 @@ if ( $restart ) {
 }
 
 Write-Host "`n[$scriptName] ---------- stop ----------"
+
 
 
 
