@@ -154,7 +154,7 @@ if ( $buildImage ) {
 		Write-Host "[$scriptName] `$imageTag  : $imageTag"
 
 		if ( $env:CDAF_DOCKER_RUN_ARGS ) {
-			${buildCommand} += " $env:CDAF_DOCKER_RUN_ARG"
+			${buildCommand} += " $env:CDAF_DOCKER_RUN_ARGS"
 		}
 
 		if ( $CDAF_BUILD_ENV ) {
