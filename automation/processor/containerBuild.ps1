@@ -153,10 +153,14 @@ if ( $buildImage ) {
 	
 		Write-Host "[$scriptName] `$imageTag  : $imageTag"
 
+		if ( $env:CDAF_DOCKER_RUN_ARGS ) {
+			${buildCommand} += " $env:CDAF_DOCKER_RUN_ARG"
+		}
+
 		if ( $CDAF_BUILD_ENV ) {
 			${buildCommand} += " --env 'CDAF_BUILD_ENV=$CDAF_BUILD_ENV'"
 		}
-		
+
 		foreach ( $envVar in Get-ChildItem env:) {
 			if ($envVar.Name.Contains('CDAF_CB_')) {
 				${buildCommand} += " --env '$(${envVar}.Name.Replace('CDAF_CB_', ''))=$(${envVar}.Value)'"
@@ -166,7 +170,7 @@ if ( $buildImage ) {
 		${prefix} = (${SOLUTION}.ToUpper()).replace('-','_')
 		foreach ( $envVar in Get-ChildItem env:) {
 			if ($envVar.Name.Contains("CDAF_${prefix}_CB_")) {
-				${buildCommand} += " $env:CDAF_DOCKER_RUN_ARGS --env '$(${envVar}.Name.Replace(`"CDAF_${prefix}_CB_`", ''))=$(${envVar}.Value)'"
+				${buildCommand} += " --env '$(${envVar}.Name.Replace(`"CDAF_${prefix}_CB_`", ''))=$(${envVar}.Value)'"
 			}
 		}
 
