@@ -78,13 +78,17 @@ if ( $tag ) {
 if ( $rebuild ) {
     Write-Host "[$scriptName] rebuild                  : $rebuild"
 } else {
-    Write-Host "[$scriptName] rebuild                  : (not supplied, docker will use cache where possible)"
+	if ( $env:CDAF_LOG_LEVEL -eq 'DEBUG' ) {
+	    Write-Host "[$scriptName] rebuild                  : (not supplied, docker will use cache where possible)"
+	}
 }
 
 if ( $optionalArgs ) {
     Write-Host "[$scriptName] optionalArgs             : $optionalArgs"
 } else {
-    Write-Host "[$scriptName] optionalArgs             : (not supplied)"
+	if ( $env:CDAF_LOG_LEVEL -eq 'DEBUG' ) {
+	    Write-Host "[$scriptName] optionalArgs             : (not supplied)"
+	}
 }
 
 # 2.6.0 Image from Private Registry
@@ -135,7 +139,9 @@ if ( $env:CDAF_PULL_REGISTRY_URL ) {
 	if ( $registryPullURL ) {
 	    Write-Host "[$scriptName] CDAF_PULL_REGISTRY_URL   : $registryPullURL (loaded from manifest.txt)"
 	} else {
-	    Write-Host "[$scriptName] CDAF_PULL_REGISTRY_URL   : (not supplied, do not set when pulling from Dockerhub)"
+		if ( $env:CDAF_LOG_LEVEL -eq 'DEBUG' ) {
+		    Write-Host "[$scriptName] CDAF_PULL_REGISTRY_URL   : (not supplied, do not set when pulling from Dockerhub)"
+		}
 	}
 }
 
@@ -148,8 +154,10 @@ if ( $env:CDAF_PULL_REGISTRY_USER ) {
 	if ( $registryPullUser ) {
 	    Write-Host "[$scriptName] CDAF_PULL_REGISTRY_USER  : $registryPullUser (loaded from manifest.txt)"
 	} else {	
-		$registryPullUser = '.'
-	    Write-Host "[$scriptName] CDAF_PULL_REGISTRY_USER  : $registryPullUser (not supplied, set to default)"
+		if ( $env:CDAF_LOG_LEVEL -eq 'DEBUG' ) {
+			$registryPullUser = '.'
+		    Write-Host "[$scriptName] CDAF_PULL_REGISTRY_USER  : $registryPullUser (not supplied, set to default)"
+	    }
 	}
 }
 
@@ -162,7 +170,9 @@ if ( $env:CDAF_PULL_REGISTRY_TOKEN ) {
 	if ( $registryPullToken ) {
 	    Write-Host "[$scriptName] CDAF_PULL_REGISTRY_TOKEN : $(MASKED $registryPullToken) (loaded from manifest.txt)"
 	} else {	
-	    Write-Host "[$scriptName] CDAF_PULL_REGISTRY_TOKEN : (not supplied, login will not be attempted)"
+		if ( $env:CDAF_LOG_LEVEL -eq 'DEBUG' ) {
+		    Write-Host "[$scriptName] CDAF_PULL_REGISTRY_TOKEN : (not supplied, login will not be attempted)"
+	    }
 	}
 }
 
@@ -175,25 +185,31 @@ if ( $env:CDAF_SKIP_PULL ) {
 	if ( $skipPull ) {
 	    Write-Host "[$scriptName] CDAF_SKIP_PULL           : $skipPull (loaded from manifest.txt)"
 	} else {
-		$skipPull = 'no'
-	    Write-Host "[$scriptName] CDAF_SKIP_PULL           : $skipPull (default)"
+		if ( $env:CDAF_LOG_LEVEL -eq 'DEBUG' ) {
+			$skipPull = 'no'
+		    Write-Host "[$scriptName] CDAF_SKIP_PULL           : $skipPull (default)"
+	    }
 	}
 }
 
-# https://github.com/containerd/nerdctl/blob/main/docs/command-reference.md
-Write-Host "`n[$scriptName] List existing images ...`n"
-$imagesBefore = docker images --filter label=cdaf.${imageName}.image.version
-if ( $LASTEXITCODE -ne 0 ) {
-	cmd /c "exit 0"
-	Write-Host "`n[$scriptName] Attempting to start docker ...`n"
-	executeExpression 'Start-Service Docker'
-	executeExpression "docker images --filter label=cdaf.${imageName}.image.version"
-} else {
-	Write-Host "docker images --filter label=cdaf.${imageName}.image.version"
-	$imagesBefore
+if ( $env:CDAF_LOG_LEVEL -eq 'DEBUG' ) {
+	# https://github.com/containerd/nerdctl/blob/main/docs/command-reference.md
+	Write-Host "`n[$scriptName] List existing images ...`n"
+	$imagesBefore = docker images --filter label=cdaf.${imageName}.image.version
+	if ( $LASTEXITCODE -ne 0 ) {
+		cmd /c "exit 0"
+		Write-Host "`n[$scriptName] Attempting to start docker ...`n"
+		executeExpression 'Start-Service Docker'
+		executeExpression "docker images --filter label=cdaf.${imageName}.image.version"
+	} else {
+		Write-Host "docker images --filter label=cdaf.${imageName}.image.version"
+		$imagesBefore
+	}
 }
 
-Write-Host "`n[$scriptName] As of 1.13.0 new prune commands, if using older version, suppress error"
+if ( $env:CDAF_LOG_LEVEL -eq 'DEBUG' ) {
+	Write-Host "`n[$scriptName] As of 1.13.0 new prune commands, if using older version, suppress error"
+}
 executeSuppress "docker system prune --force"
 
 $buildCommand = 'docker build'
@@ -255,19 +271,25 @@ if ( Test-Path '.\Dockerfile' ) {
 }
 
 Write-Host
-Get-Content $dockerfile_name
-Write-Host
+if ( $env:CDAF_LOG_LEVEL -eq 'DEBUG' ) {
+	Get-Content $dockerfile_name
+	Write-Host
+}
 
 # Execute the constructed build command using dockerfile from current directory (.), disable output truncation (windows only)
 $env:PROGRESS_NO_TRUNC = '1'
 executeExpression "$buildCommand --file ${dockerfile_name} ."
 
 if ( $dockerfile_name -eq 'Dockerfile-db-temp' ) {
-	Write-Host "`n[$scriptName] Clean-up default dockerfile`n"
+	if ( $env:CDAF_LOG_LEVEL -eq 'DEBUG' ) {
+		Write-Host "`n[$scriptName] Clean-up default dockerfile`n"
+	}
 	executeExpression "Remove-Item -Force $dockerfile_name"
 }
 
-Write-Host "`n[$scriptName] List Resulting images...`n"
-executeExpression "docker images --filter label=cdaf.${imageName}.image.version"
+if ( $env:CDAF_LOG_LEVEL -eq 'DEBUG' ) {
+	Write-Host "`n[$scriptName] List Resulting images...`n"
+	executeExpression "docker images --filter label=cdaf.${imageName}.image.version"
+}
 
 Write-Host "`n[$scriptName] --- end ---"
