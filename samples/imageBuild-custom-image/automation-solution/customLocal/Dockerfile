@@ -6,8 +6,12 @@ FROM ${CONTAINER_IMAGE}
 WORKDIR /solution
 
 # Shared bootstrap between Docker and Vagrant
-COPY provision.ps1 .
-RUN powershell -NoProfile -Command ./provision.ps1
+SHELL ["powershell", "-Command", "$ErrorActionPreference = 'Stop'; $ProgressPreference = 'Continue'; $verbosePreference='Continue';"]
+RUN curl.exe -fsO "https://raw.githubusercontent.com/cdaf/windows/refs/heads/master/provisioning/base.ps1"
+RUN ./base.ps1 netfx-4.8-devpack
+
+# Change workdir to the mapped folder so that the build artefacts are available on the host
+WORKDIR /solution/workspace
 
 # Normal containers run a console application, this is just keeps the container from stopping 
-CMD powershell -NoProfile -NonInteractive -command %cd%\provision.ps1 keepalive
+CMD ["Wait-Event"]

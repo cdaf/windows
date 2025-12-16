@@ -1,7 +1,7 @@
 solutionName=imagebuild
 artifactPrefix=0.1
 
-buildImage=mcr.microsoft.com/windows/server:ltsc2022
+buildImage=docker.io/cdaf/windows:latest
 imageBuild=& "$AUTOMATIONROOT/remote/imageBuild.ps1" ${SOLUTION}_${REVISION} ${BUILDNUMBER} ${buildImage} ${LOCAL_WORK_DIR}
 CDAF_DOCKER_REQUIRED=yes
 
