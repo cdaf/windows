@@ -77,32 +77,7 @@ Write-Host "[$scriptName] pwd    = $(pwd)"
 Write-Host "[$scriptName] whoami = $(whoami)`N"
 
 executeExpression "[System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]'Tls11,Tls12'"
-
-if ( Test-Path ".\automation\CDAF.windows" ) {
-  Write-Host "[$scriptName] CDAF directories found in workspace"
-  $atomicPath = (Get-Location).Path
-} else {
-  if ( Test-Path "C:\vagrant\automation\provisioning\InstallIIS.ps1" ) {
-    $atomicPath = 'C:\vagrant'
-    Write-Host "[$scriptName] CDAF directories found in vagrant mount"
-  } elseif (Test-Path ".\automation\provisioning\InstallIIS.ps1") {
-	$atomicPath = (Get-Location).Path
-    Write-Host "[$scriptName] CDAF directories found in current working directory"
-  } else {
-    Write-Host "[$scriptName] Cannot find CDAF directories in workspace or /vagrant, so downloading from internet"
-    Write-Host "[$scriptName] Download Continuous Delivery Automation Framework"
-    Write-Host "[$scriptName] `$zipFile = 'WU-CDAF.zip'"
-    $zipFile = 'WU-CDAF.zip'
-    Write-Host "[$scriptName] `$url = `"http://cdaf.io/static/app/downloads/$zipFile`""
-    $url = "http://cdaf.io/static/app/downloads/$zipFile"
-    executeExpression "(New-Object System.Net.WebClient).DownloadFile('$url', '$PWD\$zipFile')"
-    executeExpression 'Add-Type -AssemblyName System.IO.Compression.FileSystem'
-    executeExpression '[System.IO.Compression.ZipFile]::ExtractToDirectory("$PWD\$zipfile", "$PWD")'
-    executeExpression 'cat .\automation\CDAF.windows'
-    $atomicPath = (Get-Location).Path
-  }
-}
-Write-Host "[$scriptName] `$atomicPath = $atomicPath"
+. { iwr -useb https://raw.githubusercontent.com/cdaf/windows/master/provisioning.ps1 } | iex
 
 executeExpression "DISM /Online /Enable-Feature /all /FeatureName:IIS-WebServerRole /FeatureName:IIS-WebServer"
 
@@ -114,10 +89,10 @@ if ( Test-Path 'C:\.provision' ) {
 
 Write-Host "[$scriptName] Install Application Request Routing (ARR)"
 executeExpression "Stop-Service W3SVC"
-executeExpression "$atomicPath\automation\provisioning\GetMedia.ps1 https://download.microsoft.com/download/E/9/8/E9849D6A-020E-47E4-9FD0-A023E99B54EB/requestRouter_amd64.msi"
-executeExpression "$atomicPath\automation\provisioning\installMSI.ps1 $mediaPath\requestRouter_amd64.msi"
-executeExpression "$atomicPath\automation\provisioning\GetMedia.ps1 https://download.microsoft.com/download/1/2/8/128E2E22-C1B9-44A4-BE2A-5859ED1D4592/rewrite_amd64_en-US.msi"
-executeExpression "$atomicPath\automation\provisioning\installMSI.ps1 $mediaPath\rewrite_amd64_en-US.msi"
+executeExpression ".\provisioning\GetMedia.ps1 https://download.microsoft.com/download/E/9/8/E9849D6A-020E-47E4-9FD0-A023E99B54EB/requestRouter_amd64.msi"
+executeExpression ".\provisioning\installMSI.ps1 $mediaPath\requestRouter_amd64.msi"
+executeExpression ".\provisioning\GetMedia.ps1 https://download.microsoft.com/download/1/2/8/128E2E22-C1B9-44A4-BE2A-5859ED1D4592/rewrite_amd64_en-US.msi"
+executeExpression ".\provisioning\installMSI.ps1 $mediaPath\rewrite_amd64_en-US.msi"
 executeExpression "Start-Service W3SVC"
 
 if ($port) {

@@ -49,30 +49,10 @@ if ($port) {
 Write-Host "[$scriptName] pwd    = $(Get-Location)"
 Write-Host "[$scriptName] whoami = $(whoami)"
 
-if ( Test-Path ".\automation\CDAF.windows" ) {
-  Write-Host "[$scriptName] CDAF directories found in workspace"
-  $atomicPath = (Get-Location).Path
-} else {
-  if ( Test-Path "/vagrant" ) {
-    $atomicPath = 'C:\vagrant'
-    Write-Host "[$scriptName] CDAF directories found in vagrant mount"
-  } else {
-    Write-Host "[$scriptName] Cannot find CDAF directories in workspace or /vagrant, so downloading from internet"
-    Write-Host "[$scriptName] Download Continuous Delivery Automation Framework"
-    Write-Host "[$scriptName] `$zipFile = 'WU-CDAF.zip'"
-    $zipFile = 'WU-CDAF.zip'
-    Write-Host "[$scriptName] `$url = `"http://cdaf.io/static/app/downloads/$zipFile`""
-    $url = "http://cdaf.io/static/app/downloads/$zipFile"
-    executeExpression "(New-Object System.Net.WebClient).DownloadFile('$url', '$PWD\$zipFile')"
-    executeExpression 'Add-Type -AssemblyName System.IO.Compression.FileSystem'
-    executeExpression '[System.IO.Compression.ZipFile]::ExtractToDirectory("$PWD\$zipfile", "$PWD")'
-    executeExpression 'cat .\automation\CDAF.windows'
-    $atomicPath = (Get-Location).Path
-  }
-}
-Write-Host "[$scriptName] `$atomicPath = $atomicPath"
+executeExpression "[System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]'Tls11,Tls12'"
+. { iwr -useb https://raw.githubusercontent.com/cdaf/windows/master/provisioning.ps1 } | iex
 
-executeExpression "$atomicPath\automation\provisioning\InstallIIS.ps1 -management yes"
+executeExpression ".\provisioning\InstallIIS.ps1 -management yes"
 
 if ( Test-Path 'C:\.provision' ) {
 	$mediaPath = 'C:\.provision'
@@ -82,10 +62,10 @@ if ( Test-Path 'C:\.provision' ) {
 
 ## Install Application Request Routing (ARR)
 executeExpression "Stop-Service W3SVC"
-executeExpression "$atomicPath\automation\provisioning\GetMedia.ps1 http://download.microsoft.com/download/E/9/8/E9849D6A-020E-47E4-9FD0-A023E99B54EB/requestRouter_amd64.msi"
-executeExpression "$atomicPath\automation\provisioning\installMSI.ps1 $mediaPath\requestRouter_amd64.msi"
-executeExpression "$atomicPath\automation\provisioning\GetMedia.ps1 https://download.microsoft.com/download/1/2/8/128E2E22-C1B9-44A4-BE2A-5859ED1D4592/rewrite_amd64_en-US.msi"
-executeExpression "$atomicPath\automation\provisioning\installMSI.ps1 $mediaPath\rewrite_amd64_en-US.msi"
+executeExpression ".\provisioning\GetMedia.ps1 http://download.microsoft.com/download/E/9/8/E9849D6A-020E-47E4-9FD0-A023E99B54EB/requestRouter_amd64.msi"
+executeExpression ".\provisioning\installMSI.ps1 $mediaPath\requestRouter_amd64.msi"
+executeExpression ".\provisioning\GetMedia.ps1 https://download.microsoft.com/download/1/2/8/128E2E22-C1B9-44A4-BE2A-5859ED1D4592/rewrite_amd64_en-US.msi"
+executeExpression ".\provisioning\installMSI.ps1 $mediaPath\rewrite_amd64_en-US.msi"
 executeExpression "Start-Service W3SVC"
 
 if ( Test-Path 'C:\inetpub\wwwroot\web.config' ) {
@@ -114,7 +94,7 @@ if ($sqlSA) {
 	Write-Host "[$scriptName] Using managed service account $msa"
 	
 	## Mount Install media to D:\ (default for script), NOTE the '$' after the managed service account
-	executeExpression "$atomicPath\automation\provisioning\installSQLServer.ps1 '$msa'"
+	executeExpression ".\provisioning\installSQLServer.ps1 '$msa'"
 }
 
 # SMO installed as part of Standard, connect to the local default instance
@@ -129,9 +109,9 @@ executeExpression '$srv.Settings.LoginMode'
 executeExpression "Restart-Service MSSQLSERVER"
 
 # Allow remote access to the Database for SSMS to migrate the database
-executeExpression "$atomicPath\automation\provisioning\openFirewallPort.ps1 1433 SQL"
+executeExpression ".\provisioning\openFirewallPort.ps1 1433 SQL"
 
 # Adopt Open JDK and Non Sucky Service Manager
-executeExpression "$atomicPath\automation\provisioning\base.ps1 'adoptopenjdk8 nssm'"
+executeExpression ".\provisioning\base.ps1 'adoptopenjdk8 nssm'"
 
 Write-Host "`n[$scriptName] ---------- stop ----------"
