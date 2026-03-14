@@ -44,7 +44,7 @@ if ( $sdk ) {
 if ( $version ) {
 	Write-Host "[$scriptName] version  : $version"
 } else {
-	$version = '8'
+	$version = '10'
 	Write-Host "[$scriptName] version  : $version (default, LTS)"
 }
 
@@ -126,11 +126,11 @@ if ( $version -eq '2' ) {
 	}
 } elseif ( $version -eq '8' ) {
 	if ( $sdk -eq 'yes' ) {
-		$version = '8.0.411'
+		$version = '8.0.419'
 		$file = "dotnet-sdk-${version}-win-x64.exe"
 		$url = "https://builds.dotnet.microsoft.com/dotnet/Sdk/${version}/${file}"
 	} else {
-		$version = '8.0.17'
+		$version = '8.0.25'
 		if ( $sdk -eq 'asp' ) {
 			$file = "dotnet-hosting-${version}-win.exe"
 			$url = "https://builds.dotnet.microsoft.com/dotnet/aspnetcore/Runtime/${version}/${file}"
@@ -141,11 +141,26 @@ if ( $version -eq '2' ) {
 	} 
 } elseif ( $version -eq '9' ) {
 	if ( $sdk -eq 'yes' ) {
-		$version = '9.0.301'
+		$version = '9.0.312'
 		$file = "dotnet-sdk-${version}-win-x64.exe"
 		$url = "https://builds.dotnet.microsoft.com/dotnet/Sdk/${version}/${file}"
 	} else {
-		$version = '9.0.6'
+		$version = '9.0.14'
+		if ( $sdk -eq 'asp' ) {
+			$file = "dotnet-hosting-${version}-win.exe"
+			$url = "https://builds.dotnet.microsoft.com/dotnet/aspnetcore/Runtime/${version}/${file}"
+		} else {
+			$file = "aspnetcore-runtime-${version}-win-x64.exe"
+			$url = "https://builds.dotnet.microsoft.com/dotnet/aspnetcore/Runtime/${version}/${file}"
+		}
+	} 
+} elseif ( $version -eq '10' ) { # https://dotnet.microsoft.com/en-us/download/dotnet/10.0
+	if ( $sdk -eq 'yes' ) {
+		$version = '10.0.201'
+		$file = "dotnet-sdk-${version}-win-x64.exe"
+		$url = "https://builds.dotnet.microsoft.com/dotnet/Sdk/${version}/${file}"
+	} else {
+		$version = '10.0.5'
 		if ( $sdk -eq 'asp' ) {
 			$file = "dotnet-hosting-${version}-win.exe"
 			$url = "https://builds.dotnet.microsoft.com/dotnet/aspnetcore/Runtime/${version}/${file}"
