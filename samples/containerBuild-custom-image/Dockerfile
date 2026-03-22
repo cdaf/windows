@@ -1,6 +1,6 @@
 # escape=`
 # Allow override of image as environment variable
-ARG CONTAINER_IMAGE=docker.io/cdaf/linux:windows
+ARG CONTAINER_IMAGE=docker.io/cdaf/windows
 FROM ${CONTAINER_IMAGE}
 
 # Create root, i.e. C:\solution

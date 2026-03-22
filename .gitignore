@@ -2,6 +2,7 @@
 /TasksRemote/
 /projectDirectories.txt
 /manifest.txt
+/Dockerfile-db-temp
 /storeFor_manifest.txt
 /storeForLocal_manifest.txt
 /storeForRemote_manifest.txt
