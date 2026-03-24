@@ -37,11 +37,12 @@ function MASKED ($value) {
 # 2.5.1 Expand variables within variables, value not passed as argument or strings with commas are automatically coverted to arrays
 # 2.6.5 Support for strings containing commas
 # 2.6.7 Support for strings containing integers
+# 3.0.1 Support for semicolons
 function resolveContent () {
 	if ( $value ) {
-		[String]$forceToString = invoke-expression "Write-Output $($value.Replace(',', '•').trim())"
-		if ( $forceToString ) { $forceToString = invoke-expression "Write-Output $($forceToString.Replace(',', '•').trim())" }
-		if ( $forceToString ) { $forceToString = $forceToString.Replace('•', ',') }
+		[String]$forceToString = invoke-expression "Write-Output $(($value.Replace(';', '■').trim()).Replace(',', '•').trim())"
+		if ( $forceToString ) { $forceToString = invoke-expression "Write-Output $(($value.Replace(';', '■').trim()).Replace(',', '•').trim())" }
+		if ( $forceToString ) { $forceToString = ($forceToString.Replace('•', ',')).Replace('■', ';') }
 		return $forceToString
 	} else {
 		return
@@ -110,31 +111,33 @@ Foreach ($line in $propertiesArray) {
                             write-host "Found $token, replacing with $(MASKED $token) (MASKED)"
                         } else {
 							if ( $env:propldAction -eq 'resolve' ) {
-								write-host "Found $token, replacing with $value"
-								$value = invoke-expression "resolveContent"
+								write-host "Found $token, replacing with $newValue"
+								$newValue = invoke-expression "resolveContent"
 							} elseif ($env:propldAction -eq 'reveal') {
-								$value = invoke-expression "resolveContent"
-								write-host "Found $token, replacing with $value"
+								$newValue = invoke-expression "resolveContent"
+								write-host "Found $token, replacing with $newValue"
 							} else {
-								write-host "Found $token, replacing with $value"
+								$newValue = $value
+								write-host "Found $token, replacing with $newValue"
 							}
                         }
-                        $transformed[$i] = ($transformed[$i]).Replace("$token","$value")
+                        $transformed[$i] = ($transformed[$i]).Replace("$token","$newValue")
                     }
                     $i++
                 }
             } else { # If token file is not supplied, echo strings for instantiating as variables (cannot instantiate here as they will be out of scope)
 				if ( $env:propldAction -eq 'resolve' ) {
-					write-host "[$scriptName]   $name = $value"
-					$value = invoke-expression "resolveContent"
+					write-host "[$scriptName]   $name = $newValue"
+					$newValue = invoke-expression "resolveContent"
 				} elseif ($env:propldAction -eq 'reveal') {
-					$value = invoke-expression "resolveContent"
-					write-host "[$scriptName]   $name = $value"
+					$newValue = invoke-expression "resolveContent"
+					write-host "[$scriptName]   $name = $newValue"
 				} else {
-					write-host "[$scriptName]   $name = $value"
+					$newValue = $value
+					write-host "[$scriptName]   $name = $newValue"
 				}
 
-				$loadVariable = "`$$name='$value'"
+				$loadVariable = "`$$name='$newValue'"
 				Write-Output "$loadVariable"
             }
         }
