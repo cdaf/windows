@@ -3,7 +3,7 @@ jobs:
     displayName: ${{ parameters.displayName }}
     pool:
       vmImage: windows-latest
-#      vmImage: windows-2019
+#      vmImage: windows-2022
 
 #    pool: # Self-hosted Pool Name
 #      name: Default
