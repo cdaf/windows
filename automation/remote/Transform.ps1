@@ -37,7 +37,7 @@ function MASKED ($value) {
 # 2.5.1 Expand variables within variables, value not passed as argument or strings with commas are automatically coverted to arrays
 # 2.6.5 Support for strings containing commas
 # 2.6.7 Support for strings containing integers
-# 3.0.1 Support for semicolons
+# 3.0.2 Support for semicolons
 function resolveContent () {
 	if ( $value ) {
 		[String]$forceToString = invoke-expression "Write-Output $(($value.Replace(';', '■').trim()).Replace(',', '•').trim())"
