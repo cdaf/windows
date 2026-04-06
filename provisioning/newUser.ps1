@@ -74,10 +74,12 @@ if ($userName) {
 }
 
 if ($password) {
-    Write-Host "[$scriptName] password             : **********"
+    Write-Host "[$scriptName] password             : (Get-FileHash -InputStream $([IO.MemoryStream]::new([byte[]][char[]]$password))).Hash (SHA256)"
 } else {
-	$password = 'swUwe5aG'
-    Write-Host "[$scriptName] password             : ********** (default)"
+	[Reflection.Assembly]::LoadWithPartialName("System.Web")
+	$password = [System.Web.Security.Membership]::GeneratePassword(20,0) # 0 = no limit to the number of non-alphanumeric
+	$Global:user_pass = $password
+    Write-Host "[$scriptName] password             : (Get-FileHash -InputStream $([IO.MemoryStream]::new([byte[]][char[]]$password))).Hash (SHA256, auto-generated and available in `$Global:user_pass)"
 }
 
 if ($TrustedForDelegation) {
