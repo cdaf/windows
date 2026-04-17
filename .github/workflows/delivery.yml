@@ -6,8 +6,6 @@ jobs:
   build:
     name: Continuous Integration & Feature Branch Testing
     runs-on: windows-latest
-# Self-hosted agent
-#	runs-on: windows2025-docker 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
