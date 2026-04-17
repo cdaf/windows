@@ -59,5 +59,18 @@ jobs:
 #           buildPlatform: # Optional
 #           buildConfiguration: # Optional
 #           publishRunAttachments: true # Optional
+#         condition: always()
+
+#      - task: UseDotNet@2
+#        inputs:
+#          packageType: sdk
+#          version: '10.x'
+
+#      - task: PublishCodeCoverageResults@2
+#        displayName: 'Publish code coverage'
+#        inputs:
+#          codeCoverageTool: 'Cobertura'
+#          summaryFileLocation: '**/coverage.cobertura.xml'
+#          failIfCoverageEmpty: false
 
       - task: PublishBuildArtifacts@1
