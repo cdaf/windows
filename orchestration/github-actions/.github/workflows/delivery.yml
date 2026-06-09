@@ -36,6 +36,16 @@ jobs:
           report_paths: '**/TestResults/TestResults.xml'
           include_passed: true
 
+# Colapsable report
+#      - name: Publish BDD test report
+#        if: always()
+#        uses: dorny/test-reporter@v2
+#        with:
+#          name: File-Move BDD Results
+#          path: bdd-results/bdd-junit.xml
+#          reporter: java-junit
+#          fail-on-error: false
+
       - name: Artifact Retention
         uses: actions/upload-artifact@v4
         with:
