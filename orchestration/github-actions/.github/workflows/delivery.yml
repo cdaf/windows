@@ -2,6 +2,19 @@ name: CDAF Targetless CD using hosted agent
 # This workflow is triggered on pushes to the repository.
 on: [push]
 
+#env:  # Global environment variables
+#  ANYPOINT_ORG_ID: ${{ vars.ANYPOINT_ORG_ID }}
+#  ANYPOINT_CLIENT_ID: ${{ vars.ANYPOINT_CLIENT_ID }}
+#  ANYPOINT_CLIENT_SECRET: ${{ secrets.ANYPOINT_CLIENT_SECRET }}
+#  ANYPOINT_CLIENT_SHA: ${{ vars.ANYPOINT_CLIENT_SHA }}
+
+# This is needed if using clearlyip/code-coverage-report-action
+# permissions:
+#   contents: read
+#   checks: write
+#   pull-requests: write
+#   actions: read
+
 jobs:
   build:
     name: Continuous Integration & Feature Branch Testing
@@ -45,6 +58,13 @@ jobs:
 #          path: bdd-results/bdd-junit.xml
 #          reporter: java-junit
 #          fail-on-error: false
+
+# See Permission above to use this plugin as it needs the ability to read previous coverage output
+#      - name: Code Coverage Report
+#        uses: clearlyip/code-coverage-report-action@v7
+#        if: success() || failure()
+#        with:
+#          filename: coverage/clover.xml
 
       - name: Artifact Retention
         uses: actions/upload-artifact@v4
