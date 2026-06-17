@@ -65,6 +65,8 @@ jobs:
 #        if: success() || failure()
 #        with:
 #          filename: coverage/clover.xml
+#          artifact_download_workflow_names: 'CDAF Targetless CD using hosted agent'
+#          overall_coverage_fail_threshold: 80
 
       - name: Artifact Retention
         uses: actions/upload-artifact@v4
