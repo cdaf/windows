@@ -68,6 +68,19 @@ jobs:
 #          artifact_download_workflow_names: 'CDAF Targetless CD using hosted agent'
 #          overall_coverage_fail_threshold: 80
 
+# Does not require permissions and displays results with apples
+#      - name: Jacoco Report to Summary
+#        id: jacoco
+#        uses: madrapps/jacoco-report@v1.8.0
+#        if: success() || failure()
+#        with:
+#          paths: target/site/jacoco/jacoco.xml
+#          token: ${{ secrets.GITHUB_TOKEN }}
+#          min-coverage-overall: 80
+#          title: Code Coverage Summary
+#          update-comment: true
+#          comment-type: summary
+
       - name: Artifact Retention
         uses: actions/upload-artifact@v4
         with:
