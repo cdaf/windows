@@ -46,7 +46,16 @@ PROD:
   stage: deploy
   tags:
     - batch
-  script: "./release.ps1 ${CI_JOB_NAME} ${CI_PIPELINE_ID}"
+  script: |
+    ./release.ps1 ${CI_JOB_NAME} ${CI_PIPELINE_ID}
+#    $manifest = Get-Content ./TasksLocal/manifest.txt
+#    $ARTIFACT_PREFIX = ($manifest | Select-String 'artifactPrefix=').Line.Split('=')[1]
+#    $BUILDNUMBER = ($manifest | Select-String 'BUILDNUMBER=').Line.Split('=')[1]
+#    "RELEASE_VERSION=$ARTIFACT_PREFIX.$BUILDNUMBER" | Out-File -FilePath release.env -Encoding ascii
+#    Write-Output ""
+#    Write-Output "cat release.env"
+#    Write-Output ""
+    Get-Content release.env
   environment: "${CI_JOB_STAGE}"
   dependencies:
     - TEST
@@ -54,17 +63,28 @@ PROD:
     - master
   when: manual
 
-# To apply a hard-dependency on the manual gate, use "needs"
-#VERIFY:
-#  stage: publish
-#  image: cdaf/linux
-#  script: |
-#    ./release.sh ${CI_JOB_NAME} ${CI_PIPELINE_ID}
-#  dependencies:
-#    - CI
-#    - PROD
-#  needs:
-#    - CI
-#    - PROD
-#  only:
-#    - main
+# RELEASE:
+#   stage: .post
+#   tags:
+#    - ubuntu2404-shell
+#   before_script:
+#     - |
+#       GLAB_VERSION="1.58.0"
+#       if ! command -v glab &>/dev/null || ! glab version | grep -qE '([2-9]\.|1\.[6-9][0-9]\.|1\.5[89]\.)'; then
+#         echo "Installing glab ${GLAB_VERSION}..."
+#         curl -sLO "https://gitlab.com/gitlab-org/cli/-/releases/v${GLAB_VERSION}/downloads/glab_${GLAB_VERSION}_linux_amd64.deb"
+#         sudo dpkg -i "glab_${GLAB_VERSION}_linux_amd64.deb"
+#         rm "glab_${GLAB_VERSION}_linux_amd64.deb"
+#       fi
+#   script:
+#     - echo "Creating release $RELEASE_VERSION"
+#   needs:
+#     - job: PROD
+#       artifacts: true
+#   only:
+#     - main
+#   release:
+#     name: "Release $RELEASE_VERSION"
+#     tag_name: "$RELEASE_VERSION"
+#     description: "Automated release $RELEASE_VERSION from pipeline $CI_PIPELINE_ID"
+#     ref: '$CI_COMMIT_SHA'
