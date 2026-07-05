@@ -3,3 +3,29 @@
 artifactPrefix=0.1
 productName=My Product Name
 solutionName=myProduct
+
+# containerBuild=./automation/processor/containerBuild.ps1 $SOLUTION $BUILDNUMBER $REVISION $ACTION
+# containerImage=ubuntu@ps1a256:6d0e0c26489e33f5a6f0020edface2727db9489744ecc9b4f50c7fa671f23c49
+
+# imageBuild=$AUTOMATIONROOT/remote/imageBuild.ps1 ${SOLUTION}_${REVISION} ${BUILDNUMBER} $containerImage
+
+# processSequence=localTasks.ps1 remoteTasks.ps1 containerTasks.ps1
+
+# CDAF_PUps1_REGISTRY_URL=${CI_REGISTRY}
+# CDAF_PUps1_REGISTRY_TAG=${semver} latest
+# CDAF_PUps1_REGISTRY_USER=${CI_REGISTRY_USER}
+# CDAF_PUps1_REGISTRY_TOKEN=${CI_JOB_TOKEN}
+
+# GitLab does not require gitUserNameEnvVar & gitUserPassEnvVar, the URL contains the user and token.
+# gitRemoteURL=${CI_REPOSITORY_URL}
+# gitCustomCleanup=& $AUTOMATIONROOT\buildandpackage\clean.ps1
+
+# GitHub Workspace is in attached head, so don't need credentials
+# gitRemoteURL=${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}.git
+# gitCustomCleanup=& $AUTOMATIONROOT\buildandpackage\clean.ps1
+
+# Azure DevOps
+# gitRemoteURL=${Build.Repository.Uri}
+# gitUserNameEnvVar=.
+# gitUserPassEnvVar=${SYSTEM_ACCESSTOKEN}
+# gitCustomCleanup=& $AUTOMATIONROOT\buildandpackage\clean.ps1

@@ -7,16 +7,14 @@ trigger:
 
 stages:
 - stage: DEV
-  displayName: CI
 #  variables:
 #  - group: Git Reader
   jobs:
   - template: templates/azure-pipelines-build-template.yml
     parameters:
-      displayName: CI
+      displayName: Build and Test
 
 - stage: TEST
-  displayName: User Acceptence Test
   condition: and(succeeded(), eq(variables['build.sourceBranch'], 'refs/heads/master'))
   dependsOn: DEV
 #  variables:
@@ -24,11 +22,10 @@ stages:
   jobs:
   - template: templates/azure-pipelines-deployment-template.yml
     parameters:
-      displayName: CD
+      displayName: User Acceptence Test
       environment: TEST
 
 - stage: PROD
-  displayName: Production Gated Deployment
   condition: and(succeeded(), eq(variables['build.sourceBranch'], 'refs/heads/master'))
   dependsOn: TEST
 #  variables:
@@ -36,5 +33,5 @@ stages:
   jobs:
   - template: templates/azure-pipelines-deployment-template.yml
     parameters:
-      displayName: CD
+      displayName: Production Gated Deployment
       environment: PROD

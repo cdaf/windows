@@ -30,6 +30,11 @@ CI:
   artifacts:
     paths:
     - release.ps1
+    reports:
+      junit: "**/test-results/*.xml"
+      coverage_report:
+        coverage_format: cobertura  # or jacoco
+        path: "**/coverage/*.xml"
 
 TEST:
   stage: test
