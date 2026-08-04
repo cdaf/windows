@@ -80,16 +80,16 @@ if ( $registryTags ) {
 } else {
 	if ( $env:CDAF_PUSH_REGISTRY_TAG ) {
 		$imageTag = "$env:CDAF_PUSH_REGISTRY_TAG"
-	    Write-Host "[$scriptName]   registryTags        : $registryTags (loaded from environment variable CDAF_PUSH_REGISTRY_TAG, supports space separated lis)`n"
+	    Write-Host "[$scriptName]   registryTags    : $registryTags (loaded from environment variable CDAF_PUSH_REGISTRY_TAG, supports space separated lis)`n"
 	} else {
 		$registryTags = & "${CDAF_CORE}\getProperty.ps1" "${manifest}" "CDAF_PUSH_REGISTRY_TAG"
 		if ( $registryTags ) { $registryTags = Invoke-Expression "Write-Output $registryTags" }
 		if ( $registryTags ) {
-			Write-Host "[$scriptName]   registryTags        : $registryTags"
-		    Write-Host "[$scriptName]   registryTags        : $registryTags (loaded from manifest.txt, supports space separated lis)`n"
+			Write-Host "[$scriptName]   registryTags    : $registryTags"
+		    Write-Host "[$scriptName]   registryTags    : $registryTags (loaded from manifest.txt, supports space separated lis)`n"
 		} else {	
 			$registryTags = 'latest'
-			Write-Host "[$scriptName]   registryTags        : $registryTags (default, supports space separated list)"
+			Write-Host "[$scriptName]   registryTags    : $registryTags (default, supports space separated list)"
 		}
 	}
 }
