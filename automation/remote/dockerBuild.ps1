@@ -91,6 +91,10 @@ if ( $optionalArgs ) {
 	}
 }
 
+if ( $env:DOCKER_HOST ) {
+    Write-Host "[$scriptName] $env:DOCKER_HOST         : $env:DOCKER_HOST"
+}
+
 # 2.6.0 Image from Private Registry
 $manifest = "$CDAF_CORE\manifest.txt"
 if ( ! ( Test-Path ${manifest} )) {
