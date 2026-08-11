@@ -74,6 +74,12 @@ if ( $registryContext ) {
 	exit 2502
 }
 
+$productVersion = & "${CDAF_CORE}\getProperty.ps1" "${manifest}" "productVersion"
+Write-Host "[$scriptName]   productVersion  : $productVersion (from ${manifest})"
+
+$artifactPrefix = & "${CDAF_CORE}\getProperty.ps1" "${manifest}" "artifactPrefix"
+Write-Host "[$scriptName]   artifactPrefix  : $artifactPrefix (from ${manifest})"
+
 # 2.6.0 CDAF Solution property support, with environment variable override.
 if ( $registryTags ) {
 	Write-Host "[$scriptName]   registryTags    : $registryTags (can be space separated list)"
