@@ -146,6 +146,9 @@ if ( ! ( Test-Path ${manifest} )) {
 	}
 }
 
+$productVersion = & "${CDAF_CORE}\getProperty.ps1" "${manifest}" "productVersion"
+Write-Host "[$scriptName]   productVersion      : $productVersion (from ${manifest})"
+
 # 2.6.0 CDAF Solution property support, with environment variable override.
 if ( $env:CDAF_REGISTRY_URL ) {
 	$registryURL = $env:CDAF_REGISTRY_URL
