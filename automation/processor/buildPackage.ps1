@@ -355,7 +355,7 @@ if (Test-Path "$postbuild") {
 #---------------------------------------------------------------------
 # Configuration Management transformation only if not within container
 #---------------------------------------------------------------------
-if ( $ACTION -ne 'container_build' ) {
+if ( $env:CDAF_CONTAINER_BUILD -ne 'yes' ) {
 
 	$configManagementList = Get-ChildItem -Path "$SOLUTIONROOT" -Name '*.cm'
 	if ( $configManagementList ) {
@@ -451,9 +451,9 @@ if ( $loggingList ) {
 #--------------------------------------------------------------------------
 # Do not load and log containerBuild properties when executing in container
 #--------------------------------------------------------------------------
-if ( $ACTION -eq 'container_build' ) {
+if ( $env:CDAF_CONTAINER_BUILD -eq 'yes' ) {
 
-	Write-Host "`n[$scriptName] ACTION = $ACTION, Executing build in container..."
+	Write-Host "`n[$scriptName] `$env:CDAF_CONTAINER_BUILD = $env:CDAF_CONTAINER_BUILD, Executing build in container..."
 
 } else {
 
@@ -530,11 +530,6 @@ if ( $ACTION -eq 'container_build' ) {
 	# Properties Loaded, perform container execution validation steps
 	#----------------------------------------------------------------
 	if ( $containerBuild ) {
-		# 2.5.5 support conditional containerBuild based on environment variable
-		if ( $ACTION -eq 'skip_container_build' ) {
-			$loggingList += "[$scriptName]   ACTION                    : $ACTION, container build defined but skipped ..."
-			Clear-Variable -Name 'containerBuild'
-		}
 		if ( $env:CDAF_SKIP_CONTAINER_BUILD ) {
 			$loggingList += "[$scriptName]   CDAF_SKIP_CONTAINER_BUILD : $env:CDAF_SKIP_CONTAINER_BUILD, container build defined but skipped ..."
 			Clear-Variable -Name 'containerBuild'
@@ -664,10 +659,10 @@ if ( $ACTION -eq 'container_build' ) {
 #--------------------------------------------------------------------------
 
 # 2.4.4 Pre-Build Tasks, exclude from container_build to avoid performing twice
-if (( Test-Path "$prebuild" ) -and ( $ACTION -ne 'container_build' )) {
+if (( Test-Path "$prebuild" ) -and ( $env:CDAF_CONTAINER_BUILD -ne 'yes' )) {
 	Write-Host "`n[$scriptName] Process Pre-Build Task ...`n"
-	& "$AUTOMATIONROOT\remote\execute.ps1" $SOLUTION $BUILDNUMBER "package" "$prebuild" $ACTION
-	if(!$?){ exceptionExit ".$AUTOMATIONROOT\remote\execute.ps1 $SOLUTION $BUILDNUMBER `"package`" `"$prebuild`" $ACTION" }
+	& "$AUTOMATIONROOT\remote\execute.ps1" $SOLUTION $BUILDNUMBER "package" "$prebuild" "$ACTION"
+	if(!$?){ exceptionExit ".$AUTOMATIONROOT\remote\execute.ps1 $SOLUTION $BUILDNUMBER `"package`" `"$prebuild`" `"$ACTION`"" }
 }
 
 if (( $containerBuild ) -and ( $ACTION -ne 'packageonly' )) {
@@ -705,7 +700,7 @@ if (( $containerBuild ) -and ( $ACTION -ne 'packageonly' )) {
 		Write-Host "`n[$scriptName] ACTION is $ACTION so skipping package process" -ForegroundColor Yellow
 	} else {
 		Write-Host
-		executeExpression "& `"$AUTOMATIONROOT\buildandpackage\package.ps1`" $SOLUTION $BUILDNUMBER $REVISION `"$AUTOMATIONROOT`" `"$SOLUTIONROOT`" $LOCAL_WORK_DIR $REMOTE_WORK_DIR $ACTION"
+		executeExpression "& `"$AUTOMATIONROOT\buildandpackage\package.ps1`" $SOLUTION $BUILDNUMBER $REVISION `"$AUTOMATIONROOT`" `"$SOLUTIONROOT`" `"$LOCAL_WORK_DIR`" `"$REMOTE_WORK_DIR`" `"$ACTION`""
 	}
 }
 	
@@ -713,7 +708,7 @@ if (( $containerBuild ) -and ( $ACTION -ne 'packageonly' )) {
 # Build process complete, start image and file packaging
 #-------------------------------------------------------
 
-if ( $ACTION -ne 'container_build' ) {
+if ( $env:CDAF_CONTAINER_BUILD -ne 'yes' ) {
 
 	# 2.2.0 Image Build as an incorperated function, no longer conditional on containerBuild, but do not attempt if within containerbuild
 	if ( $imageBuild ) {

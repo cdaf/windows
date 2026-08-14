@@ -51,15 +51,13 @@ if ( $imageName ) {
 	if ( $revision ) { 
 		Write-Host "[$scriptName]   revision             : $revision"
 	} else {
-		$revision = 'container_build'
-		Write-Host "[$scriptName]   revision             : $revision (not supplied, set to default)"
+		Write-Host "[$scriptName]   revision             : $revision (not supplied)"
 	}
 
 	if ( $action ) { 
 		Write-Host "[$scriptName]   action               : $action"
 	} else {
-		$action = 'container_build'
-		Write-Host "[$scriptName]   action               : $action (not supplied, set to default)"
+		Write-Host "[$scriptName]   action               : $action (not supplied)"
 	}
 
 	if ( $rebuildImage ) {
@@ -175,9 +173,9 @@ if ( $buildImage ) {
 		}
 
 		if ( $env:USERPROFILE ) {
-			executeExpression "docker run --volume '${env:USERPROFILE}\:C:/solution/home' --volume '${WORKSPACE_ROOT}\:C:/solution/workspace' ${buildCommand} ${buildImage}:${imageTag} automation\ci.bat $buildNumber $revision container_build"
+			executeExpression "docker run -e 'CDAF_CONTAINER_BUILD=yes' --volume '${env:USERPROFILE}\:C:/solution/home' --volume '${WORKSPACE_ROOT}\:C:/solution/workspace' ${buildCommand} ${buildImage}:${imageTag} automation\ci.bat '$buildNumber' '$revision' '$action'"
 		} else {
-			executeExpression "docker run --volume '${WORKSPACE_ROOT}\:C:/solution/workspace' ${buildCommand} ${buildImage}:${imageTag} automation\ci.bat $buildNumber $revision container_build"
+			executeExpression "docker run -e 'CDAF_CONTAINER_BUILD=yes' --volume '${WORKSPACE_ROOT}\:C:/solution/workspace' ${buildCommand} ${buildImage}:${imageTag} automation\ci.bat '$buildNumber' '$revision' '$action'"
 		}
 
 		Write-Host "`n[$scriptName] List and remove all stopped containers"
