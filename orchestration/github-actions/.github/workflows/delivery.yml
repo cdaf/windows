@@ -23,7 +23,7 @@ jobs:
 #	runs-on: windows2025-docker 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Fetch all history for all tags and branches
         run: |
@@ -82,7 +82,7 @@ jobs:
 #          comment-type: summary
 
       - name: Artifact Retention
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: deploy
           path: release.ps1
@@ -94,7 +94,7 @@ jobs:
     runs-on: windows-latest
     steps:
       - name: Download Artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: deploy
           path: drop
@@ -113,7 +113,7 @@ jobs:
 #    runs-on: windows-latest
 #    steps:
 #      - name: Download Artifacts
-#        uses: actions/download-artifact@v4
+#        uses: actions/download-artifact@v8
 #        with:
 #          name: deploy
 #          path: drop
@@ -133,7 +133,7 @@ jobs:
       packages: write
     steps:
       - name: Download Artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: deploy
           path: drop
