@@ -18,6 +18,10 @@ Param (
 	[string]$installPath
 )
 
+Import-Module Microsoft.PowerShell.Utility
+Import-Module Microsoft.PowerShell.Management
+Import-Module Microsoft.PowerShell.Security
+
 $scriptName = 'install.ps1'
 cmd /c "exit 0"
 $Error.Clear()
