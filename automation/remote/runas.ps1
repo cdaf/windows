@@ -54,7 +54,7 @@ if ($userPass) {
 if ($workspace) {
     Write-Host "[$scriptName] workspace : $workspace"
 } else {
-	$workspace = 'c:\vagrant'
+	$workspace = "$env:USERPROFILE\workspace"
     Write-Host "[$scriptName] workspace : $workspace (default)"
 }
 

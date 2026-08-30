@@ -42,33 +42,6 @@ timeout(time: 4, unit: 'HOURS') {
           }
         '''
       }
-
-      stage ('Conditional Vagrant Testing') {
-
-        powershell '''
-          $edition = foreach ($sProperty in Get-WmiObject -class Win32_OperatingSystem -computername ".") { $sProperty.Caption }
-          if ( $edition -eq 'Microsoft Windows Server 2019 Standard' ) {
-            $env:OVERRIDE_IMAGE = 'cdaf/WindowsServerCore'
-            Write-Host "`nOVERRIDE_IMAGE set to ${env:OVERRIDE_IMAGE} as OS is ${edition}`n"
-          } elseif ( $edition -eq 'Microsoft Windows Server 2022 Standard' ) {
-            $env:OVERRIDE_IMAGE = 'cdaf/WindowsServer2022'
-            Write-Host "`nOVERRIDE_IMAGE set to ${env:OVERRIDE_IMAGE} as OS is ${edition}`n"
-          } else {
-            Write-Host "`nOVERRIDE_IMAGE not set as as OS is ${edition}`n"
-          }
-
-          Write-Host "`nList Vagrantfile`n"
-          Get-Content Vagrantfile
-
-          if ( Test-Path .vagrant ) {
-            vagrant destroy -f
-            vagrant box list
-          }
-
-          vagrant up
-        '''
-      }
-
     } catch (e) {
       
       currentBuild.result = "FAILED"
@@ -78,8 +51,10 @@ timeout(time: 4, unit: 'HOURS') {
 
     } finally {
 
-      stage ('Destroy VMs and Discard sample vagrantfile') {
-        bat "IF EXIST .vagrant vagrant destroy -f"
+      stage ('Unconditional Clean-up') {
+        bat ```
+          Write-Host "`nApply clean-up here`n"
+        ```
       }
     }
   }
