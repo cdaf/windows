@@ -52,9 +52,9 @@ timeout(time: 4, unit: 'HOURS') {
     } finally {
 
       stage ('Unconditional Clean-up') {
-        bat ```
+        powershell '''
           Write-Host "`nApply clean-up here`n"
-        ```
+        '''
       }
     }
   }
