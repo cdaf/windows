@@ -795,35 +795,43 @@ if ( $env:CDAF_CONTAINER_BUILD -ne 'yes' ) {
 			[IO.File]::WriteAllBytes("$pwd\release.ps1",[char[]][Convert]::ToBase64String([IO.File]::ReadAllBytes($SourceFile)))
 			$base64 = get-content "release.ps1"
 
-			Set-Content "release.ps1" 'Param ('
-			Add-Content "release.ps1" '  [string]$ENVIRONMENT,'
-			Add-Content "release.ps1" '  [string]$RELEASE,'
-			Add-Content "release.ps1" '  [string]$OPT_ARG'
-			Add-Content "release.ps1" ')'
-			Add-Content "release.ps1" 'cmd /c "exit 0"'
-			Add-Content "release.ps1" '$error.clear()'
-			Add-Content "release.ps1" 'Import-Module Microsoft.PowerShell.Utility'
-			Add-Content "release.ps1" 'Import-Module Microsoft.PowerShell.Management'
-			Add-Content "release.ps1" 'Import-Module Microsoft.PowerShell.Security'
-			Add-Content "release.ps1" 'Write-Host "Launching release.ps1 (${artifactPrefix}.${BUILDNUMBER}) ..."'
-			Add-Content "release.ps1" "`$Base64 = `"$base64`""
-			Add-Content "release.ps1" 'if ( Test-Path "TasksLocal" ) { Remove-Item -Recurse TasksLocal }'
-			Add-Content "release.ps1" "Remove-Item ${SOLUTION}*.zip" # remote package
-			Add-Content "release.ps1" 'Write-Host "[$(Get-Date)] Extracting embedded package file ..."'
-			Add-Content "release.ps1" "[IO.File]::WriteAllBytes(`"`$pwd\${compressedArtefact}`",[System.Convert]::FromBase64String(`$Base64))"
-
-			Add-Content "release.ps1" 'Write-Host "[$(Get-Date)] Decompressing package file ..."'
-			if ( $packageMethod -eq 'tarball' ) {
-				Add-Content "release.ps1" "tar -zxf ${compressedArtefact}"
-			} else {
-				# TODO conditional for PS core in the future Add-Content "release.ps1" "Set-Content -Path '${compressedArtefact}' -Value `$Content -AsByteStream"
-				Add-Content "release.ps1" 'Add-Type -AssemblyName System.IO.Compression.FileSystem'
-				Add-Content "release.ps1" "[System.IO.Compression.ZipFile]::ExtractToDirectory(`"`$PWD\${compressedArtefact}`", `"`$PWD`")"
+			try { 
+				Set-Content "release.ps1" 'Param ('
+				Add-Content "release.ps1" '  [string]$ENVIRONMENT,'
+				Add-Content "release.ps1" '  [string]$RELEASE,'
+				Add-Content "release.ps1" '  [string]$OPT_ARG'
+				Add-Content "release.ps1" ')'
+				Add-Content "release.ps1" 'cmd /c "exit 0"'
+				Add-Content "release.ps1" '$error.clear()'
+				Add-Content "release.ps1" 'Import-Module Microsoft.PowerShell.Utility'
+				Add-Content "release.ps1" 'Import-Module Microsoft.PowerShell.Management'
+				Add-Content "release.ps1" 'Import-Module Microsoft.PowerShell.Security'
+				Add-Content "release.ps1" 'Write-Host "Launching release.ps1 (${artifactPrefix}.${BUILDNUMBER}) ..."'
+				Add-Content "release.ps1" "`$Base64 = `"$base64`""
+				Add-Content "release.ps1" 'if ( Test-Path "TasksLocal" ) { Remove-Item -Recurse TasksLocal }'
+				Add-Content "release.ps1" "Remove-Item ${SOLUTION}*.zip" # remote package
+				Add-Content "release.ps1" 'Write-Host "[$(Get-Date)] Extracting embedded package file ..."'
+				Add-Content "release.ps1" "[IO.File]::WriteAllBytes(`"`$pwd\${compressedArtefact}`",[System.Convert]::FromBase64String(`$Base64))"
+	
+				Add-Content "release.ps1" 'Write-Host "[$(Get-Date)] Decompressing package file ..."'
+				if ( $packageMethod -eq 'tarball' ) {
+					Add-Content "release.ps1" "tar -zxf ${compressedArtefact}"
+				} else {
+					# TODO conditional for PS core in the future Add-Content "release.ps1" "Set-Content -Path '${compressedArtefact}' -Value `$Content -AsByteStream"
+					Add-Content "release.ps1" 'Add-Type -AssemblyName System.IO.Compression.FileSystem'
+					Add-Content "release.ps1" "[System.IO.Compression.ZipFile]::ExtractToDirectory(`"`$PWD\${compressedArtefact}`", `"`$PWD`")"
+				}
+	
+				Add-Content "release.ps1" 'Write-Host "[$(Get-Date)] Execute Deployment ..."'
+				Add-Content "release.ps1" '.\TasksLocal\delivery.bat "$ENVIRONMENT" "$RELEASE" "$OPT_ARG"'
+				Add-Content "release.ps1" 'exit $LASTEXITCODE'
+			} catch {
+				Write-Host "`n+-------------------------------------+"
+				Write-Host "|  !!! Package Exception Ocurred !!!  |"
+				Write-Host "+-------------------------------------+`n"
+				$_.Exception.StackTrace
+				ERRMSG $_.Exception.Message 7812
 			}
-
-			Add-Content "release.ps1" 'Write-Host "[$(Get-Date)] Execute Deployment ..."'
-			Add-Content "release.ps1" '.\TasksLocal\delivery.bat "$ENVIRONMENT" "$RELEASE" "$OPT_ARG"'
-			Add-Content "release.ps1" 'exit $LASTEXITCODE'
 			$artefactList = @('release.ps1')
 		}
 	} else {
