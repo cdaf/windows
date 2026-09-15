@@ -3,7 +3,8 @@ Param (
 	[string]$targetDirectory,
 	[string]$filter,
 	[string]$replace,
-	[string]$showContent
+	[string]$showContent,
+	[string]$deleteOrphans
 )
 $scriptName = 'DeployDirectory.ps1'
 
@@ -168,45 +169,76 @@ if ( $showContent -eq 'no' ) {
 	Write-Host "[$scriptName]   showContent     : $showContent (pass no to suppress side-by-side listing)"
 }
 
+if ( $deleteOrphans -eq 'yes' ) {
+	Write-Host "[$scriptName]   deleteOrphans   : $deleteOrphans (target files not in source will be deleted when replace is yes)"
+} else {
+	Write-Host "[$scriptName]   deleteOrphans   : $deleteOrphans (target files not in source are left unchanged)"
+}
+
 if ( ! ( Test-Path -LiteralPath $sourceDirectory )) {
-	Write-Host "[$scriptName] Source directory ($sourceDirectory) not found, exiting with `$LASTEXITCODE = 103"; exit 103
+	Write-Host "[$scriptName] Source ($sourceDirectory) not found, exiting with `$LASTEXITCODE = 103"; exit 103
 }
 
 if ( ! ( Test-Path -LiteralPath $targetDirectory )) {
-	Write-Host "[$scriptName] Target directory ($targetDirectory) not found, exiting with `$LASTEXITCODE = 104"; exit 104
+	Write-Host "[$scriptName] Target ($targetDirectory) not found, exiting with `$LASTEXITCODE = 104"; exit 104
 }
 
-$sourceRoot = (Resolve-Path -LiteralPath $sourceDirectory).Path
-$targetRoot = (Resolve-Path -LiteralPath $targetDirectory).Path
+$sourceItem = Get-Item -LiteralPath $sourceDirectory
+$targetItem = Get-Item -LiteralPath $targetDirectory
+
+# Both directory and single file arguments are reduced to a list of source/target pairs
+$pairs = @()
+$orphaned = @()
+if ( $sourceItem.PSIsContainer ) {
+
+	if ( ! $targetItem.PSIsContainer ) {
+		Write-Host "[$scriptName] Source ($sourceDirectory) is a directory but target ($targetDirectory) is a file, exiting with `$LASTEXITCODE = 105"; exit 105
+	}
+
+	$sourceRoot = $sourceItem.FullName
+	$targetRoot = $targetItem.FullName
+
+	foreach ( $file in Get-ChildItem -LiteralPath $sourceRoot -Filter $filter -Recurse -File ) {
+		$relative = $file.FullName.Substring($sourceRoot.Length).TrimStart('\')
+		$pairs += [PSCustomObject]@{ Label = $relative; Source = $file.FullName; Target = (Join-Path $targetRoot $relative) }
+	}
+
+	foreach ( $file in Get-ChildItem -LiteralPath $targetRoot -Filter $filter -Recurse -File ) {
+		$relative = $file.FullName.Substring($targetRoot.Length).TrimStart('\')
+		if ( ! ( Test-Path -LiteralPath (Join-Path $sourceRoot $relative) )) {
+			$orphaned += [PSCustomObject]@{ Label = $relative; Target = $file.FullName }
+		}
+	}
+
+} else {
+
+	if ( $targetItem.PSIsContainer ) {
+		$targetFile = Join-Path $targetItem.FullName $sourceItem.Name
+		$label = $sourceItem.Name
+	} else {
+		$targetFile = $targetItem.FullName
+		if ( $targetItem.Name -eq $sourceItem.Name ) { $label = $sourceItem.Name } else { $label = "$($sourceItem.Name) --> $($targetItem.Name)" }
+	}
+	$pairs += [PSCustomObject]@{ Label = $label; Source = $sourceItem.FullName; Target = $targetFile }
+}
 
 $differing = @()
 $missing = @()
 $identical = 0
 
-foreach ( $sourceFile in Get-ChildItem -LiteralPath $sourceRoot -Filter $filter -Recurse -File ) {
+foreach ( $pair in $pairs ) {
 
-	$relative = $sourceFile.FullName.Substring($sourceRoot.Length).TrimStart('\')
-	$targetFile = Join-Path $targetRoot $relative
-
-	if ( ! ( Test-Path -LiteralPath $targetFile )) {
-		$missing += $relative
+	if ( ! ( Test-Path -LiteralPath $pair.Target )) {
+		$missing += $pair
 		continue
 	}
 
-	$sourceHash = (Get-FileHash -LiteralPath $sourceFile.FullName -Algorithm SHA256).Hash
-	$targetHash = (Get-FileHash -LiteralPath $targetFile -Algorithm SHA256).Hash
+	$sourceHash = (Get-FileHash -LiteralPath $pair.Source -Algorithm SHA256).Hash
+	$targetHash = (Get-FileHash -LiteralPath $pair.Target -Algorithm SHA256).Hash
 	if ( $sourceHash -eq $targetHash ) {
 		$identical ++
 	} else {
-		$differing += $relative
-	}
-}
-
-$orphaned = @()
-foreach ( $file in Get-ChildItem -LiteralPath $targetRoot -Filter $filter -Recurse -File ) {
-	$relative = $file.FullName.Substring($targetRoot.Length).TrimStart('\')
-	if ( ! ( Test-Path -LiteralPath (Join-Path $sourceRoot $relative) )) {
-		$orphaned += $relative
+		$differing += $pair
 	}
 }
 
@@ -217,37 +249,47 @@ Write-Host "[$scriptName] Orphaned  : $($orphaned.Count) (in target, not in sour
 
 if ( $differing ) {
 	Write-Host "`n[$scriptName] --- Differing files ---"
-	foreach ( $relative in $differing ) {
-		Write-Host "`n[$scriptName] $relative"
+	foreach ( $pair in $differing ) {
+		Write-Host "`n[$scriptName] $($pair.Label)"
 		if ( $showContent -eq 'yes' ) {
-			sideBySide (Join-Path $sourceRoot $relative) (Join-Path $targetRoot $relative)
+			sideBySide $pair.Source $pair.Target
 		}
 	}
 }
 
 if ( $missing ) {
 	Write-Host "`n[$scriptName] --- Files missing from target ---"
-	foreach ( $relative in $missing ) {
-		Write-Host "[$scriptName] $relative"
+	foreach ( $pair in $missing ) {
+		Write-Host "[$scriptName] $($pair.Label)"
 	}
 }
 
 if ( $orphaned ) {
 	Write-Host "`n[$scriptName] --- Files only in target ---"
-	foreach ( $relative in $orphaned ) {
-		Write-Host "[$scriptName] $relative"
+	foreach ( $pair in $orphaned ) {
+		Write-Host "[$scriptName] $($pair.Label)"
 	}
 }
 
 if ( $replace -eq 'yes' ) {
 	Write-Host "`n[$scriptName] --- Replacing target files ---"
-	foreach ( $relative in ( $differing + $missing )) {
-		$targetFile = Join-Path $targetRoot $relative
-		$parent = Split-Path $targetFile -Parent
+	foreach ( $pair in ( $differing + $missing )) {
+		$parent = Split-Path $pair.Target -Parent
 		if ( ! ( Test-Path -LiteralPath $parent )) {
 			executeExpression "New-Item -ItemType Directory -Path '$parent' | Out-Null"
 		}
-		executeExpression "Copy-Item -LiteralPath '$(Join-Path $sourceRoot $relative)' -Destination '$targetFile' -Force"
+		executeExpression "Copy-Item -LiteralPath '$($pair.Source)' -Destination '$($pair.Target)' -Force"
+	}
+
+	if ( $orphaned ) {
+		if ( $deleteOrphans -eq 'yes' ) {
+			Write-Host "`n[$scriptName] --- Deleting orphaned target files ---"
+			foreach ( $pair in $orphaned ) {
+				executeExpression "Remove-Item -LiteralPath '$($pair.Target)' -Force"
+			}
+		} else {
+			Write-Host "`n[$scriptName] $($orphaned.Count) orphaned target file(s) retained, pass deleteOrphans as yes to remove"
+		}
 	}
 }
 
