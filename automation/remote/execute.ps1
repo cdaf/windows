@@ -620,7 +620,20 @@ if (!( Test-Path $TASK_NAME )) {
     Write-Host "`n[$scriptName] Task Execution file ($TASK_NAME) not found! `$LASTEXITCODE 9998" -ForegroundColor Red
     exit 9998
 }
-Foreach ($line in get-content $TASK_NAME) {
+$taskLines = @(Get-Content $TASK_NAME)
+$expressionBuffer = @()
+for ($taskLineIndex = 0; $taskLineIndex -lt $taskLines.Count; $taskLineIndex++) {
+	$expressionBuffer += [string]$taskLines[$taskLineIndex]
+	$line = $expressionBuffer -join [Environment]::NewLine
+	$tokens = $null
+	$parseErrors = $null
+	# Buffer only incomplete syntax; complete expressions (including invalid ones) flow to normal execution/error handling.
+	[System.Management.Automation.Language.Parser]::ParseInput($line, [ref]$tokens, [ref]$parseErrors) | Out-Null
+	$hasIncompleteInput = @($parseErrors | Where-Object { $_.IncompleteInput }).Count -gt 0
+	if ($hasIncompleteInput -and $taskLineIndex -lt ($taskLines.Count - 1)) {
+		continue
+	}
+	$expressionBuffer = @()
 
     # If the task line is empty, simply log an empty line
     if (-not ($line)) {
@@ -629,11 +642,12 @@ Foreach ($line in get-content $TASK_NAME) {
 
     } else {
 
-        # discard all characters after comment marker
-        $expression=$line.split("#")
-        $expression=$expression[0]
+		# PowerShell's parser handles comments without truncating multiline strings or expressions.
+		$expression = $line
+		$feature = ''
+		$arguments = ''
 
-        # Do not attempt any processing when a line is just a comment
+		# Process each complete expression once, after any required buffering above.
         if ($expression) {
 
 	        # Check for CDAF key words, only if the string is long enough
@@ -746,7 +760,7 @@ Foreach ($line in get-content $TASK_NAME) {
             if ( $feature -ne 'PROPLD' ) {
 
 			    # Do not echo line if it is an echo itself
-			    if (-not (($expression -match 'Write-Host') -or ($expression -match 'echo'))) {
+			    if (-not (($expression -match 'Write-Host') -or ($expression -match 'echo') -or ($expression -match '^\s*#'))) {
 # This leaks secrets, but I have left it should someone need to temporarilty use it for debugging			    
 #			    	$escapeAssign = $expression -replace '^\$', '`$'
 #					$ExecutionContext.InvokeCommand.ExpandString($escapeAssign)

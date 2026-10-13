@@ -5,6 +5,10 @@ echo "CDAF_CORE      = $CDAF_CORE"
 
 echo "Solution Level Build"
 
+for ($count = 0; $count -le 4; $count++) {
+	Write-Host "Loop count: $count"
+}
+
 echo '---' > example.yaml
 echo '  application:' >> example.yaml
 echo '    message: "%literal%"' >> example.yaml

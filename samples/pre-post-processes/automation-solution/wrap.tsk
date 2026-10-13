@@ -4,3 +4,9 @@ echo "AUTOMATIONROOT = $AUTOMATIONROOT"
 echo "CDAF_CORE      = $CDAF_CORE"
 
 echo "Post-package Tasks"
+
+if ($ACTION) {
+	Write-Host "Action: $ACTION"
+} else {
+	Write-Host "No action was supplied."
+}
