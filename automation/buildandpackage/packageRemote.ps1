@@ -101,6 +101,16 @@ if ( (-not (Test-Path $remoteArtifactListFile)) -and  (-not (Test-Path $genericA
 		& $AUTOMATIONROOT\buildandpackage\packageCopyArtefacts.ps1 $genericArtifactList $WORK_DIR_DEFAULT 
 	}
 	
+	$postpackageTasks = "$SOLUTIONROOT\wrap.tsk"
+	# Process optional post-packaging tasks (wrap.tsk extended to remote release 3.1.0)
+	if (Test-Path "$postpackageTasks") {
+		Write-Host "`n[$scriptName] Process Remote Post-Package Tasks ...`n"
+		$returnDir = (Get-Location).Path
+		executeExpression "cd '$WORK_DIR_DEFAULT'"
+		executeExpression "& '$AUTOMATIONROOT\remote\execute.ps1' '$SOLUTION' '$BUILDNUMBER' 'package' '$postpackageTasks' '$ACTION'"
+		executeExpression "cd '$returnDir'"
+	}
+
 	# Zip the working directory to create the artefact Package
 	ZipFiles "$(pwd)\${SOLUTION}-${BUILDNUMBER}.zip" "$(pwd)\$WORK_DIR_DEFAULT"
 }

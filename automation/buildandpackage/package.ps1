@@ -139,7 +139,7 @@ if (Test-Path "$prepackageScript") {
 } else {
 	Write-Host "none ($prepackageScript)"
 }
-
+ 
 $postpackageTasks = "$SOLUTIONROOT\wrap.tsk"
 Write-Host -NoNewLine "[$scriptName]   Postpackage Tasks          : " 
 if (Test-Path "$postpackageTasks") {
@@ -234,10 +234,13 @@ Get-Content manifest.txt
 write-host "`n[$scriptName] Always create local working artefacts, even if all tasks are remote" -ForegroundColor Blue
 executeExpression "& '$AUTOMATIONROOT\buildandpackage\packageLocal.ps1' '$SOLUTION' '$BUILDNUMBER' '$REVISION' '$LOCAL_WORK_DIR' '$SOLUTIONROOT' '$AUTOMATIONROOT'"
 
-# Process optional post-packaging tasks (wrap.tsk added in release 0.8.2)
+# Process optional post-packaging tasks (wrap.tsk added in release 0.8.2, change to local work dir 3.1.0)
 if (Test-Path "$postpackageTasks") {
-	Write-Host "`n[$scriptName] Process Post-Package Tasks ...`n"
+	Write-Host "`n[$scriptName] Process Local Post-Package Tasks ...`n"
+	$returnDir = (Get-Location).Path
+	executeExpression "cd '$LOCAL_WORK_DIR'"
 	executeExpression "& '$AUTOMATIONROOT\remote\execute.ps1' '$SOLUTION' '$BUILDNUMBER' 'package' '$postpackageTasks' '$ACTION'"
+	executeExpression "cd '$returnDir'"
 }
 
 # 1.7.8 Only create the remote package if there is a remote target folder or a artefact definition list, if folder exists

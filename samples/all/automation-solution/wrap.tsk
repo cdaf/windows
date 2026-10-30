@@ -1,0 +1,3 @@
+Write-Host "Execute After Packaging but Prior to self-extracting release creation."
+Write-Host "Local and Remote execution is in respective working directories."
+Write-Host "  pwd : $(pwd)"
