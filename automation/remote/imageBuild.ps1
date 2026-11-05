@@ -102,6 +102,14 @@ if (!( $id )) {
 	$id = $id.ToLower()
 	$SOLUTION = ($id.Split('_'))[0]  # Use solution name for temp directory name
 	Write-Host "[$scriptName]   id                  : $id"
+	if ( $env:CDAF_DOCKER_BUILD_ARGS ) {
+		Write-Host "[$scriptName]   CDAF_DOCKER_BUILD_ARGS : $env:CDAF_DOCKER_BUILD_ARGS"
+		if ( $optionalArgs ) {
+			$optionalArgs += " $env:CDAF_DOCKER_BUILD_ARGS"
+		} else {
+			$optionalArgs = $env:CDAF_DOCKER_BUILD_ARGS
+		}
+	}
 
 	if (!( $buildNumber )) {
 

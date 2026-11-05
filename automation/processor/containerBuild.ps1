@@ -76,6 +76,9 @@ if ( $imageName ) {
 	if ( $env:CDAF_DOCKER_RUN_ARGS ) {
 		Write-Host "[$scriptName]   CDAF_DOCKER_RUN_ARGS : $env:CDAF_DOCKER_RUN_ARGS"
 	}
+	if ( $env:CDAF_DOCKER_BUILD_ARGS ) {
+		Write-Host "[$scriptName]   CDAF_DOCKER_BUILD_ARGS : $env:CDAF_DOCKER_BUILD_ARGS"
+	}
 
 	$buildImage = "${imageName}_$($revision.ToLower())_containerbuild"
 	Write-Host "[$scriptName]   buildImage           : $buildImage"
@@ -126,6 +129,14 @@ if ( $buildImage ) {
 		
 	if ( $rebuildImage -eq 'yes') {
 		$otherOptions = " -rebuild $rebuildImage"
+	}
+
+	if ( $env:CDAF_DOCKER_BUILD_ARGS ) {
+		if ( $buildArgs ) {
+			$buildArgs += " $env:CDAF_DOCKER_BUILD_ARGS"
+		} else {
+			$buildArgs = $env:CDAF_DOCKER_BUILD_ARGS
+		}
 	}
 
 	if ( $buildArgs ) {

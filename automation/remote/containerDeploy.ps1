@@ -127,6 +127,10 @@ if ($imageDir) {
     Write-Host "[$scriptName] imageDir    : $imageDir (not supplied, default set)"
 }
 
+if ( $env:CDAF_DOCKER_BUILD_ARGS ) {
+	Write-Host "[$scriptName] CDAF_DOCKER_BUILD_ARGS : $env:CDAF_DOCKER_BUILD_ARGS"
+}
+
 Write-Host "[$scriptName] pwd         : $CDAF_CORE`n"
 
 # 2.7.1 runtimeFiles support
@@ -206,7 +210,11 @@ Write-Host "`n[$scriptName] Remove any remaining deploy containers from previous
 $id = "${SOLUTION}_${REVISION}_containerdeploy".ToLower()
 executeExpression "& '$CDAF_CORE\dockerRun.ps1' ${id}"
 $env:CDAF_CD_ENVIRONMENT = $ENVIRONMENT
-executeExpression "& '$CDAF_CORE\dockerBuild.ps1' ${id} ${BUILDNUMBER}"
+$dockerBuildOptions = ''
+if ( $env:CDAF_DOCKER_BUILD_ARGS ) {
+	$dockerBuildOptions = "-optionalArgs '$env:CDAF_DOCKER_BUILD_ARGS'"
+}
+executeExpression "& '$CDAF_CORE\dockerBuild.ps1' ${id} ${BUILDNUMBER} $dockerBuildOptions"
 
 Write-Host "[$scriptName] Perform Remote Deployment activity using image ${id}:${BUILDNUMBER}"
 foreach ( $envVar in Get-ChildItem env:) {
