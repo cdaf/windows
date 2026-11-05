@@ -109,6 +109,11 @@ if ($dockerExpose) {
     # Include any optional arguments, e.g. --restart=always
     $dockerCommand += " $dockerOpt"
 
+    if ( $env:CDAF_DOCKER_RUN_ARGS ) {
+        Write-Host "[$scriptName] CDAF_DOCKER_RUN_ARGS : $env:CDAF_DOCKER_RUN_ARGS"
+        $dockerCommand += " $env:CDAF_DOCKER_RUN_ARGS"
+    }
+
     # Apply container labels (additive to the build labels) for filter purposes, only unique ID above is important in run context
     $dockerCommand += " --label 'cdaf.${imageName}.container.instance=$instance' --label 'cdaf.${imageName}.container.environment=$environment'"
 

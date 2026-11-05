@@ -237,6 +237,11 @@ foreach ( $envVar in Get-ChildItem env:) {
 	}
 }
 
+if ( $env:CDAF_DOCKER_RUN_ARGS ) {
+	Write-Host "[$scriptName] CDAF_DOCKER_RUN_ARGS : $env:CDAF_DOCKER_RUN_ARGS"
+	$buildCommand += " $env:CDAF_DOCKER_RUN_ARGS"
+}
+
 if (( ! $env:USERPROFILE ) -or ( $env:CDAF_HOME_MOUNT -eq 'no' )) {
 	Write-Host "[$scriptName] `$CDAF_HOME_MOUNT = ${env:CDAF_HOME_MOUNT} (environment variable)"
 	Write-Host "[$scriptName] `$USERPROFILE     = ${env:USERPROFILE} (environment variable)"
