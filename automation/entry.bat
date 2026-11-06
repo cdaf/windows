@@ -17,10 +17,10 @@ echo [%~nx0] PowerShell Execution Policy ByPass
 rem Launcher script that overides execution policy
 rem cannot elevate powershell
 
-call powershell -NoProfile -NonInteractive -ExecutionPolicy ByPass -command "& '%AUTOMATIONROOT%\entry.ps1'" "'%1'" "'%2'" "'%3'" "'%4'"
+call powershell -NoProfile -NonInteractive -ExecutionPolicy ByPass -command "& '%AUTOMATIONROOT%\entry.ps1' %*"
 set result=%errorlevel%
 if %result% NEQ 0 (
-	echo [%~nx0] DELIVERY_ERROR call powershell -NoProfile -NonInteractive -ExecutionPolicy ByPass -command %AUTOMATIONROOT%\entry.ps1 %1 %2 %3 %4
+	echo [%~nx0] DELIVERY_ERROR call powershell -NoProfile -NonInteractive -ExecutionPolicy ByPass -command %AUTOMATIONROOT%\entry.ps1 %*
 	echo [%~nx0]   Return LASTEXITCODE %result% 
 	exit /b %result%
 )

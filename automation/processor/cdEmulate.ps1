@@ -1,3 +1,9 @@
+param (
+	[Parameter(Position=0)]
+	[string]$ACTION,
+	[switch]$help
+)
+
 Import-Module Microsoft.PowerShell.Utility
 Import-Module Microsoft.PowerShell.Management
 Import-Module Microsoft.PowerShell.Security
@@ -72,7 +78,18 @@ function failureExit ($taskName) {
 
 $scriptName = $MyInvocation.MyCommand.Name
 
-$ACTION = $args[0]
+if ( $help ) {
+	Write-Host "`n[$scriptName] Usage: $scriptName [[-ACTION] <action>] [-help]`n"
+	Write-Host "  -ACTION  Optional, positional (first argument). One of:"
+	Write-Host "             cionly       build and package only"
+	Write-Host "             buildonly    build only"
+	Write-Host "             packageonly  package only"
+	Write-Host "             cdonly       delivery only, build number is not incremented"
+	Write-Host "           When not supplied, CI and CD are both executed."
+	Write-Host "  -help    Display this message and exit.`n"
+	exit 0
+}
+
 if ($AUTOMATIONROOT) {
 	Write-Host "[$scriptName]   ACTION              : $ACTION (options cionly, buildonly, packageonly or cdonly)"
 } else {
