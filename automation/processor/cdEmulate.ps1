@@ -1,6 +1,7 @@
 param (
 	[Parameter(Position=0)]
 	[string]$ACTION,
+	[switch]$skipenv,
 	[switch]$help
 )
 
@@ -79,15 +80,37 @@ function failureExit ($taskName) {
 $scriptName = $MyInvocation.MyCommand.Name
 
 if ( $help ) {
-	Write-Host "`n[$scriptName] Usage: $scriptName [[-ACTION] <action>] [-help]`n"
+	Write-Host "`n[$scriptName] Usage: $scriptName [[-ACTION] <action>] [-skipenv] [-help]`n"
 	Write-Host "  -ACTION  Optional, positional (first argument). One of:"
 	Write-Host "             cionly       build and package only"
 	Write-Host "             buildonly    build only"
 	Write-Host "             packageonly  package only"
 	Write-Host "             cdonly       delivery only, build number is not incremented"
 	Write-Host "           When not supplied, CI and CD are both executed."
+	Write-Host "  -skipenv Do not load environment variables from .env in the solution root."
 	Write-Host "  -help    Display this message and exit.`n"
 	exit 0
+}
+
+# Check for user defined solution folder, i.e. outside of automation root, if found override solution root
+foreach ($item in (Get-ChildItem -Path ".")) {
+	if (Test-Path $item -PathType "Container") {
+		if (Test-Path "$item\CDAF.solution") {
+			$SOLUTIONROOT=$item
+		}
+	}
+}
+if ($SOLUTIONROOT) {
+	$SOLUTIONROOT = (Get-Item $SOLUTIONROOT).FullName
+}
+
+if ( ! $skipenv -and $SOLUTIONROOT -and ( Test-Path "$SOLUTIONROOT\.env" )) {
+	Write-Host "[$scriptName]   Loading environment variables from $SOLUTIONROOT\.env"
+	Get-Content "$SOLUTIONROOT\.env" | ForEach-Object {
+		if ($_ -match '^\s*([^#][^=]*)=(.*)$') {
+			[System.Environment]::SetEnvironmentVariable($matches[1].Trim(), $matches[2].Trim())
+		}
+	}
 }
 
 if ($AUTOMATIONROOT) {
@@ -125,15 +148,7 @@ $CDAF_CORE = "$AUTOMATIONROOT\remote"
 
 # Check for user defined solution folder, i.e. outside of automation root, if found override solution root
 Write-Host "[$scriptName]   SOLUTIONROOT        : " -NoNewline
-foreach ($item in (Get-ChildItem -Path ".")) {
-	if (Test-Path $item -PathType "Container") {
-		if (Test-Path "$item\CDAF.solution") {
-			$SOLUTIONROOT=$item
-		}
-	}
-}
 if ($SOLUTIONROOT) {
-	$SOLUTIONROOT = (Get-Item $SOLUTIONROOT).FullName
 	write-host "$SOLUTIONROOT (found $SOLUTIONROOT\CDAF.solution)"
 } else {
 	ERRMSG "[NO_SOLUTION_ROOT] No directory found containing CDAF.solution, please create a single occurrence of this file." 7710
