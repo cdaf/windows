@@ -1,9 +1,33 @@
 Param (
+	[Parameter(Position=0)]
 	[string]$BUILDNUMBER,
+	[Parameter(Position=1)]
 	[string]$BRANCH,
+	[Parameter(Position=2)]
 	[string]$ACTION,
-	[string]$AUTOMATIONROOT
+	[Parameter(Position=3)]
+	[string]$AUTOMATIONROOT,
+	[switch]$help
 )
+
+$scriptName = 'entry.ps1'
+
+if ( $help ) {
+	Write-Host "`n[$scriptName] Usage: $scriptName [[-BUILDNUMBER] <number>] [[-BRANCH] <branch>] [[-ACTION] <action>] [[-AUTOMATIONROOT] <path>] [-help]`n"
+	Write-Host "  -BUILDNUMBER     Optional, positional (first argument). When not supplied, a local counter file is used."
+	Write-Host "  -BRANCH          Optional, positional (second argument). When not supplied, `$env:CDAF_BRANCH_NAME or the Git workspace branch is used."
+	Write-Host "  -ACTION          Optional, positional (third argument). One of:"
+	Write-Host "                     cionly       build and package only"
+	Write-Host "                     buildonly    build only"
+	Write-Host "                     packageonly  package only"
+	Write-Host "                     cdonly       delivery only"
+	Write-Host "                     clean        clean build workspace"
+	Write-Host "                   When not supplied, CI and CD are both executed."
+	Write-Host "  -AUTOMATIONROOT  Optional, positional (fourth argument). When not supplied, derived from invocation."
+	Write-Host "  Positional arguments fill parameters not supplied by name."
+	Write-Host "  -help            Display this message and exit.`n"
+	exit 0
+}
 
 Import-Module Microsoft.PowerShell.Utility
 Import-Module Microsoft.PowerShell.Management
@@ -11,7 +35,6 @@ Import-Module Microsoft.PowerShell.Security
 
 cmd /c "exit 0"
 $error.clear()
-$scriptName = 'entry.ps1'
 $env:CDAF_DEBUG_LOGGING = "[$(Get-Date)] Debug Logging Started`n"
 
 # Consolidated Error processing function

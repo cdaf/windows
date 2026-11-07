@@ -1,12 +1,42 @@
 Param (
+	[Parameter(Position=0)]
 	[string]$BUILDNUMBER,
+	[Parameter(Position=1)]
+	[Alias('BRANCH')]
 	[string]$REVISION,
+	[Parameter(Position=2)]
 	[string]$ACTION,
+	[Parameter(Position=3)]
 	[string]$SOLUTION,
+	[Parameter(Position=4)]
 	[string]$AUTOMATIONROOT,
+	[Parameter(Position=5)]
 	[string]$LOCAL_WORK_DIR,
-	[string]$REMOTE_WORK_DIR
+	[Parameter(Position=6)]
+	[string]$REMOTE_WORK_DIR,
+	[switch]$help
 )
+
+$scriptName = 'buildPackage.ps1'
+if ( $help ) {
+	Write-Host "`n[$scriptName] Usage: ci.bat [[-BUILDNUMBER] <number>] [[-REVISION] <branch>] [[-ACTION] <action>] [[-SOLUTION] <name>] [[-AUTOMATIONROOT] <path>] [[-LOCAL_WORK_DIR] <dir>] [[-REMOTE_WORK_DIR] <dir>] [-help]`n"
+	Write-Host "  -BUILDNUMBER     Optional, positional (first argument). Defaults to a local counter."
+	Write-Host "  -REVISION        Optional, positional (second argument). Alias: -BRANCH."
+	Write-Host "                   Defaults to `$env:CDAF_BRANCH_NAME or revision."
+	Write-Host "  -ACTION          Optional, positional (third argument). One of:"
+	Write-Host "                     cionly       build and package only"
+	Write-Host "                     buildonly    build only"
+	Write-Host "                     packageonly  package only"
+	Write-Host "                     clean        clean build workspace"
+	Write-Host "                   When not supplied, build and package are both executed."
+	Write-Host "  -SOLUTION        Optional, positional (fourth argument). Defaults to solutionName from CDAF.solution."
+	Write-Host "  -AUTOMATIONROOT  Optional, positional (fifth argument). Defaults to the automation directory."
+	Write-Host "  -LOCAL_WORK_DIR  Optional, positional (sixth argument). Defaults to TasksLocal."
+	Write-Host "  -REMOTE_WORK_DIR Optional, positional (seventh argument). Defaults to TasksRemote."
+	Write-Host "  Positional arguments fill parameters not supplied by name."
+	Write-Host "  -help            Display this message and exit.`n"
+	exit 0
+}
 
 Import-Module Microsoft.PowerShell.Utility
 Import-Module Microsoft.PowerShell.Management
