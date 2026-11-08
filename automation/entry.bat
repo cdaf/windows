@@ -17,10 +17,14 @@ echo [%~nx0] PowerShell Execution Policy ByPass
 rem Launcher script that overides execution policy
 rem cannot elevate powershell
 
-call powershell -NoProfile -NonInteractive -ExecutionPolicy ByPass -command "& '%AUTOMATIONROOT%\entry.ps1' %*"
+rem Convert double quotes to single quotes so arguments containing spaces survive the -command string
+set "CDAF_ARGS=%*"
+if defined CDAF_ARGS set CDAF_ARGS=%CDAF_ARGS:"='%
+
+call powershell -NoProfile -NonInteractive -ExecutionPolicy ByPass -command "& '%AUTOMATIONROOT%\entry.ps1' %CDAF_ARGS%"
 set result=%errorlevel%
 if %result% NEQ 0 (
-	echo [%~nx0] DELIVERY_ERROR call powershell -NoProfile -NonInteractive -ExecutionPolicy ByPass -command %AUTOMATIONROOT%\entry.ps1 %*
+	echo [%~nx0] DELIVERY_ERROR call powershell -NoProfile -NonInteractive -ExecutionPolicy ByPass -command %AUTOMATIONROOT%\entry.ps1 %CDAF_ARGS%
 	echo [%~nx0]   Return LASTEXITCODE %result% 
 	exit /b %result%
 )

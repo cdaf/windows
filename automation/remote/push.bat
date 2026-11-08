@@ -15,12 +15,16 @@ echo [%~nx0]   URL         : %URL%
 rem Launcher script that overides execution policy
 rem cannot elevate powershell
 
-call powershell -NoProfile -NonInteractive -ExecutionPolicy ByPass -command "& '%cd%\%WORK_DIR_DEFAULT%\automation\local\push.ps1' %*"
+rem Convert double quotes to single quotes so arguments containing spaces survive the -command string
+set "CDAF_ARGS=%*"
+if defined CDAF_ARGS set CDAF_ARGS=%CDAF_ARGS:"='%
+
+call powershell -NoProfile -NonInteractive -ExecutionPolicy ByPass -command "& '%cd%\%WORK_DIR_DEFAULT%\automation\local\push.ps1' %CDAF_ARGS%"
 set result=%errorlevel%
 if %result% NEQ 0 (
 	echo.
 	echo [%~nx0] Error %result% returned from ... 
-	echo [%~nx0]   call powershell -NoProfile -NonInteractive -ExecutionPolicy ByPass -command %cd%\%WORK_DIR_DEFAULT%\automation\local\push.ps1 %*
+	echo [%~nx0]   call powershell -NoProfile -NonInteractive -ExecutionPolicy ByPass -command %cd%\%WORK_DIR_DEFAULT%\automation\local\push.ps1 %CDAF_ARGS%
 	echo [%~nx0] Errorlevel = %result%
 	exit /b %result%
 )

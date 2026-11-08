@@ -21,10 +21,14 @@ IF [%WORK_DIR_DEFAULT%] == [] (
 	set workDirLocal=%WORK_DIR_DEFAULT%
 )
 
-call powershell -NoProfile -NonInteractive -ExecutionPolicy ByPass -command "& '%cd%\%workDirLocal%\delivery.ps1' %*"
+rem Convert double quotes to single quotes so arguments containing spaces survive the -command string
+set "CDAF_ARGS=%*"
+if defined CDAF_ARGS set CDAF_ARGS=%CDAF_ARGS:"='%
+
+call powershell -NoProfile -NonInteractive -ExecutionPolicy ByPass -command "& '%cd%\%workDirLocal%\delivery.ps1' %CDAF_ARGS%"
 set result=%errorlevel%
 if %result% NEQ 0 (
-	echo [%~nx0] CDAF_DELIVERY_FAILURE call powershell -NoProfile -NonInteractive -ExecutionPolicy ByPass -command %cd%\%workDirLocal%\delivery.ps1 %*
+	echo [%~nx0] CDAF_DELIVERY_FAILURE call powershell -NoProfile -NonInteractive -ExecutionPolicy ByPass -command %cd%\%workDirLocal%\delivery.ps1 %CDAF_ARGS%
 	echo [%~nx0]   Return LASTEXITCODE %result% 
 	exit /b %result%
 )
