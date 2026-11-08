@@ -1,6 +1,8 @@
 param (
 	[Parameter(Position=0)]
 	[string]$ACTION,
+	[string]$RELEASE,
+	[string]$OPT_ARG,
 	[switch]$skipenv,
 	[switch]$help
 )
@@ -80,13 +82,15 @@ function failureExit ($taskName) {
 $scriptName = $MyInvocation.MyCommand.Name
 
 if ( $help ) {
-	Write-Host "`n[$scriptName] Usage: $scriptName [[-ACTION] <action>] [-skipenv] [-help]`n"
+	Write-Host "`n[$scriptName] Usage: $scriptName [[-ACTION] <action>] [-RELEASE <release>] [-OPT_ARG <optional argument>] [-skipenv] [-help]`n"
 	Write-Host "  -ACTION  Optional, positional (first argument). One of:"
 	Write-Host "             cionly       build and package only"
 	Write-Host "             buildonly    build only"
 	Write-Host "             packageonly  package only"
 	Write-Host "             cdonly       delivery only, build number is not incremented"
-	Write-Host "           When not supplied, CI and CD are both executed."
+	Write-Host "           When not supplied, CI and CD are both executed and the action forwarded to build process."
+	Write-Host "  -RELEASE Optional, forwarded to the delivery process (delivery.bat / release.ps1)."
+	Write-Host "  -OPT_ARG Optional, forwarded to the delivery process (delivery.bat / release.ps1)."
 	Write-Host "  -skipenv Do not load environment variables from .env in the solution root."
 	Write-Host "  -help    Display this message and exit.`n"
 	exit 0
@@ -117,6 +121,18 @@ if ($AUTOMATIONROOT) {
 	Write-Host "[$scriptName]   ACTION              : $ACTION (options cionly, buildonly, packageonly or cdonly)"
 } else {
 	Write-Host "[$scriptName]   ACTION              : (not supplied, options cionly, buildonly, packageonly or cdonly)"
+}
+
+if ( $RELEASE ) {
+	Write-Host "[$scriptName]   RELEASE             : $RELEASE (forwarded to delivery process)"
+} else {
+	Write-Host "[$scriptName]   RELEASE             : (not supplied)"
+}
+
+if ( $OPT_ARG ) {
+	Write-Host "[$scriptName]   OPT_ARG             : $OPT_ARG (forwarded to delivery process)"
+} else {
+	Write-Host "[$scriptName]   OPT_ARG             : (not supplied)"
 }
 
 $counterFile = "$env:USERPROFILE\BUILDNUMBER.counter"
@@ -235,27 +251,32 @@ if ( $ACTION -eq "cdonly" ) { # Case insensitive
 	if(!$?){ failureExit "$ciProcess $BUILDNUMBER $REVISION $ACTION" }
 }
 	
-if ( $ACTION ) {
-	if ( $ACTION -eq "cdonly" ) {
-		write-host "`n[$scriptName] Instruction listing skipped when action ($ACTION) passed"
-		$execCD = 'yes'
-	} else {
-		write-host "`n[$scriptName] No Delivery attempted when action ($ACTION) passed"
-	}
-} else {
-	$execCD = 'yes'
+if (( $ACTION -eq 'cionly' ) -or ( $ACTION -eq 'buildonly' ) -or ( $ACTION -eq 'packageonly' )) {
+	write-host "`n[$scriptName] Halting, no Delivery attempted when action ($ACTION) passed"
+	write-host "`n[$scriptName] ------------------"
+	write-host "[$scriptName] Emulation Complete"
+	write-host "[$scriptName] ------------------`n"
+	$error.clear()
+	exit 0
 }
 
-if ( $execCD -eq 'yes' ) {
-	& "$cdProcess" "$CDAF_DELIVERY"
-	if($LASTEXITCODE -ne 0){
-	    write-host "[$scriptName] CD_NON_ZERO_EXIT $cdProcess $CDAF_DELIVERY" -ForegroundColor Magenta
-	    write-host "[$scriptName]   `$host.SetShouldExit($LASTEXITCODE)" -ForegroundColor Red
-	    $host.SetShouldExit($LASTEXITCODE) # Returning exit code to DOS
-	    exit
-	}
-	if(!$?){ failureExit "$cdProcess $CDAF_DELIVERY" }
+# Build delivery arguments positionally, never passing an empty middle argument because
+# PowerShell drops empty strings when invoking native commands, which would shift OPT_ARG
+$cdArgs = @("$CDAF_DELIVERY")
+if ( $OPT_ARG -and ( ! $RELEASE )) {
+	$RELEASE = 'Release' # delivery.ps1 default, used as placeholder to keep OPT_ARG in position
 }
+if ( $RELEASE ) { $cdArgs += "$RELEASE" }
+if ( $OPT_ARG ) { $cdArgs += "$OPT_ARG" }
+
+& "$cdProcess" @cdArgs
+if($LASTEXITCODE -ne 0){
+    write-host "[$scriptName] CD_NON_ZERO_EXIT $cdProcess $cdArgs" -ForegroundColor Magenta
+    write-host "[$scriptName]   `$host.SetShouldExit($LASTEXITCODE)" -ForegroundColor Red
+    $host.SetShouldExit($LASTEXITCODE) # Returning exit code to DOS
+    exit
+}
+if(!$?){ failureExit "$cdProcess $cdArgs" }
 
 write-host "`n[$scriptName] ------------------"
 write-host "[$scriptName] Emulation Complete"
