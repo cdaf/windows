@@ -175,7 +175,7 @@ if ( $ENVIRONMENT ) {
 
 if ( $RELEASE ) {
 	Write-Host "[$scriptName]   RELEASE          : $RELEASE"
-	$RELEASE = Invoke-Expression "Write-Output $RELEASE"
+	$RELEASE = (Invoke-Expression "Write-Output $RELEASE") -join ' ' # Write-Output splits on spaces, join to keep a single string
 } else {
 	$RELEASE = 'Release'
 	Write-Host "[$scriptName]   RELEASE          : $RELEASE (default)"
@@ -184,7 +184,7 @@ $env:CDAF_CD_RELEASE = $RELEASE
 
 if ( $OPT_ARG ) {
 	Write-Host "[$scriptName]   OPT_ARG          : $OPT_ARG"
-	$OPT_ARG = Invoke-Expression "Write-Output $OPT_ARG"
+	$OPT_ARG = (Invoke-Expression "Write-Output $OPT_ARG") -join ' ' # Write-Output splits on spaces, join to keep a single string
 	$env:CDAF_CD_OPT_ARG = $OPT_ARG
 } else {
 	Write-Host "[$scriptName]   OPT_ARG          : (not supplied)"

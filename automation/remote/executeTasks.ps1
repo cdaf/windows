@@ -108,7 +108,7 @@ if ( $TARGET ) {
 }
 
 if ( $RELEASE ) {
-	$RELEASE = Invoke-Expression "Write-Output $RELEASE"
+	$RELEASE = (Invoke-Expression "Write-Output $RELEASE") -join ' ' # Write-Output splits on spaces, join to keep a single string
     write-host "[$scriptName]   RELEASE   : $RELEASE"
 } else {
 	if ( $env:RELEASE ) {
@@ -120,7 +120,7 @@ if ( $RELEASE ) {
 }
 
 if ( $OPT_ARG ) {
-	$OPT_ARG = Invoke-Expression "Write-Output $OPT_ARG"
+	$OPT_ARG = (Invoke-Expression "Write-Output $OPT_ARG") -join ' ' # Write-Output splits on spaces, join to keep a single string
     write-host "[$scriptName]   OPT_ARG   : $OPT_ARG"
 } else {
 	if ( $env:OPT_ARG ) {

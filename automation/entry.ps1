@@ -292,7 +292,7 @@ if ( $BRANCH ) {
 
 if ( $ACTION ) {
 	if ( $ACTION.contains('$')) {
-		$ACTION = Invoke-Expression "Write-Output $ACTION"
+		$ACTION = (Invoke-Expression "Write-Output $ACTION") -join ' ' # Write-Output splits on spaces, join to keep a single string
 	}
     Write-Host "[$scriptName]   ACTION         : $ACTION"
 } else {
